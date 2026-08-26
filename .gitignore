@@ -1,0 +1,4 @@
+# .gitignore - 로컬 학습 데이터와 Hugging Face 캐시 제외
+/data/nemotron_saju/.cache/
+/data/nemotron_saju/README.md
+/data/nemotron_saju/data/
