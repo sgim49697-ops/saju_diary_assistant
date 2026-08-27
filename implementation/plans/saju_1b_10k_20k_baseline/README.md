@@ -199,3 +199,8 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
   - 변경 범위: 감사 정책·교정 manifest·append-only 판정 revision·과거 v1.0 검증기, 공개 감사 보고서와 `reports/.../audit-review/.../reviewer-v1.0.0` 화면을 추가했다. 원본·unified·평가셋·학습 데이터는 변경하거나 생성하지 않았다.
   - 검증: Ruff, Python compile, 단위 테스트 20건, Node JavaScript 구문 검사, Phase 1 원본 재해시, v1.1 audit `verify`, v1.0 historical verify, 실제 loopback HTTP/API와 Chromium 1600×1000 렌더링을 통과했다. v1.1은 관측 코드 2건을 모두 해소해 blocking finding 0건이며 큐 review ID 301개는 v1.0과 동일하다.
   - 남은 이슈·후속 작업: 사용자 판정은 필수 0/150, 참조 0/151이고 build는 미봉인·미승인이다. 필수 판정을 모두 완료·해결한 뒤 별도 지시에 따라 seal과 명시 승인을 수행하며, 그 전에는 Phase 2B를 시작하지 않는다.
+- 2026-08-27
+  - 작업 요약: 동일 AI Hub 승인 범위 팀원용으로 핵심 150단위만 담은 오프라인 HTML 검수 ZIP과 advisory 피드백 검증 흐름을 추가했다.
+  - 변경 범위: 원천별 최소 투영·식별자 제거, checkpoint/final JSON·CSV, ZIP manifest·SHA-256·권한 검증을 구현하고 저장소 밖에 현재 build 공유본을 생성했다. 참조 151단위와 본 판정 ledger는 공유하거나 변경하지 않았다.
+  - 검증: 신규 테스트 7건과 전체 38건, 변경 파일 Ruff·compile·Node 검사, 실제 audit/raw verify, ZIP 150단위·180레코드 및 sidecar 검증, Chrome 오프라인 렌더링과 대화 턴 순서를 통과했다.
+  - 남은 이슈·후속 작업: 팀원 의견은 본 판정에 자동 합치지 않는다. 원 담당자 검토가 여전히 필수 0/150이므로 Phase 2A는 미봉인·미승인이고 Phase 2B는 시작하지 않는다.

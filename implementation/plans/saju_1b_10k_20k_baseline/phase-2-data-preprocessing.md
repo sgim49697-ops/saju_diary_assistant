@@ -5,7 +5,7 @@
 | 실행 상태 | 부분 진행 |
 | 선행 Phase | Phase 1 완료 |
 | 입력 | source bundle `v1.0.0/build-b3890c552e38`, 고정 원본, source inventory, license manifest |
-| 현재 출력 | Phase 2A `v1.1.0/build-e162d9b2b7dc` 감사 보고서·비공개 검토 큐·`reviewer-v1.0.0` |
+| 현재 출력 | Phase 2A `v1.1.0/build-e162d9b2b7dc` 감사 보고서·비공개 검토 큐·`reviewer-v1.0.0`·팀원용 핵심 150 검수 ZIP |
 | 예정 출력 | 승인된 audit build를 부모로 한 versioned unified, holdout/core eval, 후보 순서 |
 | 완료 Gate | 사용자 필수 150건 검토·명시 승인 후 스키마·누수·중복·후보 여유분 검사 통과 |
 | 웹 확인일 | 2026-08-27 |
@@ -39,6 +39,28 @@ source build는 네 원천 manifest hash, audit build는 source build·감사 �
 HTML 파일을 직접 열지 않고 위 loopback 서버로 접속한다. 화면은 핵심 150건, 참조 151건, 전체 301건 탭과 source/status 필터를 제공한다. 판정은 저장 즉시 비공개 `decisions.jsonl`에 append하고, 수정 판정은 이전 `decision_id`를 가리키는 새 revision으로 남긴다. 브라우저 bootstrap에는 locator가 없고 원문은 선택한 항목 API에서만 읽는다. 서버는 `127.0.0.1`에만 bind하며 Host·Origin·CSRF, CSP, no-store, 16KiB 본문 제한을 강제한다.
 
 `finalize`는 필수 150건 완료와 `uncertain`·`skip` 해소 전에는 실패한다. `approve`는 seal, 차단 이슈 해소, 사용자의 별도 승인 지시와 `--confirm-user-approval`가 모두 있어야 한다. 현재는 필수 0/150·참조 0/151이며 approval과 seal을 만들지 않았다. 참조 큐 판정은 선택 사항이지만 화면에서 함께 확인할 수 있다.
+
+### 팀원용 핵심 150 advisory 검수본
+
+사용자가 팀원이 동일 AI Hub 승인 범위에 있음을 확인한 경우에만 `phase2_export_team_review.py`로 저장소 밖의 오프라인 공유본을 만든다. 공유본에는 required 큐 150단위·180레코드만 원천별 whitelist로 최소 투영한다. AI Hub 원천 ID, Nemotron UUID·생년 좌표, `bazi-sft` ID·`birth_input`, 모든 locator·비공개 판정 원장·개인 메모는 제외한다. YEJI correction 대상은 원본과 적용값을 함께 보여준다.
+
+```bash
+.venv-data/bin/python scripts/data/phase2_export_team_review.py build \
+  --audit-version v1.1.0 \
+  --build build-e162d9b2b7dc \
+  --confirm-aihub-authorized-reviewer
+
+.venv-data/bin/python scripts/data/phase2_export_team_review.py verify \
+  --archive ../saju-review-share-v1.1.0-build-e162d9b2b7dc-core150.zip
+
+.venv-data/bin/python scripts/data/phase2_export_team_review.py verify-feedback \
+  --archive ../saju-review-share-v1.1.0-build-e162d9b2b7dc-core150.zip \
+  --feedback /승인된/내부/경로/team-review-build-e162d9b2b7dc-final.json
+```
+
+생성기는 동일 승인 범위 확인 flag, 저장소 밖 `.zip` 경로, 기존 파일 무덮어쓰기, 내부 파일 0600 권한, 고정 파일 목록·수량·projection fingerprint·SHA-256을 강제한다. ZIP은 사용자 선택에 따라 암호화하지 않았으므로 승인된 내부 채널로만 전달한다. 팀원은 압축을 모두 푼 뒤 `START_HERE.html`에서 검수하고 checkpoint/final JSON과 편의용 CSV만 반환한다. 의견은 `advisory_team_review`로 묶이며 `verify-feedback` 통과 후에도 본 판정 ledger로 자동 변환하거나 합치지 않는다. 원 담당자가 해당 `review_id`의 원문과 의견을 다시 확인해 기존 loopback 검수기에서 최종 판정한다.
+
+생성된 현재 공유본은 `/home/user/projects/saju-review-share-v1.1.0-build-e162d9b2b7dc-core150.zip`이며 package ID는 `team-review-eb2868568e32`, ZIP SHA-256은 `3c9d665b89b1543f4aad1085753739b841ed759ac78ea0079aea819fb56f7d20`이다. ZIP과 sidecar는 Git 추적 대상이 아니다. 다음 audit version/build에서는 파일명에도 두 식별자를 포함해 별도 생성하고 기존 공유본을 덮어쓰지 않는다.
 
 ### Phase 2A 전체 스캔 결과
 
@@ -309,6 +331,7 @@ data/reports/saju_1b_baseline/preprocessing/v1.0.0/build-<derived-hash>/filter_a
 | 2026-08-27 | TRL conversational format | `messages` 역할·내용 구조와 assistant mask 연계 확인 |
 | 2026-08-27 | [chxb/shensha 고정 revision](https://github.com/chxb/shensha/blob/5b90110e55feb92303ef7853ecacdb6f9ed59eac/shensha.js)·[삼명통회 대조](https://www.tianjihq.com/zh-CN/learn/glossary/bazi-ss-xuetang) | `词馆` 金 정사관의 `壬申` 근거를 교차 확인하고 exact overlay 범위를 고정 |
 | 2026-08-27 | [Python 3.10 `http.server`](https://docs.python.org/3.10/library/http.server.html)·[OWASP CSRF 방어](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html) | 외부 공개 서버가 아닌 loopback 전용 검수기로 제한하고 Host·Origin·CSRF token·no-store를 적용 |
+| 2026-08-27 | [AI Hub 데이터 이용정책](https://aihub.or.kr/intrcn/guid/usagepolicy.do) | 미승인 법인·단체·개인에 대한 열람·제공 금지를 재확인하고, 사용자가 동일 승인 범위라고 확인한 팀원에게만 최소 투영본을 내부 전달하도록 제한 |
 
 ## 진행 기록
 
@@ -322,3 +345,8 @@ data/reports/saju_1b_baseline/preprocessing/v1.0.0/build-<derived-hash>/filter_a
   - 변경 범위: `v1.1.0/build-e162d9b2b7dc` 비공개 큐·공개 보고서, correction/policy/registry, append-only revision API, 버전별 `audit-review` 정적 자산을 추가했다. Phase 2B adapter와 파생 데이터는 만들지 않았다.
   - 검증: 관련 단위 테스트 20건, Ruff·compile·Node 구문 검사, Phase 1 원본 재검증, v1.1 전체 audit verify와 v1.0 당시 Git 코드 기반 historical verify, API 보안 헤더·locator 비노출, Chromium 화면 검증을 통과했다. 관측 finding 2건은 모두 해소됐고 blocking finding은 0건이다.
   - 남은 이슈·후속 작업: 필수 검수 0/150과 선택 참조 검수 0/151이 남았다. 사용자 검토가 끝난 뒤에만 finalize하고, 별도 명시 승인을 받은 뒤 registry 승인 포인터를 설정한다.
+- 2026-08-27
+  - 작업 요약: 동일 AI Hub 승인 범위 팀원의 독립 의견을 받을 수 있도록 핵심 150단위 전용 오프라인 HTML 공유 ZIP과 반환 JSON 검증기를 구현했다.
+  - 변경 범위: 원천별 최소 투영, 식별자·locator 차단, YEJI 교정 전후 표시, checkpoint/final JSON·CSV 내보내기, ZIP 내부 manifest·SHA-256·0600 권한과 저장소 밖 생성 계약을 추가했다. 참조 151단위와 본 판정 ledger는 포함하거나 수정하지 않았다.
+  - 검증: 신규 회귀 테스트 7건과 전체 38건, 변경 파일 Ruff·Python compile·Node 구문 검사, 실제 v1.1 원본 재검증과 150단위·180레코드 archive verify, sidecar SHA-256, Windows Chrome 1600×1000 오프라인 렌더링과 AI Hub 대화 턴 순서를 확인했다.
+  - 남은 이슈·후속 작업: 공유본은 암호화되지 않은 통제 데이터이므로 승인된 내부 채널에서만 전달·회수·삭제한다. 팀원 JSON은 advisory 의견으로만 받고 원 담당자가 본 검수기에서 판정을 확정해야 하며, 현재 Gate 상태는 필수 0/150·참조 0/151·미봉인·미승인 그대로다.
