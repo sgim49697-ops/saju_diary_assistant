@@ -160,6 +160,7 @@ class InventoryStructureTests(unittest.TestCase):
         ]
         result = json_document_inventory(document)
         self.assertEqual(result["records_with_two_or_more_turn_pairs"], 1)
+        self.assertEqual(result["turn_pair_count_distribution"], {"2": 1})
         self.assertEqual(len(result["_eligible_group_hashes"]), 1)
         rendered = json.dumps(result, ensure_ascii=False, default=list)
         self.assertNotIn(raw_identifier, rendered)

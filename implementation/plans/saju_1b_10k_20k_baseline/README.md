@@ -28,7 +28,7 @@
 | Phase | 문서 | 실행 상태 | 핵심 Gate |
 |---:|---|---|---|
 | 0 | [거버넌스·실험 계약](phase-0-governance.md) | 완료 | 라이선스·범위·재현성 승인 |
-| 1 | [데이터 수집](phase-1-data-collection.md) | 차단 | AI Hub #86 이용 신청·승인 후 원본 구조 Gate 통과 |
+| 1 | [데이터 수집](phase-1-data-collection.md) | 완료 | 네 원천의 revision·해시·이용조건과 #86 구조 Gate 통과 |
 | 2 | [데이터 전처리](phase-2-data-preprocessing.md) | 미시작 | split·누수·혼합·토큰 감사 통과 |
 | 3 | [학습 모델·환경 준비](phase-3-model-preparation.md) | 미시작 | 고정 환경에서 모델·template 로드 성공 |
 | 4 | [학습 전 데이터·모델 검증](phase-4-preflight-validation.md) | 미시작 | 데이터 Gate와 200-step smoke 모두 통과 |
@@ -172,3 +172,8 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
   - 변경 범위: 계약·라이선스·원천 설정, `uv` 데이터 환경 요구사항, 안전한 HF/AI Hub 수집 CLI, archive 방어와 단위 테스트, 집계 보고서를 추가했다. Nemotron 두 shard는 해시 확인 후 Git 제외 raw 경로로 이동했고 `bazi-sft`와 YEJI 허용 파일을 고정 revision에서 수집했다. Phase 2 전처리와 모델 다운로드·학습은 시작하지 않았다.
   - 검증: 단위 테스트 11건, Python compile, 혼합 합계 1,000/10,000/20,000, #271 활성화 거부, AI Hub 키 파일 권한·비노출·외부 redirect 전달 차단, tar/zip path traversal·link 거부, 공개 원천 manifest 재해시를 통과했다. inventory에서 Nemotron 116,666행·UUID/행 중복 0건, `bazi-sft` 100,000행·행 중복 0건·25,000 synthetic group, YEJI 51개 규칙과 고정 SHA-256을 확인했다.
   - 남은 이슈·후속 작업: AI Hub #86은 사용자의 데이터 이용 신청·승인과 실제 파일 수집이 남아 Phase 1을 `차단`으로 유지한다. 승인 후 네 file key를 수집해 멀티턴 적격 group 1,200개 이상 여부를 확인하며, 실패 시 혼합비를 재배분하지 않는다.
+- 2026-08-27
+  - 작업 요약: 사용자의 AI Hub #86 이용 승인을 확인하고 고정 file key 4개를 공식 API v0.6 계약으로 수집했다. tar·zip 안전 검사, 원본·part·병합본 manifest, 라벨 JSON 구조와 split 간 group 감사를 완료해 Phase 1을 `완료`로 판정했다.
+  - 변경 범위: Git 제외 raw 경로에 AI Hub 원본을 추가하고, 공개 가능한 다운로드 해시 명세·집계 inventory·승인 메타데이터·Phase 2 누수 방지 계약만 갱신했다. 원문 샘플은 보고서와 Git에 포함하지 않았다.
+  - 검증: file key `66046`~`66049`의 archive 21,350,912 bytes와 SHA-256, manifest 12파일 재해시, JSON 58,268건 파싱 실패 0건, 멀티턴 고유 group 51,886개를 확인했다. 최소 1,200-group Gate와 활성 원천 4개 전체 `verify`를 통과했다.
+  - 남은 이슈·후속 작업: upstream train/validation의 group ID 교집합 6,379개와 exact record 교집합 0개를 확인했다. Phase 2에서는 upstream split을 출처 메타로만 쓰고 전체 `talk.id.talk-id`를 group-first로 다시 분리해야 한다.

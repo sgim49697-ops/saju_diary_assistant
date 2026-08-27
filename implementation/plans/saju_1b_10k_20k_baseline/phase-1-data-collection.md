@@ -2,7 +2,7 @@
 
 | 항목 | 값 |
 |---|---|
-| 실행 상태 | 차단 |
+| 실행 상태 | 완료 |
 | 선행 Phase | Phase 0 완료 |
 | 입력 | 승인된 실험 계약, 데이터 접근 권한, 저장 공간 |
 | 출력 | `data/raw/`, `source_inventory.json`, `license_manifest.json` |
@@ -19,7 +19,7 @@ README의 수량을 신뢰해 바로 전처리하지 않고, 실제 원본 파�
 |---|---|---|---|---|
 | `nemotron_saju` | `rayraykim/Nemotron-Personas-Korea-Saju` | `ffb934248746a2dea64ef771c0d86e1743d25702` | CC BY 4.0 | v6·v7 각 1 shard 이동·해시 검증 완료 |
 | `bazi_sft` | `AmareshHebbar/bazi-sft` | `fad87063b317612e4164dfb0e0e08572c3831df4` | Apache 2.0 | allowlist 6파일·100,000행 수집 완료 |
-| `aihub_empathy` | AI Hub `dataSetSn=86` | file key `66046`~`66049` | AI Hub 이용정책 | 사용자의 이용 신청·승인 대기 |
+| `aihub_empathy` | AI Hub `dataSetSn=86` | file key `66046`~`66049` | AI Hub 이용정책 | 승인·수집·해시·구조 Gate 완료 |
 | `yeji_bazi_rules` | `tellang/yeji-bazi-rules` | `84583ca54e8fce257d3d5efd015bca1263a1cfe9` | MIT + 원천 MIT | 허용 2파일·원천 3파일 수집 완료 |
 
 고정 SHA는 2026-08-27 확인값이다. 실제 수집 시작 시 main SHA가 바뀌어도 자동으로 새 SHA를 택하지 않는다. 변경 내용을 검토해 정본 버전을 올린 뒤에만 교체한다.
@@ -36,6 +36,8 @@ README의 수량을 신뢰해 바로 전처리하지 않고, 실제 원본 파�
 두 파일은 분석용 부분 확보분이다. 전체 1M 모집단으로 오인하지 않으며, 수집 완료 여부와 학습 후보 수량은 별개로 관리한다.
 
 `bazi-sft`는 고정 revision의 6파일 102,913,919 bytes와 100,000행을 수집했다. 원천 전체 exact row hash 중복은 0건이며, `synthetic_id` 25,000개가 각 4개 question type으로 구성돼 전체 ID 중복 수가 75,000건인 정상 구조임을 확인했다. 필수 컬럼 null은 0건이다. YEJI는 allowlist의 5파일 85,828 bytes만 수집했고 `shensha_51.json`의 고정 bytes·SHA-256이 일치했다. 상세 집계는 `data/reports/source_inventory.json`을 따른다.
+
+AI Hub #86은 승인 계정에서 file key 4개를 수집했다. 원본 tar 합계는 21,350,912 bytes이고, tar·part·병합 zip 총 12파일을 SHA-256 manifest로 고정했다. 라벨 JSON 58,268건은 모두 파싱됐고 2개 이상 완전한 발화·응답 pair를 가졌다. 고유 `talk.id.talk-id` 51,886개로 최소 1,200-group Gate를 통과했다. upstream train/validation group 교집합은 6,379개지만 exact record 교집합은 0개다. Phase 2는 upstream split을 provenance로만 보존하고 전체 group을 다시 분리한다.
 
 ## 저장 규칙
 
@@ -173,15 +175,15 @@ BLOCKED: AI Hub 데이터 #86의 승인과 비어 있지 않은 AIHUB_APIKEY가 
 
 ## 완료 Gate
 
-- [ ] 네 활성 원천이 모두 고정 revision/release 아래에 있다.
-- [ ] #86 원천에서 단일턴·멀티턴 두 파생 축 계약에 필요한 구조가 확인됐다.
-- [ ] 모든 파일의 bytes와 SHA-256이 manifest에 있다.
+- [x] 네 활성 원천이 모두 고정 revision/release 아래에 있다.
+- [x] #86 원천에서 단일턴·멀티턴 두 파생 축 계약에 필요한 구조가 확인됐다.
+- [x] 모든 파일의 bytes와 SHA-256이 manifest에 있다.
 - [x] `bazi-sft` 원본 응답은 직접 학습 후보가 아니며 파생 Gate를 명시했다.
 - [x] YEJI Rules는 단일 허용 파일과 MIT 원천 코드만 수집했다.
 - [x] 제외·참고 전용 소스를 활성 수집기가 읽지 못하게 했다.
-- [ ] AI Hub 승인과 비공개 저장 위치를 확인했다.
+- [x] AI Hub 승인과 비공개 저장 위치를 확인했다.
 - [x] 라이선스 manifest와 attribution 문구 초안을 작성했다.
-- [x] 확보된 공개 원천 inventory가 README 주장과 실제 파일 수치를 분리해 기록한다.
+- [x] 전체 원천 inventory가 README 주장과 실제 파일 수치를 분리해 기록한다.
 
 Gate 실패 시 Phase 2 adapter 구현을 시작하지 않는다.
 
@@ -206,3 +208,4 @@ Gate 실패 시 Phase 2 adapter 구현을 시작하지 않는다.
 | 2026-08-27 | `bazi-sft` 카드·샘플 | Apache 2.0, 합성·자체 규칙, 계산 검증 한계와 4개 question type 확인 |
 | 2026-08-27 | YEJI Rules·원천 GitHub | 신살 JSON의 MIT 계보와 고전 파생 파일의 무라이선스 원천 확인 |
 | 2026-08-27 | AI Hub 공식 Shell v0.6 | `AIHUB_APIKEY` 환경값, `/down/0.6/{dataset}.do?fileSn=...` 요청 형식과 tar·분할 zip 병합 방식을 확인하고 안전 추출기로 대체 구현 |
+| 2026-08-27 | AI Hub #86 승인 수집·실파일 구조 | 네 file key의 tar·part·zip과 58,268 label record를 확인하고 51,886 고유 group으로 멀티턴 Gate 통과 |

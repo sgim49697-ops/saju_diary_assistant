@@ -15,19 +15,211 @@
     "schema_version": "1.0.0",
     "status": "ok"
   },
-  "generated_at": "2026-08-27T04:54:19+00:00",
-  "phase1_gate_status": "blocked_missing_aihub_86",
+  "generated_at": "2026-08-27T05:08:08+00:00",
+  "phase1_gate_status": "passed",
   "schema_version": "1.0.0",
   "sources": [
     {
-      "file_count": 0,
+      "access_approved_at": "2026-08-27",
+      "access_scope": "approved_account_private",
+      "aggregate_rows": 58268,
+      "aihub_cross_split_group_overlap_count": 6379,
+      "aihub_exact_record_cross_split_overlap_count": 0,
+      "aihub_multiturn_structural_group_count": 51886,
+      "aihub_multiturn_structural_group_counts_by_split": {
+        "train": 51625,
+        "unknown": 0,
+        "validation": 6640
+      },
+      "file_count": 12,
+      "files": [
+        {
+          "bytes": 10755584,
+          "path": "archives/filekey-66046.tar",
+          "sha256": "bf814d56cc6ea7fe92afd1eeba395271b36067257cb9ba37341539bdb92bf906"
+        },
+        {
+          "bytes": 8307200,
+          "path": "archives/filekey-66047.tar",
+          "sha256": "61c0aa71182a2c60b8876d5f99da187ca2522ee3ad96264534bd45590b512dda"
+        },
+        {
+          "bytes": 995840,
+          "path": "archives/filekey-66048.tar",
+          "sha256": "ca8b4f899ad24fc556d779078190ecf2d7f44b3e668853777efbb8fa84a0fa6b"
+        },
+        {
+          "bytes": 1292288,
+          "path": "archives/filekey-66049.tar",
+          "sha256": "a339140ff6a5b95f540f2752ecf6a52a9142306fdc3f7a34e05652610aad7c92"
+        },
+        {
+          "bytes": 10752697,
+          "path": "extracted/filekey-66046/018.감성대화/Training_221115_add/원천데이터/감성대화말뭉치(최종데이터)_Training.zip",
+          "sha256": "8f527059729af164116fb83f015d923e42786d4b327317a066efdbdcfc2b357d"
+        },
+        {
+          "bytes": 10752697,
+          "path": "extracted/filekey-66046/018.감성대화/Training_221115_add/원천데이터/감성대화말뭉치(최종데이터)_Training.zip.part0",
+          "sha256": "8f527059729af164116fb83f015d923e42786d4b327317a066efdbdcfc2b357d"
+        },
+        {
+          "bytes": 8304478,
+          "path": "extracted/filekey-66047/018.감성대화/Training_221115_add/라벨링데이터/감성대화말뭉치(최종데이터)_Training.zip",
+          "sha256": "38d9ec9de83e67ec8a736e2030b86c73ee36831a3e1fcddd94c350217eedc682"
+        },
+        {
+          "bytes": 8304478,
+          "path": "extracted/filekey-66047/018.감성대화/Training_221115_add/라벨링데이터/감성대화말뭉치(최종데이터)_Training.zip.part0",
+          "sha256": "38d9ec9de83e67ec8a736e2030b86c73ee36831a3e1fcddd94c350217eedc682"
+        },
+        {
+          "bytes": 992994,
+          "path": "extracted/filekey-66048/018.감성대화/Validation_221115_add/라벨링데이터/감성대화말뭉치(최종데이터)_Validation.zip",
+          "sha256": "e02f0d7e6325ceb697ecfe7f8260c0a17c8ded157188e769abdf496e2586a2e5"
+        },
+        {
+          "bytes": 992994,
+          "path": "extracted/filekey-66048/018.감성대화/Validation_221115_add/라벨링데이터/감성대화말뭉치(최종데이터)_Validation.zip.part0",
+          "sha256": "e02f0d7e6325ceb697ecfe7f8260c0a17c8ded157188e769abdf496e2586a2e5"
+        },
+        {
+          "bytes": 1289568,
+          "path": "extracted/filekey-66049/018.감성대화/Validation_221115_add/원천데이터/감성대화말뭉치(최종데이터)_Validation.zip",
+          "sha256": "43065a87bd4961cd2752f2f3663a92ee6cc8a69bd80730752bb22d1fc4700163"
+        },
+        {
+          "bytes": 1289568,
+          "path": "extracted/filekey-66049/018.감성대화/Validation_221115_add/원천데이터/감성대화말뭉치(최종데이터)_Validation.zip.part0",
+          "sha256": "43065a87bd4961cd2752f2f3663a92ee6cc8a69bd80730752bb22d1fc4700163"
+        }
+      ],
+      "license_expression": "AIHUB-GENERAL-POLICY",
+      "parquet": [],
+      "parquet_aggregate": null,
+      "parse_failure_count": 0,
+      "retrieved_at": "2026-08-27T04:58:58+00:00",
+      "revision": "dataset-86-filekeys-66046-66049",
       "source": "aihub_empathy",
-      "status": "missing",
-      "total_bytes": 0
+      "standalone_json": [],
+      "status": "collected",
+      "total_bytes": 64030386,
+      "usage_class": "conditional_train_allow",
+      "zip_json": [
+        {
+          "json_member_count": 0,
+          "json_parse_failure_count": 0,
+          "json_parse_success_count": 0,
+          "path": "extracted/filekey-66046/018.감성대화/Training_221115_add/원천데이터/감성대화말뭉치(최종데이터)_Training.zip",
+          "record_count": 0,
+          "records_with_group_id": 0,
+          "records_with_two_or_more_turn_pairs": 0,
+          "repeated_field_names": [],
+          "split": "train",
+          "split_json_member_counts": {},
+          "turn_pair_count_distribution": {}
+        },
+        {
+          "json_member_count": 1,
+          "json_parse_failure_count": 0,
+          "json_parse_success_count": 1,
+          "path": "extracted/filekey-66047/018.감성대화/Training_221115_add/라벨링데이터/감성대화말뭉치(최종데이터)_Training.zip",
+          "record_count": 51628,
+          "records_with_group_id": 51628,
+          "records_with_two_or_more_turn_pairs": 51628,
+          "repeated_field_names": [
+            "HS01",
+            "HS02",
+            "HS03",
+            "SS01",
+            "SS02",
+            "SS03",
+            "computer",
+            "content",
+            "emotion",
+            "emotion-id",
+            "human",
+            "id",
+            "persona",
+            "persona-id",
+            "profile",
+            "profile-id",
+            "situation",
+            "talk",
+            "talk-id",
+            "type"
+          ],
+          "split": "train",
+          "split_json_member_counts": {
+            "train": 1
+          },
+          "turn_pair_count_distribution": {
+            "2": 8936,
+            "3": 42692
+          }
+        },
+        {
+          "json_member_count": 1,
+          "json_parse_failure_count": 0,
+          "json_parse_success_count": 1,
+          "path": "extracted/filekey-66048/018.감성대화/Validation_221115_add/라벨링데이터/감성대화말뭉치(최종데이터)_Validation.zip",
+          "record_count": 6640,
+          "records_with_group_id": 6640,
+          "records_with_two_or_more_turn_pairs": 6640,
+          "repeated_field_names": [
+            "HS01",
+            "HS02",
+            "HS03",
+            "SS01",
+            "SS02",
+            "SS03",
+            "computer",
+            "content",
+            "emotion",
+            "emotion-id",
+            "human",
+            "id",
+            "persona",
+            "persona-id",
+            "profile",
+            "profile-id",
+            "situation",
+            "talk",
+            "talk-id",
+            "type"
+          ],
+          "split": "validation",
+          "split_json_member_counts": {
+            "validation": 1
+          },
+          "turn_pair_count_distribution": {
+            "2": 1955,
+            "3": 4685
+          }
+        },
+        {
+          "json_member_count": 0,
+          "json_parse_failure_count": 0,
+          "json_parse_success_count": 0,
+          "path": "extracted/filekey-66049/018.감성대화/Validation_221115_add/원천데이터/감성대화말뭉치(최종데이터)_Validation.zip",
+          "record_count": 0,
+          "records_with_group_id": 0,
+          "records_with_two_or_more_turn_pairs": 0,
+          "repeated_field_names": [],
+          "split": "validation",
+          "split_json_member_counts": {},
+          "turn_pair_count_distribution": {}
+        }
+      ]
     },
     {
+      "access_approved_at": null,
+      "access_scope": "public",
       "aggregate_rows": 100000,
+      "aihub_cross_split_group_overlap_count": null,
+      "aihub_exact_record_cross_split_overlap_count": null,
       "aihub_multiturn_structural_group_count": null,
+      "aihub_multiturn_structural_group_counts_by_split": null,
       "file_count": 6,
       "files": [
         {
@@ -417,6 +609,7 @@
         "unified_schema_sha256": "d4622e99e4642eb901e1f1813388464557276d44e243599eee39af92caf512ba"
       },
       "parse_failure_count": 0,
+      "retrieved_at": "2026-08-27T04:41:39+00:00",
       "revision": "fad87063b317612e4164dfb0e0e08572c3831df4",
       "source": "bazi_sft",
       "standalone_json": [
@@ -437,7 +630,10 @@
             "avg_citations_per_example",
             "examples_with_zero_citations"
           ],
-          "top_level_type": "dict"
+          "top_level_type": "dict",
+          "turn_pair_count_distribution": {
+            "0": 1
+          }
         }
       ],
       "status": "collected",
@@ -446,8 +642,13 @@
       "zip_json": []
     },
     {
+      "access_approved_at": null,
+      "access_scope": "public",
       "aggregate_rows": 116666,
+      "aihub_cross_split_group_overlap_count": null,
+      "aihub_exact_record_cross_split_overlap_count": null,
       "aihub_multiturn_structural_group_count": null,
+      "aihub_multiturn_structural_group_counts_by_split": null,
       "file_count": 3,
       "files": [
         {
@@ -1010,6 +1211,7 @@
         "unified_schema_sha256": "23e775d2de213c27a77077a44bc6924cdca6307501f2562f1a53f37291f56bcd"
       },
       "parse_failure_count": 0,
+      "retrieved_at": "2026-08-26T09:36:11+00:00",
       "revision": "ffb934248746a2dea64ef771c0d86e1743d25702",
       "source": "nemotron_saju",
       "standalone_json": [],
@@ -1019,8 +1221,13 @@
       "zip_json": []
     },
     {
+      "access_approved_at": null,
+      "access_scope": "public",
       "aggregate_rows": 0,
+      "aihub_cross_split_group_overlap_count": null,
+      "aihub_exact_record_cross_split_overlap_count": null,
       "aihub_multiturn_structural_group_count": null,
+      "aihub_multiturn_structural_group_counts_by_split": null,
       "file_count": 5,
       "files": [
         {
@@ -1053,6 +1260,7 @@
       "parquet": [],
       "parquet_aggregate": null,
       "parse_failure_count": 0,
+      "retrieved_at": "2026-08-27T04:41:45+00:00",
       "revision": "84583ca54e8fce257d3d5efd015bca1263a1cfe9",
       "source": "yeji_bazi_rules",
       "standalone_json": [
@@ -1129,7 +1337,10 @@
             "type_summary",
             "glossary"
           ],
-          "top_level_type": "dict"
+          "top_level_type": "dict",
+          "turn_pair_count_distribution": {
+            "0": 51
+          }
         }
       ],
       "status": "collected",

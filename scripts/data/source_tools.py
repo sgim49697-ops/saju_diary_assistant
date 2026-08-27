@@ -257,18 +257,30 @@ def build_source_manifest(
         elif "/test" in f"/{relative}":
             item["split"] = "test"
         files.append(item)
+    source_paths = list(_iter_manifest_files(root))
+    retrieved_at = (
+        datetime.fromtimestamp(
+            min(path.stat().st_mtime for path in source_paths), timezone.utc
+        )
+        .replace(microsecond=0)
+        .isoformat()
+        if source_paths
+        else utc_now()
+    )
     manifest = {
         "schema_version": "1.0.0",
         "source": source_name,
         "repo_or_provider": source.get("repo_id", source.get("provider")),
         "revision": source.get("revision", source.get("release")),
-        "retrieved_at": utc_now(),
+        "retrieved_at": retrieved_at,
         "license_expression": source["license_expression"],
         "usage_class": source["usage_class"],
         "provenance_status": "verified" if files else "missing",
         "access_scope": source["access_scope"],
         "files": files,
     }
+    if source.get("access_approved_at"):
+        manifest["access_approved_at"] = source["access_approved_at"]
     write_json_atomic(root / MANIFEST_NAME, manifest, mode=0o600)
     return manifest
 
@@ -863,11 +875,18 @@ def json_document_inventory(value: Any) -> dict[str, Any]:
 
     records = list(_candidate_records(value))
     group_hashes: set[str] = set()
+    record_hashes: set[str] = set()
     multiturn_without_id = 0
     records_with_group_id = 0
     records_with_two_pairs = 0
+    turn_pair_counts: Counter[int] = Counter()
     for record in records:
+        canonical_record = json.dumps(
+            record, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+        )
+        record_hashes.add(hashlib.sha256(canonical_record.encode("utf-8")).hexdigest())
         pair_count = _turn_pair_count(record)
+        turn_pair_counts[pair_count] += 1
         group_hash = _group_identifier_hash(record)
         if group_hash is not None:
             records_with_group_id += 1
@@ -892,8 +911,12 @@ def json_document_inventory(value: Any) -> dict[str, Any]:
         "max_depth": max_depth,
         "records_with_group_id": records_with_group_id,
         "records_with_two_or_more_turn_pairs": records_with_two_pairs,
+        "turn_pair_count_distribution": {
+            str(pair_count): count for pair_count, count in sorted(turn_pair_counts.items())
+        },
         "multiturn_records_without_group_id": multiturn_without_id,
         "_eligible_group_hashes": group_hashes,
+        "_record_hashes": record_hashes,
     }
 
 
@@ -920,6 +943,7 @@ def zip_json_inventory(path: Path) -> dict[str, Any]:
     validate_zip_paths(path)
     documents: list[dict[str, Any]] = []
     group_hashes: set[str] = set()
+    record_hashes: set[str] = set()
     parse_failures = 0
     split_counts: Counter[str] = Counter()
     try:
@@ -943,6 +967,7 @@ def zip_json_inventory(path: Path) -> dict[str, Any]:
                     with archive.open(entry) as stream:
                         summary = json_document_inventory(_read_json_stream(stream))
                     group_hashes.update(summary.pop("_eligible_group_hashes"))
+                    record_hashes.update(summary.pop("_record_hashes"))
                     documents.append(summary)
                 except Phase1Error:
                     parse_failures += 1
@@ -953,11 +978,15 @@ def zip_json_inventory(path: Path) -> dict[str, Any]:
     record_count = 0
     records_with_pairs = 0
     records_with_group_id = 0
+    turn_pair_counts: Counter[int] = Counter()
     for document in documents:
         fields.update(document["repeated_field_names"])
         record_count += document["record_count"]
         records_with_pairs += document["records_with_two_or_more_turn_pairs"]
         records_with_group_id += document["records_with_group_id"]
+        turn_pair_counts.update(
+            {int(pair_count): count for pair_count, count in document["turn_pair_count_distribution"].items()}
+        )
     return {
         "json_member_count": len(documents) + parse_failures,
         "json_parse_success_count": len(documents),
@@ -966,8 +995,12 @@ def zip_json_inventory(path: Path) -> dict[str, Any]:
         "record_count": record_count,
         "records_with_group_id": records_with_group_id,
         "records_with_two_or_more_turn_pairs": records_with_pairs,
+        "turn_pair_count_distribution": {
+            str(pair_count): count for pair_count, count in sorted(turn_pair_counts.items())
+        },
         "repeated_field_names": sorted(fields),
         "_eligible_group_hashes": group_hashes,
+        "_record_hashes": record_hashes,
     }
 
 
@@ -987,11 +1020,15 @@ def inventory_source(
             ),
             "file_count": 0,
             "total_bytes": 0,
+            "access_scope": config["sources"][source_name]["access_scope"],
+            "access_approved_at": config["sources"][source_name].get("access_approved_at"),
         }
     parquet_files: list[dict[str, Any]] = []
     json_files: list[dict[str, Any]] = []
     zip_files: list[dict[str, Any]] = []
     group_hashes: set[str] = set()
+    group_hashes_by_split: dict[str, set[str]] = {"train": set(), "validation": set(), "unknown": set()}
+    record_hashes_by_split: dict[str, set[str]] = {"train": set(), "validation": set(), "unknown": set()}
     parse_failures = 0
 
     for item in manifest["files"]:
@@ -1003,11 +1040,23 @@ def inventory_source(
             elif suffix == ".json" and not path.name.endswith("MANIFEST.json"):
                 summary = standalone_json_inventory(path)
                 group_hashes.update(summary.pop("_eligible_group_hashes"))
+                summary.pop("_record_hashes")
                 json_files.append({"path": item["path"], **summary})
             elif suffix == ".zip":
                 summary = zip_json_inventory(path)
-                group_hashes.update(summary.pop("_eligible_group_hashes"))
-                zip_files.append({"path": item["path"], **summary})
+                zip_groups = summary.pop("_eligible_group_hashes")
+                zip_records = summary.pop("_record_hashes")
+                normalized_path = item["path"].lower()
+                if "training" in normalized_path or "/train" in normalized_path:
+                    split = "train"
+                elif "validation" in normalized_path or "/valid" in normalized_path:
+                    split = "validation"
+                else:
+                    split = "unknown"
+                group_hashes.update(zip_groups)
+                group_hashes_by_split[split].update(zip_groups)
+                record_hashes_by_split[split].update(zip_records)
+                zip_files.append({"path": item["path"], "split": split, **summary})
         except Phase1Error:
             parse_failures += 1
 
@@ -1029,6 +1078,9 @@ def inventory_source(
         ),
         "license_expression": config["sources"][source_name]["license_expression"],
         "usage_class": config["sources"][source_name]["usage_class"],
+        "access_scope": manifest["access_scope"],
+        "access_approved_at": manifest.get("access_approved_at"),
+        "retrieved_at": manifest["retrieved_at"],
         "file_count": len(manifest["files"]),
         "total_bytes": sum(item["bytes"] for item in manifest["files"]),
         "files": manifest["files"],
@@ -1042,6 +1094,21 @@ def inventory_source(
         ),
         "aihub_multiturn_structural_group_count": (
             structural_groups if source_name == "aihub_empathy" else None
+        ),
+        "aihub_multiturn_structural_group_counts_by_split": (
+            {split: len(values) for split, values in group_hashes_by_split.items()}
+            if source_name == "aihub_empathy"
+            else None
+        ),
+        "aihub_cross_split_group_overlap_count": (
+            len(group_hashes_by_split["train"] & group_hashes_by_split["validation"])
+            if source_name == "aihub_empathy"
+            else None
+        ),
+        "aihub_exact_record_cross_split_overlap_count": (
+            len(record_hashes_by_split["train"] & record_hashes_by_split["validation"])
+            if source_name == "aihub_empathy"
+            else None
         ),
     }
 
@@ -1057,7 +1124,7 @@ def inventory_all(config: dict[str, Any], repo_root: Path) -> dict[str, Any]:
     elif any(source["status"] != "collected" for source in sources):
         gate_status = "in_progress_missing_public_source"
     else:
-        gate_status = "ready_for_phase1_gate_review"
+        gate_status = "passed"
     report = {
         "schema_version": "1.0.0",
         "generated_at": utc_now(),
@@ -1134,6 +1201,31 @@ def verify_sources(
             path = source_root(config, repo_root, "yeji_bazi_rules") / filename
             if path.stat().st_size != expected["bytes"] or sha256_file(path) != expected["sha256"]:
                 raise Phase1Error("YEJI 신살 고정 파일 bytes/SHA-256이 다릅니다.")
+    if "aihub_empathy" in manifest_files:
+        source = config["sources"]["aihub_empathy"]
+        expected_keys = set(source["file_keys"])
+        files = set(manifest_files["aihub_empathy"])
+        for file_key in expected_keys:
+            archive = f"archives/filekey-{file_key}.tar"
+            if archive not in files:
+                raise Phase1Error(f"AI Hub 고정 archive가 없습니다: file key {file_key}")
+            zip_prefix = f"extracted/filekey-{file_key}/"
+            if not any(path.startswith(zip_prefix) and path.lower().endswith(".zip") for path in files):
+                raise Phase1Error(f"AI Hub 추출 zip이 없습니다: file key {file_key}")
+        for path in files:
+            if path.startswith("archives/filekey-"):
+                match = re.fullmatch(r"archives/filekey-(\d+)\.tar", path)
+                if match is None or match.group(1) not in expected_keys:
+                    raise Phase1Error("AI Hub allowlist 밖 archive가 있습니다.")
+            elif path.startswith("extracted/filekey-"):
+                match = re.match(r"extracted/filekey-(\d+)/", path)
+                if match is None or match.group(1) not in expected_keys:
+                    raise Phase1Error("AI Hub allowlist 밖 추출 파일이 있습니다.")
+            else:
+                raise Phase1Error("AI Hub raw 경로에 허용되지 않은 파일이 있습니다.")
+        private_root = source_root(config, repo_root, "aihub_empathy")
+        if stat.S_IMODE(private_root.stat().st_mode) & 0o077:
+            raise Phase1Error("AI Hub 비공개 raw 디렉터리 권한은 0700이어야 합니다.")
 
     license_path = resolve_repo_path(repo_root, config["paths"]["license_manifest"])
     try:

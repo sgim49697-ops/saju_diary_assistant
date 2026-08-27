@@ -35,6 +35,7 @@
       "revision": "dataset-86-filekeys-66046-66049",
       "license": "AIHUB-GENERAL-POLICY",
       "usage_class": "conditional_train_allow",
+      "access_approved_at": "2026-08-27",
       "attribution_draft": "한국지능정보사회진흥원 AI Hub 감성대화 말뭉치 활용 사실을 사업 결과물에 표시",
       "restrictions": ["승인 계정에서만 수집", "원문과 변환 원문 제3자 제공·공개 금지", "학습 목적 범위 유지"]
     },

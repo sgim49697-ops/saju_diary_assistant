@@ -135,6 +135,7 @@
 ### AI Hub #86 단일턴 파생
 
 - 사용자 발화와 대응 시스템 응답을 한 예시로 만든다.
+- upstream train/validation 표시는 provenance에만 보존하고 최종 split 경계로 사용하지 않는다.
 - 전화번호, 주민번호, 이메일 등 개인정보 패턴이 있으면 마스킹보다 행 제외를 우선한다.
 - 감정 label은 meta에만 두고 입력에 정답 감정을 노출하지 않는다.
 - 자해·자살·우울증 위기, 임상 진단·치료, 미성년자 민감정보가 포함된 행은 일반 공감 학습 후보에서 제외한다.
@@ -146,6 +147,8 @@
 - 한 세션당 최대 2개 예시만 추출한다.
 - 개인정보, 외부 저작물 장문, 비속어·혐오, 의료·법률·금융 조언을 제외한다.
 - 세션 ID 단위로만 split하고 전체 세션 ID를 `group_id`로 사용한다.
+- `group_id = talk.id.talk-id`로 고정하고 upstream train/validation 전체를 합친 group index를 먼저 만든다.
+- Phase 1에서 확인한 upstream split 간 group 교집합 6,379개는 한 group으로 묶는다. exact record 교집합은 0개지만 동일 ID를 train/eval에 나누지 않는다.
 
 ## 평가셋 우선 분리
 

@@ -72,10 +72,13 @@
       "license_expression": "AIHUB-GENERAL-POLICY",
       "usage_class": "conditional_train_allow",
       "access_scope": "approved_account_private",
+      "access_approved_at": "2026-08-27",
       "local_subdir": "aihub_empathy/dataset-86-filekeys-66046-66049",
       "endpoint_template": "https://api.aihub.or.kr/down/0.6/{dataset_id}.do?fileSn={file_key}",
       "file_keys": ["66046", "66047", "66048", "66049"],
-      "derive_mix_axes": ["aihub_empathy_single", "aihub_empathy_multiturn"]
+      "derive_mix_axes": ["aihub_empathy_single", "aihub_empathy_multiturn"],
+      "group_id_field": "talk.id.talk-id",
+      "upstream_split_policy": "provenance_only_regroup_by_group_id"
     },
     "yeji_bazi_rules": {
       "provider": "huggingface",
