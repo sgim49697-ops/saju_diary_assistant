@@ -1,0 +1,11 @@
+{
+  "approval_basis": "explicit_user_instruction",
+  "approved_at": "2026-08-27T14:07:42+00:00",
+  "audit_version": "v1.2.0",
+  "build_id": "build-ca756f3eb89f",
+  "build_sha256": "ca756f3eb89fa404c08dc49215b540b3294ed195c39c597303ec14777bb9c4f1",
+  "contains_raw_samples": false,
+  "dataset_name": "saju_1b_baseline",
+  "gate_status": "ready_for_approval",
+  "schema_version": "1.0.0"
+}

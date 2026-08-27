@@ -5,6 +5,7 @@
 /data/raw/
 /data/inbox/
 /data/audit/
+/data/staging/
 /data/derived/
 /data/unified/
 /data/manifests/

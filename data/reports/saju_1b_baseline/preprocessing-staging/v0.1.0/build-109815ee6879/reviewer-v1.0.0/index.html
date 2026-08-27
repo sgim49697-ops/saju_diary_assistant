@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title>MIX20K 전처리 검수</title>
+    <link rel="stylesheet" href="review.css">
+  </head>
+  <body>
+    <header class="hero">
+      <p class="eyebrow">SAJU 1.3B · 24K STAGING</p>
+      <h1>한국어 정제본 검수</h1>
+      <p>BaZi 150건과 YEJI 150건을 확인합니다. 원천 승인과 별개이며, 이 검수가 끝나도 자동으로 학습본이 되지는 않습니다.</p>
+      <div id="build-meta" class="meta">불러오는 중…</div>
+    </header>
+    <main>
+      <aside>
+        <div class="filters">
+          <button class="filter active" data-axis="all">전체</button>
+          <button class="filter" data-axis="bazi_sft">BaZi</button>
+          <button class="filter" data-axis="yeji_shensha_derived">YEJI</button>
+        </div>
+        <div id="progress" class="progress"></div>
+        <ol id="queue" class="queue" aria-label="검수 항목"></ol>
+      </aside>
+      <section id="record" class="record" aria-live="polite">
+        <p class="empty">왼쪽에서 검수 항목을 선택하세요.</p>
+      </section>
+    </main>
+    <template id="record-template">
+      <div class="record-head">
+        <div>
+          <p class="axis"></p>
+          <h2 class="title"></h2>
+        </div>
+        <span class="status"></span>
+      </div>
+      <div class="messages"></div>
+      <dl class="facts"></dl>
+      <form class="decision-form">
+        <fieldset>
+          <legend>판정</legend>
+          <label><input type="radio" name="decision" value="accept" required> 수용</label>
+          <label><input type="radio" name="decision" value="exclude_candidate"> 제외</label>
+          <label><input type="radio" name="decision" value="needs_fix"> 수정 필요</label>
+          <label><input type="radio" name="decision" value="uncertain"> 보류</label>
+        </fieldset>
+        <label class="note">메모 <textarea name="note" maxlength="500" rows="3"></textarea></label>
+        <button type="submit" class="save">판정 저장</button>
+        <span class="save-state" role="status"></span>
+      </form>
+    </template>
+    <script src="review.js" defer></script>
+  </body>
+</html>

@@ -1,6 +1,19 @@
 {
-  "approved_audit": null,
+  "approved_audit": {
+    "build_id": "build-ca756f3eb89f",
+    "build_sha256": "ca756f3eb89fa404c08dc49215b540b3294ed195c39c597303ec14777bb9c4f1",
+    "status": "approved",
+    "version": "v1.2.0"
+  },
   "approved_derived": null,
+  "approved_staging": {
+    "approval_basis": "explicit_owner_blanket_risk_acceptance",
+    "build_id": "build-109815ee6879",
+    "build_sha256": "109815ee687980e417c5831abd5a558e3790c8197051561844ef64417f0d4b41",
+    "domain_item_review_performed": false,
+    "status": "owner_risk_accepted_for_phase4_preflight",
+    "version": "v0.1.0"
+  },
   "audit_builds": [
     {
       "blocking_finding_codes": [
@@ -32,6 +45,22 @@
       "reviewer_version": "reviewer-v1.0.0",
       "status": "human_review_required",
       "version": "v1.1.0"
+    },
+    {
+      "approval_manifest_sha256": "d8bc3e05707a536f5bf24946fdc08205db4fd38437a10af9c333de404f46c163",
+      "blocking_finding_codes": [],
+      "build_id": "build-ca756f3eb89f",
+      "build_manifest_sha256": "59df1d09ef74e86b88b34d40c3be7870df28f5787f676992ac774c67084ab468",
+      "build_sha256": "ca756f3eb89fa404c08dc49215b540b3294ed195c39c597303ec14777bb9c4f1",
+      "correction_manifest_sha256": "b355a37112bdb6bac94a16b4d341a5a7f034403a39d66f9830526ee53d926f81",
+      "domain_item_review_performed": false,
+      "implementation_commit": "8c6b95cef19653fc62dbb1ccbae01cbe4c82b13d",
+      "reference_review_completed": 150,
+      "required_review_remaining": 0,
+      "review_manifest_sha256": "d4997f3223cd00cef01311e2062ae7289108cdc3b3115d55e28e3153c2b5959f",
+      "reviewer_version": "owner-blanket-risk-acceptance-v1.0.0",
+      "status": "approved",
+      "version": "v1.2.0"
     }
   ],
   "dataset_name": "saju_1b_baseline",
@@ -50,6 +79,16 @@
       "source_build_sha256": "9462ec148dcd93328b3b68522ad6c6f0d2c3694161d32a2d54332e8069d82f0a",
       "status": "approved",
       "version": "v1.1.0"
+    }
+  ],
+  "staging_builds": [
+    {
+      "approval_basis": "explicit_owner_blanket_risk_acceptance",
+      "build_id": "build-109815ee6879",
+      "build_sha256": "109815ee687980e417c5831abd5a558e3790c8197051561844ef64417f0d4b41",
+      "domain_item_review_performed": false,
+      "status": "owner_risk_accepted_for_phase4_preflight",
+      "version": "v0.1.0"
     }
   ]
 }

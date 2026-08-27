@@ -1,0 +1,61 @@
+{
+  "schema_version": "1.0.0",
+  "dataset_name": "saju_1b_baseline",
+  "staging_version": "v0.1.0",
+  "seed": 42,
+  "approval_status": "staging_unapproved",
+  "scope": {
+    "baseline": "MIX20K",
+    "final_train_rows": 20000,
+    "reserve_ratio": 0.2,
+    "staging_rows": 24000,
+    "full_source_conversion": false
+  },
+  "parents": {
+    "source_config": "configs/data_sources.v1.1.json",
+    "source_bundle": "configs/data_versions/saju_1b_baseline/source-bundle-v1.1.0.json",
+    "source_build_sha256": "9462ec148dcd93328b3b68522ad6c6f0d2c3694161d32a2d54332e8069d82f0a",
+    "audit_build_manifest": "data/reports/saju_1b_baseline/audit/v1.2.0/build-ca756f3eb89f/build_manifest.json",
+    "audit_build_sha256": "ca756f3eb89fa404c08dc49215b540b3294ed195c39c597303ec14777bb9c4f1",
+    "audit_gate": "data/reports/saju_1b_baseline/audit/v1.2.0/build-ca756f3eb89f/gate.scan.json",
+    "audit_policy": "configs/data_versions/saju_1b_baseline/audit-policy-v1.2.0.json",
+    "audit_policy_sha256": "8195d4c971747a52f56ae1d1b963ab499681ec4d8f0030bf446928cf7749d1a4",
+    "correction_manifest": "configs/data_versions/saju_1b_baseline/yeji-rule-corrections-v1.2.0.json",
+    "correction_manifest_sha256": "b355a37112bdb6bac94a16b4d341a5a7f034403a39d66f9830526ee53d926f81",
+    "language_bank": "configs/data_versions/saju_1b_baseline/language-bank-v1.0.0.json",
+    "language_bank_sha256": "ceae1af37f80d43c845af45f267118db7e55d729aaa0146578bae2f5bfeb82b2"
+  },
+  "outputs": {
+    "private_root": "data/staging/{dataset_name}/{staging_version}",
+    "public_root": "data/reports/{dataset_name}/preprocessing-staging/{staging_version}",
+    "reviewer_version": "reviewer-v1.0.0"
+  },
+  "axes": {
+    "nemotron_saju": {
+      "final_rows": 11000,
+      "staging_rows": 13200,
+      "variants": {"v6": 2640, "v7": 10560}
+    },
+    "bazi_sft": {"final_rows": 5000, "staging_rows": 6000},
+    "aihub_empathy_single": {"final_rows": 2000, "staging_rows": 2400},
+    "aihub_empathy_multiturn": {"final_rows": 1000, "staging_rows": 1200},
+    "yeji_shensha_derived": {"final_rows": 1000, "staging_rows": 1200}
+  },
+  "contracts": {
+    "aihub_axes_disjoint_groups": true,
+    "bazi_complete_question_group": true,
+    "bazi_question_types": ["career", "element_balance", "general_natal", "relationships"],
+    "yeji_rule_count": 51,
+    "nemotron_required_narratives": [
+      "saju_summary",
+      "personality_reading",
+      "career_reading",
+      "lacking_element_advice"
+    ],
+    "promotion_requires_approved_audit": true
+  },
+  "review_samples": {
+    "bazi_sft": 150,
+    "yeji_shensha_derived": 150
+  }
+}

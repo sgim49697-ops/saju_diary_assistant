@@ -4,7 +4,7 @@
 
 | 항목 | 값 |
 |---|---|
-| 문서 버전 | `2.2.0` |
+| 문서 버전 | `2.3.0` |
 | 정본화 기준일 | 2026-08-27 |
 | 주 장비 | NVIDIA GeForce RTX 5070 Ti 16GiB, WSL2 |
 | 주 모델 | `kakaocorp/kanana-2-1.3b-instruct@bf4786aa2a1908adce942d53976270132732f720` |
@@ -31,7 +31,7 @@
 |---:|---|---|---|
 | 0 | [거버넌스·실험 계약](phase-0-governance.md) | 완료 | 라이선스·범위·재현성 승인 |
 | 1 | [데이터 수집](phase-1-data-collection.md) | 완료 | 네 원천의 revision·해시·이용조건과 #86 구조 Gate 통과 |
-| 2 | [데이터 전처리](phase-2-data-preprocessing.md) | 부분 진행 | Phase 2A 사용자 150건 검토·명시 승인 후 전처리 허용 |
+| 2 | [데이터 전처리](phase-2-data-preprocessing.md) | 부분 진행 | 승인 audit 부모의 MIX20K용 24K staging 통과, Phase 4 승격은 차단 |
 | 3 | [학습 모델·환경 준비](phase-3-model-preparation.md) | 미시작 | 고정 환경에서 모델·template 로드 성공 |
 | 4 | [학습 전 데이터·모델 검증](phase-4-preflight-validation.md) | 미시작 | 데이터 Gate와 200-step smoke 모두 통과 |
 | 5 | [Baseline 학습](phase-5-baseline-training.md) | 미시작 | KI10·KI20 독립 Run과 산출물 완결 |
@@ -51,22 +51,25 @@ Phase 0 → Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5 → Phase 6
 ```text
 data/
 ├── raw/<source>/<revision>/
-├── audit/saju_1b_baseline/v1.1.0/build-e162d9b2b7dc/  # 비공개 locator·결정
+├── audit/saju_1b_baseline/v1.2.0/build-ca756f3eb89f/  # 비공개 locator·결정·seal
+├── staging/saju_1b_baseline/v0.1.0/build-109815ee6879/ # Git 제외·24K 후보
 ├── derived/saju_1b_baseline/v1.0.0/build-<derived-hash>/
 │   ├── unified/
 │   ├── manifests/
 │   └── eval/
 └── reports/
     └── saju_1b_baseline/
-        ├── audit/v1.1.0/build-e162d9b2b7dc/
-        ├── audit-review/v1.1.0/build-e162d9b2b7dc/reviewer-v1.0.0/
-        └── <source|preprocessing>/v1.0.0/build-<hash>/
+        ├── audit/v1.2.0/build-ca756f3eb89f/
+        ├── audit-review/v1.2.0/build-ca756f3eb89f/reviewer-v1.1.0/
+        └── preprocessing-staging/v0.1.0/build-109815ee6879/
 
 configs/data_versions/saju_1b_baseline/
-├── source-bundle-v1.0.0.json
+├── source-bundle-v1.1.0.json
 ├── audit-policy-v1.0.0.json                 # 과거 build 검증용
-├── audit-policy-v1.1.0.json                 # 현재 사람 검수 대상
-├── yeji-rule-corrections-v1.1.0.json
+├── audit-policy-v1.2.0.json                 # 승인된 전체 원천 감사
+├── yeji-rule-corrections-v1.2.0.json
+├── preprocessing-staging-v0.1.0.json
+├── language-bank-v1.0.0.json
 └── registry.json
 
 runs/
@@ -95,7 +98,7 @@ runs/
 
 Nemotron 1K 몫은 v6 110행·v7 440행, 10K 몫은 v6 1,100행·v7 4,400행, 20K 몫은 v6 2,200행·v7 8,800행이다. `bazi-sft`는 제공된 네 기둥을 입력 사실로 삼아 일간·오행·규칙 조건을 다시 계산하며, 원문의 날짜·지역에서 네 기둥을 학습시키지 않는다. AI Hub 데이터는 원문을 외부에 공개하지 않고 개인정보·자해·의료 진단·과도한 훈계 행을 제외한다.
 
-YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `9a11e1502983969407c43f82c65de6736b344da1a623e7a6557ad8b20cda939e`, 원천은 MIT의 `chxb/shensha@5b90110e55feb92303ef7853ecacdb6f9ed59eac`이다. 감사 v1.1은 원본을 바꾸지 않고 `词馆`의 金 간지 `壬卯→壬申`, `五鬼` category `흉살류→재앙류` 두 값만 고정 manifest overlay로 교정한다. 두 이상 징후는 원본에서 계속 관측하고 교정 결과에서 해소됐는지 함께 검사하며, 사람 검수·명시 승인 전에는 자체 한국어 QA를 만들지 않는다.
+YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `9a11e1502983969407c43f82c65de6736b344da1a623e7a6557ad8b20cda939e`, 원천은 MIT의 `chxb/shensha@5b90110e55feb92303ef7853ecacdb6f9ed59eac`이다. 감사 v1.2는 원본을 바꾸지 않고 `词馆`의 金 간지, `五鬼` category, 덕수귀인 조건·매핑, 동자살 OR 조건을 고정 manifest overlay 다섯 항목으로 교정한다. 51규칙 evaluator 결과만 자체 한국어 QA로 사용한다.
 
 ### 제외·격리 소스
 
@@ -204,3 +207,8 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
   - 변경 범위: 원천별 최소 투영·식별자 제거, checkpoint/final JSON·CSV, ZIP manifest·SHA-256·권한 검증을 구현하고 저장소 밖에 현재 build 공유본을 생성했다. 참조 151단위와 본 판정 ledger는 공유하거나 변경하지 않았다.
   - 검증: 신규 테스트 7건과 전체 38건, 변경 파일 Ruff·compile·Node 검사, 실제 audit/raw verify, ZIP 150단위·180레코드 및 sidecar 검증, Chrome 오프라인 렌더링과 대화 턴 순서를 통과했다.
   - 남은 이슈·후속 작업: 팀원 의견은 본 판정에 자동 합치지 않는다. 원 담당자 검토가 여전히 필수 0/150이므로 Phase 2A는 미봉인·미승인이고 Phase 2B는 시작하지 않는다.
+- 2026-08-27
+  - 작업 요약: Nemotron 100만 행 전체 원천과 감사 v1.2를 고정하고, 사용자 지시에 따른 감사 300건 일괄 위험 수용·seal·승인을 완료했다. 첫 MIX20K에 필요한 최종 20K + 예비 20%만 정제한 24K staging `v0.1.0/build-109815ee6879`을 생성했다.
+  - 변경 범위: BaZi·YEJI 한국어 고정 문구 은행, 다섯 축 adapter, 전체 규칙·안전·언어 검증, 결정론적 후보 순서, 버전별 공개 집계와 승인 후 읽기 전용인 BaZi/YEJI 300건 loopback 검수 화면을 추가했다. Git 제외 원본은 수정하지 않았다.
+  - 검증: 감사 원본 재해시와 approval verify, staging 24,000행·고유 ID 24,000·고유 message 24,000, 영문 단어 잔여 0, AI Hub 축 간 group 겹침 0, BaZi 규칙 불일치 0, YEJI 51규칙 coverage와 테스트를 통과했다.
+  - 남은 이슈·후속 작업: 검수 승인은 항목별 전문 판독이 아닌 `owner_blanket_risk_acceptance`이며 품질 인증을 주장하지 않는다. Phase 4에서 tokenizer 길이, assistant loss mask, holdout/core eval, 정확한 MIX20K manifest와 모델 preflight를 완료하기 전에는 학습 승격하지 않는다.
