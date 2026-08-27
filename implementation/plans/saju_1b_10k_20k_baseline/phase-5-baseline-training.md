@@ -4,31 +4,31 @@
 |---|---|
 | 실행 상태 | 미시작 |
 | 선행 Phase | Phase 4 완료 |
-| 입력 | 선택 길이의 canonical MIX10·MIX20, Base snapshot, 승인 config |
-| 출력 | K10·K20 checkpoint, trainer state, 환경·학습 보고서 |
+| 입력 | 선택 길이의 canonical MIX10·MIX20, Instruct snapshot, 승인 config |
+| 출력 | KI10·KI20 checkpoint, trainer state, 환경·학습 보고서 |
 | 완료 Gate | 두 독립 Run이 재현·재로딩 가능한 상태로 종료 |
 | 웹 확인일 | 2026-08-27 |
 
 ## 목적
 
-같은 Base와 동일한 학습 설정에서 데이터량만 10K에서 20K로 늘렸을 때의 효과를 비교한다. Phase 4에서 검증한 길이·template·환경·manifest를 변경하지 않는다.
+같은 Instruct checkpoint와 동일한 학습 설정에서 데이터량만 10K에서 20K로 늘렸을 때의 효과를 비교한다. Phase 4에서 검증한 길이·template·환경·manifest를 변경하지 않는다.
 
 ## 실행 순서
 
 ```text
-고정 Base ──> K10-MIX-v0-RAW-NC, 1 epoch ──> 중간 안정성 검사
-고정 Base ──> K20-MIX-v0-RAW-NC, 1 epoch ──> 공식 비교 대상
+고정 Instruct ──> KI10-MIX-v1, 1 epoch ──> 중간 안정성 검사
+고정 Instruct ──> KI20-MIX-v1, 1 epoch ──> 공식 비교 대상
 ```
 
-K20은 K10 checkpoint에서 시작하지 않는다. K10 후 심각한 파이프라인 오류가 발견되면 K20을 실행하지 않고 Phase 2~4로 돌아간다.
+KI20은 KI10 checkpoint에서 시작하지 않는다. KI10 후 심각한 파이프라인 오류가 발견되면 KI20을 실행하지 않고 Phase 2~4로 돌아간다.
 
 ## 고정 학습 설정
 
 `max_length`는 Phase 4가 고른 1024/768/512 중 하나를 그대로 사용한다.
 
 ```yaml
-model_name_or_path: <local-base-snapshot>
-model_revision: e9ffedf7b713530ae6a0c94ea32538d75e8524e1
+model_name_or_path: <local-instruct-snapshot>
+model_revision: bf4786aa2a1908adce942d53976270132732f720
 trust_remote_code: true
 model_init_kwargs:
   dtype: bfloat16
@@ -76,14 +76,14 @@ data_seed: 42
 각 Run은 시작 직전 다음을 `run_manifest.json`에 기록한다.
 
 - Git commit SHA와 working tree clean 여부
-- Base·tokenizer·template SHA-256
+- Instruct·tokenizer·template SHA-256
 - manifest SHA-256, 행 수, selected max length
 - Python·torch·CUDA·Transformers·TRL·bitsandbytes 버전
 - GPU, driver, 시작 시 가용 VRAM, RAM, disk
 - 모든 hyperparameter와 seed
-- 부모 checkpoint가 Base snapshot인지 여부
+- 부모 checkpoint가 고정 Instruct snapshot인지 여부
 
-K10과 K20에서 model·template·hyperparameter·seed가 다르면 시작하지 않는다. 허용되는 차이는 manifest와 output directory뿐이다.
+KI10과 KI20에서 model·template·hyperparameter·seed가 다르면 시작하지 않는다. 허용되는 차이는 manifest와 output directory뿐이다.
 
 ## 학습 중 관찰
 
@@ -112,13 +112,13 @@ checkpoint 저장 실패 또는 disk 부족
 
 - 250 optimizer step마다 모델·optimizer·scheduler·trainer state를 저장한다.
 - 최근 2개 step checkpoint와 final checkpoint를 유지한다.
-- 재시작은 Base, manifest, config, package lock, world size가 완전히 같을 때만 허용한다.
+- 재시작은 Instruct snapshot, manifest, config, package lock, world size가 완전히 같을 때만 허용한다.
 - 설정이 다르면 기존 Run을 덮어쓰지 않고 새 Run ID를 만든다.
 - final 저장 후 새 process에서 모델·tokenizer를 로드해 deterministic fixture 5개를 생성한다.
 
-## K10 중간 안정성 검사
+## KI10 중간 안정성 검사
 
-K10 종료 후 Phase 6 전체 평가 전에 core eval의 소규모 고정 subset으로 다음만 확인한다.
+KI10 종료 후 Phase 6 전체 평가 전에 core eval의 소규모 고정 subset으로 다음만 확인한다.
 
 - 정상 생성·종료
 - JSON 태스크 파싱
@@ -126,22 +126,22 @@ K10 종료 후 Phase 6 전체 평가 전에 core eval의 소규모 고정 subset
 - 중국어 문장 혼입
 - 입력 사실을 무시한 명백한 환각
 
-모델이 생성 불능이거나 pipeline 오류가 있으면 K20을 중단한다. 모델 품질이 낮지만 파이프라인이 정상이라면 데이터량 효과 측정을 위해 K20은 진행한다.
+모델이 생성 불능이거나 pipeline 오류가 있으면 KI20을 중단한다. 모델 품질이 낮지만 파이프라인이 정상이라면 데이터량 효과 측정을 위해 KI20은 진행한다.
 
 ## 완료 Gate
 
-- [ ] K10과 K20 모두 같은 Base에서 독립적으로 시작했다.
+- [ ] KI10과 KI20 모두 같은 Instruct snapshot에서 독립적으로 시작했다.
 - [ ] 두 Run의 config 차이는 manifest·output 경로뿐이다.
 - [ ] 1 epoch가 NaN/Inf/OOM 없이 끝났다.
 - [ ] final 모델과 trainer state를 새 process에서 재로딩했다.
 - [ ] run manifest, package lock, log, checkpoint hash를 저장했다.
-- [ ] K10 중간 안정성 검사가 K20 진행을 허용했다.
+- [ ] KI10 중간 안정성 검사가 KI20 진행을 허용했다.
 - [ ] 모델·checkpoint를 공개 저장소나 Hub에 올리지 않았다.
 
 ## 산출물
 
 ```text
-runs/K10-MIX-v0-RAW-NC/
+runs/KI10-MIX-v1/
 ├── run_manifest.json
 ├── config.resolved.yaml
 ├── trainer_state.json
@@ -150,7 +150,7 @@ runs/K10-MIX-v0-RAW-NC/
 ├── final/
 └── reload_fixtures.jsonl
 
-runs/K20-MIX-v0-RAW-NC/
+runs/KI20-MIX-v1/
 └── <동일 구조>
 ```
 

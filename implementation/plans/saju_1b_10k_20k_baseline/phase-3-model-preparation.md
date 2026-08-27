@@ -5,7 +5,7 @@
 | 실행 상태 | 미시작 |
 | 선행 Phase | Phase 2 완료 |
 | 입력 | 고정 모델 revision, 호환성 표, 장비 snapshot |
-| 출력 | `.venv`, requirements lock, 모델 snapshot, chat template 후보, 환경 보고서 |
+| 출력 | `.venv`, requirements lock, Instruct snapshot, 고정 chat template, 환경 보고서 |
 | 완료 Gate | 고정 환경에서 모델·tokenizer·template를 오프라인 재로딩 가능 |
 | 웹 확인일 | 2026-08-27 |
 
@@ -36,10 +36,9 @@ Full FT 가능성을 시험하기 전에 Python·CUDA wheel·학습 라이브러
 
 | 용도 | 모델 | revision |
 |---|---|---|
-| 학습 시작점 | `kakaocorp/kanana-2-1.3b-base` | `e9ffedf7b713530ae6a0c94ea32538d75e8524e1` |
-| 원본 비교·template 기준 | `kakaocorp/kanana-2-1.3b-instruct` | `bf4786aa2a1908adce942d53976270132732f720` |
+| 학습 시작점·원본 비교·template 기준 | `kakaocorp/kanana-2-1.3b-instruct` | `bf4786aa2a1908adce942d53976270132732f720` |
 
-Base는 `Kanana2TinyForCausalLM` custom hybrid attention 모델이며 공식 카드가 `trust_remote_code=True`와 `transformers >= 4.57`을 요구한다. 모델 config의 최대 context는 32,768이지만 baseline 학습 길이는 메모리 Gate가 고른 512/768/1024 중 하나로 제한한다.
+Instruct는 `Kanana2TinyForCausalLM` custom hybrid attention 모델이며 공식 카드가 `trust_remote_code=True`와 `transformers >= 4.57`을 요구한다. 모델 config의 최대 context는 32,768이지만 baseline 학습 길이는 메모리 Gate가 고른 512/768/1024 중 하나로 제한한다. Base checkpoint를 받거나 비교군으로 사용하지 않는다.
 
 ## 고정 Python 패키지
 
@@ -99,21 +98,21 @@ bitsandbytes==0.50.2
 
 ## 모델 snapshot과 remote code 검토
 
-1. `hf download --dry-run`으로 Base 약 2.6GB weights와 repository file 목록을 확인한다.
-2. Base와 Instruct를 각각 고정 revision으로 private local model cache에 다운로드한다.
+1. `hf download --dry-run`으로 Instruct weights와 repository file 목록을 확인한다.
+2. Instruct를 고정 revision으로 private local model cache에 다운로드한다.
 3. `configuration_kanana2_tiny.py`, `modeling_kanana2_tiny.py`의 SHA-256을 기록하고 임의 네트워크·subprocess·파일 삭제 동작이 없는지 읽는다.
 4. 이후 학습·평가에서는 고정 local snapshot과 `local_files_only=True`를 사용한다.
 5. 모델 license와 README를 snapshot과 함께 보존하되 checkpoint 공개는 별도 승인 전 금지한다.
 
 ```bash
-hf download kakaocorp/kanana-2-1.3b-base \
-  --revision e9ffedf7b713530ae6a0c94ea32538d75e8524e1 \
+hf download kakaocorp/kanana-2-1.3b-instruct \
+  --revision bf4786aa2a1908adce942d53976270132732f720 \
   --dry-run
 ```
 
 ## Chat template 결정
 
-Base tokenizer에는 chat template가 없지만 `<|im_start|>`, `<|im_end|>`, `<|begin_of_text|>`, `<|end_of_text|>` token이 존재한다. Instruct 저장소의 공식 template를 고정 후보로 사용한다.
+Instruct tokenizer의 공식 chat template와 special token 계약을 그대로 사용한다. 다른 checkpoint에서 template를 이식하거나 임의 문법으로 다시 만들지 않는다.
 
 | 항목 | 값 |
 |---|---|
@@ -124,7 +123,7 @@ Base tokenizer에는 chat template가 없지만 `<|im_start|>`, `<|im_end|>`, `<
 | 학습 EOS 후보 | `<|im_end|>` |
 | padding token | `<|end_of_text|>` |
 
-template는 `configs/chat_templates/kanana2_sft.jinja`에 원문 그대로 고정할 예정이다. Phase 4에서 render 결과, special token, EOS 종료와 loss mask가 모두 맞아야 채택한다. 검증 실패 시 임의 수정하지 않고 Phase 3으로 돌아와 변경안과 새 hash를 기록한다.
+template는 snapshot 원본을 사용하고 동일 바이트 사본을 `configs/chat_templates/kanana2_sft.jinja`에 고정할 예정이다. Phase 4에서 두 파일의 hash 일치, render 결과, special token, EOS 종료와 loss mask가 모두 맞아야 채택한다. 검증 실패 시 임의 수정하지 않고 Phase 3으로 돌아와 변경안과 새 hash를 기록한다.
 
 ## 환경 검증
 
@@ -136,8 +135,8 @@ torch.version.cuda == 12.8 계열
 GPU 이름과 compute capability == RTX 5070 Ti / 12.0
 torch.cuda.is_bf16_supported() == True
 bitsandbytes CUDA backend import 성공
-Base/Instruct config·tokenizer 로드 성공
-Base parameter count와 dtype 기록
+Instruct config·tokenizer 로드 성공
+Instruct parameter count와 dtype 기록
 local_files_only 재로딩 성공
 ```
 
@@ -148,15 +147,15 @@ local_files_only 재로딩 성공
 - [ ] `.venv`의 Python 경로와 모든 패키지 버전이 고정표와 일치한다.
 - [ ] torch cu128가 RTX 5070 Ti에서 BF16 tensor 연산을 수행한다.
 - [ ] bitsandbytes 8-bit optimizer backend가 sm120에서 초기화된다.
-- [ ] Base·Instruct snapshot과 remote code SHA-256을 기록했다.
-- [ ] 두 모델의 config·tokenizer를 오프라인으로 다시 로드했다.
+- [ ] Instruct snapshot과 remote code SHA-256을 기록했다.
+- [ ] Instruct config·tokenizer를 오프라인으로 다시 로드했다.
 - [ ] chat template 원본 revision과 SHA-256을 기록했다.
 - [ ] Kanana license 사본이 snapshot과 함께 있다.
 
 ## 공식 자료
 
 - [PyTorch 2.9.0 cu128 설치](https://pytorch.org/get-started/previous-versions/)
-- [Kanana 2 1.3B Base](https://huggingface.co/kakaocorp/kanana-2-1.3b-base/tree/e9ffedf7b713530ae6a0c94ea32538d75e8524e1)
+- [Kanana 2 1.3B Instruct](https://huggingface.co/kakaocorp/kanana-2-1.3b-instruct/tree/bf4786aa2a1908adce942d53976270132732f720)
 - [Kanana 2 1.3B Instruct template](https://huggingface.co/kakaocorp/kanana-2-1.3b-instruct/blob/bf4786aa2a1908adce942d53976270132732f720/chat_template.jinja)
 - [bitsandbytes 0.50.2 설치](https://huggingface.co/docs/bitsandbytes/v0.50.2/en/installation)
 - [TRL 1.12.0 SFTTrainer](https://huggingface.co/docs/trl/v1.12.0/en/sft_trainer)
@@ -165,7 +164,7 @@ local_files_only 재로딩 성공
 
 | 날짜 | 확인 내용 | 결과 |
 |---|---|---|
-| 2026-08-27 | Kanana 모델 카드·config | custom code, Transformers 4.57+, 32K context 확인 |
+| 2026-08-27 | Kanana Instruct 모델 카드·config | 고정 revision, custom code, Transformers 4.57+, 32K context 확인 |
 | 2026-08-27 | PyTorch 이전 버전 페이지 | 2.9.0/0.24.0/2.9.0 cu128 짝 확인 |
 | 2026-08-27 | PyPI 배포 메타데이터 | TRL 1.12.0과 고정 패키지의 Python·의존 범위 확인 |
 | 2026-08-27 | bitsandbytes 0.50.2 | Linux cu128 wheel의 sm120 및 8-bit optimizer 지원 확인 |

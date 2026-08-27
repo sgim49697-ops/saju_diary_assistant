@@ -4,18 +4,18 @@
 |---|---|
 | 실행 상태 | 미시작 |
 | 선행 Phase | Phase 2·3 완료 |
-| 입력 | unified v0·후보 순서·혼합 계약, 고정 모델 환경, eval set |
+| 입력 | unified v1·후보 순서·혼합 계약, 고정 Instruct 환경, eval set |
 | 출력 | `preflight_report.json`, 선택된 `max_length`, K0 결과, smoke checkpoint |
 | 완료 Gate | 데이터 Gate와 모델·메모리 Gate 동시 통과 |
 | 웹 확인일 | 2026-08-27 |
 
 ## 목적
 
-정식 10K·20K Run 전에 데이터 계약, chat serialization, assistant loss mask, Base/Instruct 원본 성능, Full FT 메모리와 checkpoint 복구를 실제로 검증한다. smoke는 검증용 학습이며 공식 모델 성능 비교에 사용하지 않는다.
+정식 10K·20K Run 전에 데이터 계약, chat serialization, assistant loss mask, Instruct 원본 성능, Full FT 메모리와 checkpoint 복구를 실제로 검증한다. smoke는 검증용 학습이며 공식 모델 성능 비교에 사용하지 않는다.
 
 ## Gate A. 데이터 검증
 
-먼저 unified 후보와 고정 split을 검사한다. 최종 MIX10·MIX20 수량 검사는 Gate B가 길이별 manifest를 만든 뒤 다시 수행한다.
+먼저 unified 후보와 고정 split을 검사한다. 최종 MIX1K·MIX10·MIX20 수량 검사는 Gate B가 길이별 manifest를 만든 뒤 다시 수행한다.
 
 ### 스키마·수량
 
@@ -25,15 +25,15 @@
 
 ### 누수
 
-- train과 source holdout 600 사이 group 교집합 0
+- train과 source holdout 500 사이 group 교집합 0
 - train과 core eval 200 사이 group·정규화 문장 hash 교집합 0
-- AI Hub session, Nemotron chart signature, 계산형 생년월일시 template가 split을 넘지 않음
+- AI Hub session, Nemotron chart signature, `bazi-sft` synthetic group, 신살 rule/chart group이 split을 넘지 않음
 
 ### 언어·품질
 
 - 빈 assistant, JSON 파싱 실패, 비정상 제어문자 0건
 - 중국어 잔재 flag와 제외 이유 집계 존재
-- source·task·license·revision·raw hash 누락 0건
+- source·task·`license_expression`·`usage_class`·`provenance_status`·revision·raw hash 누락 0건
 - 길이 초과 제외와 replacement mapping 수량 일치
 
 ## Gate B. Tokenization·loss mask·길이별 manifest
@@ -64,19 +64,19 @@ render된 텍스트, token ID, role boundary, label mask를 사람이 읽을 수
 - source별 assistant loss token 비율
 - special token 중복과 zero-assistant-mask 수
 
-각 길이에서 후보 순서대로 MIX20을 채우고 source별 앞 절반으로 MIX10을 만든다. YEJI v9가 전체 assistant token의 50% 이상이면 긴 사분위 후보 수를 줄이고 같은 source의 짧은 후보로 보충한다. 원문은 자르지 않는다.
+각 길이에서 후보 순서대로 MIX20을 채우고 source별 앞 절반으로 MIX10, MIX10의 앞 10%로 MIX1K를 만든다. 행 혼합비는 token 통계에 맞춰 바꾸지 않는다. 단일 source가 전체 assistant loss token의 70%를 넘거나 `bazi-sft`·신살 파생본의 동일 template 문장이 과도하게 반복되면 Phase 2로 돌아가 후보 다양성과 adapter를 수정한다. 원문을 자르거나 제외 소스를 보충재로 넣지 않는다.
 
 각 길이별 manifest는 다음을 만족해야 한다.
 
-- MIX10 10,000행, MIX20 20,000행
+- MIX1K 1,000행, MIX10 10,000행, MIX20 20,000행
 - source 수량이 고정표와 정확히 일치
-- `MIX10 IDs ⊂ MIX20 IDs`
-- MIX10 레코드 hash가 MIX20의 동일 ID와 일치
+- `MIX1K IDs ⊂ MIX10 IDs ⊂ MIX20 IDs`
+- 하위 manifest 레코드 hash가 상위 manifest의 동일 ID와 일치
 - 길이 초과 행 0건, 제외·보충 mapping 완비
 
 ## Gate C. 원본 모델 Baseline
 
-학습 전에 같은 generation 설정으로 `K0-BASE`와 `K0-INSTRUCT`를 고정 평가한다.
+학습 전에 시작 checkpoint인 `K0-INSTRUCT`를 고정 평가한다.
 
 ```text
 do_sample=false
@@ -85,7 +85,7 @@ max_new_tokens=512
 같은 prompt serialization과 EOS 정책
 ```
 
-평가 대상은 source holdout 600과 core eval 200이다. Base가 지시를 따르지 못하는 것은 실패가 아니라 시작점 기록이다. Instruct 결과는 데이터·template 파이프라인이 정상인지 비교하는 sanity reference로 사용한다.
+평가 대상은 source holdout 500과 core eval 200이다. Instruct 결과는 학습 전 시작점이자 데이터·template·generation 파이프라인의 sanity reference로 고정한다. `명식 누락 시 계산기 handoff` 문항에서 모델이 임의의 네 기둥을 만들면 Gate 실패로 기록한다.
 
 ## Gate D. 단일 배치 기능 검사
 
@@ -128,9 +128,9 @@ NaN/Inf, zero assistant token, CUDA kernel 오류, remote code 오류가 있으�
 Phase 4는 512/768/1024 길이별 deterministic manifest를 만들고, 통과한 길이의 manifest만 다음 canonical 이름으로 승격한다.
 
 ```text
-data/manifests/mix1k_smoke_v0_nc.jsonl
-data/manifests/mix10k_v0_raw_nc.jsonl
-data/manifests/mix20k_v0_raw_nc.jsonl
+data/manifests/mix1k_smoke_v1.jsonl
+data/manifests/mix10k_v1.jsonl
+data/manifests/mix20k_v1.jsonl
 ```
 
 선택되지 않은 길이 manifest는 audit용으로 보존하되 Phase 5가 읽지 못하도록 별도 후보 경로에 둔다.
@@ -138,7 +138,7 @@ data/manifests/mix20k_v0_raw_nc.jsonl
 ## Preflight 설정 계약
 
 ```yaml
-model_revision: e9ffedf7b713530ae6a0c94ea32538d75e8524e1
+model_revision: bf4786aa2a1908adce942d53976270132732f720
 trust_remote_code: true
 bf16: true
 per_device_train_batch_size: 1
@@ -159,8 +159,8 @@ data_seed: 42
 
 - [ ] Gate A의 스키마·후보·누수·언어 검사가 전부 통과했다.
 - [ ] 모든 source/task의 assistant loss mask assertion이 통과했다.
-- [ ] 길이별 token 감사와 MIX10⊂MIX20 manifest 검사가 통과했다.
-- [ ] K0-BASE와 K0-INSTRUCT 결과·설정·revision을 저장했다.
+- [ ] 길이별 token 감사와 MIX1K⊂MIX10⊂MIX20 manifest 검사가 통과했다.
+- [ ] K0-INSTRUCT 결과·설정·revision을 저장했다.
 - [ ] BF16 full-parameter forward/backward와 8-bit optimizer step이 성공했다.
 - [ ] 선택한 길이에서 200-step smoke와 resume가 성공했다.
 - [ ] canonical MIX1K·10K·20K가 선택 길이 manifest를 가리킨다.
@@ -172,9 +172,8 @@ data_seed: 42
 data/reports/schema_validation.json
 data/reports/split_leakage_report.json
 data/reports/loss_mask_fixtures.jsonl
-runs/K0-BASE/
 runs/K0-INSTRUCT/
-runs/K1K-SMOKE-NC/
+runs/KI1K-SMOKE-v1/
 runs/preflight_report.json
 ```
 

@@ -6,7 +6,7 @@
 | 선행 Phase | Phase 0 완료 |
 | 입력 | 승인된 실험 계약, 데이터 접근 권한, 저장 공간 |
 | 출력 | `data/raw/`, `source_inventory.json`, `license_manifest.json` |
-| 완료 Gate | 여섯 소스의 revision·파일·해시·이용조건 고정 |
+| 완료 Gate | 다섯 활성 소스의 revision·파일·해시·이용조건 고정 |
 | 웹 확인일 | 2026-08-27 |
 
 ## 목적
@@ -18,11 +18,10 @@ README의 수량을 신뢰해 바로 전처리하지 않고, 실제 원본 파�
 | 키 | 공식 저장소/페이지 | 고정 revision 또는 버전 | 라이선스 | 현재 상태 |
 |---|---|---|---|---|
 | `nemotron_saju` | `rayraykim/Nemotron-Personas-Korea-Saju` | `ffb934248746a2dea64ef771c0d86e1743d25702` | CC BY 4.0 | v6·v7 각 1 shard 확보 |
-| `yeji_v9` | `tellang/yeji-fortune-telling-ko-v9` | `154f5582120e5c021c1fe1aa97c126785a1f32e7` | CC BY-NC 4.0 | 미수집 |
-| `yeji_processed` | `tellang/yeji-processed` | `4fd7f404c80012aa9717368396131365e901b50c` | MIT | 미수집 |
-| `yeji_translated` | `tellang/yeji-bazi-translated-ko` | `b494353378ea18a54f3502066e8075902049ec2f` | MIT | 미수집 |
+| `bazi_sft` | `AmareshHebbar/bazi-sft` | `fad87063b317612e4164dfb0e0e08572c3831df4` | Apache 2.0 | 미수집 |
 | `aihub_empathy` | AI Hub `dataSetSn=86` | 승인 후 받은 배포 파일명·다운로드일 | AI Hub 이용정책 | 로컬 파일 미확인 |
 | `aihub_continuous` | AI Hub `dataSetSn=271` | 승인 후 받은 배포 파일명·다운로드일 | AI Hub 이용정책 | 로컬 파일 미확인 |
+| `yeji_shensha_derived` | `tellang/yeji-bazi-rules` | `84583ca54e8fce257d3d5efd015bca1263a1cfe9` | MIT + 원천 MIT | 미수집 |
 
 고정 SHA는 2026-08-27 확인값이다. 실제 수집 시작 시 main SHA가 바뀌어도 자동으로 새 SHA를 택하지 않는다. 변경 내용을 검토해 정본 버전을 올린 뒤에만 교체한다.
 
@@ -58,7 +57,10 @@ data/raw/<source>/<revision-or-release>/
   "repo_or_provider": "rayraykim/Nemotron-Personas-Korea-Saju",
   "revision": "commit-or-provider-release",
   "retrieved_at": "ISO-8601",
-  "license": "CC-BY-4.0",
+  "license_expression": "CC-BY-4.0",
+  "usage_class": "train_allow",
+  "provenance_status": "verified",
+  "attribution_ids": ["nvidia-nemotron-korea", "rayraykim-nemotron-saju"],
   "access_scope": "public-or-approved-account",
   "files": [
     {
@@ -91,24 +93,33 @@ hf download <repo-id> <file-paths...> \
 - 모델 adapter, survey 자료, 평가 결과는 baseline 원본 수집에서 제외한다.
 - v6와 v7 서사는 생성 환경이 다르므로 `source_variant=v6|v7`을 manifest에 보존한다.
 - 현재 두 shard는 구조·문체 비교에는 쓰되 전체 분포 추정의 유일한 근거로 삼지 않는다.
-- 학습 후보 7,000행보다 충분한 고유 행을 확보하고 v6 20%·v7 80% 계열을 구분해 inventory한다.
+- 학습 후보 11,000행보다 충분한 고유 행을 확보하고 v6 20%·v7 80% 계열을 구분해 inventory한다.
 
-### YEJI v9
+### `bazi-sft`
 
-- `alpaca` config의 `train_alpaca.jsonl`만 수집한다.
-- 동일 31,625개를 재표현한 `chatml` 파일을 동시에 학습 후보로 넣지 않는다.
-- Bazi 8,423개라는 카드 설명은 inventory에서 실제 `domain` 값으로 다시 센다.
+- train·validation·test Parquet과 데이터 카드를 고정 revision으로 수집한다.
+- 카드가 밝힌 100,000행, 4개 question type, 합성 인물, 자체 작성 규칙이라는 주장을 실제 파일에서 다시 센다.
+- generator 저장소 링크가 placeholder이고 일·시주가 외부 검증되지 않았다는 한계를 manifest에 기록한다.
+- 원본 English response를 직접 학습 후보로 지정하지 않는다. Phase 2가 구조화 사실·규칙 검산과 한국어 재렌더를 통과시킨 파생 행만 후보가 된다.
 
-### YEJI Processed
+### YEJI 신살 규칙
 
-- `train`과 `validation` Parquet을 모두 원본으로 보존하되 제작자 split을 학습/eval 계약으로 그대로 쓰지 않는다.
-- README의 43,704/Bazi 21,798 수치는 참고값으로만 기록한다.
-- `data/bazi_*.json`과 Parquet이 중복 원천인지 해시·ID·내용으로 inventory한 뒤 학습 후보 원천을 하나로 고정한다.
+- 저장소 전체를 받지 않고 `rules/shensha_51.json`과 README만 고정 revision으로 수집한다.
+- `rules/shensha_51.json`의 bytes `29,754`, SHA-256 `9a11e1502983969407c43f82c65de6736b344da1a623e7a6557ad8b20cda939e`를 요구한다.
+- 원천 `chxb/shensha@5b90110e55feb92303ef7853ecacdb6f9ed59eac`의 `LICENSE`, `README.md`, `shensha.js`를 provenance 자료로 별도 수집한다.
+- `classics/*.txt`, `docs/sanming_tonghui_analysis.md`, `rules/yuanhai_ziping.json`은 `mymmsc/books`의 무라이선스 인터넷 수집본에서 파생됐으므로 다운로드·학습 후보에서 제외한다.
+- `词馆` 규칙의 주석 `壬申`과 코드·JSON `壬卯` 상충을 known issue로 등록한다.
 
-### YEJI Translated
+### 제외 소스 등록
 
-- 단일 train Parquet을 고정 SHA로 수집한다.
-- 중국어 원문 필드는 provenance로 보존하되 학습 텍스트에는 넣지 않는다.
+다음 소스는 원본을 새로 다운로드하지 않는다. README 조사 결론과 고정 revision만 `license_manifest.json`의 `usage_class=deny|reference_only` 항목으로 보존한다.
+
+| 소스 | usage class | 이유 |
+|---|---|---|
+| YEJI v9 | `deny` | CC BY-NC 4.0 |
+| YEJI Processed | `deny` | 원천 권리 사슬 불명확·품질 실패 |
+| YEJI Interpretations | `deny` | 명시 라이선스 없음 |
+| YEJI Translated | `reference_only` | CC BY+MIT 의무, 해석 부재, 품질 감사 실패 |
 
 ## AI Hub 수집 절차
 
@@ -137,17 +148,18 @@ BLOCKED: AI Hub 데이터 86/271의 승인된 원본 경로가 필요합니다.
 - 입력·출력 문자 길이와 파일 크기
 - 한국어·중국어·영어 문자 비율
 - 세션/그룹 ID 존재 여부
-- 라이선스와 출처 필드 존재 여부
+- 라이선스·usage class·출처·변환 사슬 필드 존재 여부
 - 파싱 성공률과 손상 파일 수
 
 결과는 `data/reports/source_inventory.json`에 원본 수치와 필터 전 수치를 분리해 기록한다.
 
 ## 완료 Gate
 
-- [ ] 여섯 소스가 모두 고정 revision/release 아래에 있다.
+- [ ] 다섯 활성 소스가 모두 고정 revision/release 아래에 있다.
 - [ ] 모든 파일의 bytes와 SHA-256이 manifest에 있다.
-- [ ] YEJI v9는 Alpaca 한 형식만 학습 후보로 지정했다.
-- [ ] YEJI Processed의 중복 원천 관계를 확인했다.
+- [ ] `bazi-sft` 원본 응답은 직접 학습 후보가 아니며 파생 Gate를 명시했다.
+- [ ] YEJI Rules는 단일 허용 파일과 MIT 원천 코드만 수집했다.
+- [ ] 제외·참고 전용 소스를 활성 adapter가 읽지 못하게 했다.
 - [ ] AI Hub 승인과 비공개 저장 위치를 확인했다.
 - [ ] 라이선스 manifest와 attribution 문구 초안을 작성했다.
 - [ ] inventory가 README 주장과 실제 파일 수치를 분리해 기록한다.
@@ -158,9 +170,9 @@ Gate 실패 시 Phase 2 adapter 구현을 시작하지 않는다.
 
 - [Hugging Face CLI 다운로드 가이드](https://huggingface.co/docs/huggingface_hub/en/guides/cli)
 - [Nemotron-Personas-Korea-Saju](https://huggingface.co/datasets/rayraykim/Nemotron-Personas-Korea-Saju)
-- [YEJI Fortune-Telling KO v9](https://huggingface.co/datasets/tellang/yeji-fortune-telling-ko-v9)
-- [YEJI Processed](https://huggingface.co/datasets/tellang/yeji-processed)
-- [YEJI BaZi Translated KO](https://huggingface.co/datasets/tellang/yeji-bazi-translated-ko)
+- [`bazi-sft`](https://huggingface.co/datasets/AmareshHebbar/bazi-sft)
+- [YEJI BaZi Rules](https://huggingface.co/datasets/tellang/yeji-bazi-rules)
+- [`chxb/shensha`](https://github.com/chxb/shensha)
 - [AI Hub 감성 대화 말뭉치](https://aihub.or.kr/aihubdata/data/view.do?dataSetSn=86)
 - [AI Hub 연속적 감정 대화](https://aihub.or.kr/aihubdata/data/view.do?dataSetSn=271)
 
@@ -168,6 +180,8 @@ Gate 실패 시 Phase 2 adapter 구현을 시작하지 않는다.
 
 | 날짜 | 확인 내용 | 결과 |
 |---|---|---|
-| 2026-08-27 | Hugging Face API의 SHA·license·config | 등록부 값 확인, v9 Alpaca/ChatML 이중 제공 확인 |
+| 2026-08-27 | Hugging Face API의 SHA·license·files | 활성 소스 revision과 YEJI Rules 단일 허용 파일 확인 |
 | 2026-08-27 | AI Hub 데이터 페이지 | 로그인·신청 필요, 27만 코퍼스와 연속 대화 10,000세트 설명 확인 |
 | 2026-08-27 | `hf download` 공식 사용법 | dataset type, revision, local-dir, dry-run 지원 확인 |
+| 2026-08-27 | `bazi-sft` 카드·샘플 | Apache 2.0, 합성·자체 규칙, 계산 검증 한계와 4개 question type 확인 |
+| 2026-08-27 | YEJI Rules·원천 GitHub | 신살 JSON의 MIT 계보와 고전 파생 파일의 무라이선스 원천 확인 |
