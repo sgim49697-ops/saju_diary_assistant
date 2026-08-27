@@ -51,17 +51,22 @@ Phase 0 → Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5 → Phase 6
 ```text
 data/
 ├── raw/<source>/<revision>/
-├── audit/saju_1b_baseline/v1.0.0/build-<audit-hash>/  # 비공개 locator·결정
+├── audit/saju_1b_baseline/v1.1.0/build-e162d9b2b7dc/  # 비공개 locator·결정
 ├── derived/saju_1b_baseline/v1.0.0/build-<derived-hash>/
 │   ├── unified/
 │   ├── manifests/
 │   └── eval/
 └── reports/
-    └── saju_1b_baseline/<source|audit|preprocessing>/v1.0.0/build-<hash>/
+    └── saju_1b_baseline/
+        ├── audit/v1.1.0/build-e162d9b2b7dc/
+        ├── audit-review/v1.1.0/build-e162d9b2b7dc/reviewer-v1.0.0/
+        └── <source|preprocessing>/v1.0.0/build-<hash>/
 
 configs/data_versions/saju_1b_baseline/
 ├── source-bundle-v1.0.0.json
-├── audit-policy-v1.0.0.json
+├── audit-policy-v1.0.0.json                 # 과거 build 검증용
+├── audit-policy-v1.1.0.json                 # 현재 사람 검수 대상
+├── yeji-rule-corrections-v1.1.0.json
 └── registry.json
 
 runs/
@@ -90,7 +95,7 @@ runs/
 
 Nemotron 1K 몫은 v6 110행·v7 440행, 10K 몫은 v6 1,100행·v7 4,400행, 20K 몫은 v6 2,200행·v7 8,800행이다. `bazi-sft`는 제공된 네 기둥을 입력 사실로 삼아 일간·오행·규칙 조건을 다시 계산하며, 원문의 날짜·지역에서 네 기둥을 학습시키지 않는다. AI Hub 데이터는 원문을 외부에 공개하지 않고 개인정보·자해·의료 진단·과도한 훈계 행을 제외한다.
 
-YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `9a11e1502983969407c43f82c65de6736b344da1a623e7a6557ad8b20cda939e`, 원천은 MIT의 `chxb/shensha@5b90110e55feb92303ef7853ecacdb6f9ed59eac`이다. 원천부터 `词馆`의 정학당 간지가 주석의 `壬申`과 코드의 `壬卯`로 상충하는 오류가 있으므로, 51개 규칙을 독립 기준과 대조하고 자체 한국어 QA로 다시 만든다.
+YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `9a11e1502983969407c43f82c65de6736b344da1a623e7a6557ad8b20cda939e`, 원천은 MIT의 `chxb/shensha@5b90110e55feb92303ef7853ecacdb6f9ed59eac`이다. 감사 v1.1은 원본을 바꾸지 않고 `词馆`의 金 간지 `壬卯→壬申`, `五鬼` category `흉살류→재앙류` 두 값만 고정 manifest overlay로 교정한다. 두 이상 징후는 원본에서 계속 관측하고 교정 결과에서 해소됐는지 함께 검사하며, 사람 검수·명시 승인 전에는 자체 한국어 QA를 만들지 않는다.
 
 ### 제외·격리 소스
 
@@ -131,7 +136,7 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
 - major는 공통 스키마·태스크 계약 변경, minor는 원천·필터·template·split·구성 변경, patch는 동일 레코드의 보고서·검토 메타 변경에 사용한다.
 - source build는 네 `SOURCE_MANIFEST.json`, audit build는 source build와 감사 정책·seed·감사 코드 hash를 부모 입력으로 기록한다. 향후 derived build는 승인된 audit seal을 추가 부모로 삼는다.
 - build hash 입력에는 절대경로와 실행 시각을 넣지 않는다. 전체 SHA-256을 manifest에 저장하고 디렉터리에는 앞 12자리를 사용한다.
-- 동일 build 재실행은 검증만 수행한다. 검토 결정을 바꾸거나 입력이 달라지면 새 버전·build를 만든다.
+- 동일 build 재실행은 검증만 수행한다. 사람 판정 수정은 같은 build의 append-only revision으로 남기고, 원천·정책·교정 계약·감사 코드가 달라지면 새 버전·build를 만든다.
 
 ## 원본 내용 매핑
 
@@ -189,3 +194,8 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
   - 변경 범위: source 보고서를 `source/v1.0.0/build-b3890c552e38`로 이관하고, 감사 정책·bundle·registry, 감사 CLI·테스트, 공개 집계 보고서를 추가했다. 원본·unified·평가셋·학습 데이터는 변경하거나 생성하지 않았다.
   - 검증: 단위 테스트 20건, Python compile, Phase 1 원본 재해시, audit `verify`, 같은 build 무쓰기 재실행, 미검토 finalize·무확인 approve 차단을 통과했다. `build-336b8377063a`에서 Nemotron 116,666행, `bazi-sft` 100,000행, AI Hub 58,268건, YEJI 51규칙과 교차 원천 동일 명식 2,778개를 확인했다.
   - 남은 이슈·후속 작업: 필수 150건 사람 검토가 남았다. YEJI `词馆`의 `壬申` 주석·`壬卯` 코드 충돌과 `五鬼`의 미등록 `흉살류` category 때문에 Gate는 차단 상태이며, 교정 계약과 새 build 없이는 승인·Phase 2B 전처리를 시작할 수 없다.
+- 2026-08-27
+  - 작업 요약: YEJI 두 known issue를 원본 불변 correction overlay로 고정한 감사 `v1.1.0/build-e162d9b2b7dc`를 생성하고, 핵심 150건과 참조 151건을 함께 확인하는 버전 고정 HTML 검수기를 구현했다.
+  - 변경 범위: 감사 정책·교정 manifest·append-only 판정 revision·과거 v1.0 검증기, 공개 감사 보고서와 `reports/.../audit-review/.../reviewer-v1.0.0` 화면을 추가했다. 원본·unified·평가셋·학습 데이터는 변경하거나 생성하지 않았다.
+  - 검증: Ruff, Python compile, 단위 테스트 20건, Node JavaScript 구문 검사, Phase 1 원본 재해시, v1.1 audit `verify`, v1.0 historical verify, 실제 loopback HTTP/API와 Chromium 1600×1000 렌더링을 통과했다. v1.1은 관측 코드 2건을 모두 해소해 blocking finding 0건이며 큐 review ID 301개는 v1.0과 동일하다.
+  - 남은 이슈·후속 작업: 사용자 판정은 필수 0/150, 참조 0/151이고 build는 미봉인·미승인이다. 필수 판정을 모두 완료·해결한 뒤 별도 지시에 따라 seal과 명시 승인을 수행하며, 그 전에는 Phase 2B를 시작하지 않는다.

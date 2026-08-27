@@ -5,7 +5,7 @@
 | 실행 상태 | 부분 진행 |
 | 선행 Phase | Phase 1 완료 |
 | 입력 | source bundle `v1.0.0/build-b3890c552e38`, 고정 원본, source inventory, license manifest |
-| 현재 출력 | Phase 2A `v1.0.0/build-336b8377063a` 감사 보고서와 비공개 검토 큐 |
+| 현재 출력 | Phase 2A `v1.1.0/build-e162d9b2b7dc` 감사 보고서·비공개 검토 큐·`reviewer-v1.0.0` |
 | 예정 출력 | 승인된 audit build를 부모로 한 versioned unified, holdout/core eval, 후보 순서 |
 | 완료 Gate | 사용자 필수 150건 검토·명시 승인 후 스키마·누수·중복·후보 여유분 검사 통과 |
 | 웹 확인일 | 2026-08-27 |
@@ -20,22 +20,25 @@ Phase 2A는 원본을 수정하거나 파생 대화를 만들지 않는다. 네 
 
 ```text
 data/raw/<source>/<upstream-revision>/
-data/audit/saju_1b_baseline/v1.0.0/build-336b8377063a/       # Git 제외·0700/0600
-data/reports/saju_1b_baseline/audit/v1.0.0/build-336b8377063a/
+data/audit/saju_1b_baseline/v1.1.0/build-e162d9b2b7dc/       # Git 제외·0700/0600
+data/reports/saju_1b_baseline/audit/v1.1.0/build-e162d9b2b7dc/
+data/reports/saju_1b_baseline/audit-review/v1.1.0/build-e162d9b2b7dc/reviewer-v1.0.0/
 data/derived/saju_1b_baseline/v1.0.0/build-<derived-hash>/   # 승인 후에만 생성
 ```
 
 source build는 네 원천 manifest hash, audit build는 source build·감사 정책·seed 42·감사 코드 hash로 계산한다. 절대경로와 실행 시각은 fingerprint에서 제외하고 전체 SHA-256을 manifest에 기록한다. 기존 build는 덮어쓰지 않으며 동일 입력 재실행은 무결성 검증만 한다.
 
 ```bash
-.venv-data/bin/python scripts/data/phase2_audit.py --audit-version v1.0.0 plan
-.venv-data/bin/python scripts/data/phase2_audit.py --audit-version v1.0.0 --build build-336b8377063a scan --execute
-.venv-data/bin/python scripts/data/phase2_audit.py --audit-version v1.0.0 --build build-336b8377063a review --required-only
-.venv-data/bin/python scripts/data/phase2_audit.py --audit-version v1.0.0 --build build-336b8377063a status
-.venv-data/bin/python scripts/data/phase2_audit.py --audit-version v1.0.0 --build build-336b8377063a verify
+.venv-data/bin/python scripts/data/phase2_verify_history.py --audit-version v1.0.0 --build build-336b8377063a
+.venv-data/bin/python scripts/data/phase2_audit.py --audit-version v1.1.0 plan
+.venv-data/bin/python scripts/data/phase2_audit.py --audit-version v1.1.0 --build build-e162d9b2b7dc verify
+.venv-data/bin/python scripts/data/phase2_review_web.py --audit-version v1.1.0 --build build-e162d9b2b7dc --port 8765
+.venv-data/bin/python scripts/data/phase2_audit.py --audit-version v1.1.0 --build build-e162d9b2b7dc status
 ```
 
-`finalize`는 필수 150건 완료와 `uncertain`·`skip` 해소 전에는 실패한다. `approve`는 seal, 차단 이슈 해소, 사용자의 별도 승인 지시와 `--confirm-user-approval`가 모두 있어야 한다. 현재는 검토 0/150이며 approval과 seal을 만들지 않았다.
+HTML 파일을 직접 열지 않고 위 loopback 서버로 접속한다. 화면은 핵심 150건, 참조 151건, 전체 301건 탭과 source/status 필터를 제공한다. 판정은 저장 즉시 비공개 `decisions.jsonl`에 append하고, 수정 판정은 이전 `decision_id`를 가리키는 새 revision으로 남긴다. 브라우저 bootstrap에는 locator가 없고 원문은 선택한 항목 API에서만 읽는다. 서버는 `127.0.0.1`에만 bind하며 Host·Origin·CSRF, CSP, no-store, 16KiB 본문 제한을 강제한다.
+
+`finalize`는 필수 150건 완료와 `uncertain`·`skip` 해소 전에는 실패한다. `approve`는 seal, 차단 이슈 해소, 사용자의 별도 승인 지시와 `--confirm-user-approval`가 모두 있어야 한다. 현재는 필수 0/150·참조 0/151이며 approval과 seal을 만들지 않았다. 참조 큐 판정은 선택 사항이지만 화면에서 함께 확인할 수 있다.
 
 ### Phase 2A 전체 스캔 결과
 
@@ -44,18 +47,18 @@ source build는 네 원천 manifest hash, audit build는 source build·감사 �
 | Nemotron | 116,666행, canonical 명식 92,558개, invalid 명식 0 |
 | `bazi-sft` | 100,000행, synthetic group 25,000개, 일간·오행 검산 실패 0 |
 | AI Hub #86 | 58,268건, 감정 type 60개, 고유 talk group 51,886개 |
-| YEJI | 51규칙, ID·원천 이름 대조 완료, 미등록 category 1건 |
+| YEJI | 51규칙, ID·원천 이름 대조 완료, 원본 이상 2건 관측·overlay 교정 후 구조 실패 0 |
 | Nemotron↔BaZi 동일 명식 | 2,778개 |
 | 필수/참고 검토 큐 | 150/151 단위, pair 단위 40개 |
 
 필수 검토는 안전 우선으로 AI Hub 70, Nemotron 40, `bazi-sft` 20, YEJI 20단위다. 참고 큐는 각각 30, 50, 40, 31단위다. 공개 보고서는 집계와 finding code만 포함하며 원문, 원천 record ID, locator, 명식 hash, 비공개 메모를 포함하지 않는다.
 
-현재 blocking finding은 다음 두 가지다.
+과거 v1.0에서 다음 두 finding이 blocking 상태였다.
 
 - `YEJI_CIGUAN_CONFLICT`: `词馆`의 金 정학당이 주석 `壬申`과 코드·JSON `壬卯`로 충돌한다.
 - `YEJI_STRUCTURE_FAILURE`: `五鬼`가 상위 category 목록에 없는 `흉살류`를 사용한다.
 
-두 항목은 자동 교정하지 않는다. 사람 검토와 교정 계약을 새 버전에 반영하기 전에는 audit approval과 Phase 2B를 차단한다.
+감사 v1.1은 원본 파일과 원천 manifest를 바꾸지 않고, 별도 `yeji-rule-corrections-v1.1.0.json`의 exact expected-value overlay만 적용한다. `词馆`은 고정 upstream 주석과 삼명통회 대조에 따라 `壬卯→壬申`, `五鬼`는 조건 매핑을 유지하고 내부 taxonomy에 맞춰 `흉살류→재앙류`로 교정한다. 전체 스캔은 원본의 두 코드를 계속 `observed_finding_codes`로 남기면서 교정 결과를 `resolved_finding_codes`로 기록했고, 현재 `blocking_finding_codes`는 빈 배열이다. 원본이 예상값과 달라지면 overlay는 즉시 실패한다.
 
 ## 공통 레코드 계약
 
@@ -174,7 +177,7 @@ source build는 네 원천 manifest hash, audit build는 source build·감사 �
 
 - SHA-256이 고정된 `rules/shensha_51.json` 외의 YEJI 파일을 읽으면 실패한다.
 - 51개 condition을 원천 `chxb/shensha.js`와 대조하고 허용 stem·branch·60갑자 집합, mapping 내부 일관성을 검사한다.
-- `词馆`의 `壬卯`는 자동 교정하지 않고 독립 기준으로 `壬申`을 확인한 교정 기록과 attribution을 남긴 뒤 사용한다.
+- `词馆` 원본의 `壬卯`는 그대로 보존하고, 독립 기준으로 확인한 `壬申`을 versioned correction overlay에서만 적용한다. 교정 ID·전후 값·근거·attribution을 파생 행에 남긴다.
 - 검증된 rule마다 정의, 조건 판정, 반례, 잘못된 판정 교정 태스크를 구조화 명식 조합으로 생성한다. 날짜·실존 인물은 사용하지 않는다.
 - `meaning`은 soft reference로만 쓰며 죽음·질병·재난을 확정하는 문구는 중립적인 전통 해석 설명으로 제한한다.
 - `source_group_id = rule_id + chart_signature`, `leakage_group_id = chart:<SHA-256>`로 만들고 동일 명식은 다른 사주 원천과도 split을 넘지 않는다.
@@ -262,7 +265,7 @@ token 수, 512/768/1024 초과율, assistant loss token 비율과 special token 
 ## 완료 Gate
 
 - [ ] Phase 2A 필수 150건을 사용자가 검토하고 `uncertain`·`skip`을 모두 해소했다.
-- [ ] YEJI 두 blocking finding의 교정 계약을 새 버전으로 고정했다.
+- [x] YEJI 두 blocking finding의 교정 계약을 새 버전으로 고정했다.
 - [ ] audit build를 seal하고 사용자가 명시적으로 승인해 registry의 `approved_audit`가 설정됐다.
 - [ ] 모든 unified 행이 공통 스키마와 enum을 만족한다.
 - [ ] source 내부·간 exact duplicate가 0건이다.
@@ -272,7 +275,7 @@ token 수, 512/768/1024 초과율, assistant loss token 비율과 special token 
 - [ ] AI Hub 동일 group이 train/eval 또는 #86 단일턴/멀티턴 축에 중복 배정되지 않았다.
 - [ ] #86에 구조적으로 적격인 멀티턴 group이 reserve를 포함해 1,200개 이상이다.
 - [ ] `bazi-sft` 구조·규칙 검산과 한국어 재렌더가 모두 통과했다.
-- [ ] 신살 51개 원천 대조·known issue 교정과 허용 파일 검사가 통과했다.
+- [x] 신살 51개 원천 대조·known issue 교정과 허용 파일 검사가 통과했다.
 - [ ] 의료·투자·운명 단정·자해 위기 안전 필터의 제외 내역이 있다.
 - [ ] 모든 제외 행에 이유가 있고 보충 후보 순서가 고정됐다.
 - [ ] messages role과 문자 길이 통계가 Phase 4에 전달된다.
@@ -304,6 +307,8 @@ data/reports/saju_1b_baseline/preprocessing/v1.0.0/build-<derived-hash>/filter_a
 | 2026-08-27 | Datasets 현재 cache/fingerprint 문서 | 원본 Arrow 상태와 변환 hash를 결합하는 fingerprint 원칙 확인 |
 | 2026-08-27 | DuckDB current 1.5 Parquet·JSON 문서 | 고정 로컬 Parquet 목록 읽기와 projection/filter pushdown, JSON 처리 방식 확인 |
 | 2026-08-27 | TRL conversational format | `messages` 역할·내용 구조와 assistant mask 연계 확인 |
+| 2026-08-27 | [chxb/shensha 고정 revision](https://github.com/chxb/shensha/blob/5b90110e55feb92303ef7853ecacdb6f9ed59eac/shensha.js)·[삼명통회 대조](https://www.tianjihq.com/zh-CN/learn/glossary/bazi-ss-xuetang) | `词馆` 金 정사관의 `壬申` 근거를 교차 확인하고 exact overlay 범위를 고정 |
+| 2026-08-27 | [Python 3.10 `http.server`](https://docs.python.org/3.10/library/http.server.html)·[OWASP CSRF 방어](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html) | 외부 공개 서버가 아닌 loopback 전용 검수기로 제한하고 Host·Origin·CSRF token·no-store를 적용 |
 
 ## 진행 기록
 
@@ -312,3 +317,8 @@ data/reports/saju_1b_baseline/preprocessing/v1.0.0/build-<derived-hash>/filter_a
   - 변경 범위: source bundle·audit policy·registry, 감사 CLI·검토 큐·공개 집계 보고서와 공통 leakage group 계약을 추가했다. 원본과 학습 후보는 변경하지 않았다.
   - 검증: 단위 테스트 20건, 전체 원본 재해시, `build-336b8377063a` 전체 스캔·verify, 공개 보고서 원문 금지 검사, 동일 build 무쓰기 재실행, 미검토 finalize·무확인 approve 차단을 통과했다.
   - 남은 이슈·후속 작업: 사용자 필수 검토는 0/150이다. YEJI `YEJI_CIGUAN_CONFLICT`, `YEJI_STRUCTURE_FAILURE`를 교정한 새 build가 승인되기 전에는 adapter·필터·split·파생 QA를 구현하지 않는다.
+- 2026-08-27
+  - 작업 요약: 두 YEJI finding을 원본 불변 overlay로 교정한 감사 v1.1과 source-aware HTML 검수기를 구현해 Phase 2A 자동 검사 구간을 완료했다.
+  - 변경 범위: `v1.1.0/build-e162d9b2b7dc` 비공개 큐·공개 보고서, correction/policy/registry, append-only revision API, 버전별 `audit-review` 정적 자산을 추가했다. Phase 2B adapter와 파생 데이터는 만들지 않았다.
+  - 검증: 관련 단위 테스트 20건, Ruff·compile·Node 구문 검사, Phase 1 원본 재검증, v1.1 전체 audit verify와 v1.0 당시 Git 코드 기반 historical verify, API 보안 헤더·locator 비노출, Chromium 화면 검증을 통과했다. 관측 finding 2건은 모두 해소됐고 blocking finding은 0건이다.
+  - 남은 이슈·후속 작업: 필수 검수 0/150과 선택 참조 검수 0/151이 남았다. 사용자 검토가 끝난 뒤에만 finalize하고, 별도 명시 승인을 받은 뒤 registry 승인 포인터를 설정한다.

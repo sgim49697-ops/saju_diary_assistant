@@ -14,6 +14,24 @@
       "required_review_remaining": 150,
       "status": "human_review_required",
       "version": "v1.0.0"
+    },
+    {
+      "blocking_finding_codes": [],
+      "build_id": "build-e162d9b2b7dc",
+      "build_manifest_sha256": "fb83910d73bb85594ddc9b2a658dc532c7699f501e1f9d6420f743b96067c4ea",
+      "build_sha256": "e162d9b2b7dc54c68168eb74cb72586528f2fbecb5ed07f6a84af4d4998816fe",
+      "correction_manifest_sha256": "1a55645037d8bf6153cc401b62adb87ce9053742f055e72ae6d5ae0b3f833eec",
+      "implementation_commit": "da5985f2737007a4d3f4694724e2dcb612efccee",
+      "reference_review_completed": 0,
+      "required_review_remaining": 150,
+      "resolved_finding_codes": [
+        "YEJI_CIGUAN_CONFLICT",
+        "YEJI_STRUCTURE_FAILURE"
+      ],
+      "review_manifest_sha256": "d436407b4c948c309c67d190542b24c0673f6c92dd5852267c232c1f9e73ee75",
+      "reviewer_version": "reviewer-v1.0.0",
+      "status": "human_review_required",
+      "version": "v1.1.0"
     }
   ],
   "dataset_name": "saju_1b_baseline",
