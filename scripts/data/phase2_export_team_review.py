@@ -33,15 +33,15 @@ from scripts.data.audit_tools import (
 )
 from scripts.data.errors import Phase1Error, Phase2AuditError
 
-DEFAULT_SOURCE_CONFIG = REPO_ROOT / "configs/data_sources.v1.json"
+DEFAULT_SOURCE_CONFIG = REPO_ROOT / "configs/data_sources.v1.1.json"
 DEFAULT_POLICY = (
-    REPO_ROOT / "configs/data_versions/saju_1b_baseline/audit-policy-v1.1.0.json"
+    REPO_ROOT / "configs/data_versions/saju_1b_baseline/audit-policy-v1.2.0.json"
 )
 ASSET_ROOT = Path(__file__).with_name("team_review_assets")
 PACKAGE_SCHEMA_VERSION = "1.0.0"
-PACKAGE_VERSION = "share-v1.0.0"
+PACKAGE_VERSION = "share-v1.1.0"
 PROJECTION_VERSION = "minimal-v1.0.0"
-TEAM_REVIEWER_VERSION = "team-reviewer-v1.0.0"
+TEAM_REVIEWER_VERSION = "team-reviewer-v1.1.0"
 STATIC_ASSETS = ("START_HERE.html", "team-review.css", "team-review.js")
 PACKAGE_ARTIFACTS = (
     *STATIC_ASSETS,
@@ -51,17 +51,17 @@ PACKAGE_ARTIFACTS = (
 )
 PACKAGE_FILES = (*PACKAGE_ARTIFACTS, "PACKAGE_MANIFEST.json", "SHA256SUMS.txt")
 CHECKSUM_FILES = (*PACKAGE_ARTIFACTS, "PACKAGE_MANIFEST.json")
-EXPECTED_REQUIRED_UNITS = {
-    "aihub_empathy": 70,
-    "bazi_sft": 20,
-    "nemotron_saju": 40,
-    "yeji_bazi_rules": 20,
+EXPECTED_ALL_UNITS = {
+    "aihub_empathy": 100,
+    "bazi_sft": 60,
+    "nemotron_saju": 90,
+    "yeji_bazi_rules": 50,
 }
-EXPECTED_REQUIRED_RECORDS = {
-    "aihub_empathy": 80,
-    "bazi_sft": 30,
-    "nemotron_saju": 50,
-    "yeji_bazi_rules": 20,
+EXPECTED_ALL_RECORDS = {
+    "aihub_empathy": 110,
+    "bazi_sft": 70,
+    "nemotron_saju": 110,
+    "yeji_bazi_rules": 50,
 }
 FORBIDDEN_KEYS = {
     "locator",
@@ -264,12 +264,17 @@ def build_projected_items(
     raw_loader: Callable[[dict[str, Any]], Any],
     correction_manifest: dict[str, Any] | None,
 ) -> list[dict[str, Any]]:
-    required = [item for item in queue if item.get("queue") == "required"]
-    source_counts = Counter(item.get("source") for item in required)
-    if dict(source_counts) != EXPECTED_REQUIRED_UNITS:
-        raise Phase2AuditError("핵심 검수 큐 source 할당이 정본과 다릅니다.")
+    selected = [
+        item for item in queue if item.get("queue") in {"required", "reference"}
+    ]
+    queue_counts = Counter(item.get("queue") for item in selected)
+    if queue_counts != {"required": 150, "reference": 150}:
+        raise Phase2AuditError("핵심·참조 검수 큐 수량이 각각 150건이 아닙니다.")
+    source_counts = Counter(item.get("source") for item in selected)
+    if dict(source_counts) != EXPECTED_ALL_UNITS:
+        raise Phase2AuditError("전체 검수 큐 source 할당이 정본과 다릅니다.")
     projected: list[dict[str, Any]] = []
-    for index, item in enumerate(required, 1):
+    for index, item in enumerate(selected, 1):
         source = str(item["source"])
         raw_records = [raw_loader(locator) for locator in item["locators"]]
         effective_records = raw_records
@@ -283,6 +288,7 @@ def build_projected_items(
         value: dict[str, Any] = {
             "index": index,
             "review_id": item["review_id"],
+            "queue": item["queue"],
             "source": source,
             "stratum": item["stratum"],
             "unit_type": item["unit_type"],
@@ -300,8 +306,8 @@ def build_projected_items(
     record_counts = Counter()
     for item in projected:
         record_counts[item["source"]] += len(item["records"])
-    if dict(record_counts) != EXPECTED_REQUIRED_RECORDS:
-        raise Phase2AuditError("핵심 검수 큐 record 할당이 정본과 다릅니다.")
+    if dict(record_counts) != EXPECTED_ALL_RECORDS:
+        raise Phase2AuditError("전체 검수 큐 record 할당이 정본과 다릅니다.")
     _assert_no_forbidden_keys(projected)
     return projected
 
@@ -334,7 +340,7 @@ def build_package_document(
         "projection_sha256": projection_sha256,
         "projection_version": PROJECTION_VERSION,
         "queue_sha256": values["queue_manifest"]["queue_sha256"],
-        "scope": "required",
+        "scope": "required_and_reference",
         "team_reviewer_version": TEAM_REVIEWER_VERSION,
     }
     fingerprint = sha256_json(fingerprint_inputs)
@@ -350,7 +356,7 @@ def build_package_document(
         "audit_version": context["policy"]["audit_version"],
         "build_id": context["identity"]["build_id"],
         "build_sha256": context["identity"]["build_sha256"],
-        "scope": "required",
+        "scope": "required_and_reference",
         "unit_count": len(projected_items),
         "record_count": sum(source_records.values()),
         "source_unit_counts": dict(sorted(source_units.items())),
@@ -375,7 +381,7 @@ def build_package_document(
         "queue_sha256": values["queue_manifest"]["queue_sha256"],
         "projection_sha256": projection_sha256,
         "package_fingerprint": fingerprint,
-        "scope": "required",
+        "scope": "required_and_reference",
         "unit_count": len(projected_items),
         "record_count": sum(source_records.values()),
         "source_unit_counts": dict(sorted(source_units.items())),
@@ -406,7 +412,7 @@ def _team_guide(manifest: dict[str, Any]) -> str:
     counts = manifest["source_unit_counts"]
     return f"""# 팀원 검수 안내
 
-이 패키지는 사주 1.3B baseline Phase 2A `{manifest['audit_version']}/{manifest['build_id']}`의 핵심 검수 150단위에 대한 독립적인 2차 의견을 받기 위한 자료입니다.
+이 패키지는 사주 1.3B baseline Phase 2A `{manifest['audit_version']}/{manifest['build_id']}`의 핵심 150단위와 참고 150단위, 총 300단위에 대한 독립적인 2차 의견을 받기 위한 자료입니다.
 
 ## 시작 방법
 
@@ -649,7 +655,7 @@ def verify_archive(archive_path: Path) -> dict[str, Any]:
         "projection_sha256": manifest.get("projection_sha256"),
         "projection_version": manifest.get("projection_version"),
         "queue_sha256": manifest.get("queue_sha256"),
-        "scope": "required",
+        "scope": "required_and_reference",
         "team_reviewer_version": manifest.get("team_reviewer_version"),
     }
     expected_fingerprint = sha256_json(expected_fingerprint_inputs)
@@ -688,7 +694,7 @@ def verify_archive(archive_path: Path) -> dict[str, Any]:
     )
     valid_items = (
         isinstance(items, list)
-        and len(items) == 150
+        and len(items) == 300
         and all(isinstance(item, dict) for item in items)
     )
     review_ids = (
@@ -708,16 +714,16 @@ def verify_archive(archive_path: Path) -> dict[str, Any]:
         or document.get("feedback_type") != "advisory_team_review"
         or not valid_decisions
         or not valid_reasons
-        or document.get("unit_count") != 150
-        or document.get("record_count") != 180
-        or document.get("source_unit_counts") != EXPECTED_REQUIRED_UNITS
-        or document.get("source_record_counts") != EXPECTED_REQUIRED_RECORDS
+        or document.get("unit_count") != 300
+        or document.get("record_count") != 340
+        or document.get("source_unit_counts") != EXPECTED_ALL_UNITS
+        or document.get("source_record_counts") != EXPECTED_ALL_RECORDS
         or not valid_items
         or any(
             not isinstance(review_id, str) or not re.fullmatch(r"[0-9a-f]{24}", review_id)
             for review_id in review_ids
         )
-        or len(set(review_ids)) != 150
+        or len(set(review_ids)) != 300
         or sha256_json(items) != manifest.get("projection_sha256")
     ):
         raise Phase2AuditError("공유 ZIP identity 또는 수량 계약이 다릅니다.")
@@ -863,7 +869,7 @@ def verify_feedback(archive_path: Path, feedback_path: Path) -> dict[str, Any]:
 
 def default_output(audit_version: str, build_id: str) -> Path:
     return REPO_ROOT.parent / (
-        f"saju-review-share-{audit_version}-{build_id}-core150.zip"
+        f"saju-review-share-{audit_version}-{build_id}-core150-ref150.zip"
     )
 
 
@@ -955,13 +961,13 @@ def build_archive(arguments: argparse.Namespace) -> dict[str, Any]:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Phase 2A 핵심 150건 팀원용 오프라인 검수 ZIP"
+        description="Phase 2A 핵심 150건·참조 150건 팀원용 오프라인 검수 ZIP"
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
     build = subparsers.add_parser("build", help="새 공유 ZIP을 생성한다.")
     build.add_argument("--source-config", type=Path, default=DEFAULT_SOURCE_CONFIG)
     build.add_argument("--policy", type=Path, default=DEFAULT_POLICY)
-    build.add_argument("--audit-version", default="v1.1.0")
+    build.add_argument("--audit-version", default="v1.2.0")
     build.add_argument("--build", required=True)
     build.add_argument("--output", type=Path)
     build.add_argument(

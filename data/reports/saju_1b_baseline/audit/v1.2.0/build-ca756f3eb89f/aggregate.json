@@ -1,0 +1,261 @@
+{
+  "blocking_finding_codes": [],
+  "contains_raw_samples": false,
+  "correction_manifest_sha256": "b355a37112bdb6bac94a16b4d341a5a7f034403a39d66f9830526ee53d926f81",
+  "cross_source": {
+    "combined_unique_chart_count": 282386,
+    "leakage_group_contract": "global_canonical_eight_hanja_chart_hash",
+    "nemotron_bazi_chart_overlap_count": 8347
+  },
+  "observed_finding_codes": [
+    "YEJI_CIGUAN_CONFLICT",
+    "YEJI_DEXIU_CONDITION_CONFLICT",
+    "YEJI_STRUCTURE_FAILURE",
+    "YEJI_TONGZI_CONDITION_CONFLICT"
+  ],
+  "raw_manifest_unchanged": true,
+  "reserve_headroom": {
+    "aihub_empathy_multiturn": {
+      "required_for_mix20_with_20_percent_reserve": 1200,
+      "status": "passed",
+      "structurally_available_groups": 51886
+    },
+    "aihub_empathy_single": {
+      "required_for_mix20_with_20_percent_reserve": 2400,
+      "status": "passed",
+      "structurally_available": 58268
+    },
+    "bazi_sft": {
+      "required_for_mix20_with_20_percent_reserve": 6000,
+      "status": "passed",
+      "structurally_available": 100000
+    },
+    "nemotron_saju": {
+      "required_for_mix20_with_20_percent_reserve": 13200,
+      "status": "passed",
+      "structurally_available": 1000000
+    },
+    "yeji_shensha_derived": {
+      "required_for_mix20_with_20_percent_reserve": 1200,
+      "source_rule_count": 51,
+      "status": "requires_phase2b_derivation"
+    }
+  },
+  "resolved_finding_codes": [
+    "YEJI_CIGUAN_CONFLICT",
+    "YEJI_DEXIU_CONDITION_CONFLICT",
+    "YEJI_STRUCTURE_FAILURE",
+    "YEJI_TONGZI_CONDITION_CONFLICT"
+  ],
+  "schema_version": "1.0.0",
+  "source_build_sha256": "9462ec148dcd93328b3b68522ad6c6f0d2c3694161d32a2d54332e8069d82f0a",
+  "sources": {
+    "aihub_empathy": {
+      "emotion_counts": {
+        "E10": 1141,
+        "E11": 1053,
+        "E12": 1008,
+        "E13": 1179,
+        "E14": 894,
+        "E15": 978,
+        "E16": 1002,
+        "E17": 1012,
+        "E18": 1099,
+        "E19": 1051,
+        "E20": 1044,
+        "E21": 1022,
+        "E22": 1002,
+        "E23": 1013,
+        "E24": 1109,
+        "E25": 921,
+        "E26": 912,
+        "E27": 1114,
+        "E28": 992,
+        "E29": 999,
+        "E30": 1025,
+        "E31": 1126,
+        "E32": 1119,
+        "E33": 941,
+        "E34": 986,
+        "E35": 976,
+        "E36": 948,
+        "E37": 1336,
+        "E38": 972,
+        "E39": 1002,
+        "E40": 1028,
+        "E41": 1002,
+        "E42": 994,
+        "E43": 1042,
+        "E44": 1041,
+        "E45": 1016,
+        "E46": 942,
+        "E47": 1082,
+        "E48": 1049,
+        "E49": 953,
+        "E50": 993,
+        "E51": 964,
+        "E52": 976,
+        "E53": 992,
+        "E54": 907,
+        "E55": 1010,
+        "E56": 1010,
+        "E57": 906,
+        "E58": 1044,
+        "E59": 1002,
+        "E60": 763,
+        "E61": 761,
+        "E62": 765,
+        "E63": 778,
+        "E64": 779,
+        "E65": 625,
+        "E66": 670,
+        "E67": 763,
+        "E68": 748,
+        "E69": 687
+      },
+      "emotion_type_count": 60,
+      "exact_record_duplicate_count": 0,
+      "human_utterance_length": {
+        "count": 163914,
+        "max": 156,
+        "mean": 35.242615,
+        "p50": 35,
+        "p90": 50,
+        "p95": 54
+      },
+      "row_count": 58268,
+      "safety_flag_counts": {
+        "clinical": 2487,
+        "pii": 0,
+        "self_harm": 435
+      },
+      "situation_size_distribution": {
+        "2": 58268
+      },
+      "structure_failures": {},
+      "system_response_length": {
+        "count": 163914,
+        "max": 151,
+        "mean": 28.930506,
+        "p50": 27,
+        "p90": 43,
+        "p95": 48
+      },
+      "text_quality_flag_counts": {
+        "contains_korean": 58268
+      },
+      "turn_pair_count_distribution": {
+        "2": 10891,
+        "3": 47377
+      },
+      "unique_talk_group_count": 51886,
+      "upstream_cross_split_exact_record_overlap_count": 0,
+      "upstream_cross_split_talk_overlap_count": 6379
+    },
+    "bazi_sft": {
+      "audit_projection_exact_duplicate_count": 0,
+      "canonical_chart_count": 23783,
+      "chart_overlap_by_upstream_split": {
+        "test__train": 99,
+        "test__validation": 6,
+        "train__validation": 116
+      },
+      "charts_reused_across_synthetic_groups": 1177,
+      "duplicate_chart_rows": 76217,
+      "duplicate_example_id_count": 0,
+      "full_row_duplicate_estimate": 0,
+      "question_type_counts": {
+        "career": 25000,
+        "element_balance": 25000,
+        "general_natal": 25000,
+        "relationships": 25000
+      },
+      "response_length": {
+        "count": 100000,
+        "max": 985,
+        "mean": 739.82944,
+        "p50": 700,
+        "p90": 950,
+        "p95": 959
+      },
+      "retrieved_rule_count_distribution": {
+        "1": 17788,
+        "2": 37336,
+        "3": 31532,
+        "4": 13344
+      },
+      "row_count": 100000,
+      "structure_failures": {},
+      "synthetic_group_count": 25000,
+      "synthetic_groups_crossing_upstream_splits": 0,
+      "text_quality_flag_counts": {}
+    },
+    "nemotron_saju": {
+      "audit_projection_exact_duplicate_count": 0,
+      "canonical_chart_count": 266950,
+      "cross_variant_chart_overlap_count": 125765,
+      "duplicate_uuid_count": 0,
+      "full_row_duplicate_estimate": 0,
+      "invalid_chart_count": 0,
+      "narrative_length": {
+        "count": 1000000,
+        "max": 1064,
+        "mean": 485.159336,
+        "p50": 469,
+        "p90": 598,
+        "p95": 645
+      },
+      "required_field_failures": {},
+      "row_count": 1000000,
+      "safety_flag_counts": {
+        "certainty": 185,
+        "death_accident": 328,
+        "financial_guarantee": 0,
+        "health": 74060
+      },
+      "text_quality_flag_counts": {
+        "contains_korean": 1000000,
+        "replacement_character": 3
+      },
+      "variant_duplicate_chart_rows": {
+        "v6": 63000,
+        "v7": 544285
+      },
+      "variant_rows": {
+        "v6": 199996,
+        "v7": 800004
+      },
+      "variant_unique_charts": {
+        "v6": 136996,
+        "v7": 255719
+      }
+    },
+    "yeji_bazi_rules": {
+      "category_count": 10,
+      "correction_count": 5,
+      "known_issue_codes": [
+        "YEJI_CIGUAN_CONFLICT",
+        "YEJI_DEXIU_CONDITION_CONFLICT",
+        "YEJI_STRUCTURE_FAILURE",
+        "YEJI_TONGZI_CONDITION_CONFLICT"
+      ],
+      "observed_structural_failures": {
+        "invalid_category": 1
+      },
+      "provenance_name_match_count": 51,
+      "resolved_issue_codes": [
+        "YEJI_CIGUAN_CONFLICT",
+        "YEJI_DEXIU_CONDITION_CONFLICT",
+        "YEJI_STRUCTURE_FAILURE",
+        "YEJI_TONGZI_CONDITION_CONFLICT"
+      ],
+      "rule_count": 51,
+      "rule_ids_complete": true,
+      "structural_failures": {},
+      "text_quality_flag_counts": {
+        "contains_korean": 51
+      },
+      "type_count": 3
+    }
+  }
+}

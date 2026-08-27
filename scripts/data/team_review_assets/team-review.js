@@ -428,10 +428,11 @@ function renderItem(item) {
   elements.emptyState.hidden = true;
   elements.detailContent.hidden = false;
   elements.feedbackPanel.hidden = false;
-  elements.detailOverline.textContent = `핵심 검수 · ${item.stratum}`;
+  const queueLabel = item.queue === "required" ? "핵심 검수" : "참조 검수";
+  elements.detailOverline.textContent = `${queueLabel} · ${item.stratum}`;
   elements.detailTitle.textContent = sourceLabels[item.source] || item.source;
   clear(elements.detailBadges);
-  elements.detailBadges.append(badge("핵심", "is-core"));
+  elements.detailBadges.append(badge(item.queue === "required" ? "핵심" : "참조", item.queue === "required" ? "is-core" : ""));
   elements.detailBadges.append(badge(item.unit_type === "pair" ? "2건 비교" : "단일 레코드"));
   item.flags.forEach((flag) => elements.detailBadges.append(badge(flag, "is-flag")));
 
@@ -683,7 +684,7 @@ function wireEvents() {
 function validatePackage() {
   if (!reviewPackage || typeof reviewPackage !== "object") throw new Error("review-data.js를 읽지 못했습니다.");
   if (reviewPackage.schema_version !== "1.0.0" || reviewPackage.feedback_type !== "advisory_team_review") throw new Error("지원하지 않는 team review package입니다.");
-  if (reviewPackage.unit_count !== 150 || reviewPackage.record_count !== 180 || reviewPackage.items.length !== 150) throw new Error("핵심 검수 수량 계약이 다릅니다.");
+  if (reviewPackage.unit_count !== 300 || reviewPackage.record_count !== 340 || reviewPackage.items.length !== 300) throw new Error("핵심·참조 검수 수량 계약이 다릅니다.");
   const ids = new Set(reviewPackage.items.map((item) => item.review_id));
   if (ids.size !== reviewPackage.items.length) throw new Error("review_id가 중복됐습니다.");
 }

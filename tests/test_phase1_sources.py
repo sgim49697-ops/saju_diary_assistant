@@ -24,10 +24,12 @@ from scripts.data.source_tools import (
     validate_config,
     validate_zip_paths,
 )
+from scripts.data.phase1_sources import build_parser
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CONFIG_PATH = REPO_ROOT / "configs/data_sources.v1.json"
+CONFIG_V11_PATH = REPO_ROOT / "configs/data_sources.v1.1.json"
 
 
 class ContractTests(unittest.TestCase):
@@ -59,6 +61,35 @@ class ContractTests(unittest.TestCase):
         redirected = aihub_request_headers("https://download.example.net/signed", "fake-key")
         self.assertEqual(official["apikey"], "fake-key")
         self.assertNotIn("apikey", redirected)
+
+    def test_full_nemotron_contract_is_explicit_and_complete(self) -> None:
+        config = load_config(CONFIG_V11_PATH)
+        result = validate_config(config, REPO_ROOT)
+        source = config["sources"]["nemotron_saju"]
+        variants = source["file_variants"]
+        self.assertEqual(result["canonical_plan_version"], "2.3.0")
+        self.assertEqual(len(source["allow_files"]), 22)
+        self.assertEqual(sum(value == "v6" for value in variants.values()), 3)
+        self.assertEqual(sum(value == "v7" for value in variants.values()), 17)
+        self.assertEqual(source["expected_rows"]["total"], 1_000_000)
+
+    def test_full_nemotron_requires_explicit_cli_source(self) -> None:
+        parser = build_parser()
+        explicit = parser.parse_args(
+            ["download-hf", "--source", "nemotron_saju", "--dry-run"]
+        )
+        implicit = parser.parse_args(["download-hf", "--dry-run"])
+        self.assertEqual(explicit.source, ["nemotron_saju"])
+        self.assertIsNone(implicit.source)
+
+    def test_rejects_expected_file_outside_allowlist(self) -> None:
+        config = load_config(CONFIG_V11_PATH)
+        modified = copy.deepcopy(config)
+        modified["sources"]["nemotron_saju"]["expected_files"][
+            "adapters/forbidden.safetensors"
+        ] = {"bytes": 1, "sha256": "0" * 64}
+        with self.assertRaises(Phase1Error):
+            validate_config(modified, REPO_ROOT)
 
 
 class SecretFileTests(unittest.TestCase):

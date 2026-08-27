@@ -44,7 +44,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--config",
         type=Path,
-        default=REPO_ROOT / "configs/data_sources.v1.json",
+        default=REPO_ROOT / "configs/data_sources.v1.1.json",
         help="정본 원천 설정 JSON 경로",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -56,8 +56,11 @@ def build_parser() -> argparse.ArgumentParser:
     hf_parser.add_argument(
         "--source",
         action="append",
-        choices=("bazi_sft", "yeji_bazi_rules"),
-        help="대상 원천. 생략하면 공개 HF 원천 두 개를 처리한다.",
+        choices=("nemotron_saju", "bazi_sft", "yeji_bazi_rules"),
+        help=(
+            "대상 원천. 생략하면 소용량 공개 원천 두 개만 처리하며 "
+            "Nemotron 전체 수집은 명시해야 한다."
+        ),
     )
     _add_execution_mode(hf_parser)
 

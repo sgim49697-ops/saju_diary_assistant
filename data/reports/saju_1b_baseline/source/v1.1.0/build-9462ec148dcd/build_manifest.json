@@ -1,0 +1,15 @@
+{
+  "artifact_sha256": {
+    "license_manifest.json": "a6ad115a3cef100f0707d323da0a85e52394e5839aa45e5b8aa5840f60379f7d",
+    "source_inventory.json": "d3960333e8ff71c60b634a95071a3248b3a0a847a6f497bd79867e1a076e1d50"
+  },
+  "build_id": "build-9462ec148dcd",
+  "contains_raw_samples": false,
+  "dataset_name": "saju_1b_baseline",
+  "registered_at": "2026-08-27",
+  "schema_version": "1.0.0",
+  "source_build_sha256": "9462ec148dcd93328b3b68522ad6c6f0d2c3694161d32a2d54332e8069d82f0a",
+  "source_bundle": "configs/data_versions/saju_1b_baseline/source-bundle-v1.1.0.json",
+  "source_bundle_file_sha256": "762ddffcf2ae45c3a5fdee210cecb3099687a6a262dcd12f88065c2c726789ea",
+  "version": "v1.1.0"
+}

@@ -43,6 +43,13 @@
       "source_build_sha256": "b3890c552e38a52ca4bd6327c68a6d079ec8084ff251019579a24beefdbcfd5c",
       "status": "approved",
       "version": "v1.0.0"
+    },
+    {
+      "build_id": "build-9462ec148dcd",
+      "manifest": "configs/data_versions/saju_1b_baseline/source-bundle-v1.1.0.json",
+      "source_build_sha256": "9462ec148dcd93328b3b68522ad6c6f0d2c3694161d32a2d54332e8069d82f0a",
+      "status": "approved",
+      "version": "v1.1.0"
     }
   ]
 }

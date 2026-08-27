@@ -25,9 +25,9 @@ from scripts.data.audit_tools import (
 )
 from scripts.data.errors import Phase1Error, Phase2AuditError
 
-DEFAULT_SOURCE_CONFIG = REPO_ROOT / "configs/data_sources.v1.json"
+DEFAULT_SOURCE_CONFIG = REPO_ROOT / "configs/data_sources.v1.1.json"
 DEFAULT_POLICY = (
-    REPO_ROOT / "configs/data_versions/saju_1b_baseline/audit-policy-v1.1.0.json"
+    REPO_ROOT / "configs/data_versions/saju_1b_baseline/audit-policy-v1.2.0.json"
 )
 
 
@@ -52,7 +52,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="버전별 감사 정책 JSON 경로",
     )
     parser.add_argument(
-        "--audit-version", default="v1.1.0", help="vMAJOR.MINOR.PATCH 감사 버전"
+        "--audit-version", default="v1.2.0", help="vMAJOR.MINOR.PATCH 감사 버전"
     )
     parser.add_argument(
         "--build",

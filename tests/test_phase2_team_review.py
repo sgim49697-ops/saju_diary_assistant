@@ -15,8 +15,8 @@ from typing import Any
 from scripts.data.errors import Phase2AuditError
 from scripts.data.phase2_export_team_review import (
     ASSET_ROOT,
-    EXPECTED_REQUIRED_RECORDS,
-    EXPECTED_REQUIRED_UNITS,
+    EXPECTED_ALL_RECORDS,
+    EXPECTED_ALL_UNITS,
     STATIC_ASSETS,
     _archive_document,
     _zip_directory,
@@ -32,13 +32,19 @@ def _fixture_queue() -> list[dict[str, Any]]:
     pair_counts = {
         "aihub_empathy": 10,
         "bazi_sft": 10,
-        "nemotron_saju": 10,
+        "nemotron_saju": 20,
         "yeji_bazi_rules": 0,
+    }
+    required_counts = {
+        "aihub_empathy": 70,
+        "bazi_sft": 20,
+        "nemotron_saju": 40,
+        "yeji_bazi_rules": 20,
     }
     queue: list[dict[str, Any]] = []
     review_index = 0
     record_index = 0
-    for source, unit_count in EXPECTED_REQUIRED_UNITS.items():
+    for source, unit_count in EXPECTED_ALL_UNITS.items():
         for source_index in range(unit_count):
             locator_count = 2 if source_index < pair_counts[source] else 1
             locators = []
@@ -50,7 +56,11 @@ def _fixture_queue() -> list[dict[str, Any]]:
                 locators.append({"source": source, "record": value})
             queue.append(
                 {
-                    "queue": "required",
+                    "queue": (
+                        "required"
+                        if source_index < required_counts[source]
+                        else "reference"
+                    ),
                     "review_id": f"{review_index:024x}",
                     "source": source,
                     "stratum": f"fixture_{source_index % 3}",
@@ -184,7 +194,7 @@ def _fixture_package() -> tuple[dict[str, Any], dict[str, Any]]:
         },
         "policy": {
             "dataset_name": "saju_1b_baseline",
-            "audit_version": "v1.1.0",
+            "audit_version": "v1.2.0",
             "decision_values": [
                 "accept",
                 "exclude_candidate",
@@ -228,8 +238,8 @@ class MinimalProjectionTests(unittest.TestCase):
         records: Counter[str] = Counter()
         for item in items:
             records[item["source"]] += len(item["records"])
-        self.assertEqual(dict(units), EXPECTED_REQUIRED_UNITS)
-        self.assertEqual(dict(records), EXPECTED_REQUIRED_RECORDS)
+        self.assertEqual(dict(units), EXPECTED_ALL_UNITS)
+        self.assertEqual(dict(records), EXPECTED_ALL_RECORDS)
 
         rendered = json.dumps(items, ensure_ascii=False)
         for forbidden in (
@@ -273,8 +283,8 @@ class TeamReviewArchiveTests(unittest.TestCase):
             archive_path, document = _write_archive(Path(directory))
             result = verify_archive(archive_path)
             self.assertEqual(result["status"], "verified")
-            self.assertEqual(result["unit_count"], 150)
-            self.assertEqual(result["record_count"], 180)
+            self.assertEqual(result["unit_count"], 300)
+            self.assertEqual(result["record_count"], 340)
             self.assertEqual(_archive_document(archive_path), document)
             self.assertEqual(os.stat(archive_path).st_mode & 0o777, 0o600)
             with zipfile.ZipFile(archive_path) as archive:
@@ -320,7 +330,7 @@ class TeamReviewArchiveTests(unittest.TestCase):
                 "reviewer_label": "데이터팀 검수자",
                 "exported_at": "2026-08-27T12:00:00.000Z",
                 "completed_units": 2,
-                "total_units": 150,
+                "total_units": 300,
                 "suggestions": [
                     {
                         "review_id": document["items"][0]["review_id"],

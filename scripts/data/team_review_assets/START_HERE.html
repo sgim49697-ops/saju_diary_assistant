@@ -1,4 +1,4 @@
-<!-- START_HERE.html - 팀원용 핵심 150건 오프라인 검수 화면의 시작점이다. -->
+<!-- START_HERE.html - 팀원용 핵심·참조 300건 오프라인 검수 화면의 시작점이다. -->
 <!doctype html>
 <html lang="ko">
   <head>
@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light">
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src data:; connect-src 'none'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'">
-    <title>사주 데이터 팀 검수 · 핵심 150</title>
+    <title>사주 데이터 팀 검수 · 핵심 150 + 참조 150</title>
     <link rel="stylesheet" href="team-review.css">
     <script src="review-data.js" defer></script>
     <script src="team-review.js" defer></script>
@@ -37,27 +37,27 @@
 
     <section class="progress-card" aria-labelledby="progress-title">
       <div>
-        <p id="progress-title" class="section-label">핵심 검수 진행률</p>
-        <p class="progress-number"><strong id="completed-count">0</strong><span> / 150</span></p>
+        <p id="progress-title" class="section-label">핵심·참조 검수 진행률</p>
+        <p class="progress-number"><strong id="completed-count">0</strong><span> / 300</span></p>
       </div>
-      <progress id="progress" max="150" value="0">0 / 150</progress>
+      <progress id="progress" max="300" value="0">0 / 300</progress>
       <dl class="progress-facts">
-        <div><dt>남은 항목</dt><dd id="remaining-count">150</dd></div>
+        <div><dt>남은 항목</dt><dd id="remaining-count">300</dd></div>
         <div><dt>확인 필요</dt><dd id="attention-count">0</dd></div>
-        <div><dt>레코드</dt><dd id="record-count">180</dd></div>
+        <div><dt>레코드</dt><dd id="record-count">340</dd></div>
       </dl>
     </section>
 
     <div id="message" class="message" role="status" hidden></div>
 
     <main class="workspace">
-      <aside class="queue-panel" aria-label="핵심 검수 큐">
+      <aside class="queue-panel" aria-label="핵심·참조 검수 큐">
         <div class="panel-title">
           <div>
-            <p class="section-label">CORE QUEUE</p>
+            <p class="section-label">CORE + REFERENCE QUEUE</p>
             <h2>검토 항목</h2>
           </div>
-          <span id="visible-count" class="count-chip">150건</span>
+          <span id="visible-count" class="count-chip">300건</span>
         </div>
         <div class="filters">
           <label>

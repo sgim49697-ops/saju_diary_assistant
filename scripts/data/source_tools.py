@@ -41,6 +41,9 @@ EXPECTED_AXES = {
     "aihub_empathy_multiturn",
     "yeji_shensha_derived",
 }
+HF_DOWNLOAD_SOURCES = frozenset(
+    {"nemotron_saju", "bazi_sft", "yeji_bazi_rules"}
+)
 EXPECTED_MIX_TOTALS = {"mix1k": 1_000, "mix10": 10_000, "mix20": 20_000}
 AIHUB_ALLOWED_DATASET_ID = "86"
 AIHUB_FORBIDDEN_DATASET_ID = "271"
@@ -172,8 +175,38 @@ def validate_config(config: dict[str, Any], repo_root: Path) -> dict[str, Any]:
         if local_subdir in local_subdirs:
             raise Phase1Error(f"중복 local_subdir입니다: {local_subdir}")
         local_subdirs.add(local_subdir)
-        for filename in source.get("allow_files", []):
+        allow_files = source.get("allow_files", [])
+        if len(allow_files) != len(set(allow_files)):
+            raise Phase1Error(f"{source_name} allow_files에 중복 경로가 있습니다.")
+        for filename in allow_files:
             validate_relative_archive_path(filename)
+        expected_files = source.get("expected_files", {})
+        if not isinstance(expected_files, dict) or not set(expected_files).issubset(
+            set(allow_files)
+        ):
+            raise Phase1Error(
+                f"{source_name} expected_files는 allow_files의 부분집합이어야 합니다."
+            )
+        for filename, expected in expected_files.items():
+            if (
+                not isinstance(expected, dict)
+                or not isinstance(expected.get("bytes"), int)
+                or expected["bytes"] < 0
+                or re.fullmatch(r"[0-9a-f]{64}", str(expected.get("sha256", "")))
+                is None
+            ):
+                raise Phase1Error(
+                    f"{source_name} 고정 파일 metadata가 올바르지 않습니다: {filename}"
+                )
+        file_variants = source.get("file_variants", {})
+        if not isinstance(file_variants, dict) or not set(file_variants).issubset(
+            set(allow_files)
+        ):
+            raise Phase1Error(
+                f"{source_name} file_variants는 allow_files의 부분집합이어야 합니다."
+            )
+        if any(value not in {"v6", "v7"} for value in file_variants.values()):
+            raise Phase1Error(f"{source_name} file_variants 값은 v6/v7만 허용합니다.")
 
     key_file = Path(os.path.expanduser(config["paths"]["aihub_key_file"]))
     if key_file.resolve().is_relative_to(repo_root.resolve()):
@@ -254,11 +287,12 @@ def build_source_manifest(
 ) -> dict[str, Any]:
     source = config["sources"][source_name]
     root = source_root(config, repo_root, source_name)
-    variant_by_path = {
+    variant_by_path = dict(source.get("file_variants", {}))
+    variant_by_path.update({
         item["target"]: item["variant"]
         for item in source.get("legacy_files", [])
         if "target" in item and "variant" in item
-    }
+    })
     files = []
     for path in _iter_manifest_files(root):
         relative = path.relative_to(root).as_posix()
@@ -382,10 +416,15 @@ def plan_hf_downloads(
 ) -> dict[str, Any]:
     plans: list[dict[str, Any]] = []
     for source_name in source_names:
-        if source_name not in {"bazi_sft", "yeji_bazi_rules"}:
+        if source_name not in HF_DOWNLOAD_SOURCES:
             raise Phase1Error(f"HF 수집 대상이 아닙니다: {source_name}")
         source = config["sources"][source_name]
         sizes = _hf_remote_file_sizes(source)
+        for path, expected in source.get("expected_files", {}).items():
+            if sizes[path] is not None and sizes[path] != expected["bytes"]:
+                raise Phase1Error(
+                    f"고정 revision의 파일 크기가 계약과 다릅니다: {source_name}/{path}"
+                )
         plans.append(
             {
                 "source": source_name,
@@ -434,12 +473,26 @@ def download_hf_sources(
 
     results: list[dict[str, Any]] = []
     for source_name in source_names:
-        if source_name not in {"bazi_sft", "yeji_bazi_rules"}:
+        if source_name not in HF_DOWNLOAD_SOURCES:
             raise Phase1Error(f"HF 수집 대상이 아닙니다: {source_name}")
         source = config["sources"][source_name]
         destination = source_root(config, repo_root, source_name)
         destination.mkdir(parents=True, exist_ok=True)
+        reused_files = 0
         for filename in source["allow_files"]:
+            target = destination / filename
+            expected = source.get("expected_files", {}).get(filename)
+            if target.exists() and expected is not None:
+                if (
+                    not target.is_file()
+                    or target.stat().st_size != expected["bytes"]
+                    or sha256_file(target) != expected["sha256"]
+                ):
+                    raise Phase1Error(
+                        f"기존 파일이 고정 bytes/SHA-256과 다릅니다: {source_name}/{filename}"
+                    )
+                reused_files += 1
+                continue
             try:
                 hf_hub_download(
                     repo_id=source["repo_id"],
@@ -471,15 +524,95 @@ def download_hf_sources(
             ):
                 raise Phase1Error(f"고정 파일 bytes/SHA-256 검증 실패: {source_name}/{filename}")
         manifest = build_source_manifest(config, repo_root, source_name)
+        allowed = set(source["allow_files"])
+        if source_name == "yeji_bazi_rules":
+            provenance = source["provenance"]
+            allowed.update(
+                f"provenance/{provenance['revision']}/{name}"
+                for name in provenance["allow_files"]
+            )
+        if {item["path"] for item in manifest["files"]} != allowed:
+            raise Phase1Error(
+                f"HF raw 경로에 allowlist 밖 파일이 있습니다: {source_name}"
+            )
         results.append(
             {
                 "source": source_name,
                 "revision": source["revision"],
                 "file_count": len(manifest["files"]),
+                "reused_file_count": reused_files,
                 "total_bytes": sum(item["bytes"] for item in manifest["files"]),
             }
         )
     return {"mode": "execute", "results": results}
+
+
+def verify_nemotron_collection(
+    config: dict[str, Any], repo_root: Path
+) -> dict[str, Any]:
+    """전체 Nemotron 스냅샷의 variant별 행 수와 UUID 유일성을 검증한다."""
+    source = config["sources"]["nemotron_saju"]
+    expected_rows = source.get("expected_rows")
+    file_variants = source.get("file_variants")
+    if not expected_rows or not file_variants:
+        return {"status": "not_configured"}
+    try:
+        import duckdb
+    except ImportError as exc:
+        raise Phase1Error(
+            "duckdb가 없습니다. uv로 requirements-data.txt를 설치하세요."
+        ) from exc
+    root = source_root(config, repo_root, "nemotron_saju")
+    connection = duckdb.connect(database=":memory:")
+    counts: dict[str, int] = {}
+    try:
+        for variant in ("v6", "v7"):
+            paths = [
+                root / path
+                for path, value in file_variants.items()
+                if value == variant
+            ]
+            if not paths:
+                raise Phase1Error(f"Nemotron {variant} 파일 목록이 비어 있습니다.")
+            literals = ", ".join(_sql_literal(str(path)) for path in sorted(paths))
+            counts[variant] = int(
+                connection.execute(
+                    f"SELECT count(*) FROM read_parquet([{literals}], union_by_name=true)"
+                ).fetchone()[0]
+            )
+        parquet_paths = [root / path for path in file_variants]
+        literals = ", ".join(
+            _sql_literal(str(path)) for path in sorted(parquet_paths)
+        )
+        row = connection.execute(
+            "SELECT count(*), count(DISTINCT uuid), "
+            "sum(CASE WHEN uuid IS NULL OR trim(uuid) = '' THEN 1 ELSE 0 END) "
+            f"FROM read_parquet([{literals}], union_by_name=true)"
+        ).fetchone()
+    except Phase1Error:
+        raise
+    except Exception as exc:
+        raise Phase1Error("Nemotron 전체 행·UUID 검증에 실패했습니다.") from exc
+    finally:
+        connection.close()
+    total = int(row[0])
+    unique_uuid = int(row[1])
+    empty_uuid = int(row[2] or 0)
+    if counts != {key: int(value) for key, value in expected_rows["variants"].items()}:
+        raise Phase1Error(
+            f"Nemotron variant 행 수가 계약과 다릅니다: {counts}"
+        )
+    if total != int(expected_rows["total"]) or unique_uuid != total or empty_uuid:
+        raise Phase1Error(
+            "Nemotron 전체 행 수 또는 UUID 유일성 계약을 만족하지 않습니다."
+        )
+    return {
+        "status": "verified",
+        "rows": total,
+        "variant_rows": counts,
+        "unique_uuid_count": unique_uuid,
+        "empty_uuid_count": empty_uuid,
+    }
 
 
 def plan_aihub_download(config: dict[str, Any]) -> dict[str, Any]:
@@ -1214,6 +1347,20 @@ def verify_sources(
         allowed = set(config["sources"]["bazi_sft"]["allow_files"])
         if set(manifest_files["bazi_sft"]) != allowed:
             raise Phase1Error("bazi_sft raw 경로에 allowlist 밖 파일이 있습니다.")
+    if "nemotron_saju" in manifest_files:
+        source = config["sources"]["nemotron_saju"]
+        allowed = set(source.get("allow_files", []))
+        if allowed and set(manifest_files["nemotron_saju"]) != allowed:
+            raise Phase1Error("Nemotron raw 경로에 allowlist 밖 파일이 있습니다.")
+        for filename, expected in source.get("expected_files", {}).items():
+            path = source_root(config, repo_root, "nemotron_saju") / filename
+            if (
+                path.stat().st_size != expected["bytes"]
+                or sha256_file(path) != expected["sha256"]
+            ):
+                raise Phase1Error(
+                    f"Nemotron 고정 파일 bytes/SHA-256이 다릅니다: {filename}"
+                )
     if "yeji_bazi_rules" in manifest_files:
         source = config["sources"]["yeji_bazi_rules"]
         allowed = set(source["allow_files"])
@@ -1277,5 +1424,15 @@ def verify_sources(
                 f"AI Hub #86 구조적 멀티턴 group이 최소 {minimum}개에 못 미칩니다."
             )
 
+    nemotron_collection = (
+        verify_nemotron_collection(config, repo_root)
+        if "nemotron_saju" in manifest_files
+        else {"status": "missing"}
+    )
     overall = "verified_with_aihub_block" if allow_missing_aihub and "aihub_empathy" not in manifest_files else "verified"
-    return {"status": overall, "contract": validation, "sources": results}
+    return {
+        "status": overall,
+        "contract": validation,
+        "sources": results,
+        "nemotron_collection": nemotron_collection,
+    }

@@ -38,12 +38,14 @@ from scripts.data.audit_tools import (
     verify_audit,
 )
 from scripts.data.errors import Phase1Error, Phase2AuditError
+from scripts.data.source_tools import write_json_atomic
 
-DEFAULT_SOURCE_CONFIG = REPO_ROOT / "configs/data_sources.v1.json"
+DEFAULT_SOURCE_CONFIG = REPO_ROOT / "configs/data_sources.v1.1.json"
 DEFAULT_POLICY = (
-    REPO_ROOT / "configs/data_versions/saju_1b_baseline/audit-policy-v1.1.0.json"
+    REPO_ROOT / "configs/data_versions/saju_1b_baseline/audit-policy-v1.2.0.json"
 )
-REVIEWER_VERSION = "reviewer-v1.0.0"
+REVIEWER_VERSION = "reviewer-v1.1.0"
+TEMPLATE_ROOT = Path(__file__).with_name("review_web_assets")
 MAX_REQUEST_BYTES = 16 * 1024
 MAX_PRIVATE_NOTE_CHARS = 2_000
 REVIEW_ID_PATTERN = re.compile(r"^[0-9a-f]{24}$")
@@ -509,6 +511,56 @@ def _review_tool_hash(asset_root: Path) -> str:
     return sha256_json(entries)
 
 
+def publish_reviewer_assets(context: dict[str, Any]) -> dict[str, Any]:
+    """버전 고정 검수기 정적 자산과 fingerprint manifest를 생성한다."""
+    asset_root = reviewer_root(context)
+    if asset_root.exists():
+        manifest = validate_reviewer_manifest(asset_root, context)
+        return {
+            "status": "existing_verified",
+            "asset_root": asset_root.relative_to(REPO_ROOT).as_posix(),
+            "review_tool_sha256": manifest["review_tool_sha256"],
+        }
+    templates = ("index.html", "review.css", "review.js")
+    if any(not (TEMPLATE_ROOT / name).is_file() for name in templates):
+        raise Phase2AuditError("검수기 정본 template 자산이 없습니다.")
+    asset_root.parent.mkdir(parents=True, exist_ok=True)
+    asset_root.mkdir(mode=0o755)
+    try:
+        for name in templates:
+            shutil.copy2(TEMPLATE_ROOT / name, asset_root / name)
+        identity = context["identity"]
+        policy = context["policy"]
+        audit_manifest = context["paths"]["public"] / "build_manifest.json"
+        manifest = {
+            "schema_version": "1.0.0",
+            "contains_raw_samples": False,
+            "dataset_name": policy["dataset_name"],
+            "audit_version": policy["audit_version"],
+            "build_id": identity["build_id"],
+            "build_sha256": identity["build_sha256"],
+            "reviewer_version": REVIEWER_VERSION,
+            "entrypoint": "index.html",
+            "server_entrypoint": "scripts/data/phase2_review_web.py",
+            "server_entrypoint_sha256": sha256_file(Path(__file__)),
+            "audit_build_manifest_sha256": sha256_file(audit_manifest),
+            "artifact_sha256": {
+                name: sha256_file(asset_root / name) for name in templates
+            },
+        }
+        manifest["review_tool_sha256"] = _review_tool_hash(asset_root)
+        write_json_atomic(asset_root / "review_manifest.json", manifest)
+        validate_reviewer_manifest(asset_root, context)
+    except Exception:
+        shutil.rmtree(asset_root)
+        raise
+    return {
+        "status": "created_and_verified",
+        "asset_root": asset_root.relative_to(REPO_ROOT).as_posix(),
+        "review_tool_sha256": manifest["review_tool_sha256"],
+    }
+
+
 def validate_reviewer_manifest(
     asset_root: Path, context: dict[str, Any]
 ) -> dict[str, Any]:
@@ -628,20 +680,51 @@ def _open_browser(url: str) -> None:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Phase 2A 감사 큐 301건을 검토하는 loopback 전용 HTML UI"
+        description="Phase 2A 핵심 150건·참조 150건을 검토하는 loopback 전용 HTML UI"
     )
     parser.add_argument("--source-config", type=Path, default=DEFAULT_SOURCE_CONFIG)
     parser.add_argument("--policy", type=Path, default=DEFAULT_POLICY)
-    parser.add_argument("--audit-version", default="v1.1.0")
+    parser.add_argument("--audit-version", default="v1.2.0")
     parser.add_argument("--build", required=True, help="고정된 audit build ID")
     parser.add_argument("--port", type=int, default=0, help="0이면 빈 포트를 자동 선택")
     parser.add_argument("--no-open", action="store_true", help="브라우저 자동 열기 생략")
+    parser.add_argument(
+        "--publish-assets",
+        action="store_true",
+        help="버전 고정 정적 HTML 자산만 생성·검증하고 종료",
+    )
     return parser
 
 
 def run(arguments: argparse.Namespace) -> int:
     source_config = arguments.source_config.expanduser().resolve()
     policy = arguments.policy.expanduser().resolve()
+    if arguments.publish_assets:
+        context = prepare_audit(
+            REPO_ROOT,
+            source_config,
+            policy,
+            arguments.audit_version,
+            verify_raw=False,
+        )
+        if arguments.build != context["identity"]["build_id"]:
+            raise Phase2AuditError("요청한 --build가 현재 audit fingerprint와 다릅니다.")
+        verify_audit(
+            REPO_ROOT,
+            source_config,
+            policy,
+            arguments.audit_version,
+            verify_raw=False,
+        )
+        print(
+            json.dumps(
+                publish_reviewer_assets(context),
+                ensure_ascii=False,
+                indent=2,
+                sort_keys=True,
+            )
+        )
+        return 0
     state, assets = build_state(
         source_config, policy, arguments.audit_version, arguments.build
     )

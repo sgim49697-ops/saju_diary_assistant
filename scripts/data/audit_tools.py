@@ -137,8 +137,9 @@ def load_audit_policy(path: Path, audit_version: str) -> dict[str, Any]:
         raise Phase2AuditError("Phase 2A 결정론적 seed는 42여야 합니다.")
     if sum(policy.get("required_review", {}).values()) != 150:
         raise Phase2AuditError("필수 검토 할당 합계는 150이어야 합니다.")
-    if sum(policy.get("reference_review", {}).values()) != 151:
-        raise Phase2AuditError("참고 검토 할당 합계는 151이어야 합니다.")
+    reference_total = sum(policy.get("reference_review", {}).values())
+    if reference_total not in {150, 151}:
+        raise Phase2AuditError("참고 검토 할당 합계는 150 또는 기존 v1.1의 151이어야 합니다.")
     decision_schema = policy.get("decision_schema_version", AUDIT_SCHEMA_VERSION)
     if decision_schema not in {AUDIT_SCHEMA_VERSION, DECISION_SCHEMA_VERSION}:
         raise Phase2AuditError("지원하지 않는 검토 결정 schema_version입니다.")
@@ -337,8 +338,8 @@ def audit_plan(
         "mode": "plan",
         "private_path": context["paths"]["private"].relative_to(repo_root).as_posix(),
         "public_path": context["paths"]["public"].relative_to(repo_root).as_posix(),
-        "required_review_count": 150,
-        "reference_review_count": 151,
+        "required_review_count": sum(context["policy"]["required_review"].values()),
+        "reference_review_count": sum(context["policy"]["reference_review"].values()),
         "source_build_sha256": context["bundle"]["source_build_sha256"],
         "writes_performed": False,
     }
@@ -1174,6 +1175,8 @@ def scan_yeji(
     candidates: list[dict[str, Any]] = []
     ids: set[int] = set()
     known_conflict = False
+    dexiu_conflict = False
+    tongzi_conflict = False
     text_quality: Counter[str] = Counter()
     applied_by_rule: dict[int, list[dict[str, Any]]] = defaultdict(list)
     for correction in applied:
@@ -1240,6 +1243,35 @@ def scan_yeji(
                 and "壬申" in javascript
             )
             flags.append("known_conflict")
+        if rule_id == 5:
+            raw_condition = raw_rule.get("condition", {})
+            raw_mapping = (
+                raw_condition.get("mapping", {})
+                if isinstance(raw_condition, dict)
+                else {}
+            )
+            dexiu_conflict = (
+                raw_mapping.get("春(寅卯辰)") == {"德": "丙", "秀": "丁"}
+                and 'hasTianganCombination("戊", "癸")' in javascript
+                and 'hasTianganCombination("丙", "辛")' in javascript
+                and 'hasTianganCombination("甲", "己")' in javascript
+            )
+            flags.append("condition_conflict")
+        if rule_id == 38:
+            raw_condition = raw_rule.get("condition", {})
+            raw_complex = (
+                raw_condition.get("complex_rule", "")
+                if isinstance(raw_condition, dict)
+                else ""
+            )
+            tongzi_conflict = (
+                raw_complex
+                == "봄秋(木火) 납음이면 일시지에 卯未巳 확인, 여름겨울(金水) 납음이면 일시지에 寅戌午 확인"
+                and '"寅": ["寅", "子"]' in javascript
+                and '"金": ["午", "卯"]' in javascript
+                and '"土": ["辰", "巳"]' in javascript
+            )
+            flags.append("condition_conflict")
         if applied_by_rule.get(rule_id):
             flags.append("correction_applied")
         text_quality.update(_text_quality_flags(str(rule.get("meaning", ""))))
@@ -1274,11 +1306,19 @@ def scan_yeji(
         blockers.append("YEJI_STRUCTURE_FAILURE")
     if known_conflict and "YEJI_CIGUAN_CONFLICT" not in resolved:
         blockers.append("YEJI_CIGUAN_CONFLICT")
+    if dexiu_conflict and "YEJI_DEXIU_CONDITION_CONFLICT" not in resolved:
+        blockers.append("YEJI_DEXIU_CONDITION_CONFLICT")
+    if tongzi_conflict and "YEJI_TONGZI_CONDITION_CONFLICT" not in resolved:
+        blockers.append("YEJI_TONGZI_CONDITION_CONFLICT")
     observed_codes = []
     if observed_failures:
         observed_codes.append("YEJI_STRUCTURE_FAILURE")
     if known_conflict:
         observed_codes.append("YEJI_CIGUAN_CONFLICT")
+    if dexiu_conflict:
+        observed_codes.append("YEJI_DEXIU_CONDITION_CONFLICT")
+    if tongzi_conflict:
+        observed_codes.append("YEJI_TONGZI_CONDITION_CONFLICT")
     return {
         "candidates": candidates,
         "corrections": applied,
@@ -1698,7 +1738,7 @@ def build_review_queue(
         "yeji_bazi_rules",
         "remaining_rules",
         yeji_candidates,
-        31,
+        int(policy["reference_review"]["yeji_bazi_rules"]),
         order_key=lambda item: -int(item["complexity"]),
     )
 
@@ -1964,12 +2004,14 @@ def execute_scan(
         "raw_manifest_unchanged": True,
     }
     summary = review_summary(queue)
+    required_review_units = sum(context["policy"]["required_review"].values())
+    reference_review_units = sum(context["policy"]["reference_review"].values())
     gate_scan = {
         "schema_version": AUDIT_SCHEMA_VERSION,
         "contains_raw_samples": False,
         "status": "human_review_required",
-        "required_review_remaining": 150,
-        "reference_review_optional": 151,
+        "required_review_remaining": required_review_units,
+        "reference_review_optional": reference_review_units,
         "blocking_finding_codes": blockers,
         "resolved_finding_codes": resolved_findings,
         "approval_created": False,
@@ -1991,8 +2033,8 @@ def execute_scan(
             "schema_version": AUDIT_SCHEMA_VERSION,
             "build_sha256": context["identity"]["build_sha256"],
             "queue_sha256": sha256_file(queue_path),
-            "required_review_units": 150,
-            "reference_review_units": 151,
+            "required_review_units": required_review_units,
+            "reference_review_units": reference_review_units,
             "source_manifest_sha256": manifest_hashes_before,
             "correction_manifest_sha256": context["identity"].get(
                 "correction_sha256"
@@ -2039,8 +2081,8 @@ def execute_scan(
         "build_id": context["identity"]["build_id"],
         "mode": "scan",
         "status": "human_review_required",
-        "required_review_remaining": 150,
-        "reference_review_optional": 151,
+        "required_review_remaining": required_review_units,
+        "reference_review_optional": reference_review_units,
         "blocking_finding_codes": blockers,
         "resolved_finding_codes": resolved_findings,
         "writes_performed": True,
@@ -2581,8 +2623,13 @@ def verify_audit(
         private_root / "review_queue.jsonl"
     ):
         raise Phase2AuditError("비공개 review queue hash가 다릅니다.")
-    if len(values["queue"]) != 301:
-        raise Phase2AuditError("review queue가 301건이 아닙니다.")
+    expected_queue_units = sum(context["policy"]["required_review"].values()) + sum(
+        context["policy"]["reference_review"].values()
+    )
+    if len(values["queue"]) != expected_queue_units:
+        raise Phase2AuditError(
+            f"review queue가 정책 합계 {expected_queue_units}건이 아닙니다."
+        )
     summary = review_summary(values["queue"])
     if summary != values["summary"]:
         raise Phase2AuditError("공개 review summary가 비공개 큐 집계와 다릅니다.")

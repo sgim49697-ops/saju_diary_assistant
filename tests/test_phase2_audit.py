@@ -22,6 +22,7 @@ from scripts.data.audit_tools import (
     compute_build_identity,
     evaluate_gate,
     leakage_group_id,
+    load_audit_policy,
     review_summary,
     sha256_json,
     verify_source_bundle,
@@ -218,6 +219,43 @@ class YejiCorrectionTests(unittest.TestCase):
         self.document["shensha_list"][1]["category"] = "다른값"
         with self.assertRaises(Phase2AuditError):
             apply_yeji_corrections(self.document, self.manifest)
+
+    def test_v12_overlay_repairs_dexiu_and_tongzi_without_mutating_raw(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        raw_path = (
+            root
+            / "data/raw/yeji_bazi_rules/84583ca54e8fce257d3d5efd015bca1263a1cfe9"
+            / "rules/shensha_51.json"
+        )
+        correction_path = (
+            root
+            / "configs/data_versions/saju_1b_baseline"
+            / "yeji-rule-corrections-v1.2.0.json"
+        )
+        raw = json.loads(raw_path.read_text(encoding="utf-8"))
+        manifest = json.loads(correction_path.read_text(encoding="utf-8"))
+        corrected, applied = apply_yeji_corrections(raw, manifest)
+        raw_dexiu = raw["shensha_list"][4]["condition"]["mapping"]
+        fixed_dexiu = corrected["shensha_list"][4]["condition"]["mapping"]
+        self.assertEqual(raw_dexiu["春(寅卯辰)"]["秀"], "丁")
+        self.assertEqual(fixed_dexiu["寅午戌"]["수_천간_조합"], [["戊", "癸"]])
+        self.assertIn(
+            "독립적인 OR 조건",
+            corrected["shensha_list"][37]["condition"]["complex_rule"],
+        )
+        self.assertEqual(len(applied), 5)
+
+
+class PolicyVersionTests(unittest.TestCase):
+    def test_v12_has_150_required_and_150_reference_units(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        policy = load_audit_policy(
+            root
+            / "configs/data_versions/saju_1b_baseline/audit-policy-v1.2.0.json",
+            "v1.2.0",
+        )
+        self.assertEqual(sum(policy["required_review"].values()), 150)
+        self.assertEqual(sum(policy["reference_review"].values()), 150)
 
 
 class GateTests(unittest.TestCase):
