@@ -4,7 +4,7 @@
 
 | 항목 | 값 |
 |---|---|
-| 문서 버전 | `2.0.0` |
+| 문서 버전 | `2.1.0` |
 | 정본화 기준일 | 2026-08-27 |
 | 주 장비 | NVIDIA GeForce RTX 5070 Ti 16GiB, WSL2 |
 | 주 모델 | `kakaocorp/kanana-2-1.3b-instruct@bf4786aa2a1908adce942d53976270132732f720` |
@@ -16,7 +16,7 @@
 - 모델 학습 방식은 BF16 전체 파라미터 Full Fine-tuning이다. LoRA/QLoRA로 자동 전환하지 않는다.
 - 10K와 20K는 같은 Instruct revision에서 각각 독립적으로 1 epoch 학습한다.
 - `MIX1K-v1 ⊂ MIX10-v1 ⊂ MIX20-v1`이어야 한다.
-- 데이터 행 비율은 Nemotron 55%, 검산·한국어화한 `bazi-sft` 25%, AI Hub 감성대화 10%, AI Hub 연속대화 5%, 검증된 YEJI 신살 규칙 파생본 5%로 고정한다.
+- 데이터 행 비율은 Nemotron 55%, 검산·한국어화한 `bazi-sft` 25%, AI Hub #86 단일턴 10%, 같은 #86의 대화 그룹에서 파생한 멀티턴 5%, 검증된 YEJI 신살 규칙 파생본 5%로 고정한다.
 - Nemotron 내부는 v6 20%·v7 80%로 고정한다.
 - 평가셋과 group holdout은 학습 manifest보다 먼저 고정한다.
 - 해석 답변은 soft/reference label이며, 계산 가능한 구조만 검산 후 hard label로 승격한다.
@@ -27,8 +27,8 @@
 
 | Phase | 문서 | 실행 상태 | 핵심 Gate |
 |---:|---|---|---|
-| 0 | [거버넌스·실험 계약](phase-0-governance.md) | 미시작 | 라이선스·범위·재현성 승인 |
-| 1 | [데이터 수집](phase-1-data-collection.md) | 부분 진행 | 모든 원본 revision·해시·이용조건 고정 |
+| 0 | [거버넌스·실험 계약](phase-0-governance.md) | 완료 | 라이선스·범위·재현성 승인 |
+| 1 | [데이터 수집](phase-1-data-collection.md) | 차단 | AI Hub #86 이용 신청·승인 후 원본 구조 Gate 통과 |
 | 2 | [데이터 전처리](phase-2-data-preprocessing.md) | 미시작 | split·누수·혼합·토큰 감사 통과 |
 | 3 | [학습 모델·환경 준비](phase-3-model-preparation.md) | 미시작 | 고정 환경에서 모델·template 로드 성공 |
 | 4 | [학습 전 데이터·모델 검증](phase-4-preflight-validation.md) | 미시작 | 데이터 Gate와 200-step smoke 모두 통과 |
@@ -44,7 +44,7 @@ Phase 0 → Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5 → Phase 6
 
 ## 예정 산출물 경로
 
-아래는 이후 구현 Phase가 만들 계약 경로다. 정본화 작업에서는 생성하지 않는다.
+아래는 Phase별 계약 경로다. 현재는 Phase 0 계약과 Phase 1 원본·집계 보고서만 생성하며, Phase 2 이후 경로는 해당 선행 Gate가 완료되기 전에는 만들지 않는다.
 
 ```text
 data/
@@ -84,8 +84,8 @@ runs/
 |---|---|---|---:|---:|---|
 | Nemotron Saju | `ffb934248746a2dea64ef771c0d86e1743d25702` | CC BY 4.0 | 5,500 | 11,000 | 출처·변경 표시 후 허용 |
 | `AmareshHebbar/bazi-sft` | `fad87063b317612e4164dfb0e0e08572c3831df4` | Apache 2.0 | 2,500 | 5,000 | 구조 검산·한국어 재렌더 후 허용 |
-| AI Hub 감성대화 #86 | 승인 배포본 | AI Hub 일반정책 | 1,000 | 2,000 | 승인·비공개·출처 표시 조건부 허용 |
-| AI Hub 연속대화 #271 | 승인 배포본 | AI Hub 일반정책 | 500 | 1,000 | 승인·비공개·출처 표시 조건부 허용 |
+| AI Hub 감성대화 #86 단일턴 축 | 승인 배포본 | AI Hub 일반정책 | 1,000 | 2,000 | 승인·비공개·출처 표시 조건부 허용 |
+| AI Hub 감성대화 #86 멀티턴 파생 축 | 위와 동일 | 위와 동일 | 500 | 1,000 | 동일 대화 그룹의 연속 발화만 사용, 단일턴 축과 group 분리 |
 | YEJI 신살 규칙 파생본 | `84583ca54e8fce257d3d5efd015bca1263a1cfe9` | MIT + 원천 MIT | 500 | 1,000 | 단일 파일 선별·교정·자체 QA 생성 후 허용 |
 
 Nemotron 1K 몫은 v6 110행·v7 440행, 10K 몫은 v6 1,100행·v7 4,400행, 20K 몫은 v6 2,200행·v7 8,800행이다. `bazi-sft`는 제공된 네 기둥을 입력 사실로 삼아 일간·오행·규칙 조건을 다시 계산하며, 원문의 날짜·지역에서 네 기둥을 학습시키지 않는다. AI Hub 데이터는 원문을 외부에 공개하지 않고 개인정보·자해·의료 진단·과도한 훈계 행을 제외한다.
@@ -101,6 +101,7 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
 | YEJI BaZi Interpretations | 학습 제외 | 데이터 카드가 비어 있고 명시 라이선스가 없음 |
 | YEJI Rules의 고전·분석 파일 | 학습 제외 | `mymmsc/books`의 무라이선스 인터넷 수집본에서 파생된 파일이 포함됨 |
 | YEJI BaZi Translated KO | 학습 제외·감사 참고 전용 | 상업 이용은 조건부 가능하지만 해석 지식이 없고 번역·질문·라벨 품질 Gate 실패 |
+| AI Hub #271 한국어 감정 정보 연속 대화 | 학습·다운로드 제외 | 일반 AI Hub 데이터가 아니라 KETI 데이터로 분류되며, KETI 정책상 상업 이용은 별도 협의 대상 |
 
 ### YEJI BaZi Translated KO 상세 감사
 
@@ -166,3 +167,8 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
   - 변경 범위: README와 Phase 0~6 문서만 수정했다. 코드·데이터·환경·모델·archive·미추적 HTML은 변경하지 않았다.
   - 검증: 고정 모델·데이터 revision API 조회, chat template SHA-256 `b8ee6b…e3e3`, 신살 JSON 29,754 bytes·SHA-256 `9a11e1…939e` 일치, 혼합 합계 1,000/10,000/20,000, Phase 문서 7개, 내부 Markdown 링크, 구 모델·Run·manifest 참조 0건, 공식 외부 URL 25개 HTTP 200, `git diff --check` 통과를 확인했다.
   - 남은 이슈·후속 작업: `bazi-sft`, AI Hub 2종, YEJI 신살 규칙은 조건부 Gate를 통과해야 하며 하나라도 실패하면 혼합비를 재배분하지 않고 Phase를 차단한다.
+- 2026-08-27
+  - 작업 요약: KETI 정책이 적용되는 AI Hub #271을 활성 원천에서 제외하고 같은 #86의 단일턴·멀티턴 파생 축으로 계약을 v2.1로 교정했다. Phase 0 계약을 승인 산출물로 고정하고 Phase 1 수집기·보안 검증·집계 inventory를 구현했다.
+  - 변경 범위: 계약·라이선스·원천 설정, `uv` 데이터 환경 요구사항, 안전한 HF/AI Hub 수집 CLI, archive 방어와 단위 테스트, 집계 보고서를 추가했다. Nemotron 두 shard는 해시 확인 후 Git 제외 raw 경로로 이동했고 `bazi-sft`와 YEJI 허용 파일을 고정 revision에서 수집했다. Phase 2 전처리와 모델 다운로드·학습은 시작하지 않았다.
+  - 검증: 단위 테스트 11건, Python compile, 혼합 합계 1,000/10,000/20,000, #271 활성화 거부, AI Hub 키 파일 권한·비노출·외부 redirect 전달 차단, tar/zip path traversal·link 거부, 공개 원천 manifest 재해시를 통과했다. inventory에서 Nemotron 116,666행·UUID/행 중복 0건, `bazi-sft` 100,000행·행 중복 0건·25,000 synthetic group, YEJI 51개 규칙과 고정 SHA-256을 확인했다.
+  - 남은 이슈·후속 작업: AI Hub #86은 사용자의 데이터 이용 신청·승인과 실제 파일 수집이 남아 Phase 1을 `차단`으로 유지한다. 승인 후 네 file key를 수집해 멀티턴 적격 group 1,200개 이상 여부를 확인하며, 실패 시 혼합비를 재배분하지 않는다.

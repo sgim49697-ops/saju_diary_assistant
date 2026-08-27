@@ -2,11 +2,11 @@
 
 | 항목 | 값 |
 |---|---|
-| 실행 상태 | 부분 진행 |
+| 실행 상태 | 차단 |
 | 선행 Phase | Phase 0 완료 |
 | 입력 | 승인된 실험 계약, 데이터 접근 권한, 저장 공간 |
 | 출력 | `data/raw/`, `source_inventory.json`, `license_manifest.json` |
-| 완료 Gate | 다섯 활성 소스의 revision·파일·해시·이용조건 고정 |
+| 완료 Gate | 네 활성 원천과 다섯 학습 축의 revision·파일·해시·이용조건 고정 |
 | 웹 확인일 | 2026-08-27 |
 
 ## 목적
@@ -17,17 +17,16 @@ README의 수량을 신뢰해 바로 전처리하지 않고, 실제 원본 파�
 
 | 키 | 공식 저장소/페이지 | 고정 revision 또는 버전 | 라이선스 | 현재 상태 |
 |---|---|---|---|---|
-| `nemotron_saju` | `rayraykim/Nemotron-Personas-Korea-Saju` | `ffb934248746a2dea64ef771c0d86e1743d25702` | CC BY 4.0 | v6·v7 각 1 shard 확보 |
-| `bazi_sft` | `AmareshHebbar/bazi-sft` | `fad87063b317612e4164dfb0e0e08572c3831df4` | Apache 2.0 | 미수집 |
-| `aihub_empathy` | AI Hub `dataSetSn=86` | 승인 후 받은 배포 파일명·다운로드일 | AI Hub 이용정책 | 로컬 파일 미확인 |
-| `aihub_continuous` | AI Hub `dataSetSn=271` | 승인 후 받은 배포 파일명·다운로드일 | AI Hub 이용정책 | 로컬 파일 미확인 |
-| `yeji_shensha_derived` | `tellang/yeji-bazi-rules` | `84583ca54e8fce257d3d5efd015bca1263a1cfe9` | MIT + 원천 MIT | 미수집 |
+| `nemotron_saju` | `rayraykim/Nemotron-Personas-Korea-Saju` | `ffb934248746a2dea64ef771c0d86e1743d25702` | CC BY 4.0 | v6·v7 각 1 shard 이동·해시 검증 완료 |
+| `bazi_sft` | `AmareshHebbar/bazi-sft` | `fad87063b317612e4164dfb0e0e08572c3831df4` | Apache 2.0 | allowlist 6파일·100,000행 수집 완료 |
+| `aihub_empathy` | AI Hub `dataSetSn=86` | file key `66046`~`66049` | AI Hub 이용정책 | 사용자의 이용 신청·승인 대기 |
+| `yeji_bazi_rules` | `tellang/yeji-bazi-rules` | `84583ca54e8fce257d3d5efd015bca1263a1cfe9` | MIT + 원천 MIT | 허용 2파일·원천 3파일 수집 완료 |
 
 고정 SHA는 2026-08-27 확인값이다. 실제 수집 시작 시 main SHA가 바뀌어도 자동으로 새 SHA를 택하지 않는다. 변경 내용을 검토해 정본 버전을 올린 뒤에만 교체한다.
 
 ## 현재 확보 데이터
 
-`data/nemotron_saju/`에 다음 파일이 있다.
+`data/raw/nemotron_saju/ffb934248746a2dea64ef771c0d86e1743d25702/`에 다음 파일이 있다.
 
 | 계열 | 파일 | 행 수 | 크기 | SHA-256 |
 |---|---|---:|---:|---|
@@ -35,6 +34,8 @@ README의 수량을 신뢰해 바로 전처리하지 않고, 실제 원본 파�
 | v7 | `data/train-extra-00000.parquet` | 50,000 | 129,879,649 bytes | `97616a1ae8725c68a665e9aef5396988cf16acfce1cc271a2c209c2b671d687a` |
 
 두 파일은 분석용 부분 확보분이다. 전체 1M 모집단으로 오인하지 않으며, 수집 완료 여부와 학습 후보 수량은 별개로 관리한다.
+
+`bazi-sft`는 고정 revision의 6파일 102,913,919 bytes와 100,000행을 수집했다. 원천 전체 exact row hash 중복은 0건이며, `synthetic_id` 25,000개가 각 4개 question type으로 구성돼 전체 ID 중복 수가 75,000건인 정상 구조임을 확인했다. 필수 컬럼 null은 0건이다. YEJI는 allowlist의 5파일 85,828 bytes만 수집했고 `shensha_51.json`의 고정 bytes·SHA-256이 일치했다. 상세 집계는 `data/reports/source_inventory.json`을 따른다.
 
 ## 저장 규칙
 
@@ -120,23 +121,40 @@ hf download <repo-id> <file-paths...> \
 | YEJI Processed | `deny` | 원천 권리 사슬 불명확·품질 실패 |
 | YEJI Interpretations | `deny` | 명시 라이선스 없음 |
 | YEJI Translated | `reference_only` | CC BY+MIT 의무, 해석 부재, 품질 감사 실패 |
+| AI Hub #271 | `contract_required` | KETI 데이터로 분류되며 상업 이용은 별도 협의 대상 |
 
 ## AI Hub 수집 절차
 
-AI Hub는 로그인·본인확인·사용 목적 제출과 데이터별 승인이 선행된다.
+AI Hub는 로그인·본인확인·사용 목적 제출과 데이터별 승인이 선행된다. 이 baseline은 일반정책 적용 대상인 #86만 수집하며, KETI 데이터인 #271에는 다운로드 요청을 보내지 않는다.
 
-1. 사용자가 공식 페이지에서 두 데이터셋을 각각 신청한다.
-2. 승인 완료 후 공식 Shell/API 다운로드 방식과 제공 설명서를 확인한다.
-3. 배포 압축 파일 원본, 파일 목록, 설명서, 승인일을 비공개 로컬 경로에 저장한다.
-4. 압축 해제 전후 파일별 SHA-256과 크기를 기록한다.
+1. 사용자가 공식 페이지에서 #86을 신청하고 승인 상태를 확인한다.
+2. API 키는 권한 `0600`인 `~/.config/saju_diary_assistant/aihub.env`의 `AIHUB_APIKEY`에서만 읽는다.
+3. `66046`, `66047`, `66048`, `66049` 네 file key를 공식 API에서 받아 배포 원본과 승인일을 비공개 로컬 경로에 저장한다.
+4. archive path traversal와 link/device member를 거부한 뒤 압축 전후 파일별 SHA-256과 크기를 기록한다.
 5. 원문과 변환 원문은 Git, 공개 Hugging Face dataset, 외부 공유 폴더에 올리지 않는다.
 
 로컬에서 승인 파일을 찾지 못하면 다음 메시지로 Phase를 차단한다.
 
 ```text
-BLOCKED: AI Hub 데이터 86/271의 승인된 원본 경로가 필요합니다.
+BLOCKED: AI Hub 데이터 #86의 승인과 비어 있지 않은 AIHUB_APIKEY가 필요합니다.
 혼합 비율을 임의 재배분하지 않았습니다.
 ```
+
+## 구현 명령
+
+전용 환경은 `uv venv .venv-data`로 만들고 `uv pip install --python .venv-data/bin/python -r requirements-data.txt`로 준비한다.
+
+```bash
+.venv-data/bin/python scripts/data/phase1_sources.py validate-contract
+.venv-data/bin/python scripts/data/phase1_sources.py download-hf --dry-run
+.venv-data/bin/python scripts/data/phase1_sources.py download-hf --execute
+.venv-data/bin/python scripts/data/phase1_sources.py download-aihub --dry-run
+.venv-data/bin/python scripts/data/phase1_sources.py download-aihub --execute
+.venv-data/bin/python scripts/data/phase1_sources.py inventory
+.venv-data/bin/python scripts/data/phase1_sources.py verify --allow-missing-aihub
+```
+
+`--allow-missing-aihub`는 Phase 완료를 뜻하지 않는다. 공개 원천의 무결성만 검증하고 #86 미승인을 명시적인 차단 상태로 유지한다.
 
 ## Inventory 최소 항목
 
@@ -155,14 +173,15 @@ BLOCKED: AI Hub 데이터 86/271의 승인된 원본 경로가 필요합니다.
 
 ## 완료 Gate
 
-- [ ] 다섯 활성 소스가 모두 고정 revision/release 아래에 있다.
+- [ ] 네 활성 원천이 모두 고정 revision/release 아래에 있다.
+- [ ] #86 원천에서 단일턴·멀티턴 두 파생 축 계약에 필요한 구조가 확인됐다.
 - [ ] 모든 파일의 bytes와 SHA-256이 manifest에 있다.
-- [ ] `bazi-sft` 원본 응답은 직접 학습 후보가 아니며 파생 Gate를 명시했다.
-- [ ] YEJI Rules는 단일 허용 파일과 MIT 원천 코드만 수집했다.
-- [ ] 제외·참고 전용 소스를 활성 adapter가 읽지 못하게 했다.
+- [x] `bazi-sft` 원본 응답은 직접 학습 후보가 아니며 파생 Gate를 명시했다.
+- [x] YEJI Rules는 단일 허용 파일과 MIT 원천 코드만 수집했다.
+- [x] 제외·참고 전용 소스를 활성 수집기가 읽지 못하게 했다.
 - [ ] AI Hub 승인과 비공개 저장 위치를 확인했다.
-- [ ] 라이선스 manifest와 attribution 문구 초안을 작성했다.
-- [ ] inventory가 README 주장과 실제 파일 수치를 분리해 기록한다.
+- [x] 라이선스 manifest와 attribution 문구 초안을 작성했다.
+- [x] 확보된 공개 원천 inventory가 README 주장과 실제 파일 수치를 분리해 기록한다.
 
 Gate 실패 시 Phase 2 adapter 구현을 시작하지 않는다.
 
@@ -174,14 +193,16 @@ Gate 실패 시 Phase 2 adapter 구현을 시작하지 않는다.
 - [YEJI BaZi Rules](https://huggingface.co/datasets/tellang/yeji-bazi-rules)
 - [`chxb/shensha`](https://github.com/chxb/shensha)
 - [AI Hub 감성 대화 말뭉치](https://aihub.or.kr/aihubdata/data/view.do?dataSetSn=86)
-- [AI Hub 연속적 감정 대화](https://aihub.or.kr/aihubdata/data/view.do?dataSetSn=271)
+- [AI Hub Shell 다운로드 안내](https://aihub.or.kr/devsport/apishell/list.do)
 
 ## 웹 확인 기록
 
 | 날짜 | 확인 내용 | 결과 |
 |---|---|---|
 | 2026-08-27 | Hugging Face API의 SHA·license·files | 활성 소스 revision과 YEJI Rules 단일 허용 파일 확인 |
-| 2026-08-27 | AI Hub 데이터 페이지 | 로그인·신청 필요, 27만 코퍼스와 연속 대화 10,000세트 설명 확인 |
+| 2026-08-27 | AI Hub #86 데이터 페이지·파일 API | 로그인·신청 필요, 네 배포 file key와 원천 내 연속 발화 구조 확인 |
+| 2026-08-27 | AI Hub #271 데이터 페이지·정책 | KETI 데이터이므로 활성 수집에서 제외하고 별도 계약 전에는 요청하지 않도록 고정 |
 | 2026-08-27 | `hf download` 공식 사용법 | dataset type, revision, local-dir, dry-run 지원 확인 |
 | 2026-08-27 | `bazi-sft` 카드·샘플 | Apache 2.0, 합성·자체 규칙, 계산 검증 한계와 4개 question type 확인 |
 | 2026-08-27 | YEJI Rules·원천 GitHub | 신살 JSON의 MIT 계보와 고전 파생 파일의 무라이선스 원천 확인 |
+| 2026-08-27 | AI Hub 공식 Shell v0.6 | `AIHUB_APIKEY` 환경값, `/down/0.6/{dataset}.do?fileSn=...` 요청 형식과 tar·분할 zip 병합 방식을 확인하고 안전 추출기로 대체 구현 |

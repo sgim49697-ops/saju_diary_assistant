@@ -19,6 +19,12 @@
 
 두 Parquet 파일은 총 116,666행, 각각 40개 컬럼을 포함하며 스키마가 서로 일치한다. 파일 내부와 파일 간 UUID 중복, 핵심 필드 누락, 주요 JSON 필드 파싱 오류는 초기 검사에서 발견되지 않았다. v7 shard의 평균 사주 서사 길이는 552.5자로 v6 shard의 696.2자보다 짧아, 생성 버전별 문체·길이 차이를 후속 분석에서 분리해 다뤄야 한다.
 
+Phase 1 실행으로 원본은 복사 없이 다음 Git 제외 경로로 이동했다.
+
+`data/raw/nemotron_saju/ffb934248746a2dea64ef771c0d86e1743d25702/`
+
+이동 후 두 Parquet의 bytes와 SHA-256을 다시 확인했으며 위 값과 일치했다. 원래 `data/nemotron_saju/`에는 공개 가능한 다운로드 명세만 남긴다.
+
 ## 재현 명령
 
 ```bash
@@ -28,7 +34,7 @@ hf download rayraykim/Nemotron-Personas-Korea-Saju \
   data/train-extra-00000.parquet \
   --repo-type dataset \
   --revision ffb934248746a2dea64ef771c0d86e1743d25702 \
-  --local-dir data/nemotron_saju \
+  --local-dir data/raw/nemotron_saju/ffb934248746a2dea64ef771c0d86e1743d25702 \
   --max-workers 2
 ```
 

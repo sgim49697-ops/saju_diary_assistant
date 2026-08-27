@@ -2,7 +2,7 @@
 
 | 항목 | 값 |
 |---|---|
-| 실행 상태 | 미시작 |
+| 실행 상태 | 완료 |
 | 선행 Phase | 없음 |
 | 입력 | 본 정본, 모델·데이터 라이선스, 현재 장비 정보 |
 | 출력 | 승인된 `experiment_contract.md`, `license_manifest.json` 초안 |
@@ -63,7 +63,8 @@ KananaOpenLicense에서 fine-tuned 모델은 Derivative Works에 해당한다. �
 |---|---|---|
 | Nemotron Saju | CC BY 4.0 | revision·출처·변경 이력 기록 |
 | `AmareshHebbar/bazi-sft` | Apache 2.0 | 구조 검산·한국어 재렌더 후 사용, 원문 응답 직접 학습 금지 |
-| AI Hub 2종 | AI Hub 일반정책·개별 신청 | 영리 연구개발 허용, 제3자 제공·원문 공개 금지, 사업결과 출처 표시 |
+| AI Hub 감성대화 #86 | AI Hub 일반정책·개별 신청 | 영리 연구개발 허용, 제3자 제공·원문 공개 금지, 사업결과 출처 표시. 한 원천에서 단일턴·멀티턴 축을 파생 |
+| AI Hub 연속대화 #271 | KETI 데이터 정책 | 연구 목적 외 상업 이용은 별도 협의가 필요하므로 학습·다운로드 제외 |
 | YEJI `shensha_51.json` | MIT + 원천 MIT | 단일 파일만 허용, 원천 코드 대조·오류 교정 후 자체 QA 생성 |
 | YEJI v9·Processed·Translated·Interpretations | NC·원천 불명·무라이선스·품질 실패 | 활성 학습에서 제외, Translated만 비학습 감사 참고 허용 |
 
@@ -73,7 +74,7 @@ KananaOpenLicense에서 fine-tuned 모델은 Derivative Works에 해당한다. �
 
 - 모델·데이터는 branch 이름이 아니라 commit SHA로 고정한다.
 - 다운로드 파일별 SHA-256, 크기, 원격 revision과 확인일을 기록한다.
-- `HF_TOKEN`, AI Hub 인증정보, 서비스 키는 환경변수·로그에 출력하지 않는다.
+- `HF_TOKEN`, AI Hub 인증정보, 서비스 키는 명령행 인자·로그·보고서에 출력하지 않는다. AI Hub 키는 Git 밖의 `~/.config/saju_diary_assistant/aihub.env`에서만 읽는다.
 - 원본 데이터, checkpoint, optimizer state, 캐시는 Git에서 제외한다.
 - 공개 Git에는 코드, 스키마, 해시, 집계 통계, 라이선스 manifest만 허용한다.
 - 같은 Run 이름을 재사용하지 않는다. 재실행은 suffix와 부모 Run을 기록한다.
@@ -88,11 +89,11 @@ KananaOpenLicense에서 fine-tuned 모델은 Derivative Works에 해당한다. �
 
 ## 완료 Gate
 
-- [ ] KananaOpenLicense와 모든 데이터 이용조건을 확인했다.
-- [ ] 자체 서비스와 별도 상업 라이선스 대상 서비스의 경계를 승인했다.
-- [ ] 고정 Run·비율·비교 방법을 승인했다.
-- [ ] 모델·데이터 revision과 SHA-256 기록 형식을 승인했다.
-- [ ] 비밀값·원본·checkpoint Git 제외 정책을 확인했다.
+- [x] KananaOpenLicense와 모든 데이터 이용조건을 확인했다.
+- [x] 자체 서비스와 별도 상업 라이선스 대상 서비스의 경계를 승인했다.
+- [x] 고정 Run·비율·비교 방법을 승인했다.
+- [x] 모델·데이터 revision과 SHA-256 기록 형식을 승인했다.
+- [x] 비밀값·원본·checkpoint Git 제외 정책을 확인했다.
 
 하나라도 미완료면 Phase 1로 넘어가지 않는다.
 
@@ -101,6 +102,7 @@ KananaOpenLicense에서 fine-tuned 모델은 Derivative Works에 해당한다. �
 - [Kanana 2 1.3B Instruct 모델 카드](https://huggingface.co/kakaocorp/kanana-2-1.3b-instruct)
 - [Kanana Open License](https://huggingface.co/kakaocorp/kanana-2-1.3b-instruct/blob/bf4786aa2a1908adce942d53976270132732f720/LICENSE)
 - [AI Hub 데이터 이용정책](https://aihub.or.kr/intrcn/guid/usagepolicy.do)
+- [AI Hub #271 데이터 페이지](https://aihub.or.kr/aihubdata/data/view.do?dataSetSn=271)
 - [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
 - [`bazi-sft`](https://huggingface.co/datasets/AmareshHebbar/bazi-sft)
 - [YEJI BaZi Rules](https://huggingface.co/datasets/tellang/yeji-bazi-rules)
@@ -112,3 +114,4 @@ KananaOpenLicense에서 fine-tuned 모델은 Derivative Works에 해당한다. �
 | 2026-08-27 | Kanana fine-tuning·배포·상업 조건 | 파생 저작물 의무와 특정 상업 형태의 별도 라이선스 필요 확인 |
 | 2026-08-27 | AI Hub 이용정책 | 영리·비영리 연구개발, 학습 목적, 출처 표시, 신청·본인확인, 제3자 제공 금지 확인 |
 | 2026-08-27 | 활성·제외 데이터 권리 사슬 | CC BY·Apache·MIT·AI Hub 허용 소스와 NC·무라이선스·원천 불명 소스 분리 |
+| 2026-08-27 | AI Hub #271 제공 주체·정책 재검증 | KETI 데이터 분류와 별도 상업 협의 조건을 확인해 활성 소스에서 제외하고 #86 멀티턴 파생 축으로 대체 |

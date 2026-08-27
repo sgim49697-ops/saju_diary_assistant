@@ -19,6 +19,7 @@
 {
   "id": "source:original_id",
   "source": "nemotron_saju",
+  "mix_axis": "nemotron_saju",
   "source_variant": "v6",
   "source_revision": "commit-or-version",
   "license_expression": "CC-BY-4.0",
@@ -58,7 +59,7 @@
 }
 ```
 
-`id`, `source_revision`, `license_expression`, `usage_class`, `provenance_status`, `attribution_ids`, `transformation_chain`, `task`, `raw_hash`, `group_id`는 null을 허용하지 않는다. `source` enum은 `nemotron_saju`, `bazi_sft`, `aihub_empathy`, `aihub_continuous`, `yeji_shensha_derived` 다섯 값으로 고정한다. 원본 ID가 없으면 source 파일 SHA-256, 행 번호, 정규화 전 원문 SHA-256으로 결정론적 ID를 만든다.
+`id`, `source`, `mix_axis`, `source_revision`, `license_expression`, `usage_class`, `provenance_status`, `attribution_ids`, `transformation_chain`, `task`, `raw_hash`, `group_id`는 null을 허용하지 않는다. 원천을 나타내는 `source` enum은 `nemotron_saju`, `bazi_sft`, `aihub_empathy`, `yeji_bazi_rules` 네 값이다. 학습 할당을 나타내는 `mix_axis` enum은 `nemotron_saju`, `bazi_sft`, `aihub_empathy_single`, `aihub_empathy_multiturn`, `yeji_shensha_derived` 다섯 값이다. 원본 ID가 없으면 source 파일 SHA-256, 행 번호, 정규화 전 원문 SHA-256으로 결정론적 ID를 만든다.
 
 ## 태스크와 라벨 값
 
@@ -74,8 +75,8 @@
 |---|---|
 | Nemotron | `auto_validated_synthetic` |
 | `bazi-sft` 파생본 | `validated_rule_soft_gt` |
-| AI Hub 감성대화 | `human_reference` |
-| AI Hub 연속대화 | `human_next_turn` |
+| AI Hub #86 단일턴 파생 | `human_reference` |
+| AI Hub #86 멀티턴 파생 | `human_next_turn` |
 | YEJI 신살 규칙 파생본 | `validated_rule_derived` |
 
 `label.stage`는 `R0+A1`, `R0+A2`, `H1`, `H2`, `D`만 쓴다. v1 학습 후보는 `R0+A1` 또는 규칙 검증을 통과한 `R0+A2`이며 가중치를 차등 적용하지 않는다.
@@ -131,7 +132,7 @@
 - `meaning`은 soft reference로만 쓰며 죽음·질병·재난을 확정하는 문구는 중립적인 전통 해석 설명으로 제한한다.
 - `group_id = rule_id + chart_signature`로 만들고 같은 rule/chart 조합은 split을 넘지 않는다.
 
-### AI Hub 감성대화
+### AI Hub #86 단일턴 파생
 
 - 사용자 발화와 대응 시스템 응답을 한 예시로 만든다.
 - 전화번호, 주민번호, 이메일 등 개인정보 패턴이 있으면 마스킹보다 행 제외를 우선한다.
@@ -139,9 +140,9 @@
 - 자해·자살·우울증 위기, 임상 진단·치료, 미성년자 민감정보가 포함된 행은 일반 공감 학습 후보에서 제외한다.
 - 원본 상황/대화 ID를 `group_id`로 사용한다.
 
-### AI Hub 연속대화
+### AI Hub #86 멀티턴 파생
 
-- 한 세션에서 앞 1~4턴을 문맥으로 주고 다음 턴을 assistant로 만든다.
+- #86의 동일 대화/상황 그룹 안에서 순서가 확인된 앞 1~4턴을 문맥으로 주고 다음 시스템 응답을 assistant로 만든다.
 - 한 세션당 최대 2개 예시만 추출한다.
 - 개인정보, 외부 저작물 장문, 비속어·혐오, 의료·법률·금융 조언을 제외한다.
 - 세션 ID 단위로만 split하고 전체 세션 ID를 `group_id`로 사용한다.
@@ -150,7 +151,7 @@
 
 ### Source holdout 500
 
-다섯 활성 소스에서 group 단위로 100개씩 먼저 고정한다. 동일 group의 다른 행은 학습 후보에서 모두 제외한다.
+다섯 `mix_axis`에서 group 단위로 100개씩 먼저 고정한다. 동일 group의 다른 행은 학습 후보에서 모두 제외하며, #86 단일턴과 멀티턴 축 사이에도 group ID가 겹치면 안 된다.
 
 ### Core Eval 200
 
@@ -175,8 +176,8 @@ Core Eval의 원문·정답·채점 정책을 별도 해시로 잠그고, 학습
 ```text
 Nemotron                11
 bazi-sft                 5
-AI Hub 감성대화          2
-AI Hub 연속대화          1
+AI Hub #86 단일턴        2
+AI Hub #86 멀티턴        1
 YEJI 신살 규칙 파생본     1
 ```
 
@@ -190,8 +191,8 @@ YEJI 신살 규칙 파생본     1
 |---|---:|---:|---:|
 | Nemotron | 550 | 5,500 | 11,000 |
 | `bazi-sft` 파생본 | 250 | 2,500 | 5,000 |
-| AI Hub 감성대화 | 100 | 1,000 | 2,000 |
-| AI Hub 연속대화 | 50 | 500 | 1,000 |
+| AI Hub #86 단일턴 | 100 | 1,000 | 2,000 |
+| AI Hub #86 멀티턴 | 50 | 500 | 1,000 |
 | YEJI 신살 규칙 파생본 | 50 | 500 | 1,000 |
 
 세 manifest는 위 비율과 수량을 정확히 지키고 MIX1K를 MIX10의 정확한 부분집합으로 고정한다.
@@ -215,7 +216,8 @@ token 수, 512/768/1024 초과율, assistant loss token 비율과 special token 
 - [ ] train과 holdout/core eval 사이 group 중복이 0건이다.
 - [ ] 각 source가 MIX20 목표보다 최소 20% 많은 적격 후보를 가진다.
 - [ ] 후보 순서와 MIX1K⊂MIX10⊂MIX20 수량 계약을 seed 42로 고정했다.
-- [ ] AI Hub 동일 세션이 train/eval에 나뉘지 않았다.
+- [ ] AI Hub 동일 group이 train/eval 또는 #86 단일턴/멀티턴 축에 중복 배정되지 않았다.
+- [ ] #86에 구조적으로 적격인 멀티턴 group이 reserve를 포함해 1,200개 이상이다.
 - [ ] `bazi-sft` 구조·규칙 검산과 한국어 재렌더가 모두 통과했다.
 - [ ] 신살 51개 원천 대조·known issue 교정과 허용 파일 검사가 통과했다.
 - [ ] 의료·투자·운명 단정·자해 위기 안전 필터의 제외 내역이 있다.
