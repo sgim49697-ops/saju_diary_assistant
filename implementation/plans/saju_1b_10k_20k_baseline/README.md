@@ -4,7 +4,7 @@
 
 | 항목 | 값 |
 |---|---|
-| 문서 버전 | `2.1.0` |
+| 문서 버전 | `2.2.0` |
 | 정본화 기준일 | 2026-08-27 |
 | 주 장비 | NVIDIA GeForce RTX 5070 Ti 16GiB, WSL2 |
 | 주 모델 | `kakaocorp/kanana-2-1.3b-instruct@bf4786aa2a1908adce942d53976270132732f720` |
@@ -19,6 +19,8 @@
 - 데이터 행 비율은 Nemotron 55%, 검산·한국어화한 `bazi-sft` 25%, AI Hub #86 단일턴 10%, 같은 #86의 대화 그룹에서 파생한 멀티턴 5%, 검증된 YEJI 신살 규칙 파생본 5%로 고정한다.
 - Nemotron 내부는 v6 20%·v7 80%로 고정한다.
 - 평가셋과 group holdout은 학습 manifest보다 먼저 고정한다.
+- 모든 데이터 산출물은 `vMAJOR.MINOR.PATCH/build-<fingerprint>` 경로에 보관하고 기존 build를 덮어쓰지 않는다.
+- source 내부 묶음과 split 누수 경계를 분리하며, Nemotron·`bazi-sft`·향후 YEJI 파생본의 동일 8자 명식은 원천이 달라도 하나의 전역 leakage group으로 묶는다.
 - 해석 답변은 soft/reference label이며, 계산 가능한 구조만 검산 후 hard label로 승격한다.
 - 모델 출력은 사람 또는 규칙 검증 없이 학습 정답으로 재사용하지 않는다.
 - 모델은 생년월일에서 사주 원국을 계산하지 않는다. 런타임 계산기가 제공한 구조화 명식을 근거로 해석한다.
@@ -29,7 +31,7 @@
 |---:|---|---|---|
 | 0 | [거버넌스·실험 계약](phase-0-governance.md) | 완료 | 라이선스·범위·재현성 승인 |
 | 1 | [데이터 수집](phase-1-data-collection.md) | 완료 | 네 원천의 revision·해시·이용조건과 #86 구조 Gate 통과 |
-| 2 | [데이터 전처리](phase-2-data-preprocessing.md) | 미시작 | split·누수·혼합·토큰 감사 통과 |
+| 2 | [데이터 전처리](phase-2-data-preprocessing.md) | 부분 진행 | Phase 2A 사용자 150건 검토·명시 승인 후 전처리 허용 |
 | 3 | [학습 모델·환경 준비](phase-3-model-preparation.md) | 미시작 | 고정 환경에서 모델·template 로드 성공 |
 | 4 | [학습 전 데이터·모델 검증](phase-4-preflight-validation.md) | 미시작 | 데이터 Gate와 200-step smoke 모두 통과 |
 | 5 | [Baseline 학습](phase-5-baseline-training.md) | 미시작 | KI10·KI20 독립 Run과 산출물 완결 |
@@ -44,25 +46,23 @@ Phase 0 → Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5 → Phase 6
 
 ## 예정 산출물 경로
 
-아래는 Phase별 계약 경로다. 현재는 Phase 0 계약과 Phase 1 원본·집계 보고서만 생성하며, Phase 2 이후 경로는 해당 선행 Gate가 완료되기 전에는 만들지 않는다.
+아래는 Phase별 계약 경로다. 원본은 upstream revision, 각 후속 단계는 데이터 SemVer와 입력 fingerprint를 함께 사용한다. `latest` 링크를 만들지 않으며 registry의 명시적 승인 포인터만 다음 단계가 읽는다.
 
 ```text
 data/
 ├── raw/<source>/<revision>/
-├── unified/v1/
-├── manifests/
-│   ├── mix1k_smoke_v1.jsonl
-│   ├── mix10k_v1.jsonl
-│   └── mix20k_v1.jsonl
-├── eval/
-│   ├── source_holdout_500_v1.jsonl
-│   ├── core_eval_200.jsonl
-│   └── human_review_400.jsonl
+├── audit/saju_1b_baseline/v1.0.0/build-<audit-hash>/  # 비공개 locator·결정
+├── derived/saju_1b_baseline/v1.0.0/build-<derived-hash>/
+│   ├── unified/
+│   ├── manifests/
+│   └── eval/
 └── reports/
-    ├── source_inventory.json
-    ├── token_stats_mix10.json
-    ├── token_stats_mix20.json
-    └── license_manifest.json
+    └── saju_1b_baseline/<source|audit|preprocessing>/v1.0.0/build-<hash>/
+
+configs/data_versions/saju_1b_baseline/
+├── source-bundle-v1.0.0.json
+├── audit-policy-v1.0.0.json
+└── registry.json
 
 runs/
 ├── K0-INSTRUCT/
@@ -126,6 +126,13 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
 4. 현재 정본과 충돌하면 실행을 멈추고 정본 버전을 올린 뒤 변경 이유를 기록한다.
 5. 기술 정보는 공식 문서, 공식 저장소, 모델·데이터 카드, 공식 배포 메타데이터만 근거로 사용한다.
 
+## 데이터 버전 규칙
+
+- major는 공통 스키마·태스크 계약 변경, minor는 원천·필터·template·split·구성 변경, patch는 동일 레코드의 보고서·검토 메타 변경에 사용한다.
+- source build는 네 `SOURCE_MANIFEST.json`, audit build는 source build와 감사 정책·seed·감사 코드 hash를 부모 입력으로 기록한다. 향후 derived build는 승인된 audit seal을 추가 부모로 삼는다.
+- build hash 입력에는 절대경로와 실행 시각을 넣지 않는다. 전체 SHA-256을 manifest에 저장하고 디렉터리에는 앞 12자리를 사용한다.
+- 동일 build 재실행은 검증만 수행한다. 검토 결정을 바꾸거나 입력이 달라지면 새 버전·build를 만든다.
+
 ## 원본 내용 매핑
 
 | archive 원본 절 | 정본 위치 |
@@ -177,3 +184,8 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
   - 변경 범위: Git 제외 raw 경로에 AI Hub 원본을 추가하고, 공개 가능한 다운로드 해시 명세·집계 inventory·승인 메타데이터·Phase 2 누수 방지 계약만 갱신했다. 원문 샘플은 보고서와 Git에 포함하지 않았다.
   - 검증: file key `66046`~`66049`의 archive 21,350,912 bytes와 SHA-256, manifest 12파일 재해시, JSON 58,268건 파싱 실패 0건, 멀티턴 고유 group 51,886개를 확인했다. 최소 1,200-group Gate와 활성 원천 4개 전체 `verify`를 통과했다.
   - 남은 이슈·후속 작업: upstream train/validation의 group ID 교집합 6,379개와 exact record 교집합 0개를 확인했다. Phase 2에서는 upstream split을 출처 메타로만 쓰고 전체 `talk.id.talk-id`를 group-first로 다시 분리해야 한다.
+- 2026-08-27
+  - 작업 요약: Phase 2A 읽기 전용 원천 감사기와 데이터 SemVer/build fingerprint 경로를 구현하고, 네 원천 전체 스캔 및 사용자 필수 150건·참고 151건의 비공개 검토 큐를 생성했다.
+  - 변경 범위: source 보고서를 `source/v1.0.0/build-b3890c552e38`로 이관하고, 감사 정책·bundle·registry, 감사 CLI·테스트, 공개 집계 보고서를 추가했다. 원본·unified·평가셋·학습 데이터는 변경하거나 생성하지 않았다.
+  - 검증: 단위 테스트 20건, Python compile, Phase 1 원본 재해시, audit `verify`, 같은 build 무쓰기 재실행, 미검토 finalize·무확인 approve 차단을 통과했다. `build-336b8377063a`에서 Nemotron 116,666행, `bazi-sft` 100,000행, AI Hub 58,268건, YEJI 51규칙과 교차 원천 동일 명식 2,778개를 확인했다.
+  - 남은 이슈·후속 작업: 필수 150건 사람 검토가 남았다. YEJI `词馆`의 `壬申` 주석·`壬卯` 코드 충돌과 `五鬼`의 미등록 `흉살류` category 때문에 Gate는 차단 상태이며, 교정 계약과 새 build 없이는 승인·Phase 2B 전처리를 시작할 수 없다.

@@ -35,7 +35,7 @@ README의 수량을 신뢰해 바로 전처리하지 않고, 실제 원본 파�
 
 두 파일은 분석용 부분 확보분이다. 전체 1M 모집단으로 오인하지 않으며, 수집 완료 여부와 학습 후보 수량은 별개로 관리한다.
 
-`bazi-sft`는 고정 revision의 6파일 102,913,919 bytes와 100,000행을 수집했다. 원천 전체 exact row hash 중복은 0건이며, `synthetic_id` 25,000개가 각 4개 question type으로 구성돼 전체 ID 중복 수가 75,000건인 정상 구조임을 확인했다. 필수 컬럼 null은 0건이다. YEJI는 allowlist의 5파일 85,828 bytes만 수집했고 `shensha_51.json`의 고정 bytes·SHA-256이 일치했다. 상세 집계는 `data/reports/source_inventory.json`을 따른다.
+`bazi-sft`는 고정 revision의 6파일 102,913,919 bytes와 100,000행을 수집했다. 원천 전체 exact row hash 중복은 0건이며, `synthetic_id` 25,000개가 각 4개 question type으로 구성돼 전체 ID 중복 수가 75,000건인 정상 구조임을 확인했다. 필수 컬럼 null은 0건이다. YEJI는 allowlist의 5파일 85,828 bytes만 수집했고 `shensha_51.json`의 고정 bytes·SHA-256이 일치했다. 상세 집계는 `data/reports/saju_1b_baseline/source/v1.0.0/build-b3890c552e38/source_inventory.json`을 따른다.
 
 AI Hub #86은 승인 계정에서 file key 4개를 수집했다. 원본 tar 합계는 21,350,912 bytes이고, tar·part·병합 zip 총 12파일을 SHA-256 manifest로 고정했다. 라벨 JSON 58,268건은 모두 파싱됐고 2개 이상 완전한 발화·응답 pair를 가졌다. 고유 `talk.id.talk-id` 51,886개로 최소 1,200-group Gate를 통과했다. upstream train/validation group 교집합은 6,379개지만 exact record 교집합은 0개다. Phase 2는 upstream split을 provenance로만 보존하고 전체 group을 다시 분리한다.
 
@@ -171,7 +171,7 @@ BLOCKED: AI Hub 데이터 #86의 승인과 비어 있지 않은 AIHUB_APIKEY가 
 - 라이선스·usage class·출처·변환 사슬 필드 존재 여부
 - 파싱 성공률과 손상 파일 수
 
-결과는 `data/reports/source_inventory.json`에 원본 수치와 필터 전 수치를 분리해 기록한다.
+결과는 `data/reports/saju_1b_baseline/source/v1.0.0/build-b3890c552e38/source_inventory.json`에 원본 수치와 필터 전 수치를 분리해 기록한다.
 
 ## 완료 Gate
 

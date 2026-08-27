@@ -79,6 +79,25 @@ def write_json_atomic(path: Path, payload: Any, mode: int = 0o644) -> None:
             temporary.unlink()
 
 
+def write_versioned_json_once(path: Path, payload: dict[str, Any]) -> dict[str, Any]:
+    """버전 경로의 보고서를 덮어쓰지 않고 동일 입력 재실행만 허용한다."""
+    if not path.exists():
+        write_json_atomic(path, payload)
+        return payload
+    try:
+        existing = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise Phase1Error(f"기존 버전 보고서를 읽을 수 없습니다: {path}") from exc
+    candidate = dict(payload)
+    if isinstance(existing, dict) and "generated_at" in existing:
+        candidate["generated_at"] = existing["generated_at"]
+    if candidate != existing:
+        raise Phase1Error(
+            "기존 source build 보고서와 결과가 다릅니다. 원천 bundle의 minor 버전을 올리세요."
+        )
+    return existing
+
+
 def load_config(config_path: Path) -> dict[str, Any]:
     try:
         with config_path.open("r", encoding="utf-8") as stream:
@@ -1010,7 +1029,15 @@ def inventory_source(
     root = source_root(config, repo_root, source_name)
     if not root.exists():
         return {"source": source_name, "status": "missing", "file_count": 0, "total_bytes": 0}
-    manifest = build_source_manifest(config, repo_root, source_name)
+    manifest_path = root / MANIFEST_NAME
+    if manifest_path.is_file():
+        _verify_manifest(root)
+        try:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise Phase1Error(f"SOURCE_MANIFEST.json을 읽을 수 없습니다: {source_name}") from exc
+    else:
+        manifest = build_source_manifest(config, repo_root, source_name)
     if not manifest["files"]:
         return {
             "source": source_name,
@@ -1135,8 +1162,7 @@ def inventory_all(config: dict[str, Any], repo_root: Path) -> dict[str, Any]:
         "sources": sources,
     }
     report_path = resolve_repo_path(repo_root, config["paths"]["inventory_report"])
-    write_json_atomic(report_path, report)
-    return report
+    return write_versioned_json_once(report_path, report)
 
 
 def _verify_manifest(root: Path) -> list[str]:

@@ -1,0 +1,18 @@
+{
+  "artifact_sha256": {
+    "aggregate.json": "60c9bfbdd23e4b66eb99487cd7688c91cfb3ab5c3c0129b5f9bd2a54b566c2c3",
+    "gate.scan.json": "45f96112ba2e146e31a05ee7616c39285054fd5c9c919ea5888db4914210ac75",
+    "review_summary.json": "37dc8000bc5e7533341c399b8a1a308b3073b3b756f0598672e83f6167c3c157"
+  },
+  "audit_version": "v1.0.0",
+  "build_id": "build-336b8377063a",
+  "build_sha256": "336b8377063ab0ee131d526925750fea7fc94b4d6960ffcc705ebaae8abf837b",
+  "code_sha256": "8f9ce289f82739bf7a1fc8bd18468937c526caeac34060ea35bc50e09592fac7",
+  "contains_raw_samples": false,
+  "dataset_name": "saju_1b_baseline",
+  "generated_at": "2026-08-27T06:31:36+00:00",
+  "policy_sha256": "fed1144cb1dffd61f8c3935c98bbd1983e25d0ad096f6ef348a616e0c4dcdab9",
+  "schema_version": "1.0.0",
+  "seed": 42,
+  "source_build_sha256": "b3890c552e38a52ca4bd6327c68a6d079ec8084ff251019579a24beefdbcfd5c"
+}

@@ -1,0 +1,12 @@
+{
+  "approval_created": false,
+  "blocking_finding_codes": [
+    "YEJI_CIGUAN_CONFLICT",
+    "YEJI_STRUCTURE_FAILURE"
+  ],
+  "contains_raw_samples": false,
+  "reference_review_optional": 151,
+  "required_review_remaining": 150,
+  "schema_version": "1.0.0",
+  "status": "human_review_required"
+}

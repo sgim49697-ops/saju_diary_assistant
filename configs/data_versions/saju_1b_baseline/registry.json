@@ -1,0 +1,28 @@
+{
+  "approved_audit": null,
+  "approved_derived": null,
+  "audit_builds": [
+    {
+      "blocking_finding_codes": [
+        "YEJI_CIGUAN_CONFLICT",
+        "YEJI_STRUCTURE_FAILURE"
+      ],
+      "build_id": "build-336b8377063a",
+      "build_sha256": "336b8377063ab0ee131d526925750fea7fc94b4d6960ffcc705ebaae8abf837b",
+      "required_review_remaining": 150,
+      "status": "human_review_required",
+      "version": "v1.0.0"
+    }
+  ],
+  "dataset_name": "saju_1b_baseline",
+  "schema_version": "1.0.0",
+  "source_builds": [
+    {
+      "build_id": "build-b3890c552e38",
+      "manifest": "configs/data_versions/saju_1b_baseline/source-bundle-v1.0.0.json",
+      "source_build_sha256": "b3890c552e38a52ca4bd6327c68a6d079ec8084ff251019579a24beefdbcfd5c",
+      "status": "approved",
+      "version": "v1.0.0"
+    }
+  ]
+}

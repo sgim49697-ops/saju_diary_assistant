@@ -165,7 +165,7 @@ v2 Lite 비교는 `(a) 동일 ID 공통 subset`과 `(b) source/task를 맞춰 �
 ## 산출물
 
 ```text
-data/eval/human_review_400.jsonl
+data/derived/saju_1b_baseline/v1.0.0/build-<derived-hash>/eval/human_review_400.jsonl
 data/reports/auto_eval_k0_ki10_ki20.json
 data/reports/human_preference_100.json
 data/reports/error_taxonomy.json

@@ -1,0 +1,106 @@
+{
+  "audit_version": "v1.0.0",
+  "dataset_name": "saju_1b_baseline",
+  "decision_values": [
+    "accept",
+    "exclude_candidate",
+    "rule_fix_required",
+    "source_block",
+    "uncertain",
+    "skip"
+  ],
+  "paths": {
+    "private_root": "data/audit/{dataset_name}/{audit_version}",
+    "public_root": "data/reports/{dataset_name}/audit/{audit_version}"
+  },
+  "reason_codes": [
+    "safety_overclaim",
+    "unsafe_advice",
+    "pii",
+    "schema_error",
+    "rule_conflict",
+    "mistranslation",
+    "factual_inconsistency",
+    "low_quality",
+    "other"
+  ],
+  "reference_review": {
+    "aihub_empathy": 30,
+    "bazi_sft": 40,
+    "nemotron_saju": 50,
+    "yeji_bazi_rules": 31
+  },
+  "required_nemotron_narrative_keys": [
+    "saju_summary",
+    "personality_reading",
+    "career_reading",
+    "lacking_element_advice"
+  ],
+  "required_review": {
+    "aihub_empathy": 70,
+    "bazi_sft": 20,
+    "nemotron_saju": 40,
+    "yeji_bazi_rules": 20
+  },
+  "safety_patterns": {
+    "aihub_clinical": [
+      "우울증",
+      "공황(?:장애)?",
+      "정신과",
+      "정신병",
+      "불안장애",
+      "조울증",
+      "강박증",
+      "진단",
+      "치료",
+      "약물"
+    ],
+    "aihub_self_harm": [
+      "자살",
+      "자해",
+      "죽고[ ]*싶",
+      "죽어[ ]*버리",
+      "삶을[ ]*끝",
+      "극단적[ ]*선택",
+      "목숨을[ ]*끊"
+    ],
+    "nemotron_certainty": [
+      "반드시",
+      "확실히",
+      "틀림없이",
+      "무조건",
+      "필연적으로",
+      "운명적으로"
+    ],
+    "nemotron_death_accident": [
+      "사망",
+      "죽음",
+      "수명",
+      "큰[ ]*사고",
+      "재난",
+      "이혼할",
+      "파국"
+    ],
+    "nemotron_financial_guarantee": [
+      "수익[ ]*보장",
+      "재물은[ ]*반드시",
+      "부자가[ ]*될",
+      "대박이[ ]*날"
+    ],
+    "nemotron_health": [
+      "건강",
+      "질병",
+      "병원",
+      "치료",
+      "수술",
+      "혈압",
+      "심장",
+      "위장",
+      "불면",
+      "우울증"
+    ]
+  },
+  "schema_version": "1.0.0",
+  "seed": 42,
+  "source_bundle": "configs/data_versions/saju_1b_baseline/source-bundle-v1.0.0.json"
+}

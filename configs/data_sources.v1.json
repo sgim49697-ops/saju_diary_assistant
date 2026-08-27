@@ -1,11 +1,11 @@
 {
   "schema_version": "1.0.0",
-  "canonical_plan_version": "2.1.0",
+  "canonical_plan_version": "2.2.0",
   "approved_at": "2026-08-27",
   "paths": {
     "raw_root": "data/raw",
-    "inventory_report": "data/reports/source_inventory.json",
-    "license_manifest": "data/reports/license_manifest.json",
+    "inventory_report": "data/reports/saju_1b_baseline/source/v1.0.0/build-b3890c552e38/source_inventory.json",
+    "license_manifest": "data/reports/saju_1b_baseline/source/v1.0.0/build-b3890c552e38/license_manifest.json",
     "aihub_key_file": "~/.config/saju_diary_assistant/aihub.env"
   },
   "mix_contract": {
@@ -77,8 +77,9 @@
       "endpoint_template": "https://api.aihub.or.kr/down/0.6/{dataset_id}.do?fileSn={file_key}",
       "file_keys": ["66046", "66047", "66048", "66049"],
       "derive_mix_axes": ["aihub_empathy_single", "aihub_empathy_multiturn"],
-      "group_id_field": "talk.id.talk-id",
-      "upstream_split_policy": "provenance_only_regroup_by_group_id"
+      "source_group_id_field": "talk.id.talk-id",
+      "leakage_group_policy": "hash_talk_id_across_all_derived_axes",
+      "upstream_split_policy": "provenance_only_regroup_by_leakage_group_id"
     },
     "yeji_bazi_rules": {
       "provider": "huggingface",

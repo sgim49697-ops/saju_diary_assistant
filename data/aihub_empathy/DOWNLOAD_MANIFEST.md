@@ -20,7 +20,7 @@ API 키는 저장소 밖 `~/.config/saju_diary_assistant/aihub.env`에서만 읽
 | `66048` | 검증 라벨링데이터 | 995,840 | `ca8b4f899ad24fc556d779078190ecf2d7f44b3e668853777efbb8fa84a0fa6b` |
 | `66049` | 검증 원천데이터 | 1,292,288 | `a339140ff6a5b95f540f2752ecf6a52a9142306fdc3f7a34e05652610aad7c92` |
 
-원본 tar 합계는 21,350,912 bytes다. 안전 검사를 통과한 `.zip.part0`을 병합하되 원본 tar와 part를 모두 보존했다. tar 4개, part 4개, 병합 zip 4개의 총 12파일 bytes·SHA-256은 `data/reports/source_inventory.json`과 raw `SOURCE_MANIFEST.json`에 고정했다.
+원본 tar 합계는 21,350,912 bytes다. 안전 검사를 통과한 `.zip.part0`을 병합하되 원본 tar와 part를 모두 보존했다. tar 4개, part 4개, 병합 zip 4개의 총 12파일 bytes·SHA-256은 `data/reports/saju_1b_baseline/source/v1.0.0/build-b3890c552e38/source_inventory.json`과 raw `SOURCE_MANIFEST.json`에 고정했다.
 
 ## 구조 inventory
 

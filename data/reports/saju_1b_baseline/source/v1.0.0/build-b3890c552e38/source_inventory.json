@@ -1,10 +1,10 @@
 {
-  "canonical_plan_version": "2.1.0",
+  "canonical_plan_version": "2.2.0",
   "contains_raw_samples": false,
   "contract_validation": {
     "aihub_271_policy": "contract_required_excluded",
     "aihub_active_dataset": "86",
-    "canonical_plan_version": "2.1.0",
+    "canonical_plan_version": "2.2.0",
     "mix_axis_count": 5,
     "mix_totals": {
       "mix10": 10000,

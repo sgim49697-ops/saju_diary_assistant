@@ -128,9 +128,9 @@ NaN/Inf, zero assistant token, CUDA kernel 오류, remote code 오류가 있으�
 Phase 4는 512/768/1024 길이별 deterministic manifest를 만들고, 통과한 길이의 manifest만 다음 canonical 이름으로 승격한다.
 
 ```text
-data/manifests/mix1k_smoke_v1.jsonl
-data/manifests/mix10k_v1.jsonl
-data/manifests/mix20k_v1.jsonl
+data/derived/saju_1b_baseline/v1.0.0/build-<derived-hash>/manifests/mix1k_smoke_v1.jsonl
+data/derived/saju_1b_baseline/v1.0.0/build-<derived-hash>/manifests/mix10k_v1.jsonl
+data/derived/saju_1b_baseline/v1.0.0/build-<derived-hash>/manifests/mix20k_v1.jsonl
 ```
 
 선택되지 않은 길이 manifest는 audit용으로 보존하되 Phase 5가 읽지 못하도록 별도 후보 경로에 둔다.
