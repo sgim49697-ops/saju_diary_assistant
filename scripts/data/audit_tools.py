@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import fcntl
 import hashlib
 import json
 import os
@@ -12,6 +13,7 @@ import unicodedata
 import zipfile
 from collections import Counter, defaultdict
 from collections.abc import Callable, Iterable, Iterator, Sequence
+from copy import deepcopy
 from datetime import datetime, timezone
 from itertools import combinations
 from pathlib import Path
@@ -29,6 +31,7 @@ from scripts.data.source_tools import (
 )
 
 AUDIT_SCHEMA_VERSION = "1.0.0"
+DECISION_SCHEMA_VERSION = "1.1.0"
 EXPECTED_SOURCES = {
     "nemotron_saju",
     "bazi_sft",
@@ -136,7 +139,36 @@ def load_audit_policy(path: Path, audit_version: str) -> dict[str, Any]:
         raise Phase2AuditError("필수 검토 할당 합계는 150이어야 합니다.")
     if sum(policy.get("reference_review", {}).values()) != 151:
         raise Phase2AuditError("참고 검토 할당 합계는 151이어야 합니다.")
+    decision_schema = policy.get("decision_schema_version", AUDIT_SCHEMA_VERSION)
+    if decision_schema not in {AUDIT_SCHEMA_VERSION, DECISION_SCHEMA_VERSION}:
+        raise Phase2AuditError("지원하지 않는 검토 결정 schema_version입니다.")
     return policy
+
+
+def load_yeji_corrections(
+    repo_root: Path, policy: dict[str, Any]
+) -> tuple[dict[str, Any] | None, Path | None]:
+    relative = policy.get("correction_manifest")
+    if relative is None:
+        return None, None
+    if not isinstance(relative, str):
+        raise Phase2AuditError("correction_manifest 경로가 올바르지 않습니다.")
+    path = resolve_repo_path(repo_root, relative)
+    manifest = _load_json_object(path, "YEJI correction manifest")
+    if (
+        manifest.get("schema_version") != AUDIT_SCHEMA_VERSION
+        or manifest.get("audit_version") != policy["audit_version"]
+        or manifest.get("dataset_name") != policy["dataset_name"]
+        or manifest.get("source") != "yeji_bazi_rules"
+    ):
+        raise Phase2AuditError("YEJI correction manifest identity가 다릅니다.")
+    corrections = manifest.get("corrections")
+    if not isinstance(corrections, list) or not corrections:
+        raise Phase2AuditError("YEJI correction 목록이 비어 있습니다.")
+    identifiers = [item.get("correction_id") for item in corrections]
+    if len(identifiers) != len(set(identifiers)):
+        raise Phase2AuditError("YEJI correction_id가 중복됐습니다.")
+    return manifest, path
 
 
 def _source_fingerprint_payload(bundle: dict[str, Any]) -> dict[str, Any]:
@@ -207,6 +239,8 @@ def compute_build_identity(
     policy_path: Path,
     bundle: dict[str, Any],
     code_paths: Sequence[Path],
+    *,
+    correction_sha256: str | None = None,
 ) -> dict[str, Any]:
     inputs = {
         "audit_version": policy["audit_version"],
@@ -217,6 +251,8 @@ def compute_build_identity(
         "seed": policy["seed"],
         "source_build_sha256": bundle["source_build_sha256"],
     }
+    if correction_sha256 is not None:
+        inputs["correction_sha256"] = correction_sha256
     full_hash = sha256_json(inputs)
     return {**inputs, "build_sha256": full_hash, "build_id": f"build-{full_hash[:12]}"}
 
@@ -246,6 +282,7 @@ def prepare_audit(
 ) -> dict[str, Any]:
     source_config = load_config(source_config_path)
     policy = load_audit_policy(policy_path, audit_version)
+    correction_manifest, correction_path = load_yeji_corrections(repo_root, policy)
     bundle_path = resolve_repo_path(repo_root, policy["source_bundle"])
     bundle, manifest_hashes = verify_source_bundle(repo_root, bundle_path)
     if verify_raw:
@@ -262,7 +299,15 @@ def prepare_audit(
         repo_root / "requirements-data.txt",
         source_config_path,
     ]
-    identity = compute_build_identity(policy, policy_path, bundle, code_paths)
+    identity = compute_build_identity(
+        policy,
+        policy_path,
+        bundle,
+        code_paths,
+        correction_sha256=(
+            sha256_file(correction_path) if correction_path is not None else None
+        ),
+    )
     return {
         "source_config": source_config,
         "policy": policy,
@@ -270,6 +315,8 @@ def prepare_audit(
         "bundle_path": bundle_path,
         "manifest_hashes": manifest_hashes,
         "identity": identity,
+        "correction_manifest": correction_manifest,
+        "correction_path": correction_path,
         "paths": audit_paths(repo_root, policy, identity["build_id"]),
     }
 
@@ -1009,32 +1056,133 @@ def _mapping_tokens_valid(value: Any) -> bool:
     return all(character in STEMS + BRANCHES for character in relevant)
 
 
-def scan_yeji(config: dict[str, Any], repo_root: Path) -> dict[str, Any]:
+def _nested_value(value: dict[str, Any], field_path: Sequence[str]) -> Any:
+    current: Any = value
+    for key in field_path:
+        if not isinstance(current, dict) or key not in current:
+            raise Phase2AuditError("YEJI correction field_path가 원본에 없습니다.")
+        current = current[key]
+    return current
+
+
+def _replace_nested_value(
+    value: dict[str, Any], field_path: Sequence[str], replacement: Any
+) -> None:
+    if not field_path:
+        raise Phase2AuditError("YEJI correction field_path가 비어 있습니다.")
+    parent: Any = value
+    for key in field_path[:-1]:
+        if not isinstance(parent, dict) or key not in parent:
+            raise Phase2AuditError("YEJI correction field_path가 원본에 없습니다.")
+        parent = parent[key]
+    final = field_path[-1]
+    if not isinstance(parent, dict) or final not in parent:
+        raise Phase2AuditError("YEJI correction field_path가 원본에 없습니다.")
+    parent[final] = replacement
+
+
+def apply_yeji_corrections(
+    document: dict[str, Any], correction_manifest: dict[str, Any] | None
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    corrected = deepcopy(document)
+    if correction_manifest is None:
+        return corrected, []
+    rules = corrected.get("shensha_list")
+    if not isinstance(rules, list):
+        raise Phase2AuditError("YEJI shensha_list가 배열이 아닙니다.")
+    by_id = {
+        int(rule["id"]): rule
+        for rule in rules
+        if isinstance(rule, dict) and isinstance(rule.get("id"), int)
+    }
+    applied: list[dict[str, Any]] = []
+    for correction in correction_manifest["corrections"]:
+        try:
+            rule_id = int(correction["rule_id"])
+            field_path = correction["field_path"]
+            expected = correction["expected_original"]
+            replacement = correction["replacement"]
+            correction_id = str(correction["correction_id"])
+            resolves = correction["resolves"]
+        except (KeyError, TypeError, ValueError) as exc:
+            raise Phase2AuditError("YEJI correction 항목이 올바르지 않습니다.") from exc
+        if (
+            not isinstance(field_path, list)
+            or not field_path
+            or not all(isinstance(item, str) and item for item in field_path)
+            or not isinstance(resolves, list)
+            or not all(isinstance(item, str) and item for item in resolves)
+        ):
+            raise Phase2AuditError("YEJI correction 경로 또는 resolves가 올바르지 않습니다.")
+        rule = by_id.get(rule_id)
+        if rule is None:
+            raise Phase2AuditError("YEJI correction 대상 rule_id가 없습니다.")
+        if _nested_value(rule, field_path) != expected:
+            raise Phase2AuditError(
+                f"YEJI correction 예상 원본값이 다릅니다: {correction_id}"
+            )
+        _replace_nested_value(rule, field_path, replacement)
+        applied.append(
+            {
+                "correction_id": correction_id,
+                "field_path": field_path,
+                "original": expected,
+                "replacement": replacement,
+                "resolves": sorted(resolves),
+                "rule_id": rule_id,
+            }
+        )
+    return corrected, applied
+
+
+def scan_yeji(
+    config: dict[str, Any],
+    repo_root: Path,
+    correction_manifest: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     root = source_root(config, repo_root, "yeji_bazi_rules")
     rules_path = root / "rules/shensha_51.json"
     source_revision = config["sources"]["yeji_bazi_rules"]["provenance"]["revision"]
     javascript_path = root / "provenance" / source_revision / "shensha.js"
     document = _load_json_object(rules_path, "YEJI 규칙")
+    if correction_manifest is not None:
+        source = config["sources"]["yeji_bazi_rules"]
+        if (
+            correction_manifest.get("source_revision") != source["revision"]
+            or correction_manifest.get("source_file") != "rules/shensha_51.json"
+            or correction_manifest.get("source_file_sha256")
+            != sha256_file(rules_path)
+        ):
+            raise Phase2AuditError("YEJI correction 원본 identity가 다릅니다.")
+    corrected_document, applied = apply_yeji_corrections(
+        document, correction_manifest
+    )
     try:
         javascript = javascript_path.read_text(encoding="utf-8")
     except (OSError, UnicodeError) as exc:
         raise Phase2AuditError(
             "YEJI 고정 provenance JavaScript를 읽을 수 없습니다."
         ) from exc
-    rules = document.get("shensha_list")
-    if not isinstance(rules, list):
+    raw_rules = document.get("shensha_list")
+    rules = corrected_document.get("shensha_list")
+    if not isinstance(raw_rules, list) or not isinstance(rules, list):
         raise Phase2AuditError("YEJI shensha_list가 배열이 아닙니다.")
-    categories = set(document.get("categories", {}))
-    valid_types = set(document.get("type_summary", {}))
+    categories = set(corrected_document.get("categories", {}))
+    valid_types = set(corrected_document.get("type_summary", {}))
     failures: Counter[str] = Counter()
+    observed_failures: Counter[str] = Counter()
     candidates: list[dict[str, Any]] = []
     ids: set[int] = set()
     known_conflict = False
     text_quality: Counter[str] = Counter()
-    for row_index, rule in enumerate(rules):
+    applied_by_rule: dict[int, list[dict[str, Any]]] = defaultdict(list)
+    for correction in applied:
+        applied_by_rule[int(correction["rule_id"])].append(correction)
+    for row_index, (raw_rule, rule) in enumerate(zip(raw_rules, rules, strict=True)):
         flags: list[str] = []
-        if not isinstance(rule, dict):
+        if not isinstance(raw_rule, dict) or not isinstance(rule, dict):
             failures["invalid_rule_object"] += 1
+            observed_failures["invalid_rule_object"] += 1
             continue
         required = (
             "id",
@@ -1058,6 +1206,9 @@ def scan_yeji(config: dict[str, Any], repo_root: Path) -> dict[str, Any]:
             rule_id = -(row_index + 1)
             failures["invalid_rule_id"] += 1
             flags.append("structural_anomaly")
+        if raw_rule.get("category") not in categories:
+            observed_failures["invalid_category"] += 1
+            flags.append("structural_anomaly")
         if rule.get("category") not in categories:
             failures["invalid_category"] += 1
             flags.append("structural_anomaly")
@@ -1074,11 +1225,14 @@ def scan_yeji(config: dict[str, Any], repo_root: Path) -> dict[str, Any]:
         if mapping is not None and not _mapping_tokens_valid(mapping):
             failures["invalid_mapping_token"] += 1
             flags.append("structural_anomaly")
-        if rule.get("name_cn") == "词馆":
-            mapping = (
-                condition.get("mapping", {}) if isinstance(condition, dict) else {}
+        if raw_rule.get("name_cn") == "词馆":
+            raw_condition = raw_rule.get("condition")
+            raw_mapping = (
+                raw_condition.get("mapping", {})
+                if isinstance(raw_condition, dict)
+                else {}
             )
-            gold = mapping.get("金", {}) if isinstance(mapping, dict) else {}
+            gold = raw_mapping.get("金", {}) if isinstance(raw_mapping, dict) else {}
             known_conflict = (
                 isinstance(gold, dict)
                 and gold.get("간지") == "壬卯"
@@ -1086,6 +1240,8 @@ def scan_yeji(config: dict[str, Any], repo_root: Path) -> dict[str, Any]:
                 and "壬申" in javascript
             )
             flags.append("known_conflict")
+        if applied_by_rule.get(rule_id):
+            flags.append("correction_applied")
         text_quality.update(_text_quality_flags(str(rule.get("meaning", ""))))
         relative = rules_path.relative_to(repo_root).as_posix()
         candidates.append(
@@ -1108,16 +1264,24 @@ def scan_yeji(config: dict[str, Any], repo_root: Path) -> dict[str, Any]:
         failures["unexpected_rule_count"] += 1
     if not known_conflict:
         failures["known_conflict_signature_missing"] += 1
-    blockers = [
-        code
-        for code, count in (
-            ("YEJI_STRUCTURE_FAILURE", sum(failures.values())),
-            ("YEJI_CIGUAN_CONFLICT", 1 if known_conflict else 0),
-        )
-        if count
-    ]
+    resolved = {
+        code for correction in applied for code in correction.get("resolves", [])
+    }
+    if failures:
+        resolved.discard("YEJI_STRUCTURE_FAILURE")
+    blockers = []
+    if failures:
+        blockers.append("YEJI_STRUCTURE_FAILURE")
+    if known_conflict and "YEJI_CIGUAN_CONFLICT" not in resolved:
+        blockers.append("YEJI_CIGUAN_CONFLICT")
+    observed_codes = []
+    if observed_failures:
+        observed_codes.append("YEJI_STRUCTURE_FAILURE")
+    if known_conflict:
+        observed_codes.append("YEJI_CIGUAN_CONFLICT")
     return {
         "candidates": candidates,
+        "corrections": applied,
         "public": {
             "rule_count": len(rules),
             "category_count": len(categories),
@@ -1125,11 +1289,16 @@ def scan_yeji(config: dict[str, Any], repo_root: Path) -> dict[str, Any]:
             "rule_ids_complete": ids == set(range(1, 52)),
             "provenance_name_match_count": len(rules)
             - failures["name_missing_in_provenance"],
+            "observed_structural_failures": dict(sorted(observed_failures.items())),
             "structural_failures": dict(sorted(failures.items())),
             "text_quality_flag_counts": dict(sorted(text_quality.items())),
-            "known_issue_codes": ["YEJI_CIGUAN_CONFLICT"] if known_conflict else [],
+            "known_issue_codes": sorted(observed_codes),
+            "resolved_issue_codes": sorted(resolved & set(observed_codes)),
+            "correction_count": len(applied),
         },
-        "blocking_findings": blockers,
+        "blocking_findings": sorted(blockers),
+        "observed_findings": sorted(observed_codes),
+        "resolved_findings": sorted(resolved & set(observed_codes)),
     }
 
 
@@ -1659,13 +1828,16 @@ def _ensure_private_parents(repo_root: Path, target_parent: Path) -> None:
 
 
 def _scan_all(
-    config: dict[str, Any], repo_root: Path, policy: dict[str, Any]
+    config: dict[str, Any],
+    repo_root: Path,
+    policy: dict[str, Any],
+    correction_manifest: dict[str, Any] | None,
 ) -> dict[str, dict[str, Any]]:
     return {
         "nemotron_saju": scan_nemotron(config, repo_root, policy),
         "bazi_sft": scan_bazi(config, repo_root),
         "aihub_empathy": scan_aihub(config, repo_root, policy),
-        "yeji_bazi_rules": scan_yeji(config, repo_root),
+        "yeji_bazi_rules": scan_yeji(config, repo_root, correction_manifest),
     }
 
 
@@ -1700,7 +1872,12 @@ def execute_scan(
         )
 
     manifest_hashes_before = dict(context["manifest_hashes"])
-    results = _scan_all(context["source_config"], repo_root, context["policy"])
+    results = _scan_all(
+        context["source_config"],
+        repo_root,
+        context["policy"],
+        context["correction_manifest"],
+    )
     queue = build_review_queue(results, context["policy"])
     try:
         verify_sources(context["source_config"], repo_root)
@@ -1715,6 +1892,20 @@ def execute_scan(
             code
             for result in results.values()
             for code in result.get("blocking_findings", [])
+        }
+    )
+    observed_findings = sorted(
+        {
+            code
+            for result in results.values()
+            for code in result.get("observed_findings", [])
+        }
+    )
+    resolved_findings = sorted(
+        {
+            code
+            for result in results.values()
+            for code in result.get("resolved_findings", [])
         }
     )
     aggregate = {
@@ -1765,6 +1956,11 @@ def execute_scan(
             },
         },
         "blocking_finding_codes": blockers,
+        "observed_finding_codes": observed_findings,
+        "resolved_finding_codes": resolved_findings,
+        "correction_manifest_sha256": context["identity"].get(
+            "correction_sha256"
+        ),
         "raw_manifest_unchanged": True,
     }
     summary = review_summary(queue)
@@ -1775,6 +1971,7 @@ def execute_scan(
         "required_review_remaining": 150,
         "reference_review_optional": 151,
         "blocking_finding_codes": blockers,
+        "resolved_finding_codes": resolved_findings,
         "approval_created": False,
     }
     for report in (aggregate, summary, gate_scan):
@@ -1797,6 +1994,9 @@ def execute_scan(
             "required_review_units": 150,
             "reference_review_units": 151,
             "source_manifest_sha256": manifest_hashes_before,
+            "correction_manifest_sha256": context["identity"].get(
+                "correction_sha256"
+            ),
         }
         write_json_exclusive(
             private_root / "queue_manifest.json", queue_manifest, 0o600
@@ -1815,6 +2015,9 @@ def execute_scan(
             "source_build_sha256": context["bundle"]["source_build_sha256"],
             "policy_sha256": context["identity"]["policy_sha256"],
             "code_sha256": context["identity"]["code_sha256"],
+            "correction_manifest_sha256": context["identity"].get(
+                "correction_sha256"
+            ),
             "seed": context["identity"]["seed"],
             "generated_at": utc_now(),
             "artifact_sha256": {
@@ -1839,6 +2042,7 @@ def execute_scan(
         "required_review_remaining": 150,
         "reference_review_optional": 151,
         "blocking_finding_codes": blockers,
+        "resolved_finding_codes": resolved_findings,
         "writes_performed": True,
     }
 
@@ -1874,8 +2078,29 @@ def _decision_map(decisions: Sequence[dict[str, Any]]) -> dict[str, dict[str, An
     result: dict[str, dict[str, Any]] = {}
     for decision in decisions:
         review_id = decision.get("review_id")
-        if not isinstance(review_id, str) or review_id in result:
-            raise Phase2AuditError("검토 결정에 누락 또는 중복 review_id가 있습니다.")
+        if not isinstance(review_id, str) or not review_id:
+            raise Phase2AuditError("검토 결정에 review_id가 없습니다.")
+        previous = result.get(review_id)
+        if "revision" not in decision:
+            if previous is not None:
+                raise Phase2AuditError("legacy 검토 결정에 중복 review_id가 있습니다.")
+            result[review_id] = decision
+            continue
+        revision = decision.get("revision")
+        if not isinstance(revision, int) or revision <= 0:
+            raise Phase2AuditError("검토 결정 revision이 올바르지 않습니다.")
+        if previous is None:
+            if revision != 1 or decision.get("supersedes_decision_id") is not None:
+                raise Phase2AuditError("첫 검토 결정 revision 연결이 올바르지 않습니다.")
+        else:
+            previous_revision = previous.get("revision")
+            previous_id = previous.get("decision_id")
+            if (
+                not isinstance(previous_revision, int)
+                or revision != previous_revision + 1
+                or decision.get("supersedes_decision_id") != previous_id
+            ):
+                raise Phase2AuditError("검토 결정 supersedes 연결이 올바르지 않습니다.")
         result[review_id] = decision
     return result
 
@@ -1885,13 +2110,29 @@ def _validate_decisions(
 ) -> None:
     allowed_decisions = set(policy["decision_values"])
     allowed_reasons = set(policy["reason_codes"])
+    expected_schema = policy.get("decision_schema_version", AUDIT_SCHEMA_VERSION)
     _decision_map(decisions)
     for decision in decisions:
         value = decision.get("decision")
         reason = decision.get("reason_code")
         note = decision.get("private_note")
-        if decision.get("schema_version") != AUDIT_SCHEMA_VERSION:
+        if decision.get("schema_version") != expected_schema:
             raise Phase2AuditError("검토 결정 schema_version이 올바르지 않습니다.")
+        if expected_schema == DECISION_SCHEMA_VERSION:
+            decision_id = decision.get("decision_id")
+            tool_hash = decision.get("review_tool_sha256")
+            if (
+                not isinstance(decision_id, str)
+                or len(decision_id) != 24
+                or not isinstance(decision.get("revision"), int)
+                or not isinstance(decision.get("reviewer_version"), str)
+                or not isinstance(tool_hash, str)
+                or re.fullmatch(r"[0-9a-f]{64}", tool_hash) is None
+            ):
+                raise Phase2AuditError("검토 결정 v1.1 provenance가 올바르지 않습니다.")
+            identity = {key: value for key, value in decision.items() if key != "decision_id"}
+            if sha256_json(identity)[:24] != decision_id:
+                raise Phase2AuditError("검토 결정 decision_id hash가 다릅니다.")
         if value not in allowed_decisions:
             raise Phase2AuditError("검토 결정 값이 정책 allowlist 밖입니다.")
         if value == "accept":
@@ -1904,7 +2145,9 @@ def _validate_decisions(
                 raise Phase2AuditError(
                     "비수락 결정에는 유효한 reason code가 필요합니다."
                 )
-            if reason == "other" and not isinstance(note, str):
+            if reason == "other" and (
+                not isinstance(note, str) or not note.strip()
+            ):
                 raise Phase2AuditError("other 결정에는 비공개 메모가 필요합니다.")
         if decision.get("reviewer") != "user" or not isinstance(
             decision.get("reviewed_at"), str
@@ -1921,13 +2164,14 @@ def audit_status_from_values(
         raise Phase2AuditError("검토 결정에 큐 밖 review_id가 있습니다.")
     required = {item["review_id"] for item in queue if item["queue"] == "required"}
     reference = {item["review_id"] for item in queue if item["queue"] == "reference"}
-    decisions_by_value = Counter(item.get("decision") for item in decisions)
+    decisions_by_value = Counter(item.get("decision") for item in mapped.values())
     return {
         "required_total": len(required),
         "required_completed": len(required & set(mapped)),
         "required_remaining": len(required - set(mapped)),
         "reference_total": len(reference),
         "reference_completed": len(reference & set(mapped)),
+        "decision_history_entries": len(decisions),
         "decisions": {
             str(key): value
             for key, value in sorted(
@@ -2003,15 +2247,69 @@ def _load_raw_record(repo_root: Path, locator: dict[str, Any]) -> Any:
     raise Phase2AuditError("지원하지 않는 locator 종류입니다.")
 
 
-def _append_decision(path: Path, value: dict[str, Any]) -> None:
-    descriptor = os.open(path, os.O_WRONLY | os.O_APPEND)
+def _jsonl_from_bytes(payload: bytes, label: str) -> list[dict[str, Any]]:
+    values: list[dict[str, Any]] = []
     try:
-        with os.fdopen(descriptor, "ab") as stream:
-            stream.write(canonical_json_bytes(value) + b"\n")
-            stream.flush()
-            os.fsync(stream.fileno())
-    finally:
-        pass
+        for raw_line in payload.decode("utf-8").splitlines():
+            if not raw_line.strip():
+                continue
+            value = json.loads(raw_line)
+            if not isinstance(value, dict):
+                raise TypeError("not an object")
+            values.append(value)
+    except (UnicodeError, json.JSONDecodeError, TypeError) as exc:
+        raise Phase2AuditError(f"{label} JSONL을 읽을 수 없습니다.") from exc
+    return values
+
+
+def append_review_decision(
+    path: Path,
+    queue: Sequence[dict[str, Any]],
+    policy: dict[str, Any],
+    *,
+    review_id: str,
+    decision: str,
+    reason_code: str | None,
+    private_note: str | None,
+    reviewer_version: str,
+    review_tool_sha256: str,
+) -> dict[str, Any]:
+    queue_ids = {item.get("review_id") for item in queue}
+    if review_id not in queue_ids:
+        raise Phase2AuditError("검토 큐 밖 review_id에는 판정할 수 없습니다.")
+    descriptor = os.open(path, os.O_RDWR | os.O_APPEND)
+    with os.fdopen(descriptor, "a+b") as stream:
+        fcntl.flock(stream.fileno(), fcntl.LOCK_EX)
+        stream.seek(0)
+        decisions = _jsonl_from_bytes(stream.read(), "검토 결정")
+        _validate_decisions(decisions, policy)
+        previous = _decision_map(decisions).get(review_id)
+        revision = 1 if previous is None else int(previous["revision"]) + 1
+        value: dict[str, Any] = {
+            "schema_version": policy.get(
+                "decision_schema_version", AUDIT_SCHEMA_VERSION
+            ),
+            "review_id": review_id,
+            "revision": revision,
+            "supersedes_decision_id": (
+                None if previous is None else previous.get("decision_id")
+            ),
+            "decision": decision,
+            "reason_code": reason_code,
+            "private_note": private_note,
+            "reviewed_at": utc_now(),
+            "reviewer": "user",
+            "reviewer_version": reviewer_version,
+            "review_tool_sha256": review_tool_sha256,
+        }
+        value["decision_id"] = sha256_json(value)[:24]
+        _validate_decisions([*decisions, value], policy)
+        stream.seek(0, os.SEEK_END)
+        stream.write(canonical_json_bytes(value) + b"\n")
+        stream.flush()
+        os.fsync(stream.fileno())
+        fcntl.flock(stream.fileno(), fcntl.LOCK_UN)
+    return value
 
 
 def run_review(
@@ -2098,16 +2396,17 @@ def run_review(
             if reason_code == "other":
                 while not private_note:
                     private_note = input_fn("비공개 사유 메모: ").strip()
-        value = {
-            "schema_version": AUDIT_SCHEMA_VERSION,
-            "review_id": item["review_id"],
-            "decision": decision,
-            "reason_code": reason_code,
-            "private_note": private_note,
-            "reviewed_at": utc_now(),
-            "reviewer": "user",
-        }
-        _append_decision(private_root / "decisions.jsonl", value)
+        value = append_review_decision(
+            private_root / "decisions.jsonl",
+            values["queue"],
+            context["policy"],
+            review_id=item["review_id"],
+            decision=decision,
+            reason_code=reason_code,
+            private_note=private_note,
+            reviewer_version="terminal-v1.1.0",
+            review_tool_sha256=sha256_file(Path(__file__)),
+        )
         values["decisions"].append(value)
         reviewed += 1
     return {
@@ -2130,7 +2429,7 @@ def evaluate_gate(
     required_decisions = [mapped[review_id]["decision"] for review_id in required_ids]
     if any(value in {"uncertain", "skip"} for value in required_decisions):
         return {**status, "gate_status": "human_review_unresolved"}
-    all_decisions = [item["decision"] for item in decisions]
+    all_decisions = [item["decision"] for item in mapped.values()]
     if blocking_findings or any(
         value in {"rule_fix_required", "source_block"} for value in all_decisions
     ):

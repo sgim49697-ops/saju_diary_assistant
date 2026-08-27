@@ -1,0 +1,155 @@
+<!-- index.html - 사주 baseline Phase 2A 감사 큐를 원문 기반으로 검수하는 화면이다. -->
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <meta name="csrf-token" content="__CSRF_TOKEN__">
+    <title>사주 데이터 감사실 · Phase 2A</title>
+    <link rel="stylesheet" href="/review.css">
+    <script src="/review.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#review-detail">검토 본문으로 건너뛰기</a>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand-block">
+          <span class="brand-mark" aria-hidden="true">査</span>
+          <div>
+            <p class="eyebrow">SAJU DATA AUDIT · PHASE 2A</p>
+            <h1>사주 데이터 감사실</h1>
+          </div>
+        </div>
+        <div class="build-block" aria-label="감사 빌드 정보">
+          <span id="connection-badge" class="status-badge is-loading">연결 중</span>
+          <code id="build-label">build 확인 중</code>
+        </div>
+      </header>
+
+      <section class="progress-band" aria-labelledby="progress-title">
+        <div class="progress-copy">
+          <p id="progress-title" class="section-kicker">필수 검수 진행률</p>
+          <p class="progress-number"><strong id="required-completed">0</strong><span> / 150</span></p>
+        </div>
+        <progress id="required-progress" class="progress-track" max="150" value="0" aria-label="필수 검수 진행률">0 / 150</progress>
+        <dl class="progress-facts">
+          <div><dt>남은 필수</dt><dd id="required-remaining">150</dd></div>
+          <div><dt>참조 완료</dt><dd id="reference-completed">0 / 151</dd></div>
+          <div><dt>판정 이력</dt><dd id="history-count">0</dd></div>
+        </dl>
+      </section>
+
+      <nav class="queue-tabs" aria-label="검수 큐 선택">
+        <button class="queue-tab is-active" type="button" data-queue="required">
+          핵심 검수 <span>150</span>
+        </button>
+        <button class="queue-tab" type="button" data-queue="reference">
+          참조 검수 <span>151</span>
+        </button>
+        <button class="queue-tab" type="button" data-queue="all">
+          전체 <span>301</span>
+        </button>
+      </nav>
+
+      <div id="global-message" class="global-message" role="status" hidden></div>
+
+      <main class="workspace">
+        <aside class="queue-panel" aria-label="검토 항목 목록">
+          <div class="panel-heading">
+            <div>
+              <p class="section-kicker">REVIEW QUEUE</p>
+              <h2>검토 항목</h2>
+            </div>
+            <span id="visible-count" class="count-chip">0건</span>
+          </div>
+          <div class="filter-stack">
+            <label>
+              <span>원천</span>
+              <select id="source-filter">
+                <option value="all">모든 원천</option>
+                <option value="aihub_empathy">AI Hub 공감대화</option>
+                <option value="nemotron_saju">Nemotron 사주</option>
+                <option value="bazi_sft">BaZi SFT</option>
+                <option value="yeji_bazi_rules">YEJI 규칙</option>
+              </select>
+            </label>
+            <label>
+              <span>상태</span>
+              <select id="status-filter">
+                <option value="all">모든 상태</option>
+                <option value="pending">미검토</option>
+                <option value="completed">검토 완료</option>
+                <option value="attention">확인 필요 판정</option>
+              </select>
+            </label>
+          </div>
+          <div id="queue-list" class="queue-list" role="list"></div>
+        </aside>
+
+        <section id="review-detail" class="detail-panel" tabindex="-1">
+          <div id="empty-state" class="empty-state">
+            <span class="empty-glyph" aria-hidden="true">四柱</span>
+            <h2>검토 항목을 불러오는 중입니다</h2>
+            <p>원문은 이 로컬 세션에서만 읽고, 공개 보고서에는 포함하지 않습니다.</p>
+          </div>
+          <div id="detail-content" hidden>
+            <header class="detail-header">
+              <div>
+                <p id="detail-overline" class="section-kicker"></p>
+                <h2 id="detail-title"></h2>
+              </div>
+              <div id="detail-badges" class="badge-row"></div>
+            </header>
+            <div id="finding-banner" class="finding-banner" hidden></div>
+            <div id="record-content" class="record-content"></div>
+            <details class="raw-inspector">
+              <summary>원본 JSON 직접 확인</summary>
+              <div id="raw-content"></div>
+            </details>
+          </div>
+        </section>
+
+        <aside id="decision-panel" class="decision-panel" aria-label="검토 판정" hidden>
+          <div class="panel-heading">
+            <div>
+              <p class="section-kicker">DECISION</p>
+              <h2>판정 기록</h2>
+            </div>
+            <span id="revision-chip" class="count-chip">신규</span>
+          </div>
+          <p class="decision-help">판정은 즉시 비공개 JSONL에 추가되며, 수정 시 이전 이력을 보존합니다.</p>
+          <fieldset id="decision-options" class="decision-options">
+            <legend>판정 선택</legend>
+          </fieldset>
+          <label id="reason-field" class="form-field" hidden>
+            <span>사유 코드</span>
+            <select id="reason-code"></select>
+          </label>
+          <label id="note-field" class="form-field" hidden>
+            <span>비공개 메모 <small>other 선택 시 필수</small></span>
+            <textarea id="private-note" maxlength="2000" rows="4" placeholder="판정 근거를 짧게 적어주세요."></textarea>
+          </label>
+          <button id="save-decision" class="primary-action" type="button" disabled>판정 저장</button>
+          <button id="next-pending" class="secondary-action" type="button">다음 미검토 항목</button>
+          <section class="history-block" aria-labelledby="history-title">
+            <h3 id="history-title">수정 이력</h3>
+            <ol id="decision-history"></ol>
+          </section>
+        </aside>
+      </main>
+    </div>
+
+    <dialog id="confirm-dialog" aria-labelledby="confirm-title">
+      <form method="dialog">
+        <p class="section-kicker">APPEND-ONLY RECORD</p>
+        <h2 id="confirm-title">이 판정을 저장할까요?</h2>
+        <p id="confirm-summary"></p>
+        <div class="dialog-actions">
+          <button value="cancel" class="secondary-action">취소</button>
+          <button id="confirm-save" value="confirm" class="primary-action">저장</button>
+        </div>
+      </form>
+    </dialog>
+  </body>
+</html>

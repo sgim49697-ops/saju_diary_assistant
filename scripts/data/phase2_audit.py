@@ -13,7 +13,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from scripts.data.audit_tools import (  # noqa: E402
+from scripts.data.audit_tools import (
     approve_audit,
     audit_plan,
     audit_status,
@@ -23,11 +23,11 @@ from scripts.data.audit_tools import (  # noqa: E402
     run_review,
     verify_audit,
 )
-from scripts.data.errors import Phase1Error, Phase2AuditError  # noqa: E402
+from scripts.data.errors import Phase1Error, Phase2AuditError
 
 DEFAULT_SOURCE_CONFIG = REPO_ROOT / "configs/data_sources.v1.json"
 DEFAULT_POLICY = (
-    REPO_ROOT / "configs/data_versions/saju_1b_baseline/audit-policy-v1.0.0.json"
+    REPO_ROOT / "configs/data_versions/saju_1b_baseline/audit-policy-v1.1.0.json"
 )
 
 
@@ -52,7 +52,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="버전별 감사 정책 JSON 경로",
     )
     parser.add_argument(
-        "--audit-version", default="v1.0.0", help="vMAJOR.MINOR.PATCH 감사 버전"
+        "--audit-version", default="v1.1.0", help="vMAJOR.MINOR.PATCH 감사 버전"
     )
     parser.add_argument(
         "--build",

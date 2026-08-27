@@ -8,7 +8,9 @@
         "YEJI_STRUCTURE_FAILURE"
       ],
       "build_id": "build-336b8377063a",
+      "build_manifest_sha256": "5bfef974640876fa96680493f3aa60bbd0f1bfe93b64f5412ae2f365ba9f34bd",
       "build_sha256": "336b8377063ab0ee131d526925750fea7fc94b4d6960ffcc705ebaae8abf837b",
+      "implementation_commit": "7565f1c0e27115f720b996ceb00dd0419cff1155",
       "required_review_remaining": 150,
       "status": "human_review_required",
       "version": "v1.0.0"

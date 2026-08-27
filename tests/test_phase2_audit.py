@@ -11,7 +11,12 @@ from pathlib import Path
 
 from scripts.data.audit_tools import (
     ReviewQueueBuilder,
+    _decision_map,
+    _validate_decisions,
+    append_review_decision,
+    apply_yeji_corrections,
     assert_public_report_safe,
+    audit_status_from_values,
     canonical_chart_from_bazi,
     canonical_chart_from_nemotron,
     compute_build_identity,
@@ -164,6 +169,57 @@ class ReviewQueueTests(unittest.TestCase):
             assert_public_report_safe({"content": "private sentence"})
 
 
+class YejiCorrectionTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.document = {
+            "shensha_list": [
+                {
+                    "id": 11,
+                    "condition": {"mapping": {"金": {"간지": "壬卯"}}},
+                },
+                {"id": 19, "category": "흉살류"},
+            ]
+        }
+        self.manifest = {
+            "corrections": [
+                {
+                    "correction_id": "ciguan",
+                    "rule_id": 11,
+                    "field_path": ["condition", "mapping", "金", "간지"],
+                    "expected_original": "壬卯",
+                    "replacement": "壬申",
+                    "resolves": ["YEJI_CIGUAN_CONFLICT"],
+                },
+                {
+                    "correction_id": "wugui",
+                    "rule_id": 19,
+                    "field_path": ["category"],
+                    "expected_original": "흉살류",
+                    "replacement": "재앙류",
+                    "resolves": ["YEJI_STRUCTURE_FAILURE"],
+                },
+            ]
+        }
+
+    def test_overlay_preserves_raw_and_applies_exact_values(self) -> None:
+        corrected, applied = apply_yeji_corrections(self.document, self.manifest)
+        self.assertEqual(
+            corrected["shensha_list"][0]["condition"]["mapping"]["金"]["간지"],
+            "壬申",
+        )
+        self.assertEqual(corrected["shensha_list"][1]["category"], "재앙류")
+        self.assertEqual(
+            self.document["shensha_list"][0]["condition"]["mapping"]["金"]["간지"],
+            "壬卯",
+        )
+        self.assertEqual(len(applied), 2)
+
+    def test_overlay_fails_when_expected_original_drifted(self) -> None:
+        self.document["shensha_list"][1]["category"] = "다른값"
+        with self.assertRaises(Phase2AuditError):
+            apply_yeji_corrections(self.document, self.manifest)
+
+
 class GateTests(unittest.TestCase):
     def setUp(self) -> None:
         self.queue = [
@@ -200,6 +256,71 @@ class GateTests(unittest.TestCase):
             evaluate_gate(self.queue, excluded, [])["gate_status"],
             "ready_for_approval_with_exclusions",
         )
+
+
+class DecisionRevisionTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.queue = [{"review_id": "one", "queue": "required"}]
+        self.policy = {
+            "decision_schema_version": "1.1.0",
+            "decision_values": ["accept", "exclude_candidate"],
+            "reason_codes": ["low_quality", "other"],
+        }
+
+    def test_latest_revision_drives_status_without_overwriting_history(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "decisions.jsonl"
+            path.write_bytes(b"")
+            first = append_review_decision(
+                path,
+                self.queue,
+                self.policy,
+                review_id="one",
+                decision="accept",
+                reason_code=None,
+                private_note=None,
+                reviewer_version="reviewer-v1.0.0",
+                review_tool_sha256="a" * 64,
+            )
+            second = append_review_decision(
+                path,
+                self.queue,
+                self.policy,
+                review_id="one",
+                decision="exclude_candidate",
+                reason_code="low_quality",
+                private_note=None,
+                reviewer_version="reviewer-v1.0.0",
+                review_tool_sha256="a" * 64,
+            )
+            decisions = [json.loads(line) for line in path.read_text().splitlines()]
+            _validate_decisions(decisions, self.policy)
+            self.assertEqual(second["revision"], 2)
+            self.assertEqual(second["supersedes_decision_id"], first["decision_id"])
+            self.assertEqual(_decision_map(decisions)["one"], second)
+            status = audit_status_from_values(self.queue, decisions)
+            self.assertEqual(status["required_completed"], 1)
+            self.assertEqual(status["decision_history_entries"], 2)
+            self.assertEqual(status["decisions"], {"exclude_candidate": 1})
+
+    def test_tampered_decision_id_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "decisions.jsonl"
+            path.write_bytes(b"")
+            decision = append_review_decision(
+                path,
+                self.queue,
+                self.policy,
+                review_id="one",
+                decision="accept",
+                reason_code=None,
+                private_note=None,
+                reviewer_version="reviewer-v1.0.0",
+                review_tool_sha256="b" * 64,
+            )
+            decision["decision_id"] = "0" * 24
+            with self.assertRaises(Phase2AuditError):
+                _validate_decisions([decision], self.policy)
 
 
 class PrivateFileTests(unittest.TestCase):
