@@ -245,6 +245,11 @@ runs/KI1K-SMOKE-v1/v1.1.0/build-7d59833b8d59/
 ## 진행 기록
 
 - 2026-08-28
+  - 작업 요약: 외부 GPT Pro가 반환한 MIX20K 검수 제출본을 `review-6e3ad5418434` 자문 자료로 수용하고, 원본 4파일·검증 보고서·소유자 평가·SHA-256 manifest를 불변 공개 보고서로 보존했다.
+  - 변경 범위: 독립 intake CLI로 ZIP/sidecar·제출 파일 보안·17K projection·300건 token-decile 표본·소스별 token 지표를 fail-closed 재검증했다. AI Hub 3K 미제공은 누락이 아닌 제3자 공유 제한 준수로 기록하고, 후속 로컬 전용 `AIHUB-STYLE10K-v1`을 기존 MIX20K·평가군과 겹치지 않는 신규 단일턴 5K+멀티턴 5K 계약으로 고정했다. canonical·Gate·실제 데이터와 학습 상태는 바꾸지 않았다.
+  - 검증: 제출 원본 4파일 byte/SHA-256 일치, 300건 표본 exact sequence, 17,000건 candidate/trainer projection 불일치 0, 소스 수량·assistant token 비중, bazi 1,250명식×4, YEJI 221정답·조사 오류 102건, target-only 생년월일 441건과 반복 disclaimer를 독립 재현했다. 신규 보안·identity·불변성 회귀 테스트와 전체 Ruff·단위 테스트, Phase 3 보고서·Phase 4 canonical·외부 ZIP 재검증을 통과했다.
+  - 남은 이슈·후속 작업: 이름은 제출 9,254건 대비 로컬 matcher 9,256건, 번역 잔재는 제출 775건 대비 로컬 whitelist 787건으로 분석 코드 부재 때문에 부분 재현으로 남겼다. `ssaju` 수치는 runtime 정책 부재로 미확인이다. `AIHUB-STYLE10K-v1` 생성 전 승인 범위 안에서 단일턴·멀티턴 각 100건 이상을 로컬 검수하며, 이번 작업에서는 데이터 생성·Phase 5 학습을 수행하지 않았다.
+- 2026-08-28
   - 작업 요약: 승인 canonical `build-a1a34616dd72`에서 외부 GPT Pro 검수용 결정론적 안전 패키지 `external-review-72fb212dc90369be`를 만들었다. 전체 계약을 확인할 수 있는 20,000행 인덱스와 외부 반출 가능한 Nemotron·bazi·YEJI 17,000행 후보/`messages` 학습 투영본, 검수 prompt, 고정 Kanana 모델·Full FT 학습 계약 설명을 포함했다.
   - 변경 범위: Phase 4 fingerprint 밖의 독립 exporter와 ZIP 보안·PII·금지 필드·메타데이터·결정론 회귀 테스트를 추가했다. AI Hub 3,000행은 원문·원천 ID·개별 record hash 없이 집계와 partition commitment만 넣었고, candidate/canonical manifest SHA-256 `a61c16dc…bc3a`의 byte 동일 계약을 기록했다. Phase 4 canonical과 기존 불변 산출물은 수정하지 않았다.
   - 검증: exporter 단위 테스트 7건과 전체 103건, Ruff·formatter, `verify-final`, 현재 canonical 대조, ZIP 내부 checksum·고정 member·0600 권한을 통과했다. 독립 임시 경로 재생성본과 ZIP byte가 동일했고 최종 ZIP은 14,209,726 bytes, SHA-256 `64d174b5…968abd`다.

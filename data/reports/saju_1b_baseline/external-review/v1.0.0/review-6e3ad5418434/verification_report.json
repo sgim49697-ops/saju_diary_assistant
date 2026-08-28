@@ -1,0 +1,249 @@
+{
+  "aihub": {
+    "accepted_follow_up_contract": {
+      "additional_unique_rows": 10000,
+      "contract_id": "AIHUB-STYLE10K-v1",
+      "dataset_build_performed": false,
+      "disjoint_from_core_eval_and_source_holdout": true,
+      "disjoint_from_existing_mix20k_aihub": true,
+      "existing_mix20k_aihub_rows": 3000,
+      "git_or_external_source_text_allowed": false,
+      "local_human_review_performed": false,
+      "minimum_local_human_review": {
+        "multiturn": 100,
+        "single_turn": 100
+      },
+      "multiturn_rows": 5000,
+      "oversampling_allowed": false,
+      "single_turn_rows": 5000,
+      "status": "accepted_not_built",
+      "training_performed": false
+    },
+    "external_withholding": {
+      "individual_record_hashes_shared": false,
+      "row_ids_shared": false,
+      "source_text_shared": false,
+      "status": "intentional_policy_boundary_not_missing_data"
+    },
+    "local_capacity_public_aggregate": {
+      "eligible_rows_scanned": 53768,
+      "eligible_talk_groups": 48190,
+      "source_rows_scanned": 58268,
+      "staging_selected_groups": {
+        "aihub_empathy_multiturn": 1200,
+        "aihub_empathy_single": 2400
+      }
+    }
+  },
+  "claim_reproduction": {
+    "accepted_verified": [
+      "candidate_training_projection_integrity",
+      "source_row_and_token_totals",
+      "bazi_1250_charts_times_4",
+      "target_only_full_birthdate_rows_441",
+      "fixed_disclaimer_repetition",
+      "yeji_unique_outputs_221_and_particle_errors_102"
+    ],
+    "conditional_unverified": {
+      "ssaju_runtime_tengod_conflict": {
+        "reason": "저장소에 ssaju runtime·버전·canonical policy가 없습니다.",
+        "submitted_rows": 8563
+      }
+    },
+    "inference_not_gate": [
+      "AI Hub 1.13% assistant-token exposure의 실제 품질 효과",
+      "권장 혼합비와 production 적합성 결론"
+    ],
+    "partially_reproduced": {
+      "nemotron_foreign_residue_rows": {
+        "independent_local_whitelist": 787,
+        "reason": "외부 한자 whitelist와 분석 코드가 제출되지 않아 정확한 집합을 동일하게 재현할 수 없습니다.",
+        "submitted": 775
+      },
+      "nemotron_target_only_name_rows": {
+        "independent_local_pattern": 9256,
+        "reason": "외부 name matcher와 분석 코드가 제출되지 않았고 로컬 정규식은 일반명사 false positive 가능성이 있습니다.",
+        "submitted": 9254
+      },
+      "persona_job_and_remedy_subcounts": {
+        "reason": "외부 의미 패턴 정의와 분석 코드가 제출되지 않았습니다.",
+        "status": "claim_retained_not_independently_counted"
+      }
+    }
+  },
+  "finding_counts": {
+    "category": {
+      "contamination": 1,
+      "duplication": 1,
+      "factual_saju": 2,
+      "naturalness": 2,
+      "schema": 2,
+      "training_fit": 5
+    },
+    "severity": {
+      "high": 6,
+      "low": 1,
+      "medium": 6
+    },
+    "total": 13
+  },
+  "governance": {
+    "advisory_only": true,
+    "automatic_gate_changes": false,
+    "human_domain_review_performed": false,
+    "phase5_training_performed": false,
+    "quality_certification_claimed": false,
+    "training_promotion_allowed_unchanged": true
+  },
+  "independent_metrics": {
+    "assistant_token_share_percent": {
+      "aihub_empathy": 1.128,
+      "bazi_sft": 25.234,
+      "nemotron_saju": 71.799,
+      "yeji_bazi_rules": 1.838
+    },
+    "bazi": {
+      "disclaimer_assistant_char_share_percent": 20.28,
+      "identical_disclaimer_rows": 5000,
+      "rows": 5000,
+      "rows_per_chart_distribution": {
+        "4": 1250
+      },
+      "unique_charts": 1250
+    },
+    "candidate_training_projection_mismatches": 0,
+    "nemotron": {
+      "disclaimer_assistant_char_share_percent": 10.68,
+      "foreign_residue_rows_local_whitelist": 787,
+      "identical_disclaimer_rows": 11000,
+      "no_lacking_rows": 3330,
+      "rows": 11000,
+      "target_only_full_birthdate_rows": 441,
+      "target_only_name_rows_local_pattern": 9256,
+      "target_only_name_variant_counts": {
+        "v6": 540,
+        "v7": 8716
+      }
+    },
+    "source_rows": {
+      "aihub_empathy": 3000,
+      "bazi_sft": 5000,
+      "nemotron_saju": 11000,
+      "yeji_bazi_rules": 1000
+    },
+    "source_token_totals": {
+      "aihub_empathy": {
+        "assistant_tokens": 41625,
+        "total_tokens": 232884
+      },
+      "bazi_sft": {
+        "assistant_tokens": 930794,
+        "total_tokens": 1630774
+      },
+      "nemotron_saju": {
+        "assistant_tokens": 2648397,
+        "total_tokens": 5868413
+      },
+      "yeji_bazi_rules": {
+        "assistant_tokens": 67786,
+        "total_tokens": 160523
+      }
+    },
+    "yeji": {
+      "particle_error_rows": 102,
+      "rows": 1000,
+      "unique_assistant_outputs": 221
+    }
+  },
+  "report_type": "phase4_external_review_intake",
+  "review_id": "review-6e3ad5418434",
+  "review_identity_inputs": {
+    "outer_zip_sha256": "64d174b5a5c427439ee4ae15797e78eaffb6feb0cca184943a468ca81c968abd",
+    "package_id": "external-review-72fb212dc90369be",
+    "review_version": "1.0.0",
+    "schema_version": "1.0.0",
+    "submitted_files_sha256": {
+      "saju_mix20k_external_findings.jsonl": "21d0883bfc1f57c905e4182a510d52af6a7ae3ca2bed6aa3283376dd301efa39",
+      "saju_mix20k_external_review_report.md": "fad6b120ae643925013db56f85d6d46a01aeb691ed2c834936f309756b399904",
+      "saju_mix20k_external_review_summary.json": "f2c81d43ba068b6278c2fc21584597b18339b6b5ded12529b05aa69fef3e6a8a",
+      "saju_mix20k_reviewed_ids.jsonl": "8f70f6130f19ecda1c47733317ba0abfd1614a22be68a3aa74782eed3f6df53b"
+    }
+  },
+  "review_sha256": "6e3ad54184347d671435665502cec73f36eb51cc7661ca2bf355be3f14e8f3c3",
+  "reviewed_at": "2026-08-28",
+  "schema_version": "1.0.0",
+  "semantic_sample": {
+    "algorithm": "sort(total_tokens,review_id)/10 buckets/sha256 salt rank",
+    "exact_sequence_match": true,
+    "per_source_per_decile": 10,
+    "representative_references": 7,
+    "representative_reviewed_overlap": [],
+    "representative_unique_ids": 4,
+    "rows": 300,
+    "salt": "saju-mix20k-gpt-review-v1|",
+    "source_counts": {
+      "bazi_sft": 100,
+      "nemotron_saju": 100,
+      "yeji_bazi_rules": 100
+    }
+  },
+  "source_package": {
+    "candidate_manifest_sha256": "a61c16dc65ad24805b293ad50404d519c68d1ae844419b18c9e1538ea7a5bc3a",
+    "canonical_build_id": "build-a1a34616dd72",
+    "canonical_build_sha256": "a1a34616dd72ab510fe783037ed70edc693d48220b344210599f9fe2c932c1ef",
+    "canonical_manifest_sha256": "a61c16dc65ad24805b293ad50404d519c68d1ae844419b18c9e1538ea7a5bc3a",
+    "chat_template_sha256": "b8ee6b31575eada17ebbe73d3f1ac65d3efde64f0a25ff922031dec7e1cae3e3",
+    "contains_aihub_source_text": false,
+    "export_version": "v1.0.0",
+    "exporter_source_sha256": "58e79f1fc501529c0d354183225f2a28b8740477c46d5762848e6c749294aa4f",
+    "external_content_rows": 17000,
+    "full_index_rows": 20000,
+    "model_repo_id": "kakaocorp/kanana-2-1.3b-instruct",
+    "model_revision": "bf4786aa2a1908adce942d53976270132732f720",
+    "outer_zip_bytes": 14209726,
+    "outer_zip_sha256": "64d174b5a5c427439ee4ae15797e78eaffb6feb0cca184943a468ca81c968abd",
+    "package_id": "external-review-72fb212dc90369be",
+    "withheld_aihub_rows": 3000
+  },
+  "status": "verified_advisory_intake",
+  "submission_security": {
+    "control_character_matches": 0,
+    "exact_file_set": true,
+    "pii_pattern_matches": 0,
+    "regular_files_only": true,
+    "restricted_aihub_identifier_matches": 0,
+    "size_limits_passed": true,
+    "utf8_nfc": true
+  },
+  "submitted_files": {
+    "saju_mix20k_external_findings.jsonl": {
+      "bytes": 7804,
+      "sha256": "21d0883bfc1f57c905e4182a510d52af6a7ae3ca2bed6aa3283376dd301efa39"
+    },
+    "saju_mix20k_external_review_report.md": {
+      "bytes": 15413,
+      "sha256": "fad6b120ae643925013db56f85d6d46a01aeb691ed2c834936f309756b399904"
+    },
+    "saju_mix20k_external_review_summary.json": {
+      "bytes": 1986,
+      "sha256": "f2c81d43ba068b6278c2fc21584597b18339b6b5ded12529b05aa69fef3e6a8a"
+    },
+    "saju_mix20k_reviewed_ids.jsonl": {
+      "bytes": 39630,
+      "sha256": "8f70f6130f19ecda1c47733317ba0abfd1614a22be68a3aa74782eed3f6df53b"
+    }
+  },
+  "verification_tool": {
+    "package_verifier_source_sha256": "58e79f1fc501529c0d354183225f2a28b8740477c46d5762848e6c749294aa4f",
+    "source_path": "scripts/data/phase4_external_review_intake.py",
+    "source_sha256": "af5dee8a52f6174a6181e212b339afab0217d155674cb7fecfc78a54f4ed25dc",
+    "version": "v1.0.0"
+  },
+  "warnings": [
+    "missing_final_newline:saju_mix20k_external_review_summary.json",
+    "aggregate_finding_ids_instead_of_row_ids",
+    "representative_examples_outside_semantic_sample",
+    "semantic_review_has_no_per_row_verdicts",
+    "external_method_code_model_prompt_hash_and_run_id_absent"
+  ]
+}
