@@ -1,0 +1,60 @@
+{
+  "review_version": "1.0.0",
+  "reviewed_at": "2026-08-28",
+  "package_build_id": "build-a1a34616dd72",
+  "outer_zip_sha256": "64d174b5a5c427439ee4ae15797e78eaffb6feb0cca184943a468ca81c968abd",
+  "machine_scanned_rows": 17000,
+  "withheld_aihub_rows": 3000,
+  "semantic_reviewed_rows": 300,
+  "human_domain_expert_review_performed": false,
+  "candidate_training_projection_mismatches": 0,
+  "internal_checksum_failures": 0,
+  "recommendation": "fix_then_recheck",
+  "suitability": {
+    "technical_pipeline_baseline": "proceed",
+    "raw_1k_or_small_diagnostic": "proceed",
+    "unchanged_10k_20k_quality_baseline": "not_recommended",
+    "production_or_expert_model": "block_until_fixed"
+  },
+  "source_rows": {
+    "nemotron_saju": 11000,
+    "bazi_sft": 5000,
+    "yeji_bazi_rules": 1000,
+    "aihub_empathy": 3000
+  },
+  "assistant_token_share_percent": {
+    "nemotron_saju": 71.799,
+    "bazi_sft": 25.234,
+    "yeji_bazi_rules": 1.838,
+    "aihub_empathy": 1.128
+  },
+  "key_counts": {
+    "nemotron_target_only_name_rows": 9254,
+    "nemotron_target_only_date_rows": 441,
+    "nemotron_foreign_residue_rows": 775,
+    "nemotron_tengod_policy_conflict_rows_if_ssaju": 8563,
+    "nemotron_no_lacking_but_recommendation_rows": 3085,
+    "bazi_unique_charts": 1250,
+    "bazi_rows_per_chart": 4,
+    "yeji_unique_assistant_outputs": 221,
+    "yeji_particle_errors": 102
+  },
+  "finding_severity_counts": {
+    "high": 6,
+    "medium": 6,
+    "low": 1
+  },
+  "finding_category_counts": {
+    "contamination": 1,
+    "training_fit": 5,
+    "factual_saju": 2,
+    "naturalness": 2,
+    "duplication": 1,
+    "schema": 2
+  },
+  "limitations": [
+    "AI Hub 3K 본문은 정책상 제공되지 않아 집계·레포 구현만 검토했다.",
+    "사주 학파별 전문 정답 여부를 인증하는 사람 명리 전문가 검수는 수행하지 않았다.",
+    "외부 패키지는 upstream 원본 전체가 아니라 선별·변환된 candidate와 trainer projection이다."
+  ]
+}
