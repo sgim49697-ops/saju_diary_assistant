@@ -210,6 +210,7 @@ data/reports/saju_1b_baseline/preflight/v1.1.0/build-a1a34616dd72/
 runs/K0-INSTRUCT/v1.1.0/build-7d59833b8d59/
 runs/KI1K-SMOKE-v1/v1.1.0/build-7d59833b8d59/
 /home/user/Downloads/saju-phase4-k0-review-build-7d59833b8d59.zip
+/home/user/Downloads/saju-mix20k-gpt-review-v1.0.0-build-a1a34616dd72.zip
 ```
 
 ## 공식 자료
@@ -223,6 +224,8 @@ runs/KI1K-SMOKE-v1/v1.1.0/build-7d59833b8d59/
 - [PyTorch 2.13 release](https://pytorch.org/blog/pytorch-2-13-release-blog/)
 - [PEFT LoRA](https://huggingface.co/docs/peft/main/package_reference/lora)
 - [PEFT quantization](https://huggingface.co/docs/peft/developer_guides/quantization)
+- [OpenAI 공식 파일 작업 안내](https://learn.chatgpt.com/docs/artifacts-viewer)
+- [AI Hub 공식 이용정책](https://aihub.or.kr/intrcn/guid/usagepolicy.do?currMenu=151&topMenu=105)
 
 ## 웹 확인 기록
 
@@ -237,9 +240,15 @@ runs/KI1K-SMOKE-v1/v1.1.0/build-7d59833b8d59/
 | 2026-08-28 | TRL 1.12.0 및 설치본 1.12.0 | conversational template generation mask와 assistant-only label 경로를 전체 24K에 직접 검증 |
 | 2026-08-28 | PEFT LoRA·quantization | LoRA는 원 가중치 동결, QLoRA는 quantized base 위 adapter라는 별도 계약이므로 Full FT를 자동 변경하지 않기로 결정 |
 | 2026-08-28 | TRL·Transformers·bitsandbytes·PyTorch 최신 공식 문서와 설치본 | `assistant_only_loss`, `chunked_nll`, `paged_adamw_8bit`, Trainer optimizer/scheduler resume, non-reentrant activation checkpoint 경로를 비교하고 Full FT 768 계약을 유지 |
+| 2026-08-28 | OpenAI 파일 작업 안내·AI Hub 이용정책 | 외부 GPT Pro 검수 설명 흐름을 확인하고, 승인 없는 제3자 열람 및 국외 반출 제한 때문에 AI Hub 3K 본문을 외부 패키지에서 제외 |
 
 ## 진행 기록
 
+- 2026-08-28
+  - 작업 요약: 승인 canonical `build-a1a34616dd72`에서 외부 GPT Pro 검수용 결정론적 안전 패키지 `external-review-72fb212dc90369be`를 만들었다. 전체 계약을 확인할 수 있는 20,000행 인덱스와 외부 반출 가능한 Nemotron·bazi·YEJI 17,000행 후보/`messages` 학습 투영본, 검수 prompt, 고정 Kanana 모델·Full FT 학습 계약 설명을 포함했다.
+  - 변경 범위: Phase 4 fingerprint 밖의 독립 exporter와 ZIP 보안·PII·금지 필드·메타데이터·결정론 회귀 테스트를 추가했다. AI Hub 3,000행은 원문·원천 ID·개별 record hash 없이 집계와 partition commitment만 넣었고, candidate/canonical manifest SHA-256 `a61c16dc…bc3a`의 byte 동일 계약을 기록했다. Phase 4 canonical과 기존 불변 산출물은 수정하지 않았다.
+  - 검증: exporter 단위 테스트 7건과 전체 103건, Ruff·formatter, `verify-final`, 현재 canonical 대조, ZIP 내부 checksum·고정 member·0600 권한을 통과했다. 독립 임시 경로 재생성본과 ZIP byte가 동일했고 최종 ZIP은 14,209,726 bytes, SHA-256 `64d174b5…968abd`다.
+  - 남은 이슈·후속 작업: 외부 GPT의 의미 검수 결과는 아직 받지 않았으며, AI Hub 3K 본문은 정책상 이 검수 범위에 없다. 이 패키지는 실제 MIX20K 전체 학습 데이터의 대체물이 아니고 `human_domain_review_performed=false`, `quality_certification_claimed=false`, `phase5_training_performed=false`를 유지한다.
 - 2026-08-28
   - 작업 요약: 구현 checkpoint `31fe13b08e04d4015d30ac670d92dd6427e6427d`의 최종 부모 `build-7d59833b8d59`에서 Gate A~E를 모두 통과하고 선택 길이 768의 canonical child `build-a1a34616dd72`를 승인했다.
   - 변경 범위: K0 720case exact 재사용·지표 재계산과 700항목 자동 위험 분류, BF16 Full FT forward/backward·8-bit optimizer, 512 20-step, 1024 진단, 768 100→200-step resume, checkpoint 독립 재로드·5-task 생성을 완료했다. registry의 `approved_derived`와 정본 상태를 갱신했다.
