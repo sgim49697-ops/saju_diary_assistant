@@ -297,7 +297,24 @@ def build_nemotron_records(
     heaps: dict[str, list[tuple[int, str, dict[str, Any]]]] = {
         variant: [] for variant in target_by_variant
     }
-    counters: Counter[str] = Counter()
+    counters: Counter[str] = Counter(
+        {
+            "excluded_invalid_age": 0,
+            "excluded_policy_union": 0,
+            "excluded_primary_replacement_character": 0,
+            "excluded_primary_health": 0,
+            "excluded_primary_death_accident": 0,
+            "excluded_primary_certainty": 0,
+            "excluded_primary_financial_guarantee": 0,
+            "excluded_primary_ascii_word": 0,
+            "matched_replacement_character": 0,
+            "matched_health": 0,
+            "matched_death_accident": 0,
+            "matched_certainty": 0,
+            "matched_financial_guarantee": 0,
+            "matched_ascii_word": 0,
+        }
+    )
     connection = _duckdb_module().connect(database=":memory:")
     try:
         for path, manifest_item in _source_parquets(
@@ -885,7 +902,19 @@ def build_aihub_records(
     }
     best_by_group: dict[str, dict[str, Any]] = {}
     group_splits: dict[str, set[str]] = defaultdict(set)
-    counters: Counter[str] = Counter()
+    counters: Counter[str] = Counter(
+        {
+            "excluded_policy_union": 0,
+            **{
+                f"excluded_primary_{reason}": 0
+                for reason in (*pattern_groups, "ascii_word")
+            },
+            **{
+                f"matched_{reason}": 0
+                for reason in (*pattern_groups, "ascii_word")
+            },
+        }
+    )
     for path in _aihub_label_zips(source_config, repo_root):
         split = "validation" if "validation" in path.as_posix().lower() else "train"
         try:
