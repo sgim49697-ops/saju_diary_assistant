@@ -21,6 +21,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from scripts.data.errors import Phase2AuditError
+from scripts.data.phase2b_verify_history import verify_historical_staging
 from scripts.data.preprocess_tools import verify_staging
 
 DEFAULT_CONFIG = (
@@ -292,9 +293,22 @@ def main() -> int:
     if arguments.host != "127.0.0.1":
         parser.error("검수 서버는 127.0.0.1에만 bind할 수 있습니다.")
     try:
-        verified = verify_staging(
-            REPO_ROOT, arguments.config.expanduser().resolve(), arguments.build
-        )
+        config_path = arguments.config.expanduser().resolve()
+        try:
+            verified = verify_staging(REPO_ROOT, config_path, arguments.build)
+        except Phase2AuditError as current_error:
+            staging_version = _load_json(config_path).get("staging_version")
+            if not isinstance(staging_version, str) or not staging_version:
+                raise
+            try:
+                verified = verify_historical_staging(
+                    REPO_ROOT,
+                    staging_version=staging_version,
+                    build_id=arguments.build,
+                    implementation_commit=None,
+                )
+            except Phase2AuditError:
+                raise current_error
         state = ReviewState(verified, arguments.host, arguments.port)
     except (OSError, UnicodeError, json.JSONDecodeError, Phase2AuditError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)

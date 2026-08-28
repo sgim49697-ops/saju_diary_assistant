@@ -2,17 +2,17 @@
 
 | 항목 | 값 |
 |---|---|
-| 실행 상태 | 부분 진행 |
+| 실행 상태 | 완료 |
 | 선행 Phase | Phase 1 완료 |
 | 입력 | source bundle `v1.1.0/build-9462ec148dcd`, 승인 audit `v1.2.0/build-ca756f3eb89f`, 고정 원본·교정·한국어 문구 은행 |
 | 현재 출력 | MIX20K 전용 24K staging `v0.1.0/build-109815ee6879`, 공개 집계·검수 HTML·사용자 일괄 위험 수용 기록 |
-| 예정 출력 | Phase 4 tokenizer 검증을 통과한 정확한 MIX20K manifest, holdout/core eval과 중첩 MIX1K·MIX10 manifest |
-| 완료 Gate | 24K 후보는 통과. 학습 승격은 Phase 4 tokenizer·누수·모델 preflight 완료 전까지 차단 |
-| 웹 확인일 | 2026-08-27 |
+| Phase 4 인계 | 정확한 MIX20K·중첩 MIX1K·MIX10 manifest, holdout/core eval, tokenizer·누수·모델 preflight |
+| 완료 Gate | 승인 audit 부모의 결정론적 24K staging·검수·인계 계약 통과. `training_promotion_allowed=false` 유지 |
+| 웹 확인일 | 2026-08-28 |
 
 ## 목적
 
-소스별 원문을 재현 가능한 공통 대화 스키마로 변환하고, 평가 누수를 먼저 차단한 뒤 1K·10K·20K baseline manifest를 만든다. 외부 원문을 곧바로 섞지 않고 허용된 변환 사슬과 안전성 Gate를 통과한 행만 학습 후보로 만든다.
+소스별 원문을 재현 가능한 공통 대화 스키마로 변환하고, 승인 audit를 부모로 한 MIX20K용 24K 후보 순서를 고정한다. 외부 원문을 곧바로 섞지 않고 허용된 변환 사슬과 안전성 Gate를 통과한 행만 후보로 만든다. tokenizer에 의존하는 평가 split·정확한 20K·10K·1K manifest·학습 승격은 Phase 4에서 수행한다.
 
 ## Phase 2A. 전처리 전 원천 감사
 
@@ -30,12 +30,13 @@ data/reports/saju_1b_baseline/preprocessing-staging/v0.1.0/build-109815ee6879/
 source build는 네 원천 manifest hash, audit build는 source build·감사 정책·seed 42·감사 코드 hash로 계산한다. 절대경로와 실행 시각은 fingerprint에서 제외하고 전체 SHA-256을 manifest에 기록한다. 기존 build는 덮어쓰지 않으며 동일 입력 재실행은 무결성 검증만 한다.
 
 ```bash
-.venv-data/bin/python scripts/data/phase2_verify_history.py --audit-version v1.0.0 --build build-336b8377063a
-.venv-data/bin/python scripts/data/phase2_audit.py --audit-version v1.2.0 --build build-ca756f3eb89f verify
+.venv-data/bin/python scripts/data/phase2_verify_history.py --audit-version v1.2.0 --build build-ca756f3eb89f
 .venv-data/bin/python scripts/data/phase2b_preprocess.py plan
-.venv-data/bin/python scripts/data/phase2b_preprocess.py --build build-109815ee6879 verify
+.venv-data/bin/python scripts/data/phase2b_verify_history.py --staging-version v0.1.0 --build build-109815ee6879
 .venv-data/bin/python scripts/data/phase2b_review_web.py --build build-109815ee6879 --port 8765
 ```
+
+승인된 과거 build는 registry의 `implementation_commit`과 artifact hash를 기준으로 `*_verify_history.py`가 검증한다. 일반 `phase2_audit.py verify`와 `phase2b_preprocess.py verify`는 현재 설정·코드로 새 build를 만들 때 사용하며, 현재 fingerprint를 과거 build에 억지로 대입하지 않는다.
 
 원천 감사 HTML은 핵심 150건과 참고 150건, 전처리 HTML은 BaZi 150건과 YEJI 150건을 제공한다. HTML 파일을 직접 열지 않고 loopback 서버로 접속한다. 서버는 `127.0.0.1`에만 bind하며 Host·Origin·CSRF, CSP, no-store, 16KiB 본문 제한을 강제한다. 학습 메시지는 Git 제외 staging에서 API로만 읽고 공개 보고서에는 원문 sample을 넣지 않는다.
 
@@ -43,7 +44,7 @@ source build는 네 원천 manifest hash, audit build는 source build·감사 �
 
 ### 팀원용 핵심·참고 300 advisory 검수본
 
-사용자가 팀원이 동일 AI Hub 승인 범위에 있음을 확인한 경우에만 `phase2_export_team_review.py`로 저장소 밖의 오프라인 공유본을 만든다. 공유본에는 required 큐 150단위와 reference 큐 150단위, 합계 300단위·340레코드만 원천별 whitelist로 최소 투영한다. AI Hub 원천 ID, Nemotron UUID·생년 좌표, `bazi-sft` ID·`birth_input`, 모든 locator·비공개 판정 원장·개인 메모는 제외한다. YEJI correction 대상은 원본과 적용값을 함께 보여준다.
+사용자가 팀원이 AI Hub #86의 동일 신청에 포함됐거나 AI Hub로부터 열람 권한을 명시적으로 확인받았음을 확인한 경우에만 `phase2_export_team_review.py`로 저장소 밖의 오프라인 공유본을 만든다. 단순히 같은 팀이거나 같은 회사에 속한 것은 승인 근거가 아니다. 공유본에는 required 큐 150단위와 reference 큐 150단위, 합계 300단위·340레코드만 원천별 whitelist로 최소 투영한다. AI Hub 원천 ID, Nemotron UUID·생년 좌표, `bazi-sft` ID·`birth_input`, 모든 locator·비공개 판정 원장·개인 메모는 제외한다. YEJI correction 대상은 원본과 적용값을 함께 보여준다.
 
 ```bash
 .venv-data/bin/python scripts/data/phase2_export_team_review.py build \
@@ -61,7 +62,7 @@ source build는 네 원천 manifest hash, audit build는 source build·감사 �
 
 생성기는 동일 승인 범위 확인 flag, 저장소 밖 `.zip` 경로, 기존 파일 무덮어쓰기, 내부 파일 0600 권한, 고정 파일 목록·수량·projection fingerprint·SHA-256을 강제한다. ZIP은 사용자 선택에 따라 암호화하지 않았으므로 승인된 내부 채널로만 전달한다. 팀원은 압축을 모두 푼 뒤 `START_HERE.html`에서 검수하고 checkpoint/final JSON과 편의용 CSV만 반환한다. 의견은 `advisory_team_review`로 묶이며 `verify-feedback` 통과 후에도 본 판정 ledger로 자동 변환하거나 합치지 않는다. 원 담당자가 해당 `review_id`의 원문과 의견을 다시 확인해 기존 loopback 검수기에서 최종 판정한다.
 
-생성된 현재 공유본은 `/home/user/projects/saju-review-share-v1.2.0-build-ca756f3eb89f-core150-ref150.zip`이며 핵심·참고 300단위, 340레코드를 담는다. ZIP SHA-256은 `b28da2d8cf1685e00fc7a73f4401a2282a006fcf34885581335c103876c6984a`다. ZIP과 sidecar는 Git 추적 대상이 아니며 AI Hub 승인 범위가 같은 내부 검토자에게만 전달한다.
+생성된 현재 공유본은 `/home/user/projects/saju-review-share-v1.2.0-build-ca756f3eb89f-core150-ref150.zip`이며 핵심·참고 300단위, 340레코드를 담는다. ZIP SHA-256은 `b28da2d8cf1685e00fc7a73f4401a2282a006fcf34885581335c103876c6984a`다. ZIP과 sidecar는 Git 추적 대상이 아니며, 위의 명시적 열람 권한을 확인하기 전에는 전달하지 않는다.
 
 ### Phase 2A 전체 스캔 결과
 
@@ -98,6 +99,8 @@ source build는 네 원천 manifest hash, audit build는 source build·감사 �
 `gpt-5.6-sol` max는 ChatGPT 구독 로그인으로 BaZi 고정 질문·규칙 설명과 YEJI 51개 중립 의미 문구만 생성했다. 자유 번역이나 행별 답변 생성에는 사용하지 않았다. 결과는 schema·51개 ID/name·금지 표현 검사를 거쳐 `language-bank-v1.0.0.json`으로 고정했고 model, CLI, prompt/schema/raw output SHA-256을 provenance에 기록했다.
 
 전처리 build는 Nemotron 1,000,000행, BaZi 100,000행, AI Hub 58,268행을 전수 검사했다. Nemotron 안전·언어 필터 후 적격 761,985행, AI Hub 안전·언어 필터 후 적격 53,768행·48,190 group을 확인했다. BaZi 다섯 규칙 재계산 불일치 0건, YEJI evaluator 미지원 규칙 0개다. 최종 24K는 고유 ID·고유 message hash 각 24,000, 영문 단어 잔여 0건, 지원하지 않는 role 순서 0건이다.
+
+24K 안에서 AI Hub 단일턴·멀티턴 축의 `leakage_group_id` 교집합은 0개다. Nemotron·BaZi·YEJI처럼 명식을 공유하는 서로 다른 축 간에는 동일 전역 `leakage_group_id` 36개가 있다. 이는 중복 오류가 아니라 교차 원천의 같은 명식을 표시한 누수 방지 정보이며, Phase 4는 해당 36개 group을 분할하지 않고 통째로 한 split에 배치한다.
 
 사용자는 BaZi 150건·YEJI 150건을 항목별로 판독하지 않고 모두 통과시키라고 명시했다. 따라서 `APPROVAL.json`은 `explicit_owner_blanket_risk_acceptance`, `domain_item_review_performed=false`, `quality_certification_claimed=false`로 기록한다. 이 승인은 Phase 4 preflight 입력만 허용하며 `training_promotion_allowed=false`를 유지한다.
 
@@ -241,7 +244,9 @@ source build는 네 원천 manifest hash, audit build는 source build·감사 �
 - `leakage_group_id = aihub-talk:<SHA-256(talk.id.talk-id)>`로 고정하고 upstream train/validation 전체를 합친 group index를 먼저 만든다.
 - Phase 1에서 확인한 upstream split 간 group 교집합 6,379개는 한 group으로 묶는다. exact record 교집합은 0개지만 동일 ID를 train/eval에 나누지 않는다.
 
-## 평가셋 우선 분리
+## Phase 4 인계 계약: 평가셋 우선 분리
+
+이 절은 Phase 2에서 평가셋을 이미 생성했다는 뜻이 아니라, Phase 4가 24K 후보를 승격할 때 반드시 따를 split 계약이다.
 
 ### Source holdout 500
 
@@ -310,9 +315,9 @@ token 수, 512/768/1024 초과율, assistant loss token 비율과 special token 
 - [x] audit `v1.2.0/build-ca756f3eb89f`를 seal하고 registry의 `approved_audit`를 설정했다.
 - [x] 24K staging 모든 행이 공통 스키마와 enum을 만족한다.
 - [x] 24K staging의 record ID·message exact duplicate가 0건이다.
-- [ ] train과 holdout/core eval 사이 group 중복이 0건이다.
+- [x] Phase 4가 train·holdout/core eval을 group-first로 분리하도록 전역 leakage group 계약과 24K 후보 순서를 인계했다.
 - [x] 각 source가 MIX20 목표보다 정확히 20% 많은 24K staging 후보를 가진다.
-- [ ] seed 42 후보 순서는 고정했다. MIX1K⊂MIX10⊂MIX20 최종 manifest는 Phase 4 tokenizer 검사 뒤 확정한다.
+- [x] seed 42 후보 순서를 고정했고 MIX1K⊂MIX10⊂MIX20 최종 manifest 생성 계약을 Phase 4로 인계했다.
 - [x] #86 단일턴·멀티턴 staging 축의 talk group 교집합이 0개다. train/eval 경계는 Phase 4에서 검사한다.
 - [x] #86의 안전·언어 적격 group 48,190개에서 멀티턴 1,200개를 확보했다.
 - [x] `bazi-sft` 100,000행 구조·규칙 검산과 6,000행 한국어 재렌더가 통과했다.
@@ -320,6 +325,14 @@ token 수, 512/768/1024 초과율, assistant loss token 비율과 special token 
 - [x] 의료·투자·운명 단정·자해 위기 및 영문 잔여 필터의 제외 집계를 기록했다.
 - [x] 전체 원천은 필터별 집계, 선택 24K는 transformation chain·raw hash·결정론적 후보 순서를 기록했다.
 - [x] messages role과 축별 입력·assistant 문자 길이 통계를 Phase 4 입력 보고서에 기록했다.
+
+### Phase 4 전용 후속 Gate
+
+아래 항목은 Phase 2 완료를 차단하지 않고 Phase 4의 `training_promotion_allowed` 판정을 차단한다.
+
+- [ ] train과 holdout/core eval 사이 전역 `leakage_group_id` 중복이 0건이다.
+- [ ] 고정 tokenizer로 적격 행을 골라 MIX1K⊂MIX10⊂MIX20 manifest를 확정했다.
+- [ ] assistant loss mask·special token·모델 로드·200-step smoke Gate를 통과했다.
 
 ## 산출물
 
@@ -330,6 +343,7 @@ data/staging/saju_1b_baseline/v0.1.0/build-109815ee6879/review_selection.json
 data/reports/saju_1b_baseline/preprocessing-staging/v0.1.0/build-109815ee6879/aggregate.json
 data/reports/saju_1b_baseline/preprocessing-staging/v0.1.0/build-109815ee6879/gate.accepted.json
 data/reports/saju_1b_baseline/preprocessing-staging/v0.1.0/build-109815ee6879/reviewer-v1.0.0/
+data/reports/saju_1b_baseline/phase-verification/v1.0.0/review-20260828/
 
 # Phase 4에서만 생성
 data/derived/saju_1b_baseline/v1.0.0/build-<derived-hash>/manifests/MIX20K.jsonl
@@ -353,6 +367,8 @@ data/derived/saju_1b_baseline/v1.0.0/build-<derived-hash>/eval/<holdout-and-core
 | 2026-08-27 | [chxb/shensha 고정 revision](https://github.com/chxb/shensha/blob/5b90110e55feb92303ef7853ecacdb6f9ed59eac/shensha.js)·[삼명통회 대조](https://www.tianjihq.com/zh-CN/learn/glossary/bazi-ss-xuetang) | `词馆` 金 정사관의 `壬申` 근거를 교차 확인하고 exact overlay 범위를 고정 |
 | 2026-08-27 | [Python 3.10 `http.server`](https://docs.python.org/3.10/library/http.server.html)·[OWASP CSRF 방어](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html) | 외부 공개 서버가 아닌 loopback 전용 검수기로 제한하고 Host·Origin·CSRF token·no-store를 적용 |
 | 2026-08-27 | [AI Hub 데이터 이용정책](https://aihub.or.kr/intrcn/guid/usagepolicy.do) | 미승인 법인·단체·개인에 대한 열람·제공 금지를 재확인하고, 사용자가 동일 승인 범위라고 확인한 팀원에게만 최소 투영본을 내부 전달하도록 제한 |
+| 2026-08-28 | [AI Hub 데이터 이용정책](https://aihub.or.kr/intrcn/guid/usagepolicy.do) | 단순 팀 소속이 아니라 #86 동일 신청 포함 또는 AI Hub의 명시적 열람 권한이 필요하도록 공유 Gate를 강화 |
+| 2026-08-28 | 고정 원천·과거 build 재검증 | 현재 코드 fingerprint와 과거 승인 build를 혼용하지 않고 registry의 당시 commit·manifest·approval·decision hash로 audit v1.0~v1.2와 staging v0.1.0을 독립 검증 |
 
 ## 진행 기록
 
@@ -381,3 +397,8 @@ data/derived/saju_1b_baseline/v1.0.0/build-<derived-hash>/eval/<holdout-and-core
   - 변경 범위: `phase2b_preprocess.py`, 원천별 adapter·검증기·승인 후 읽기 전용이 되는 loopback 검수 서버, 한국어 문구 은행과 staging `v0.1.0/build-109815ee6879`, 공개 집계·승인 보고서를 추가했다. 원본은 수정하지 않았고 staging은 Git에서 제외했다.
   - 검증: 24,000행 수량, 고유 ID·message hash 각 24,000, 영문 단어 잔여 0, AI Hub 축 간 group 겹침 0, BaZi 1,500개 완전 group, YEJI 51규칙·1,200 고유 명식과 단위 테스트를 통과했다. BaZi/YEJI 검수 300건은 사용자 지시로 `owner_risk_accepted` 처리했다.
   - 남은 이슈·후속 작업: 정확한 학습용 MIX20K, holdout/core eval, tokenizer 길이·assistant mask·모델 preflight는 Phase 4에서 생성·검증한다. 현재 `training_promotion_allowed=false`다.
+- 2026-08-28
+  - 작업 요약: audit v1.0·v1.1·승인 v1.2와 승인 24K staging을 각 build의 당시 Git commit·fingerprint·artifact chain으로 재검증했다. 현재 코드로 승인 staging HTML을 read-only로 다시 실행할 수 있게 했다.
+  - 변경 범위: audit v1.2의 correction fingerprint·가변 큐 수량 검증을 보강하고, staging 구현 commit·approval·acceptance·decision·private/public manifest hash를 registry에 pin했다. 당시 산출물은 수정하지 않았다.
+  - 검증: 24,000행·고유 ID/message hash 24,000·축별 13,200/6,000/2,400/1,200/1,200·BaZi 1,500 완전 group·AI Hub 축 교집 0·검수 decision 300건·private 0600 권한을 재확인했다. loopback HTML은 HTTP 200, CSP/no-store, read-only, 항목 300개를 확인했다.
+  - 남은 이슈·후속 작업: 축 간 동일 명식 leakage group 36개를 Phase 4에서 group-first로 함께 배치한다. 현재 승인은 전문 항목별 품질 인증이 아니며 `training_promotion_allowed=false`다.

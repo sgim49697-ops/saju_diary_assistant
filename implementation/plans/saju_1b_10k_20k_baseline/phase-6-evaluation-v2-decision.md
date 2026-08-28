@@ -150,7 +150,7 @@ v2 Lite 비교는 `(a) 동일 ID 공통 subset`과 `(b) source/task를 맞춰 �
 
 ## 배포 전 별도 Gate
 
-이번 Phase가 끝나도 checkpoint를 공개 배포하지 않는다. 공개·서비스화 전에는 KananaOpenLicense의 라이선스 사본·수정 Notice·`Powered by Kanana`·모델명 prefix 의무를 다시 확인한다. 광고형 자체 서비스 범위를 벗어나 API·클라우드 원격 접근 판매, SI/on-premise, on-device 판매를 하려면 별도 상업 라이선스를 먼저 확보한다. 데이터는 활성 소스별 attribution과 AI Hub 원문 비공개·제3자 제공 금지·사업결과 출처 표시 조건을 재검토한다.
+이번 Phase가 끝나도 checkpoint를 공개 배포하지 않는다. 공개·서비스화 전에는 `KANANA OPEN LICENSE AGREEMENT`의 라이선스 사본·수정 Notice·`Powered by Kanana`·모델명 prefix 의무를 다시 확인한다. 광고형 자체 서비스 범위를 벗어나 API·클라우드 원격 접근 판매, SI/on-premise, on-device 판매를 하려면 별도 상업 라이선스를 먼저 확보한다. 데이터는 활성 소스별 attribution과 AI Hub 원문 비공개·제3자 제공 금지·사업결과 출처 표시 조건을 재검토한다.
 
 ## 완료 Gate
 

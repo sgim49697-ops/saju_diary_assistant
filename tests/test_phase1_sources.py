@@ -6,14 +6,18 @@ import copy
 import io
 import json
 import os
+import stat
 import tarfile
 import tempfile
 import unittest
 import zipfile
 from pathlib import Path
 
+from scripts.data.phase1_sources import build_parser
 from scripts.data.source_tools import (
     Phase1Error,
+    _download_url,
+    _verify_manifest,
     aihub_request_headers,
     json_document_inventory,
     load_config,
@@ -21,15 +25,15 @@ from scripts.data.source_tools import (
     plan_aihub_download,
     read_aihub_key,
     safe_extract_tar,
+    sha256_file,
+    source_root,
     validate_config,
+    validate_relative_archive_path,
     validate_zip_paths,
 )
-from scripts.data.phase1_sources import build_parser
-
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-CONFIG_PATH = REPO_ROOT / "configs/data_sources.v1.json"
-CONFIG_V11_PATH = REPO_ROOT / "configs/data_sources.v1.1.json"
+CONFIG_PATH = REPO_ROOT / "configs/data_sources.v1.1.json"
 
 
 class ContractTests(unittest.TestCase):
@@ -40,7 +44,10 @@ class ContractTests(unittest.TestCase):
         result = validate_config(self.config, REPO_ROOT)
         self.assertEqual(result["raw_source_count"], 4)
         self.assertEqual(result["mix_axis_count"], 5)
-        self.assertEqual(result["mix_totals"], {"mix1k": 1000, "mix10": 10000, "mix20": 20000})
+        self.assertEqual(
+            result["mix_totals"],
+            {"mix1k": 1000, "mix10": 10000, "mix20": 20000},
+        )
 
     def test_aihub_271_cannot_become_active(self) -> None:
         modified = copy.deepcopy(self.config)
@@ -57,17 +64,30 @@ class ContractTests(unittest.TestCase):
         self.assertNotIn("apikey", json.dumps(plan).lower())
 
     def test_aihub_key_is_not_forwarded_to_redirect_host(self) -> None:
-        official = aihub_request_headers("https://api.aihub.or.kr/down/file", "fake-key")
-        redirected = aihub_request_headers("https://download.example.net/signed", "fake-key")
+        official = aihub_request_headers(
+            "https://api.aihub.or.kr/down/file", "fake-key"
+        )
+        redirected = aihub_request_headers(
+            "https://download.example.net/signed", "fake-key"
+        )
         self.assertEqual(official["apikey"], "fake-key")
         self.assertNotIn("apikey", redirected)
 
+    def test_aihub_rejects_http_credentials_and_nonstandard_port(self) -> None:
+        for url in (
+            "http://api.aihub.or.kr/down/file",
+            "https://user:password@api.aihub.or.kr/down/file",
+            "https://api.aihub.or.kr:444/down/file",
+        ):
+            with self.subTest(url=url), self.assertRaises(Phase1Error):
+                aihub_request_headers(url, "fake-key")
+
     def test_full_nemotron_contract_is_explicit_and_complete(self) -> None:
-        config = load_config(CONFIG_V11_PATH)
+        config = load_config(CONFIG_PATH)
         result = validate_config(config, REPO_ROOT)
         source = config["sources"]["nemotron_saju"]
         variants = source["file_variants"]
-        self.assertEqual(result["canonical_plan_version"], "2.3.0")
+        self.assertEqual(result["canonical_plan_version"], "2.3.1")
         self.assertEqual(len(source["allow_files"]), 22)
         self.assertEqual(sum(value == "v6" for value in variants.values()), 3)
         self.assertEqual(sum(value == "v7" for value in variants.values()), 17)
@@ -83,13 +103,52 @@ class ContractTests(unittest.TestCase):
         self.assertIsNone(implicit.source)
 
     def test_rejects_expected_file_outside_allowlist(self) -> None:
-        config = load_config(CONFIG_V11_PATH)
+        config = load_config(CONFIG_PATH)
         modified = copy.deepcopy(config)
         modified["sources"]["nemotron_saju"]["expected_files"][
             "adapters/forbidden.safetensors"
         ] = {"bytes": 1, "sha256": "0" * 64}
         with self.assertRaises(Phase1Error):
             validate_config(modified, REPO_ROOT)
+
+    def test_yeji_provenance_requires_fixed_metadata_and_official_url(self) -> None:
+        config = load_config(CONFIG_PATH)
+        for mutation in ("missing_hashes", "unexpected_host"):
+            modified = copy.deepcopy(config)
+            provenance = modified["sources"]["yeji_bazi_rules"]["provenance"]
+            if mutation == "missing_hashes":
+                provenance.pop("expected_files")
+            else:
+                provenance["raw_url_template"] = (
+                    "https://example.test/chxb/shensha/{revision}/{path}"
+                )
+            with self.subTest(mutation=mutation), self.assertRaises(Phase1Error):
+                validate_config(modified, REPO_ROOT)
+
+    def test_malformed_contract_fails_with_domain_error(self) -> None:
+        modified = copy.deepcopy(self.config)
+        modified["mix_contract"] = "invalid"
+        with self.assertRaises(Phase1Error):
+            validate_config(modified, REPO_ROOT)
+
+
+class DownloadSafetyTests(unittest.TestCase):
+    def test_generic_download_rejects_non_https_and_unexpected_hosts(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / "payload"
+            for url in (
+                "file:///etc/passwd",
+                "http://raw.githubusercontent.com/chxb/shensha/rev/LICENSE",
+                "https://example.test/chxb/shensha/rev/LICENSE",
+            ):
+                with self.subTest(url=url), self.assertRaises(Phase1Error):
+                    _download_url(
+                        url,
+                        target,
+                        expected_bytes=1,
+                        expected_sha256="0" * 64,
+                    )
+            self.assertFalse(target.exists())
 
 
 class SecretFileTests(unittest.TestCase):
@@ -120,6 +179,11 @@ class SecretFileTests(unittest.TestCase):
 
 
 class ArchiveSafetyTests(unittest.TestCase):
+    def test_rejects_archive_path_aliases_and_controls(self) -> None:
+        for name in ("safe//data.json", "safe/./data.json", "safe\n/data.json"):
+            with self.subTest(name=name), self.assertRaises(Phase1Error):
+                validate_relative_archive_path(name)
+
     def test_rejects_tar_path_traversal(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -145,6 +209,21 @@ class ArchiveSafetyTests(unittest.TestCase):
             with self.assertRaises(Phase1Error):
                 safe_extract_tar(archive, root / "output")
 
+    def test_existing_tar_extraction_is_revalidated_against_archive(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            archive = root / "safe.tar"
+            payload = b"expected"
+            with tarfile.open(archive, "w") as stream:
+                info = tarfile.TarInfo("safe/data.txt")
+                info.size = len(payload)
+                stream.addfile(info, io.BytesIO(payload))
+            destination = root / "output"
+            self.assertEqual(safe_extract_tar(archive, destination), ["safe/data.txt"])
+            (destination / "safe/data.txt").write_bytes(b"tampered")
+            with self.assertRaises(Phase1Error):
+                safe_extract_tar(archive, destination)
+
     def test_rejects_zip_path_traversal(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             archive = Path(directory) / "unsafe.zip"
@@ -152,6 +231,37 @@ class ArchiveSafetyTests(unittest.TestCase):
                 stream.writestr("../escape.json", "{}")
             with self.assertRaises(Phase1Error):
                 validate_zip_paths(archive)
+
+    def test_rejects_duplicate_zip_member_alias(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            archive = Path(directory) / "duplicate.zip"
+            with zipfile.ZipFile(archive, "w") as stream:
+                stream.writestr("safe/data.json", "{}")
+                stream.writestr("safe\\data.json", "{}")
+            with self.assertRaises(Phase1Error):
+                validate_zip_paths(archive)
+
+    def test_rejects_zip_special_member(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            archive = Path(directory) / "special.zip"
+            with zipfile.ZipFile(archive, "w") as stream:
+                entry = zipfile.ZipInfo("device")
+                entry.create_system = 3
+                entry.external_attr = (stat.S_IFCHR | 0o600) << 16
+                stream.writestr(entry, b"")
+            with self.assertRaises(Phase1Error):
+                validate_zip_paths(archive)
+
+    def test_rejects_symlinked_zip_part_before_merge(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            outside = root / "outside"
+            outside.write_bytes(b"not-a-zip")
+            (root / "dataset.zip.part1").symlink_to(outside)
+            (root / "dataset.zip.part2").write_bytes(b"tail")
+            with self.assertRaises(Phase1Error):
+                merge_zip_parts(root)
+            self.assertFalse((root / "dataset.zip").exists())
 
     def test_merges_parts_in_numeric_order_and_retains_parts(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -170,6 +280,62 @@ class ArchiveSafetyTests(unittest.TestCase):
             self.assertTrue(part1.exists())
             self.assertTrue(part2.exists())
             self.assertEqual((root / "dataset.zip").read_bytes(), payload)
+
+            (root / "dataset.zip").write_bytes(b"tampered")
+            with self.assertRaises(Phase1Error):
+                merge_zip_parts(root)
+
+
+class ManifestSafetyTests(unittest.TestCase):
+    def test_source_root_rejects_symlinked_path_component(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            repo_root = Path(directory)
+            raw_root = repo_root / "data/raw"
+            raw_root.mkdir(parents=True)
+            (raw_root / "elsewhere").mkdir()
+            (raw_root / "nemotron_saju").symlink_to(raw_root / "elsewhere")
+            config = load_config(CONFIG_PATH)
+            with self.assertRaises(Phase1Error):
+                source_root(config, repo_root, "nemotron_saju")
+
+    def test_manifest_rejects_symlink_and_unregistered_files(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "raw"
+            root.mkdir()
+            outside = Path(directory) / "outside.txt"
+            outside.write_text("outside", encoding="utf-8")
+            linked = root / "payload.txt"
+            linked.symlink_to(outside)
+            manifest = {
+                "source": "fixture",
+                "revision": "rev",
+                "license_expression": "MIT",
+                "usage_class": "train_allow",
+                "files": [
+                    {
+                        "path": "payload.txt",
+                        "bytes": outside.stat().st_size,
+                        "sha256": sha256_file(outside),
+                    }
+                ],
+            }
+            (root / "SOURCE_MANIFEST.json").write_text(
+                json.dumps(manifest), encoding="utf-8"
+            )
+            with self.assertRaises(Phase1Error):
+                _verify_manifest(root, expected_source="fixture")
+
+            linked.unlink()
+            linked.write_text("inside", encoding="utf-8")
+            manifest["files"][0].update(
+                {"bytes": linked.stat().st_size, "sha256": sha256_file(linked)}
+            )
+            (root / "SOURCE_MANIFEST.json").write_text(
+                json.dumps(manifest), encoding="utf-8"
+            )
+            (root / "unregistered.txt").write_text("extra", encoding="utf-8")
+            with self.assertRaises(Phase1Error):
+                _verify_manifest(root, expected_source="fixture")
 
 
 class InventoryStructureTests(unittest.TestCase):

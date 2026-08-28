@@ -7,7 +7,7 @@
 | 입력 | 승인된 실험 계약, 데이터 접근 권한, 저장 공간 |
 | 출력 | `data/raw/`, `source_inventory.json`, `license_manifest.json` |
 | 완료 Gate | 네 활성 원천과 다섯 학습 축의 revision·파일·해시·이용조건 고정 |
-| 웹 확인일 | 2026-08-27 |
+| 웹 확인일 | 2026-08-28 |
 
 ## 목적
 
@@ -111,6 +111,7 @@ hf download <repo-id> <file-paths...> \
 - 저장소 전체를 받지 않고 `rules/shensha_51.json`과 README만 고정 revision으로 수집한다.
 - `rules/shensha_51.json`의 bytes `29,754`, SHA-256 `9a11e1502983969407c43f82c65de6736b344da1a623e7a6557ad8b20cda939e`를 요구한다.
 - 원천 `chxb/shensha@5b90110e55feb92303ef7853ecacdb6f9ed59eac`의 `LICENSE`, `README.md`, `shensha.js`를 provenance 자료로 별도 수집한다.
+- 원천 3파일은 고정 bytes/SHA-256으로 제한한다: `LICENSE` 1,061 bytes·`2825d7…50c4`, `README.md` 1,311 bytes·`8731a4…7e48`, `shensha.js` 46,597 bytes·`38ea75…caec`.
 - `classics/*.txt`, `docs/sanming_tonghui_analysis.md`, `rules/yuanhai_ziping.json`은 `mymmsc/books`의 무라이선스 인터넷 수집본에서 파생됐으므로 다운로드·학습 후보에서 제외한다.
 - `词馆` 규칙의 주석 `壬申`과 코드·JSON `壬卯` 상충을 known issue로 등록한다.
 
@@ -135,6 +136,8 @@ AI Hub는 로그인·본인확인·사용 목적 제출과 데이터별 승인�
 3. `66046`, `66047`, `66048`, `66049` 네 file key를 공식 API에서 받아 배포 원본과 승인일을 비공개 로컬 경로에 저장한다.
 4. archive path traversal와 link/device member를 거부한 뒤 압축 전후 파일별 SHA-256과 크기를 기록한다.
 5. 원문과 변환 원문은 Git, 공개 Hugging Face dataset, 외부 공유 폴더에 올리지 않는다.
+
+현재 수집기는 일반 URL downloader를 `raw.githubusercontent.com` HTTPS·443으로 제한하고 동일 host redirect와 기대 bytes·SHA-256을 모두 강제한다. tar·zip의 중복/별칭 경로, control character, link·device·FIFO, 비연속 분할 ZIP을 거부하며, 기존 추출본·병합 ZIP을 재사용할 때도 원 archive와 파일 목록·크기·해시를 다시 대조한다. `SOURCE_MANIFEST.json`은 symlink, root 이탈, 미등록 추가 파일을 모두 거부한다.
 
 로컬에서 승인 파일을 찾지 못하면 다음 메시지로 Phase를 차단한다.
 
@@ -211,3 +214,5 @@ Gate 실패 시 Phase 2 adapter 구현을 시작하지 않는다.
 | 2026-08-27 | AI Hub 공식 Shell v0.6 | `AIHUB_APIKEY` 환경값, `/down/0.6/{dataset}.do?fileSn=...` 요청 형식과 tar·분할 zip 병합 방식을 확인하고 안전 추출기로 대체 구현 |
 | 2026-08-27 | AI Hub #86 승인 수집·실파일 구조 | 네 file key의 tar·part·zip과 58,268 label record를 확인하고 51,886 고유 group으로 멀티턴 Gate 통과 |
 | 2026-08-27 | Nemotron 고정 revision 전체 파일 API·실파일 | 20 Parquet 1,000,000행, v6 199,996·v7 800,004, UUID 중복 0으로 source bundle v1.1 승인 |
+| 2026-08-28 | Hugging Face 고정 revision API·공식 데이터 카드 | 네 활성 원천의 commit SHA·license·file allowlist를 재확인하고 자동 최신 revision 선택을 계속 금지 |
+| 2026-08-28 | YEJI upstream 고정 GitHub raw 파일 | 원천 MIT 파일 3개의 bytes·SHA-256을 현재 수집 계약에 추가하고 HTTPS host allowlist를 고정 |

@@ -2023,7 +2023,7 @@ def execute_scan(
     public_root.parent.mkdir(parents=True, exist_ok=True)
     _mkdir_private(private_root)
     public_root.mkdir(mode=0o755)
-    os.chmod(public_root, 0o755)
+    os.chmod(public_root, 0o755)  # nosec B103 - 원문 없는 공개 보고서 경로
     try:
         queue_path = private_root / "review_queue.jsonl"
         decisions_path = private_root / "decisions.jsonl"

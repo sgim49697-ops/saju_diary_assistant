@@ -4,8 +4,8 @@
 
 | 항목 | 값 |
 |---|---|
-| 문서 버전 | `2.3.0` |
-| 정본화 기준일 | 2026-08-27 |
+| 문서 버전 | `2.3.1` |
+| 정본화 기준일 | 2026-08-28 |
 | 주 장비 | NVIDIA GeForce RTX 5070 Ti 16GiB, WSL2 |
 | 주 모델 | `kakaocorp/kanana-2-1.3b-instruct@bf4786aa2a1908adce942d53976270132732f720` |
 | 실험 범위 | 1K smoke, 독립 10K·20K Full FT, 사후 평가와 v2 Lite 결정 |
@@ -31,7 +31,7 @@
 |---:|---|---|---|
 | 0 | [거버넌스·실험 계약](phase-0-governance.md) | 완료 | 라이선스·범위·재현성 승인 |
 | 1 | [데이터 수집](phase-1-data-collection.md) | 완료 | 네 원천의 revision·해시·이용조건과 #86 구조 Gate 통과 |
-| 2 | [데이터 전처리](phase-2-data-preprocessing.md) | 부분 진행 | 승인 audit 부모의 MIX20K용 24K staging 통과, Phase 4 승격은 차단 |
+| 2 | [데이터 전처리](phase-2-data-preprocessing.md) | 완료 | 승인 audit 부모의 MIX20K용 24K staging 완결, 학습 승격은 Phase 4 Gate로 분리 |
 | 3 | [학습 모델·환경 준비](phase-3-model-preparation.md) | 미시작 | 고정 환경에서 모델·template 로드 성공 |
 | 4 | [학습 전 데이터·모델 검증](phase-4-preflight-validation.md) | 미시작 | 데이터 Gate와 200-step smoke 모두 통과 |
 | 5 | [Baseline 학습](phase-5-baseline-training.md) | 미시작 | KI10·KI20 독립 Run과 산출물 완결 |
@@ -61,7 +61,8 @@ data/
     └── saju_1b_baseline/
         ├── audit/v1.2.0/build-ca756f3eb89f/
         ├── audit-review/v1.2.0/build-ca756f3eb89f/reviewer-v1.1.0/
-        └── preprocessing-staging/v0.1.0/build-109815ee6879/
+        ├── preprocessing-staging/v0.1.0/build-109815ee6879/
+        └── phase-verification/v1.0.0/review-20260828/
 
 configs/data_versions/saju_1b_baseline/
 ├── source-bundle-v1.1.0.json
@@ -70,6 +71,7 @@ configs/data_versions/saju_1b_baseline/
 ├── yeji-rule-corrections-v1.2.0.json
 ├── preprocessing-staging-v0.1.0.json
 ├── language-bank-v1.0.0.json
+├── license-review-v1.0.0.json
 └── registry.json
 
 runs/
@@ -84,7 +86,7 @@ runs/
 
 ### 모델
 
-`kakaocorp/kanana-2-1.3b-instruct`의 고정 revision은 `bf4786aa2a1908adce942d53976270132732f720`이다. Kanana Open License 4.2에 따라 4.1의 별도 허가 대상이 아닌 자체 서비스 개발·운영은 별도 상업 라이선스 없이 가능하다. 다만 API·클라우드 원격 접근 판매, SI/on-premise 판매, on-device 판매에는 별도 상업 라이선스가 필요하다. 서비스·배포 시 라이선스 사본, 수정 표시, Notice, `Powered by Kanana` 표시를 제공한다. 이 결론은 법률 자문을 대체하지 않으며 서비스 형태가 바뀌면 다시 검토한다.
+`kakaocorp/kanana-2-1.3b-instruct`의 고정 revision은 `bf4786aa2a1908adce942d53976270132732f720`이다. 공식 문서명은 `KANANA OPEN LICENSE AGREEMENT`이다. 고정 revision의 API license tag는 `other`, 2026-08-28 현재 모델 카드 tag는 `kanana-open-license`로 조회되므로 tag 대신 고정 revision의 LICENSE 원문을 판정 기준으로 삼는다. Section 4.2에 따라 Section 4.1의 별도 허가 대상이 아닌 자체 서비스 개발·운영은 별도 상업 라이선스 없이 가능하다. API·클라우드 원격 접근 판매, SI/on-premise 판매, on-device 판매는 Section 4.1의 별도 상업 라이선스 대상이다. 서비스·배포 시 라이선스 사본, 수정 표시, Notice, `Powered by Kanana` 표시를 제공하고, Kanana로 학습·향상한 모델을 배포할 때는 이름에 `Kanana` prefix를 적용한다. 과거 보고서의 `Kanana Open License 4.2`는 버전명이 아닌 조항을 버전처럼 적은 표현이므로 [현재 라이선스 재검토](../../../configs/data_versions/saju_1b_baseline/license-review-v1.0.0.json)가 대체한다. 과거 파일은 build hash 보존을 위해 수정하지 않았다. 이 결론은 법률 자문을 대체하지 않으며 서비스 형태가 바뀌면 다시 검토한다.
 
 ### 활성 학습 소스
 
@@ -97,6 +99,8 @@ runs/
 | YEJI 신살 규칙 파생본 | `84583ca54e8fce257d3d5efd015bca1263a1cfe9` | MIT + 원천 MIT | 500 | 1,000 | 단일 파일 선별·교정·자체 QA 생성 후 허용 |
 
 Nemotron 1K 몫은 v6 110행·v7 440행, 10K 몫은 v6 1,100행·v7 4,400행, 20K 몫은 v6 2,200행·v7 8,800행이다. `bazi-sft`는 제공된 네 기둥을 입력 사실로 삼아 일간·오행·규칙 조건을 다시 계산하며, 원문의 날짜·지역에서 네 기둥을 학습시키지 않는다. AI Hub 데이터는 원문을 외부에 공개하지 않고 개인정보·자해·의료 진단·과도한 훈계 행을 제외한다.
+
+AI Hub #86은 영리·비영리 연구개발이 허용되지만 AI 모델 학습 목적과 신청·승인 범위로 한정한다. 사업 결과물에 NIA·AI Hub 출처를 표시하고, 미승인 제3자에게 열람·제공·양도·대여·판매하지 않으며, 개인정보를 발견하면 AI Hub에 신고하고 다운로드한 해당 데이터를 삭제한다. 데이터셋 자체 판매는 사전 협의 없이 허용하지 않는다.
 
 YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `9a11e1502983969407c43f82c65de6736b344da1a623e7a6557ad8b20cda939e`, 원천은 MIT의 `chxb/shensha@5b90110e55feb92303ef7853ecacdb6f9ed59eac`이다. 감사 v1.2는 원본을 바꾸지 않고 `词馆`의 金 간지, `五鬼` category, 덕수귀인 조건·매핑, 동자살 OR 조건을 고정 manifest overlay 다섯 항목으로 교정한다. 51규칙 evaluator 결과만 자체 한국어 QA로 사용한다.
 
@@ -212,3 +216,8 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
   - 변경 범위: BaZi·YEJI 한국어 고정 문구 은행, 다섯 축 adapter, 전체 규칙·안전·언어 검증, 결정론적 후보 순서, 버전별 공개 집계와 승인 후 읽기 전용인 BaZi/YEJI 300건 loopback 검수 화면을 추가했다. Git 제외 원본은 수정하지 않았다.
   - 검증: 감사 원본 재해시와 approval verify, staging 24,000행·고유 ID 24,000·고유 message 24,000, 영문 단어 잔여 0, AI Hub 축 간 group 겹침 0, BaZi 규칙 불일치 0, YEJI 51규칙 coverage와 테스트를 통과했다.
   - 남은 이슈·후속 작업: 검수 승인은 항목별 전문 판독이 아닌 `owner_blanket_risk_acceptance`이며 품질 인증을 주장하지 않는다. Phase 4에서 tokenizer 길이, assistant loss mask, holdout/core eval, 정확한 MIX20K manifest와 모델 preflight를 완료하기 전에는 학습 승격하지 않는다.
+- 2026-08-28
+  - 작업 요약: Phase 0~2의 계약·원천·감사·24K staging을 전체 재검수하고, 과거 승인 build를 당시 Git 구현과 해시로 재검증하는 경로를 복구했다. Phase 2는 24K staging 인계 경계에서 `완료`로 판정했다.
+  - 변경 범위: archive 중복·별칭 경로, link/device, 기존 추출본·병합 ZIP 변조, 원천 symlink·미등록 파일, 비공식 URL·redirect·무해시 다운로드를 fail-closed로 보강했다. 승인 audit의 registry 상태·seal·approval 일치와 승인 staging의 실행 commit·승인·decision·manifest 해시를 강제하고, 현재 라이선스 재검토·과거 표현 정오표를 추가했다.
+  - 검증: 현재 원천 4종 전체 manifest 재해시, 과거 audit v1.0·v1.1·승인 v1.2, 승인 staging 24,000행·검수 300건, loopback HTML read-only bootstrap, 전체 회귀 테스트 68건과 정적·보안 검사를 통과했다. 상세 결과는 `data/reports/saju_1b_baseline/phase-verification/v1.0.0/review-20260828/verification_report.json`에 고정한다.
+  - 남은 이슈·후속 작업: 스테이징에 서로 다른 축의 동일 명식 `leakage_group_id` 36개가 있으므로 Phase 4 split에서 반드시 같은 쪽에 배치한다. holdout/core eval, 중첩 MIX manifest, tokenizer·assistant mask·모델 preflight와 `training_promotion_allowed=true` 판정은 Phase 4 전용 Gate로 남긴다.

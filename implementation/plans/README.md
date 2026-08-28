@@ -20,6 +20,13 @@ data/reports/saju_1b_baseline/audit-review/v1.2.0/build-ca756f3eb89f/reviewer-v1
 data/reports/saju_1b_baseline/preprocessing-staging/v0.1.0/build-109815ee6879/reviewer-v1.0.0/
 ```
 
+Phase 0~2 전체 재검수 요약과 기계 판독 결과는 다음 버전 경로에 있다. 둘 다 원문 sample을 포함하지 않는다.
+
+```text
+data/reports/saju_1b_baseline/phase-verification/v1.0.0/review-20260828/index.html
+data/reports/saju_1b_baseline/phase-verification/v1.0.0/review-20260828/verification_report.json
+```
+
 HTML 파일을 직접 열면 Git 제외 staging API에 연결되지 않는다. 저장소 루트에서 다음 명령을 실행하면 `127.0.0.1` loopback 주소로 검수기가 열리며 BaZi 150건과 YEJI 150건을 전환할 수 있다.
 
 ```bash
@@ -32,7 +39,7 @@ HTML 파일을 직접 열면 Git 제외 staging API에 연결되지 않는다. �
 
 ## 팀원용 핵심·참고 검수 공유본
 
-동일 AI Hub 승인 범위의 팀원에게는 저장소 밖에 생성한 다음 일반 ZIP을 전달한다.
+AI Hub #86의 동일 신청에 포함됐거나 AI Hub로부터 별도 열람 권한을 명시적으로 확인받은 팀원에게만 저장소 밖에 생성한 다음 일반 ZIP을 전달한다. 단순히 같은 팀·회사에 속한 것은 열람 권한이 아니다.
 
 ```text
 /home/user/projects/saju-review-share-v1.2.0-build-ca756f3eb89f-core150-ref150.zip

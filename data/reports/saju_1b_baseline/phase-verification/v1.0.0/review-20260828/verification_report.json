@@ -1,0 +1,208 @@
+{
+  "schema_version": "1.0.0",
+  "report_type": "phase_0_to_2_full_reverification",
+  "dataset_name": "saju_1b_baseline",
+  "reviewed_at": "2026-08-28",
+  "workspace_base_commit": "88818017f37a998e4469345d2d6392be16d0ace3",
+  "canonical_plan_version": "2.3.1",
+  "overall_status": "passed_for_phase_3_entry",
+  "training_promotion_allowed": false,
+  "contains_raw_samples": false,
+  "phase_status": {
+    "phase_0": {
+      "status": "complete",
+      "contract_version": "1.0.1",
+      "license_review": "configs/data_versions/saju_1b_baseline/license-review-v1.0.0.json",
+      "decision": "현재 광고형 자체 서비스 가정의 내부 학습·검증 후보로 허용하되 법률 자문이나 공개·원격 접근 판매 승인을 의미하지 않음"
+    },
+    "phase_1": {
+      "status": "complete",
+      "source_count": 4,
+      "mix_axis_count": 5,
+      "source_manifest_status": "verified",
+      "nemotron_rows": 1000000,
+      "nemotron_variant_rows": {
+        "v6": 199996,
+        "v7": 800004
+      },
+      "nemotron_unique_uuid_count": 1000000,
+      "aihub_dataset_id": "86",
+      "aihub_271_status": "contract_required_excluded"
+    },
+    "phase_2": {
+      "status": "complete",
+      "completion_boundary": "승인 audit를 부모로 한 결정론적 MIX20K용 24K staging과 Phase 4 인계 계약",
+      "approved_audit": "v1.2.0/build-ca756f3eb89f",
+      "approved_staging": "v0.1.0/build-109815ee6879",
+      "approval_status": "owner_risk_accepted",
+      "domain_item_review_performed": false,
+      "quality_certification_claimed": false,
+      "staging_rows": 24000,
+      "row_counts": {
+        "nemotron_saju": 13200,
+        "bazi_sft": 6000,
+        "aihub_empathy_single": 2400,
+        "aihub_empathy_multiturn": 1200,
+        "yeji_shensha_derived": 1200
+      },
+      "unique_record_ids": 24000,
+      "unique_message_hashes": 24000,
+      "review_decision_count": 300,
+      "aihub_cross_axis_group_overlap": 0,
+      "cross_axis_leakage_group_count": 36,
+      "bazi_complete_group_count": 1500
+    }
+  },
+  "pinned_revision_recheck": [
+    {
+      "kind": "model",
+      "repo_id": "kakaocorp/kanana-2-1.3b-instruct",
+      "revision": "bf4786aa2a1908adce942d53976270132732f720",
+      "api_license_tag_at_revision": "other",
+      "current_card_license_tag": "kanana-open-license",
+      "status": "exists_and_matches"
+    },
+    {
+      "kind": "dataset",
+      "repo_id": "rayraykim/Nemotron-Personas-Korea-Saju",
+      "revision": "ffb934248746a2dea64ef771c0d86e1743d25702",
+      "license": "cc-by-4.0",
+      "status": "exists_and_matches"
+    },
+    {
+      "kind": "dataset",
+      "repo_id": "AmareshHebbar/bazi-sft",
+      "revision": "fad87063b317612e4164dfb0e0e08572c3831df4",
+      "license": "apache-2.0",
+      "status": "exists_and_matches"
+    },
+    {
+      "kind": "dataset",
+      "repo_id": "tellang/yeji-bazi-rules",
+      "revision": "84583ca54e8fce257d3d5efd015bca1263a1cfe9",
+      "license": "mit",
+      "status": "exists_and_matches"
+    }
+  ],
+  "historical_build_verification": [
+    {
+      "version": "v1.0.0",
+      "build_id": "build-336b8377063a",
+      "implementation_commit": "7565f1c0e27115f720b996ceb00dd0419cff1155",
+      "review_queue_units": 301,
+      "sealed": false,
+      "approved": false,
+      "status": "historical_verified"
+    },
+    {
+      "version": "v1.1.0",
+      "build_id": "build-e162d9b2b7dc",
+      "implementation_commit": "da5985f2737007a4d3f4694724e2dcb612efccee",
+      "review_queue_units": 301,
+      "sealed": false,
+      "approved": false,
+      "status": "historical_verified"
+    },
+    {
+      "version": "v1.2.0",
+      "build_id": "build-ca756f3eb89f",
+      "implementation_commit": "8c6b95cef19653fc62dbb1ccbae01cbe4c82b13d",
+      "review_queue_units": 300,
+      "decision_history_entries": 300,
+      "sealed": true,
+      "approved": true,
+      "status": "historical_verified"
+    },
+    {
+      "version": "v0.1.0",
+      "build_id": "build-109815ee6879",
+      "implementation_commit": "88818017f37a998e4469345d2d6392be16d0ace3",
+      "kind": "preprocessing_staging",
+      "status": "historical_verified_owner_risk_accepted"
+    }
+  ],
+  "debug_fixes": [
+    "archive의 중복·별칭·control-character 경로와 link·device·FIFO를 거부",
+    "기존 tar 추출본과 병합 ZIP도 원 archive·parts의 목록·크기·SHA-256으로 재검증",
+    "SOURCE_MANIFEST의 symlink·root 이탈·미등록 추가 파일을 거부",
+    "YEJI provenance를 공식 GitHub raw HTTPS host와 고정 bytes·SHA-256으로 제한",
+    "AI Hub·일반 downloader의 scheme·host·port·credential·redirect를 fail-closed로 검증",
+    "과거 audit·staging을 당시 Git code와 registry artifact hash로 독립 재검증",
+    "승인 audit의 registry 상태와 seal·approval 존재 및 approved_audit 포인터를 강제 일치",
+    "승인 staging HTML과 팀 공유 ZIP 생성기가 과거 승인 build를 안전하게 읽도록 복구",
+    "Kanana 라이선스 조항 4.2를 버전처럼 적은 과거 표현을 immutable errata로 정정"
+  ],
+  "test_results": {
+    "unit_tests": {
+      "command": "uv run python -m unittest discover -s tests -v",
+      "passed": 68,
+      "failed": 0
+    },
+    "ruff": {
+      "command": "uvx ruff check scripts tests",
+      "status": "passed"
+    },
+    "compileall": {
+      "command": "uv run python -m compileall -q scripts tests",
+      "status": "passed"
+    },
+    "javascript_syntax": {
+      "command": "node --check for all tracked review JavaScript",
+      "status": "passed"
+    },
+    "json_parse": {
+      "command": "python -m json.tool for configs and public JSON reports",
+      "status": "passed"
+    },
+    "bandit": {
+      "command": "uvx --from bandit bandit -q -r scripts -f json",
+      "high": 0,
+      "medium": 0,
+      "low": 10,
+      "low_findings_reviewed": true
+    },
+    "staging_review_html": {
+      "http_status": 200,
+      "approval_status": "owner_risk_accepted",
+      "read_only": true,
+      "item_count": 300,
+      "security_headers": [
+        "Content-Security-Policy",
+        "Cache-Control: no-store",
+        "X-Frame-Options: DENY",
+        "X-Content-Type-Options: nosniff"
+      ],
+      "status": "passed"
+    },
+    "team_review_archive": {
+      "existing_archive_units": 300,
+      "existing_archive_records": 340,
+      "existing_sidecar": "verified",
+      "historical_rebuild_and_verify": "passed",
+      "temporary_controlled_copy_deleted": true
+    }
+  },
+  "security_checks": {
+    "tracked_raw_audit_staging_or_model_files": 0,
+    "tracked_secret_candidates": 0,
+    "raw_audit_staging_symlinks": 0,
+    "aihub_secret_directory_mode": "0700",
+    "aihub_secret_file_mode": "0600",
+    "staging_private_file_mode": "0600"
+  },
+  "current_input_plan": {
+    "build_id": "build-c18101919006",
+    "build_sha256": "c18101919006dcf5e0822ac67fa995f4146ef4877fe81e078b36857286f4f237",
+    "historical_build_reused": false,
+    "writes_performed": false,
+    "promotion_allowed": false
+  },
+  "phase_4_blockers": [
+    "36개 교차 축 동일 명식 leakage group의 group-first train/eval 배치",
+    "holdout 500과 core eval 200 확정 및 train과의 group 교집합 0 검증",
+    "고정 tokenizer 길이·assistant loss mask·special token 검사",
+    "MIX1K subset MIX10 subset MIX20 최종 manifest 생성",
+    "모델 load와 200-step memory smoke 통과",
+    "별도 training_promotion_allowed=true Gate 기록"
+  ]
+}

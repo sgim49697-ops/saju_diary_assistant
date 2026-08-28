@@ -15,9 +15,10 @@ import urllib.parse
 import urllib.request
 import zipfile
 from collections import Counter
+from collections.abc import Iterable, Iterator
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Iterable, Iterator
+from typing import Any
 
 from scripts.data.archive_safety import (
     merge_zip_parts,
@@ -26,7 +27,6 @@ from scripts.data.archive_safety import (
     validate_zip_paths,
 )
 from scripts.data.errors import Phase1Error
-
 
 EXPECTED_SOURCES = {
     "nemotron_saju",
@@ -48,9 +48,13 @@ EXPECTED_MIX_TOTALS = {"mix1k": 1_000, "mix10": 10_000, "mix20": 20_000}
 AIHUB_ALLOWED_DATASET_ID = "86"
 AIHUB_FORBIDDEN_DATASET_ID = "271"
 AIHUB_ALLOWED_HOST = "api.aihub.or.kr"
+GITHUB_RAW_ALLOWED_HOST = "raw.githubusercontent.com"
 MANIFEST_NAME = "SOURCE_MANIFEST.json"
 HASH_CHUNK_BYTES = 4 * 1024 * 1024
 MAX_JSON_MEMBER_BYTES = 2 * 1024 * 1024 * 1024
+MAX_HTTP_REDIRECTS = 5
+FULL_REVISION_PATTERN = re.compile(r"[0-9a-f]{40}")
+SHA256_PATTERN = re.compile(r"[0-9a-f]{64}")
 
 
 def utc_now() -> str:
@@ -129,10 +133,17 @@ def validate_config(config: dict[str, Any], repo_root: Path) -> dict[str, Any]:
         raise Phase1Error(
             f"활성 원천은 정확히 {sorted(EXPECTED_SOURCES)}여야 합니다."
         )
+    if any(not isinstance(source, dict) for source in sources.values()):
+        raise Phase1Error("활성 원천 설정은 JSON object여야 합니다.")
 
-    axes = config.get("mix_contract", {}).get("axes")
+    mix_contract = config.get("mix_contract")
+    if not isinstance(mix_contract, dict):
+        raise Phase1Error("mix_contract는 JSON object여야 합니다.")
+    axes = mix_contract.get("axes")
     if not isinstance(axes, dict) or set(axes) != EXPECTED_AXES:
         raise Phase1Error(f"학습 혼합축은 정확히 {sorted(EXPECTED_AXES)}여야 합니다.")
+    if any(not isinstance(axis, dict) for axis in axes.values()):
+        raise Phase1Error("학습 혼합축 설정은 JSON object여야 합니다.")
     totals: dict[str, int] = {}
     for key, expected in EXPECTED_MIX_TOTALS.items():
         try:
@@ -149,7 +160,12 @@ def validate_config(config: dict[str, Any], repo_root: Path) -> dict[str, Any]:
     active_serialized = json.dumps(sources, ensure_ascii=False, sort_keys=True)
     if f'"dataset_id": "{AIHUB_FORBIDDEN_DATASET_ID}"' in active_serialized:
         raise Phase1Error("AI Hub #271은 활성 원천에 등록할 수 없습니다.")
-    excluded_271 = config.get("excluded_sources", {}).get("aihub_271_keti", {})
+    excluded_sources = config.get("excluded_sources")
+    if not isinstance(excluded_sources, dict):
+        raise Phase1Error("excluded_sources는 JSON object여야 합니다.")
+    excluded_271 = excluded_sources.get("aihub_271_keti", {})
+    if not isinstance(excluded_271, dict):
+        raise Phase1Error("AI Hub #271 제외 설정은 JSON object여야 합니다.")
     if (
         str(excluded_271.get("dataset_id")) != AIHUB_FORBIDDEN_DATASET_ID
         or excluded_271.get("usage_class") != "contract_required"
@@ -157,10 +173,22 @@ def validate_config(config: dict[str, Any], repo_root: Path) -> dict[str, Any]:
         raise Phase1Error("AI Hub #271은 contract_required 제외 원천으로 고정해야 합니다.")
 
     endpoint = str(aihub.get("endpoint_template", ""))
+    expected_endpoint = (
+        "https://api.aihub.or.kr/down/0.6/{dataset_id}.do?fileSn={file_key}"
+    )
+    if endpoint != expected_endpoint:
+        raise Phase1Error("AI Hub endpoint template이 고정한 v0.6 계약과 다릅니다.")
     parsed = urllib.parse.urlparse(
         endpoint.replace("{dataset_id}", "86").replace("{file_key}", "0")
     )
-    if parsed.scheme != "https" or parsed.hostname != AIHUB_ALLOWED_HOST:
+    if (
+        parsed.scheme != "https"
+        or parsed.hostname != AIHUB_ALLOWED_HOST
+        or parsed.port not in {None, 443}
+        or parsed.username
+        or parsed.password
+        or parsed.fragment
+    ):
         raise Phase1Error("AI Hub endpoint는 공식 HTTPS host만 허용합니다.")
     keys = aihub.get("file_keys")
     if keys != ["66046", "66047", "66048", "66049"]:
@@ -168,6 +196,10 @@ def validate_config(config: dict[str, Any], repo_root: Path) -> dict[str, Any]:
 
     local_subdirs: set[str] = set()
     for source_name, source in sources.items():
+        if source.get("provider") == "huggingface" and FULL_REVISION_PATTERN.fullmatch(
+            str(source.get("revision", ""))
+        ) is None:
+            raise Phase1Error(f"{source_name} revision은 40자 commit SHA여야 합니다.")
         local_subdir = source.get("local_subdir")
         if not isinstance(local_subdir, str):
             raise Phase1Error(f"{source_name} local_subdir가 없습니다.")
@@ -176,6 +208,10 @@ def validate_config(config: dict[str, Any], repo_root: Path) -> dict[str, Any]:
             raise Phase1Error(f"중복 local_subdir입니다: {local_subdir}")
         local_subdirs.add(local_subdir)
         allow_files = source.get("allow_files", [])
+        if not isinstance(allow_files, list) or any(
+            not isinstance(filename, str) for filename in allow_files
+        ):
+            raise Phase1Error(f"{source_name} allow_files는 문자열 목록이어야 합니다.")
         if len(allow_files) != len(set(allow_files)):
             raise Phase1Error(f"{source_name} allow_files에 중복 경로가 있습니다.")
         for filename in allow_files:
@@ -192,8 +228,7 @@ def validate_config(config: dict[str, Any], repo_root: Path) -> dict[str, Any]:
                 not isinstance(expected, dict)
                 or not isinstance(expected.get("bytes"), int)
                 or expected["bytes"] < 0
-                or re.fullmatch(r"[0-9a-f]{64}", str(expected.get("sha256", "")))
-                is None
+                or SHA256_PATTERN.fullmatch(str(expected.get("sha256", ""))) is None
             ):
                 raise Phase1Error(
                     f"{source_name} 고정 파일 metadata가 올바르지 않습니다: {filename}"
@@ -208,7 +243,47 @@ def validate_config(config: dict[str, Any], repo_root: Path) -> dict[str, Any]:
         if any(value not in {"v6", "v7"} for value in file_variants.values()):
             raise Phase1Error(f"{source_name} file_variants 값은 v6/v7만 허용합니다.")
 
-    key_file = Path(os.path.expanduser(config["paths"]["aihub_key_file"]))
+    yeji = sources["yeji_bazi_rules"]
+    provenance = yeji.get("provenance")
+    if not isinstance(provenance, dict):
+        raise Phase1Error("YEJI 원천 provenance 설정이 없습니다.")
+    if (
+        provenance.get("repo_id") != "chxb/shensha"
+        or FULL_REVISION_PATTERN.fullmatch(str(provenance.get("revision", "")))
+        is None
+        or provenance.get("raw_url_template")
+        != "https://raw.githubusercontent.com/chxb/shensha/{revision}/{path}"
+    ):
+        raise Phase1Error("YEJI 원천 GitHub 저장소·revision·URL 계약이 다릅니다.")
+    provenance_files = provenance.get("allow_files")
+    provenance_expected = provenance.get("expected_files")
+    if (
+        provenance_files != ["LICENSE", "README.md", "shensha.js"]
+        or not isinstance(provenance_expected, dict)
+        or set(provenance_expected) != set(provenance_files)
+    ):
+        raise Phase1Error("YEJI provenance 파일 allowlist·고정 hash 계약이 다릅니다.")
+    for filename, expected in provenance_expected.items():
+        validate_relative_archive_path(filename)
+        if (
+            not isinstance(expected, dict)
+            or not isinstance(expected.get("bytes"), int)
+            or expected["bytes"] < 0
+            or SHA256_PATTERN.fullmatch(str(expected.get("sha256", ""))) is None
+        ):
+            raise Phase1Error(f"YEJI provenance metadata가 올바르지 않습니다: {filename}")
+
+    paths = config.get("paths")
+    required_paths = {"raw_root", "inventory_report", "license_manifest", "aihub_key_file"}
+    if (
+        not isinstance(paths, dict)
+        or not required_paths.issubset(paths)
+        or any(not isinstance(paths[key], str) for key in required_paths)
+    ):
+        raise Phase1Error("필수 paths 설정이 없거나 문자열이 아닙니다.")
+    for key in ("raw_root", "inventory_report", "license_manifest"):
+        resolve_repo_path(repo_root, paths[key])
+    key_file = Path(os.path.expanduser(paths["aihub_key_file"]))
     if key_file.resolve().is_relative_to(repo_root.resolve()):
         raise Phase1Error("AI Hub 키 파일은 Git 저장소 밖에 있어야 합니다.")
 
@@ -263,19 +338,41 @@ def read_aihub_key(key_file: Path) -> str:
 
 
 def source_root(config: dict[str, Any], repo_root: Path, source_name: str) -> Path:
-    raw_root = resolve_repo_path(repo_root, config["paths"]["raw_root"])
+    root = repo_root.resolve()
+    raw_relative = Path(config["paths"]["raw_root"])
+    cursor = root
+    for part in raw_relative.parts:
+        cursor /= part
+        if cursor.is_symlink():
+            raise Phase1Error("원천 raw root 경로에 symlink를 허용하지 않습니다.")
+    raw_root = resolve_repo_path(repo_root, raw_relative.as_posix())
     local_subdir = config["sources"][source_name]["local_subdir"]
-    resolved = (raw_root / local_subdir).resolve()
+    candidate = raw_root / local_subdir
+    cursor = raw_root
+    for part in Path(local_subdir).parts:
+        cursor /= part
+        if cursor.is_symlink():
+            raise Phase1Error(f"{source_name} 원천 경로에 symlink를 허용하지 않습니다.")
+    resolved = candidate.resolve()
     if not resolved.is_relative_to(raw_root.resolve()):
         raise Phase1Error(f"{source_name} 원천 경로가 raw root 밖입니다.")
-    return resolved
+    return candidate
 
 
 def _iter_manifest_files(root: Path) -> Iterator[Path]:
     if not root.exists():
         return
+    if root.is_symlink() or not root.is_dir():
+        raise Phase1Error(f"원천 root는 symlink가 아닌 디렉터리여야 합니다: {root}")
+    resolved_root = root.resolve()
     for path in sorted(root.rglob("*")):
-        if not path.is_file() or path.name == MANIFEST_NAME:
+        if path.is_symlink():
+            raise Phase1Error(f"원천 경로에 symlink를 허용하지 않습니다: {path}")
+        if path.is_dir():
+            continue
+        if not path.is_file() or not path.resolve().is_relative_to(resolved_root):
+            raise Phase1Error(f"원천 경로에 일반 파일이 아닌 항목이 있습니다: {path}")
+        if path.name == MANIFEST_NAME:
             continue
         if any(part in {".cache", "__pycache__"} for part in path.relative_to(root).parts):
             continue
@@ -438,21 +535,88 @@ def plan_hf_downloads(
     return {"mode": "dry-run", "plans": plans}
 
 
-def _download_url(url: str, target: Path, headers: dict[str, str] | None = None) -> None:
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(
+        self,
+        request: Any,
+        file_pointer: Any,
+        code: int,
+        message: str,
+        headers: Any,
+        new_url: str,
+    ) -> None:
+        return None
+
+
+def _validate_download_url(url: str, allowed_hosts: frozenset[str]) -> None:
+    try:
+        parsed = urllib.parse.urlparse(url)
+        port = parsed.port
+    except ValueError as exc:
+        raise Phase1Error("다운로드 URL port가 올바르지 않습니다.") from exc
+    if (
+        parsed.scheme != "https"
+        or parsed.hostname not in allowed_hosts
+        or port not in {None, 443}
+        or parsed.username
+        or parsed.password
+        or parsed.fragment
+    ):
+        raise Phase1Error("다운로드 URL이 허용된 공식 HTTPS host가 아닙니다.")
+
+
+def _download_url(
+    url: str,
+    target: Path,
+    *,
+    expected_bytes: int,
+    expected_sha256: str,
+    headers: dict[str, str] | None = None,
+) -> None:
+    allowed_hosts = frozenset({GITHUB_RAW_ALLOWED_HOST})
+    _validate_download_url(url, allowed_hosts)
     target.parent.mkdir(parents=True, exist_ok=True)
     temporary = target.with_name(f".{target.name}.incomplete")
-    if temporary.exists():
+    if temporary.exists() or temporary.is_symlink():
         temporary.unlink()
-    request = urllib.request.Request(
-        url,
-        headers={"User-Agent": "saju-diary-phase1/1.0", **(headers or {})},
-        method="GET",
-    )
+    opener = urllib.request.build_opener(_NoRedirect)
     try:
-        with urllib.request.urlopen(request, timeout=120) as response, temporary.open("wb") as stream:
+        current_url = url
+        response: Any = None
+        for _ in range(MAX_HTTP_REDIRECTS + 1):
+            _validate_download_url(current_url, allowed_hosts)
+            request = urllib.request.Request(
+                current_url,
+                headers={"User-Agent": "saju-diary-phase1/1.0", **(headers or {})},
+                method="GET",
+            )
+            try:
+                response = opener.open(request, timeout=120)  # nosec B310
+                break
+            except urllib.error.HTTPError as exc:
+                if exc.code not in {301, 302, 303, 307, 308}:
+                    raise
+                location = exc.headers.get("Location")
+                exc.close()
+                if not location:
+                    raise Phase1Error("다운로드 redirect 위치가 없습니다.") from exc
+                current_url = urllib.parse.urljoin(current_url, location)
+        if response is None:
+            raise Phase1Error("다운로드 redirect 횟수가 한도를 넘었습니다.")
+        _validate_download_url(response.geturl(), allowed_hosts)
+        digest = hashlib.sha256()
+        downloaded = 0
+        with response, temporary.open("xb") as stream:
             if response.status != 200:
                 raise Phase1Error(f"다운로드 HTTP 상태가 200이 아닙니다: {response.status}")
-            shutil.copyfileobj(response, stream, length=HASH_CHUNK_BYTES)
+            while chunk := response.read(HASH_CHUNK_BYTES):
+                downloaded += len(chunk)
+                if downloaded > expected_bytes:
+                    raise Phase1Error("다운로드 크기가 고정한 metadata를 넘었습니다.")
+                digest.update(chunk)
+                stream.write(chunk)
+        if downloaded != expected_bytes or digest.hexdigest() != expected_sha256:
+            raise Phase1Error("다운로드 bytes/SHA-256이 고정한 metadata와 다릅니다.")
         os.replace(temporary, target)
     except urllib.error.HTTPError as exc:
         raise Phase1Error(f"다운로드 HTTP 오류: {exc.code}") from exc
@@ -482,6 +646,10 @@ def download_hf_sources(
         for filename in source["allow_files"]:
             target = destination / filename
             expected = source.get("expected_files", {}).get(filename)
+            if target.is_symlink():
+                raise Phase1Error(
+                    f"HF 대상 경로에 symlink를 허용하지 않습니다: {source_name}/{filename}"
+                )
             if target.exists() and expected is not None:
                 if (
                     not target.is_file()
@@ -512,8 +680,23 @@ def download_hf_sources(
                     revision=provenance["revision"], path=filename
                 )
                 target = provenance_root / filename
+                expected = provenance["expected_files"][filename]
                 if not target.exists():
-                    _download_url(url, target)
+                    _download_url(
+                        url,
+                        target,
+                        expected_bytes=expected["bytes"],
+                        expected_sha256=expected["sha256"],
+                    )
+                if (
+                    target.is_symlink()
+                    or not target.is_file()
+                    or target.stat().st_size != expected["bytes"]
+                    or sha256_file(target) != expected["sha256"]
+                ):
+                    raise Phase1Error(
+                        f"YEJI provenance bytes/SHA-256 검증 실패: {filename}"
+                    )
 
         for filename, expected in source.get("expected_files", {}).items():
             path = destination / filename
@@ -574,20 +757,18 @@ def verify_nemotron_collection(
             ]
             if not paths:
                 raise Phase1Error(f"Nemotron {variant} 파일 목록이 비어 있습니다.")
-            literals = ", ".join(_sql_literal(str(path)) for path in sorted(paths))
             counts[variant] = int(
                 connection.execute(
-                    f"SELECT count(*) FROM read_parquet([{literals}], union_by_name=true)"
+                    "SELECT count(*) FROM read_parquet(?, union_by_name=true)",
+                    [[str(path) for path in sorted(paths)]],
                 ).fetchone()[0]
             )
         parquet_paths = [root / path for path in file_variants]
-        literals = ", ".join(
-            _sql_literal(str(path)) for path in sorted(parquet_paths)
-        )
         row = connection.execute(
             "SELECT count(*), count(DISTINCT uuid), "
             "sum(CASE WHEN uuid IS NULL OR trim(uuid) = '' THEN 1 ELSE 0 END) "
-            f"FROM read_parquet([{literals}], union_by_name=true)"
+            "FROM read_parquet(?, union_by_name=true)",
+            [[str(path) for path in sorted(parquet_paths)]],
         ).fetchone()
     except Phase1Error:
         raise
@@ -632,8 +813,19 @@ def plan_aihub_download(config: dict[str, Any]) -> dict[str, Any]:
 
 def aihub_request_headers(url: str, api_key: str) -> dict[str, str]:
     """공식 API host에만 인증 header를 붙여 redirect 시 비밀값 전달을 막는다."""
-    parsed = urllib.parse.urlparse(url)
-    if parsed.scheme != "https" or not parsed.hostname or parsed.username or parsed.password:
+    try:
+        parsed = urllib.parse.urlparse(url)
+        port = parsed.port
+    except ValueError as exc:
+        raise Phase1Error("AI Hub downloader URL port가 올바르지 않습니다.") from exc
+    if (
+        parsed.scheme != "https"
+        or not parsed.hostname
+        or port not in {None, 443}
+        or parsed.username
+        or parsed.password
+        or parsed.fragment
+    ):
         raise Phase1Error("AI Hub downloader가 안전하지 않은 URL을 거부했습니다.")
     headers = {"User-Agent": "saju-diary-phase1/1.0"}
     if parsed.hostname == AIHUB_ALLOWED_HOST:
@@ -644,17 +836,13 @@ def aihub_request_headers(url: str, api_key: str) -> dict[str, str]:
 def _download_aihub_archive(url: str, api_key: str, target: Path, file_key: str) -> None:
     target.parent.mkdir(parents=True, exist_ok=True)
     temporary = target.with_name(f".{target.name}.incomplete")
-    if temporary.exists():
+    if temporary.exists() or temporary.is_symlink():
         temporary.unlink()
-    class NoRedirect(urllib.request.HTTPRedirectHandler):
-        def redirect_request(self, request: Any, file_pointer: Any, code: int, message: str, headers: Any, new_url: str) -> None:
-            return None
-
-    opener = urllib.request.build_opener(NoRedirect)
+    opener = urllib.request.build_opener(_NoRedirect)
     try:
         current_url = url
         response: Any = None
-        for _ in range(6):
+        for _ in range(MAX_HTTP_REDIRECTS + 1):
             headers = aihub_request_headers(current_url, api_key)
             request = urllib.request.Request(current_url, headers=headers, method="GET")
             try:
@@ -709,6 +897,8 @@ def download_aihub(config: dict[str, Any], repo_root: Path) -> dict[str, Any]:
         if parsed.scheme != "https" or parsed.hostname != AIHUB_ALLOWED_HOST:
             raise Phase1Error("AI Hub 요청 대상이 공식 HTTPS host가 아닙니다.")
         archive_path = archives / f"filekey-{file_key}.tar"
+        if archive_path.is_symlink():
+            raise Phase1Error("AI Hub archive 경로에 symlink를 허용하지 않습니다.")
         if not archive_path.exists():
             _download_aihub_archive(url, api_key, archive_path, file_key)
         extraction_root = extracted / f"filekey-{file_key}"
@@ -734,10 +924,6 @@ def download_aihub(config: dict[str, Any], repo_root: Path) -> dict[str, Any]:
     }
 
 
-def _sql_literal(value: str) -> str:
-    return "'" + value.replace("'", "''") + "'"
-
-
 def _sql_identifier(value: str) -> str:
     return '"' + value.replace('"', '""') + '"'
 
@@ -748,21 +934,24 @@ def parquet_inventory(path: Path) -> dict[str, Any]:
     except ImportError as exc:
         raise Phase1Error("duckdb가 없습니다. uv로 requirements-data.txt를 설치하세요.") from exc
     connection = duckdb.connect(database=":memory:")
-    literal = _sql_literal(str(path))
+    parameters = [str(path)]
     try:
         description = connection.execute(
-            f"DESCRIBE SELECT * FROM read_parquet({literal})"
+            "DESCRIBE SELECT * FROM read_parquet(?)", parameters
         ).fetchall()
         columns = [{"name": row[0], "type": row[1]} for row in description]
         row_count = int(
-            connection.execute(f"SELECT count(*) FROM read_parquet({literal})").fetchone()[0]
+            connection.execute(
+                "SELECT count(*) FROM read_parquet(?)", parameters
+            ).fetchone()[0]
         )
         null_expressions = [
             f"sum(CASE WHEN {_sql_identifier(column['name'])} IS NULL THEN 1 ELSE 0 END)"
             for column in columns
         ]
         null_values = connection.execute(
-            f"SELECT {', '.join(null_expressions)} FROM read_parquet({literal})"
+            f"SELECT {', '.join(null_expressions)} FROM read_parquet(?)",  # nosec B608
+            parameters,
         ).fetchone()
         null_counts = {
             column["name"]: int(value or 0)
@@ -774,10 +963,11 @@ def parquet_inventory(path: Path) -> dict[str, Any]:
             duplicate_estimate = int(
                 connection.execute(
                     f"SELECT count(*) - count(DISTINCT hash({', '.join(identifiers)})) "
-                    f"FROM read_parquet({literal})"
+                    "FROM read_parquet(?)",  # nosec B608
+                    parameters,
                 ).fetchone()[0]
             )
-        except Exception:
+        except duckdb.Error:
             duplicate_estimate = -1
 
         id_candidates = [
@@ -790,7 +980,8 @@ def parquet_inventory(path: Path) -> dict[str, Any]:
             identifier = _sql_identifier(column)
             value = connection.execute(
                 f"SELECT count({identifier}) - count(DISTINCT {identifier}) "
-                f"FROM read_parquet({literal})"
+                "FROM read_parquet(?)",  # nosec B608
+                parameters,
             ).fetchone()[0]
             id_duplicates[column] = int(value or 0)
 
@@ -807,7 +998,8 @@ def parquet_inventory(path: Path) -> dict[str, Any]:
             identifier = _sql_identifier(column["name"])
             values = connection.execute(
                 f"SELECT cast({identifier} AS VARCHAR), count(*) "
-                f"FROM read_parquet({literal}) GROUP BY 1 ORDER BY 2 DESC, 1 LIMIT 100"
+                "FROM read_parquet(?) GROUP BY 1 ORDER BY 2 DESC, 1 LIMIT 100",  # nosec B608
+                parameters,
             ).fetchall()
             categorical_counts[column["name"]] = [
                 {"value": value, "count": int(count)} for value, count in values
@@ -826,7 +1018,7 @@ def parquet_inventory(path: Path) -> dict[str, Any]:
             )
             row = connection.execute(
                 "WITH source AS ("
-                f"SELECT concat_ws('', {values}) AS text FROM read_parquet({literal})"
+                f"SELECT concat_ws('', {values}) AS text FROM read_parquet(?)"  # nosec B608
                 ") SELECT "
                 "sum(length(text)), "
                 "sum(length(regexp_replace(text, '[^가-힣ㄱ-ㅎㅏ-ㅣ]', '', 'g'))), "
@@ -834,7 +1026,8 @@ def parquet_inventory(path: Path) -> dict[str, Any]:
                 "sum(length(regexp_replace(text, '[^㐀-鿿]', '', 'g'))), "
                 "avg(length(text)), quantile_cont(length(text), 0.5), "
                 "quantile_cont(length(text), 0.9), quantile_cont(length(text), 0.95), "
-                "max(length(text)) FROM source"
+                "max(length(text)) FROM source",
+                parameters,
             ).fetchone()
             total_characters = int(row[0] or 0)
             text_stats = {
@@ -876,26 +1069,30 @@ def parquet_collection_inventory(paths: list[Path]) -> dict[str, Any] | None:
     except ImportError as exc:
         raise Phase1Error("duckdb가 없습니다. uv로 requirements-data.txt를 설치하세요.") from exc
     connection = duckdb.connect(database=":memory:")
-    literals = ", ".join(_sql_literal(str(path)) for path in paths)
-    relation = f"read_parquet([{literals}], union_by_name=true)"
+    relation = "read_parquet(?, union_by_name=true)"
+    collection_parameters = [[str(path) for path in paths]]
     try:
         individual_schemas = [
             [
                 {"name": row[0], "type": row[1]}
                 for row in connection.execute(
-                    f"DESCRIBE SELECT * FROM read_parquet({_sql_literal(str(path))})"
+                    "DESCRIBE SELECT * FROM read_parquet(?)", [str(path)]
                 ).fetchall()
             ]
             for path in paths
         ]
         columns = [
             {"name": row[0], "type": row[1]}
-            for row in connection.execute(f"DESCRIBE SELECT * FROM {relation}").fetchall()
+            for row in connection.execute(
+                f"DESCRIBE SELECT * FROM {relation}",  # nosec B608
+                collection_parameters,
+            ).fetchall()
         ]
         identifiers = [_sql_identifier(column["name"]) for column in columns]
         row = connection.execute(
             f"SELECT count(*), count(*) - count(DISTINCT hash({', '.join(identifiers)})) "
-            f"FROM {relation}"
+            f"FROM {relation}",  # nosec B608
+            collection_parameters,
         ).fetchone()
         id_duplicates: dict[str, int] = {}
         for column in columns:
@@ -903,7 +1100,8 @@ def parquet_collection_inventory(paths: list[Path]) -> dict[str, Any] | None:
                 continue
             identifier = _sql_identifier(column["name"])
             duplicate_count = connection.execute(
-                f"SELECT count({identifier}) - count(DISTINCT {identifier}) FROM {relation}"
+                f"SELECT count({identifier}) - count(DISTINCT {identifier}) FROM {relation}",  # nosec B608
+                collection_parameters,
             ).fetchone()[0]
             id_duplicates[column["name"]] = int(duplicate_count or 0)
         schema_serialized = json.dumps(columns, ensure_ascii=False, sort_keys=True)
@@ -1164,7 +1362,14 @@ def inventory_source(
         return {"source": source_name, "status": "missing", "file_count": 0, "total_bytes": 0}
     manifest_path = root / MANIFEST_NAME
     if manifest_path.is_file():
-        _verify_manifest(root)
+        source = config["sources"][source_name]
+        _verify_manifest(
+            root,
+            expected_source=source_name,
+            expected_revision=source.get("revision", source.get("release")),
+            expected_license=source["license_expression"],
+            expected_usage_class=source["usage_class"],
+        )
         try:
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError) as exc:
@@ -1298,25 +1503,66 @@ def inventory_all(config: dict[str, Any], repo_root: Path) -> dict[str, Any]:
     return write_versioned_json_once(report_path, report)
 
 
-def _verify_manifest(root: Path) -> list[str]:
+def _verify_manifest(
+    root: Path,
+    *,
+    expected_source: str | None = None,
+    expected_revision: str | None = None,
+    expected_license: str | None = None,
+    expected_usage_class: str | None = None,
+) -> list[str]:
     manifest_path = root / MANIFEST_NAME
-    if not manifest_path.is_file():
+    if manifest_path.is_symlink() or not manifest_path.is_file():
         raise Phase1Error(f"SOURCE_MANIFEST.json이 없습니다: {root.name}")
     try:
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
         raise Phase1Error(f"SOURCE_MANIFEST.json을 읽을 수 없습니다: {root.name}") from exc
+    if not isinstance(manifest, dict):
+        raise Phase1Error(f"SOURCE_MANIFEST.json 최상위 값은 object여야 합니다: {root.name}")
+    expected_identity = {
+        "source": expected_source,
+        "revision": expected_revision,
+        "license_expression": expected_license,
+        "usage_class": expected_usage_class,
+    }
+    for key, expected in expected_identity.items():
+        if expected is not None and manifest.get(key) != expected:
+            raise Phase1Error(f"SOURCE_MANIFEST.json {key} identity가 다릅니다: {root.name}")
+    items = manifest.get("files")
+    if not isinstance(items, list) or any(not isinstance(item, dict) for item in items):
+        raise Phase1Error(f"SOURCE_MANIFEST.json files는 object 목록이어야 합니다: {root.name}")
     verified: list[str] = []
-    for item in manifest.get("files", []):
-        relative = validate_relative_archive_path(item["path"])
+    for item in items:
+        path_value = item.get("path")
+        if not isinstance(path_value, str):
+            raise Phase1Error(f"manifest 파일 경로가 올바르지 않습니다: {root.name}")
+        relative = validate_relative_archive_path(path_value)
         path = root.joinpath(*relative.parts)
-        if not path.is_file():
-            raise Phase1Error(f"manifest 파일이 없습니다: {root.name}/{item['path']}")
-        if path.stat().st_size != item["bytes"] or sha256_file(path) != item["sha256"]:
-            raise Phase1Error(f"manifest bytes/SHA-256 불일치: {root.name}/{item['path']}")
-        verified.append(item["path"])
+        if (
+            path.is_symlink()
+            or not path.is_file()
+            or not path.resolve().is_relative_to(root.resolve())
+        ):
+            raise Phase1Error(f"manifest 일반 파일이 없습니다: {root.name}/{path_value}")
+        expected_bytes = item.get("bytes")
+        expected_sha256 = item.get("sha256")
+        if (
+            not isinstance(expected_bytes, int)
+            or expected_bytes < 0
+            or SHA256_PATTERN.fullmatch(str(expected_sha256)) is None
+        ):
+            raise Phase1Error(f"manifest bytes/SHA-256 metadata가 잘못됐습니다: {root.name}/{path_value}")
+        if path.stat().st_size != expected_bytes or sha256_file(path) != expected_sha256:
+            raise Phase1Error(f"manifest bytes/SHA-256 불일치: {root.name}/{path_value}")
+        verified.append(path_value)
     if not verified:
         raise Phase1Error(f"manifest에 원천 파일이 없습니다: {root.name}")
+    if len(verified) != len(set(verified)):
+        raise Phase1Error(f"manifest에 중복 파일 경로가 있습니다: {root.name}")
+    actual = [path.relative_to(root).as_posix() for path in _iter_manifest_files(root)]
+    if set(actual) != set(verified):
+        raise Phase1Error(f"manifest에 기록되지 않은 원천 파일이 있습니다: {root.name}")
     return verified
 
 
@@ -1334,7 +1580,14 @@ def verify_sources(
                 results.append({"source": source_name, "status": "blocked_missing_aihub_86"})
                 continue
             raise Phase1Error(f"활성 원천 경로가 없습니다: {source_name}")
-        files = _verify_manifest(root)
+        source = config["sources"][source_name]
+        files = _verify_manifest(
+            root,
+            expected_source=source_name,
+            expected_revision=source.get("revision", source.get("release")),
+            expected_license=source["license_expression"],
+            expected_usage_class=source["usage_class"],
+        )
         manifest_files[source_name] = files
         results.append({"source": source_name, "status": "verified", "file_count": len(files)})
 
@@ -1374,6 +1627,20 @@ def verify_sources(
             path = source_root(config, repo_root, "yeji_bazi_rules") / filename
             if path.stat().st_size != expected["bytes"] or sha256_file(path) != expected["sha256"]:
                 raise Phase1Error("YEJI 신살 고정 파일 bytes/SHA-256이 다릅니다.")
+        provenance_root = (
+            source_root(config, repo_root, "yeji_bazi_rules")
+            / "provenance"
+            / source["provenance"]["revision"]
+        )
+        for filename, expected in source["provenance"]["expected_files"].items():
+            path = provenance_root / filename
+            if (
+                path.is_symlink()
+                or not path.is_file()
+                or path.stat().st_size != expected["bytes"]
+                or sha256_file(path) != expected["sha256"]
+            ):
+                raise Phase1Error(f"YEJI provenance bytes/SHA-256이 다릅니다: {filename}")
     if "aihub_empathy" in manifest_files:
         source = config["sources"]["aihub_empathy"]
         expected_keys = set(source["file_keys"])

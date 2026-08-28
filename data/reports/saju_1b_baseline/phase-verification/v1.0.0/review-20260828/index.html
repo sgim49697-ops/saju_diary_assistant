@@ -1,0 +1,165 @@
+<!-- index.html - Phase 0~2 전체 재검수 결과를 원문 없이 보여준다. -->
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+    >
+    <title>Phase 0~2 전체 재검수 보고서</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #17211b;
+        --muted: #5d6b62;
+        --paper: #f6f3ec;
+        --panel: #fffdf8;
+        --line: #d7d2c5;
+        --good: #226342;
+        --good-soft: #e4f2e8;
+        --hold: #825b19;
+        --hold-soft: #faedcf;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--paper);
+        color: var(--ink);
+        font-family: Pretendard, "Noto Sans KR", system-ui, sans-serif;
+        line-height: 1.55;
+      }
+      main { width: min(1080px, calc(100% - 32px)); margin: 40px auto 72px; }
+      header, section {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        box-shadow: 0 8px 28px rgb(35 43 37 / 6%);
+      }
+      header { padding: 30px; }
+      section { margin-top: 18px; padding: 24px; }
+      h1, h2 { margin: 0; letter-spacing: -0.035em; }
+      h1 { font-size: clamp(1.8rem, 5vw, 3rem); }
+      h2 { font-size: 1.2rem; margin-bottom: 16px; }
+      p { margin: 10px 0 0; }
+      .sub { color: var(--muted); max-width: 72ch; }
+      .badge {
+        display: inline-block;
+        margin-bottom: 14px;
+        border-radius: 999px;
+        padding: 5px 11px;
+        background: var(--good-soft);
+        color: var(--good);
+        font-size: .82rem;
+        font-weight: 700;
+      }
+      .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+      .card { border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+      .card strong { display: block; margin-bottom: 4px; font-size: 1.05rem; }
+      .card span { color: var(--muted); font-size: .92rem; }
+      table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+      th, td { padding: 11px 10px; border-bottom: 1px solid var(--line); text-align: left; }
+      th { color: var(--muted); font-weight: 650; }
+      tbody tr:last-child td { border-bottom: 0; }
+      code { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .88em; }
+      ul { margin: 0; padding-left: 21px; }
+      li + li { margin-top: 6px; }
+      .hold { border-color: #e1c990; background: var(--hold-soft); }
+      .hold strong { color: var(--hold); }
+      .foot { color: var(--muted); font-size: .88rem; }
+      @media (max-width: 760px) {
+        main { margin-top: 20px; }
+        header, section { padding: 20px; }
+        .grid { grid-template-columns: 1fr; }
+        .scroll { overflow-x: auto; }
+        table { min-width: 680px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <span class="badge">2026-08-28 재검수 통과</span>
+        <h1>Phase 0~2 전체 재검수</h1>
+        <p class="sub">
+          계약·라이선스, 원천 4종, 과거 audit 3개, MIX20K용 24K staging과
+          검수 인터페이스를 재검증했습니다. 원문 sample과 비밀값은 이 보고서에 없습니다.
+        </p>
+      </header>
+
+      <section>
+        <h2>Phase 판정</h2>
+        <div class="grid">
+          <div class="card"><strong>Phase 0 완료</strong><span>계약 v1.0.1·라이선스 재검토</span></div>
+          <div class="card"><strong>Phase 1 완료</strong><span>4 원천·5 혼합 축·manifest 재해시</span></div>
+          <div class="card"><strong>Phase 2 완료</strong><span>승인 audit·24K staging·Phase 4 인계</span></div>
+        </div>
+      </section>
+
+      <section>
+        <h2>원천 재검증</h2>
+        <div class="scroll">
+          <table>
+            <thead><tr><th>원천</th><th>고정 revision</th><th>라이선스</th><th>결과</th></tr></thead>
+            <tbody>
+              <tr><td>Kanana 2 1.3B Instruct</td><td><code>bf4786a…f720</code></td><td>KANANA OPEN LICENSE AGREEMENT</td><td>존재·LICENSE 재확인</td></tr>
+              <tr><td>Nemotron Saju</td><td><code>ffb9342…5702</code></td><td>CC BY 4.0</td><td>1,000,000행·UUID 중복 0</td></tr>
+              <tr><td>bazi-sft</td><td><code>fad8706…1df4</code></td><td>Apache 2.0</td><td>100,000행 원천 고정</td></tr>
+              <tr><td>YEJI Rules</td><td><code>84583ca…cfe9</code></td><td>MIT + upstream MIT</td><td>51규칙·원천 해시 고정</td></tr>
+              <tr><td>AI Hub #86</td><td>file key 4개</td><td>AI Hub 이용정책</td><td>승인·비공개·구조 Gate 통과</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h2>24K staging</h2>
+        <div class="scroll">
+          <table>
+            <thead><tr><th>축</th><th>행 수</th><th>재검증 요약</th></tr></thead>
+            <tbody>
+              <tr><td>Nemotron</td><td>13,200</td><td>v6 2,640·v7 10,560</td></tr>
+              <tr><td>bazi-sft</td><td>6,000</td><td>1,500 완전 group</td></tr>
+              <tr><td>AI Hub 단일턴</td><td>2,400</td><td>멀티턴과 group 교집 0</td></tr>
+              <tr><td>AI Hub 멀티턴</td><td>1,200</td><td>연속 role 패턴 검증</td></tr>
+              <tr><td>YEJI 파생</td><td>1,200</td><td>51규칙 coverage</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="foot">고유 record ID 24,000·고유 message hash 24,000·검수 decision 300건.</p>
+      </section>
+
+      <section>
+        <h2>테스트 결과</h2>
+        <div class="grid">
+          <div class="card"><strong>68 / 68</strong><span>Python 회귀 테스트</span></div>
+          <div class="card"><strong>0 High·0 Medium</strong><span>Bandit 보안 검사</span></div>
+          <div class="card"><strong>300 items</strong><span>HTML read-only bootstrap·HTTP 200</span></div>
+        </div>
+        <p class="foot">Ruff, Python compile, JavaScript 구문, JSON parse, 기존·재생성 팀 공유 ZIP 무결성 검사도 통과했습니다.</p>
+      </section>
+
+      <section class="hold">
+        <h2>Phase 4에서 계속 차단할 항목</h2>
+        <ul>
+          <li>교차 축의 동일 명식 leakage group 36개를 같은 split에 배치</li>
+          <li>holdout 500·core eval 200과 train의 group 교집 0 검증</li>
+          <li>tokenizer 길이·assistant loss mask·special token 검사</li>
+          <li>MIX1K ⊂ MIX10 ⊂ MIX20 최종 manifest 생성</li>
+          <li>모델 load·200-step memory smoke 후 별도 학습 승격 판정</li>
+        </ul>
+        <p><strong>현재 training_promotion_allowed = false</strong></p>
+      </section>
+
+      <section>
+        <h2>해석 주의</h2>
+        <p>
+          감사·staging 300건 승인은 항목별 명리 전문 판독이 아닌 사용자의 일괄 위험 수용입니다.
+          데이터 품질 인증을 의미하지 않으며, 모델·데이터 라이선스 판정은 법률 자문이 아닙니다.
+        </p>
+        <p class="foot"><a href="verification_report.json">기계 판독용 상세 JSON</a></p>
+      </section>
+    </main>
+  </body>
+</html>

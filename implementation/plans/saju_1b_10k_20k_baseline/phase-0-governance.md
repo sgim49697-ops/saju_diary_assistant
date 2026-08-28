@@ -5,9 +5,9 @@
 | 실행 상태 | 완료 |
 | 선행 Phase | 없음 |
 | 입력 | 본 정본, 모델·데이터 라이선스, 현재 장비 정보 |
-| 출력 | 승인된 `experiment_contract.md`, `license_manifest.json` 초안 |
+| 출력 | 승인된 `experiment_contract.md`, 현재 `license-review-v1.0.0.json` |
 | 완료 Gate | 실험 범위·배포 제한·버전 고정 정책 승인 |
-| 웹 확인일 | 2026-08-27 |
+| 웹 확인일 | 2026-08-28 |
 
 ## 목적
 
@@ -47,7 +47,7 @@ KI10과 KI20은 서로의 checkpoint를 이어받지 않는다. KI20 중간의 1
 
 ### Kanana
 
-KananaOpenLicense에서 fine-tuned 모델은 Derivative Works에 해당한다. 광고가 붙은 자체 앱은 상업적 사용으로 취급하되, Section 4.2의 자체 서비스 개발·운영 범위로 관리한다. 공개 또는 배포 전에는 다음을 별도 검토한다.
+공식 문서명 `KANANA OPEN LICENSE AGREEMENT`에서 fine-tuned 모델은 Derivative Works에 해당한다. 광고가 붙은 자체 앱은 상업적 사용으로 취급하되, Section 4.2의 자체 서비스 개발·운영 범위로 관리한다. `4.2`는 라이선스 버전이 아닌 조항 번호다. 공개 또는 배포 전에는 다음을 별도 검토한다.
 
 - 라이선스 사본과 수정 사실 제공
 - 요구되는 Notice 포함
@@ -63,7 +63,7 @@ KananaOpenLicense에서 fine-tuned 모델은 Derivative Works에 해당한다. �
 |---|---|---|
 | Nemotron Saju | CC BY 4.0 | revision·출처·변경 이력 기록 |
 | `AmareshHebbar/bazi-sft` | Apache 2.0 | 구조 검산·한국어 재렌더 후 사용, 원문 응답 직접 학습 금지 |
-| AI Hub 감성대화 #86 | AI Hub 일반정책·개별 신청 | 영리 연구개발 허용, 제3자 제공·원문 공개 금지, 사업결과 출처 표시. 한 원천에서 단일턴·멀티턴 축을 파생 |
+| AI Hub 감성대화 #86 | AI Hub 일반정책·개별 신청 | AI 모델 학습 목적의 영리·비영리 연구개발에 한정. NIA·AI Hub 출처 표시, 미승인 제3자 열람·이전·판매 금지, 개인정보 발견 시 신고·해당 데이터 삭제. 한 원천에서 단일턴·멀티턴 축을 파생 |
 | AI Hub 연속대화 #271 | KETI 데이터 정책 | 연구 목적 외 상업 이용은 별도 협의가 필요하므로 학습·다운로드 제외 |
 | YEJI `shensha_51.json` | MIT + 원천 MIT | 단일 파일만 허용, 원천 코드 대조·오류 교정 후 자체 QA 생성 |
 | YEJI v9·Processed·Translated·Interpretations | NC·원천 불명·무라이선스·품질 실패 | 활성 학습에서 제외, Translated만 비학습 감사 참고 허용 |
@@ -85,11 +85,11 @@ KananaOpenLicense에서 fine-tuned 모델은 Derivative Works에 해당한다. �
 2. 서비스 형태가 Kanana Section 4.1의 별도 상업 라이선스 대상인지 확인한다.
 3. 고정 혼합비, Run 목록, 1K⊂10K⊂20K 계약을 승인한다.
 4. 원본·checkpoint의 공개 금지 경로를 확인한다.
-5. `experiment_contract.md`와 `license_manifest.json` 초안에 승인자·날짜를 기록한다.
+5. `experiment_contract.md`와 현재 `license-review-v1.0.0.json`에 승인·재검수 날짜를 기록한다.
 
 ## 완료 Gate
 
-- [x] KananaOpenLicense와 모든 데이터 이용조건을 확인했다.
+- [x] `KANANA OPEN LICENSE AGREEMENT`와 모든 데이터 이용조건을 확인했다.
 - [x] 자체 서비스와 별도 상업 라이선스 대상 서비스의 경계를 승인했다.
 - [x] 고정 Run·비율·비교 방법을 승인했다.
 - [x] 모델·데이터 revision과 SHA-256 기록 형식을 승인했다.
@@ -106,6 +106,7 @@ KananaOpenLicense에서 fine-tuned 모델은 Derivative Works에 해당한다. �
 - [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
 - [`bazi-sft`](https://huggingface.co/datasets/AmareshHebbar/bazi-sft)
 - [YEJI BaZi Rules](https://huggingface.co/datasets/tellang/yeji-bazi-rules)
+- [현재 라이선스 재검토](../../../configs/data_versions/saju_1b_baseline/license-review-v1.0.0.json)
 
 ## 웹 확인 기록
 
@@ -115,3 +116,6 @@ KananaOpenLicense에서 fine-tuned 모델은 Derivative Works에 해당한다. �
 | 2026-08-27 | AI Hub 이용정책 | 영리·비영리 연구개발, 학습 목적, 출처 표시, 신청·본인확인, 제3자 제공 금지 확인 |
 | 2026-08-27 | 활성·제외 데이터 권리 사슬 | CC BY·Apache·MIT·AI Hub 허용 소스와 NC·무라이선스·원천 불명 소스 분리 |
 | 2026-08-27 | AI Hub #271 제공 주체·정책 재검증 | KETI 데이터 분류와 별도 상업 협의 조건을 확인해 활성 소스에서 제외하고 #86 멀티턴 파생 축으로 대체 |
+| 2026-08-28 | Kanana 고정 LICENSE·모델 카드 | 공식 문서명, Release Date, Section 3 배포 의무, Section 4.1·4.2 상업 경계를 재확인. 과거 `Kanana Open License 4.2` 표현은 현재 정오표로 대체 |
+| 2026-08-28 | Nemotron·BaZi·YEJI 카드·원천 LICENSE | CC BY 4.0·Apache 2.0·MIT 표시와 품질 한계, YEJI 허용 규칙의 원천 MIT 계보를 재확인 |
+| 2026-08-28 | AI Hub 현재 이용정책 | AI 학습 목적, NIA 출처, 미승인 제3자 열람·이전·판매 금지, 개인정보 발견 시 신고·해당 데이터 삭제 의무를 재확인 |

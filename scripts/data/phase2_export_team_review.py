@@ -26,12 +26,14 @@ from scripts.data.audit_tools import (
     _load_build_files,
     _load_raw_record,
     apply_yeji_corrections,
+    audit_paths,
     prepare_audit,
     sha256_file,
     sha256_json,
     verify_audit,
 )
 from scripts.data.errors import Phase1Error, Phase2AuditError
+from scripts.data.phase2_verify_history import verify_historical_build
 
 DEFAULT_SOURCE_CONFIG = REPO_ROOT / "configs/data_sources.v1.1.json"
 DEFAULT_POLICY = (
@@ -42,6 +44,8 @@ PACKAGE_SCHEMA_VERSION = "1.0.0"
 PACKAGE_VERSION = "share-v1.1.0"
 PROJECTION_VERSION = "minimal-v1.0.0"
 TEAM_REVIEWER_VERSION = "team-reviewer-v1.1.0"
+AUTHORIZATION_BASIS = "explicit_aihub_dataset_86_reviewer_access_authorization"
+LEGACY_AUTHORIZATION_BASIS = "explicit_user_confirmation_same_approval_scope"
 STATIC_ASSETS = ("START_HERE.html", "team-review.css", "team-review.js")
 PACKAGE_ARTIFACTS = (
     *STATIC_ASSETS,
@@ -388,7 +392,7 @@ def build_package_document(
         "source_record_counts": dict(sorted(source_records.items())),
         "contains_aihub_controlled_data": True,
         "archive_encryption": "none_user_selected",
-        "authorization_basis": "explicit_user_confirmation_same_approval_scope",
+        "authorization_basis": AUTHORIZATION_BASIS,
         "main_decision_ledger_included": False,
         "advisory_feedback_only": True,
         "fingerprint_inputs": fingerprint_inputs,
@@ -458,7 +462,7 @@ def _usage_notice(manifest: dict[str, Any]) -> str:
 
 - 패키지 ID: `{manifest['package_id']}`
 - Audit: `{manifest['audit_version']}/{manifest['build_id']}`
-- 승인 근거: 동일 승인 범위 팀원임을 사용자가 명시적으로 확인함
+- 승인 근거: AI Hub #86의 동일 신청에 포함됐거나 별도 열람 권한을 명시적으로 확인함
 
 AI Hub 공식 이용정책은 승인받지 않은 다른 법인·단체·개인에게 데이터를 열람시키거나 제공·양도·대여·판매하지 못하도록 규정합니다.
 
@@ -705,7 +709,7 @@ def verify_archive(archive_path: Path) -> dict[str, Any]:
         or any(document.get(field) != manifest.get(field) for field in document_identity_fields)
         or manifest.get("archive_encryption") != "none_user_selected"
         or manifest.get("authorization_basis")
-        != "explicit_user_confirmation_same_approval_scope"
+        not in {AUTHORIZATION_BASIS, LEGACY_AUTHORIZATION_BASIS}
         or manifest.get("fingerprint_inputs") != expected_fingerprint_inputs
         or manifest.get("package_fingerprint") != expected_fingerprint
         or manifest.get("package_id") != package_id
@@ -881,17 +885,41 @@ def build_archive(arguments: argparse.Namespace) -> dict[str, Any]:
         source_config,
         policy,
         arguments.audit_version,
-        verify_raw=False,
-    )
-    if arguments.build != context["identity"]["build_id"]:
-        raise Phase2AuditError("요청한 --build가 현재 audit fingerprint와 다릅니다.")
-    verify_audit(
-        REPO_ROOT,
-        source_config,
-        policy,
-        arguments.audit_version,
         verify_raw=True,
     )
+    if arguments.build != context["identity"]["build_id"]:
+        historical = verify_historical_build(
+            REPO_ROOT,
+            audit_version=arguments.audit_version,
+            build_id=arguments.build,
+            implementation_commit=None,
+        )
+        if not historical["approved"]:
+            raise Phase2AuditError("공유본은 승인된 과거 audit에서만 만들 수 있습니다.")
+        context["paths"] = audit_paths(
+            REPO_ROOT, context["policy"], arguments.build
+        )
+        build_manifest = _load_build_files(context)["build_manifest"]
+        if sha256_file(policy) != build_manifest.get("policy_sha256"):
+            raise Phase2AuditError("과거 audit policy와 현재 버전 파일이 다릅니다.")
+        correction_path = context.get("correction_path")
+        if correction_path is not None and sha256_file(
+            correction_path
+        ) != build_manifest.get("correction_manifest_sha256"):
+            raise Phase2AuditError("과거 audit correction과 현재 버전 파일이 다릅니다.")
+        context["identity"] = {
+            **context["identity"],
+            "build_id": arguments.build,
+            "build_sha256": build_manifest["build_sha256"],
+        }
+    else:
+        verify_audit(
+            REPO_ROOT,
+            source_config,
+            policy,
+            arguments.audit_version,
+            verify_raw=False,
+        )
     values = _load_build_files(context)
     if any(
         item.get("source") == "aihub_empathy" for item in values["queue"]
@@ -973,7 +1001,7 @@ def build_parser() -> argparse.ArgumentParser:
     build.add_argument(
         "--confirm-aihub-authorized-reviewer",
         action="store_true",
-        help="팀원이 동일 AI Hub 승인 범위임을 확인한다.",
+        help="검수자의 AI Hub #86 열람 권한을 명시적으로 확인한다.",
     )
     verify = subparsers.add_parser("verify", help="기존 공유 ZIP을 검증한다.")
     verify.add_argument("--archive", type=Path, required=True)

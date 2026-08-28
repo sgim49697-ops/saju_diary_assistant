@@ -8,6 +8,7 @@ from pathlib import Path
 
 from scripts.data.audit_tools import apply_yeji_corrections
 from scripts.data.phase2b_review_web import ReviewState
+from scripts.data.phase2b_verify_history import verify_historical_staging
 from scripts.data.preprocess_adapters import (
     evaluate_yeji_rule,
     expected_bazi_rules,
@@ -16,7 +17,6 @@ from scripts.data.preprocess_tools import (
     _validate_language_bank,
     load_staging_config,
     staging_plan,
-    verify_staging,
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -49,9 +49,10 @@ class StagingContractTests(unittest.TestCase):
             {"v6": 2_640, "v7": 10_560},
         )
 
-    def test_plan_is_pinned_to_current_approved_audit(self) -> None:
+    def test_plan_tracks_current_inputs_without_reusing_historical_build_id(self) -> None:
         plan = staging_plan(REPO_ROOT, CONFIG_PATH)
-        self.assertEqual(plan["build_id"], BUILD_ID)
+        self.assertRegex(plan["build_id"], r"^build-[0-9a-f]{12}$")
+        self.assertNotEqual(plan["build_id"], BUILD_ID)
         self.assertEqual(plan["audit_status"], "approved")
         self.assertEqual(plan["total_target_rows"], 24_000)
         self.assertFalse(plan["promotion_allowed"])
@@ -64,7 +65,12 @@ class StagingContractTests(unittest.TestCase):
         )
         if not private_path.is_dir():
             self.skipTest("Git 제외 staging build가 없는 환경입니다.")
-        result = verify_staging(REPO_ROOT, CONFIG_PATH, BUILD_ID)
+        result = verify_historical_staging(
+            REPO_ROOT,
+            staging_version="v0.1.0",
+            build_id=BUILD_ID,
+            implementation_commit=None,
+        )
         self.assertEqual(result["total_rows"], 24_000)
         self.assertEqual(result["approval_status"], "owner_risk_accepted")
         self.assertTrue(result["owner_risk_accepted"])

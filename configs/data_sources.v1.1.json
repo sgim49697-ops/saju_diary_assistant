@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "canonical_plan_version": "2.3.0",
+  "canonical_plan_version": "2.3.1",
   "approved_at": "2026-08-27",
   "paths": {
     "raw_root": "data/raw",
@@ -155,6 +155,20 @@
         "repo_id": "chxb/shensha",
         "revision": "5b90110e55feb92303ef7853ecacdb6f9ed59eac",
         "allow_files": ["LICENSE", "README.md", "shensha.js"],
+        "expected_files": {
+          "LICENSE": {
+            "bytes": 1061,
+            "sha256": "2825d7ded335793932f606a89f54d002a8d22b2c863ca6d35ec60f7a46ea50c4"
+          },
+          "README.md": {
+            "bytes": 1311,
+            "sha256": "8731a44230b3c2bd0723bcff79e25b7eefb3120a403f530ca972bec4f9847e48"
+          },
+          "shensha.js": {
+            "bytes": 46597,
+            "sha256": "38ea75aa8cae7da13e457ed8aac8d68cab39a9cd4d78945149ea7c4f395acaec"
+          }
+        },
         "raw_url_template": "https://raw.githubusercontent.com/chxb/shensha/{revision}/{path}"
       }
     }

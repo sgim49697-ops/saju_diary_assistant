@@ -5,15 +5,15 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, Sequence
-
+from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from scripts.data.source_tools import (  # noqa: E402
+from scripts.data.source_tools import (
     Phase1Error,
     download_aihub,
     download_hf_sources,
