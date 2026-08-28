@@ -7,6 +7,8 @@ import tempfile
 import unittest
 import zipfile
 from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import Mock, call
 
 from scripts.preflight.errors import Phase4Error
 from scripts.preflight.phase4_common import load_json, validate_contract
@@ -22,6 +24,7 @@ from scripts.preflight.phase4_review import (
     _write_review_zip,
     verify_review_archive,
 )
+from scripts.preflight.phase4_smoke import _prepare_reload_cuda
 from scripts.preflight.phase4_triage import _case_risk
 from scripts.preflight.phase4_verify_history import verify_historical_phase4
 
@@ -77,6 +80,29 @@ class Phase4ContractTests(unittest.TestCase):
         self.assertNotIn(".backward(", source)
         self.assertNotIn("optimizer.step(", source)
         self.assertNotIn("model.train(", source)
+
+    def test_checkpoint_reload_initializes_cuda_context_before_peak_reset(self) -> None:
+        cuda = Mock()
+        cuda.is_available.return_value = True
+        cuda.device_count.return_value = 1
+        cuda.current_device.return_value = 0
+        parent = Mock()
+        parent.attach_mock(cuda.current_device, "current_device")
+        parent.attach_mock(cuda.empty_cache, "empty_cache")
+        parent.attach_mock(cuda.reset_peak_memory_stats, "reset_peak_memory_stats")
+
+        _prepare_reload_cuda(SimpleNamespace(cuda=cuda))
+
+        self.assertEqual(
+            parent.mock_calls,
+            [call.current_device(), call.empty_cache(), call.reset_peak_memory_stats(0)],
+        )
+
+    def test_checkpoint_reload_rejects_missing_cuda(self) -> None:
+        cuda = Mock()
+        cuda.is_available.return_value = False
+        with self.assertRaisesRegex(Phase4Error, "단일 CUDA GPU"):
+            _prepare_reload_cuda(SimpleNamespace(cuda=cuda))
 
 
 class Phase4ScoringTests(unittest.TestCase):

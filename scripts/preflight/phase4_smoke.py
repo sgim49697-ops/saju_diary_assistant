@@ -677,6 +677,17 @@ def _is_cuda_oom(exc: BaseException) -> bool:
     return "out of memory" in str(exc).lower() or "cuda error: out of memory" in str(exc).lower()
 
 
+def _prepare_reload_cuda(torch: Any) -> None:
+    """체크포인트 재로드 전에 cuda:0 컨텍스트와 메모리 계측을 초기화한다."""
+
+    if not torch.cuda.is_available() or torch.cuda.device_count() != 1:
+        raise Phase4Error("checkpoint 재로드에는 단일 CUDA GPU가 필요합니다.")
+    if torch.cuda.current_device() != 0:
+        raise Phase4Error("checkpoint 재로드 장치는 cuda:0이어야 합니다.")
+    torch.cuda.empty_cache()
+    torch.cuda.reset_peak_memory_stats(0)
+
+
 def _write_diagnostic_failure(
     context: dict[str, Any], stage: str, exc: BaseException
 ) -> dict[str, Any]:
@@ -717,8 +728,7 @@ def _reload_and_generate(
         from transformers import AutoModelForCausalLM, AutoTokenizer
     except Exception as exc:
         raise Phase4Error("checkpoint reload runtime import가 실패했습니다.") from exc
-    torch.cuda.empty_cache()
-    torch.cuda.reset_peak_memory_stats(0)
+    _prepare_reload_cuda(torch)
     started = time.monotonic()
     tokenizer = AutoTokenizer.from_pretrained(
         checkpoint,

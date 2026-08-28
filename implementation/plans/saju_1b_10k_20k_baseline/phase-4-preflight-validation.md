@@ -224,6 +224,11 @@ runs/KI1K-SMOKE-v1/v1.1.0/build-<fingerprint>/
 ## 진행 기록
 
 - 2026-08-28
+  - 작업 요약: `build-72e29f885bf9`의 768-token 100-step 및 별도 process 100→200-step resume는 통과했으나, 최종 checkpoint 재로드가 모델 로드 전 CUDA peak-memory counter 초기화 순서 때문에 중단됐다.
+  - 변경 범위: 재로드 단계가 단일 `cuda:0`을 확인하고 `current_device()`로 CUDA context를 만든 다음 메모리 계측을 초기화하도록 수정했으며 호출 순서 회귀 테스트를 추가했다. 실패는 generation·Phase 5 진입 전에 fail-closed 처리됐다.
+  - 검증: 독립 process에서 초기 context 없이 `reset_peak_memory_stats(0)`가 `Invalid device argument`를 내는 것과 `current_device()` 이후 정상화되는 것을 재현했다.
+  - 남은 이슈·후속 작업: 구현 hash가 바뀌므로 새 checkpoint commit과 새 Phase 4 fingerprint에서 A~E를 다시 실행한다. 기존 200-step 결과를 최종 승격 근거로 재사용하지 않는다.
+- 2026-08-28
   - 작업 요약: 교정 staging을 부모로 하는 Phase 4 `v1.1.0` 계약, K0 exact-match 재사용·700항목 자동 위험 분류, 단계별 Full FT smoke/resume와 canonical 승격 실행기를 구현했다.
   - 변경 범위: A~C는 계속 비학습으로 격리하고, D/E만 BF16 전체 파라미터·SDPA·assistant-only `chunked_nll`·실제 `paged_adamw_8bit` state를 검사하도록 했다. 1024는 진단, 768은 100→200-step 정식 resume로 역할을 분리했다.
   - 검증: Ruff, Python compile, Phase 4 단위 테스트, `validate-contract`, dry-run, 과거 v1.0 artifact hash chain 재검증을 통과했다.
