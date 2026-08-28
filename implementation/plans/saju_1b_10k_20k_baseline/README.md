@@ -4,7 +4,7 @@
 
 | 항목 | 값 |
 |---|---|
-| 문서 버전 | `2.4.0` |
+| 문서 버전 | `2.5.0` |
 | 정본화 기준일 | 2026-08-28 |
 | 주 장비 | NVIDIA GeForce RTX 5070 Ti 16GiB, WSL2 |
 | 주 모델 | `kakaocorp/kanana-2-1.3b-instruct@bf4786aa2a1908adce942d53976270132732f720` |
@@ -33,7 +33,7 @@
 | 1 | [데이터 수집](phase-1-data-collection.md) | 완료 | 네 원천의 revision·해시·이용조건과 #86 구조 Gate 통과 |
 | 2 | [데이터 전처리](phase-2-data-preprocessing.md) | 완료 | 승인 audit 부모의 MIX20K용 24K staging 완결, 학습 승격은 Phase 4 Gate로 분리 |
 | 3 | [학습 모델·환경 준비](phase-3-model-preparation.md) | 완료 | 고정 PyTorch cu130 환경에서 모델·tokenizer·template 전체 BF16 오프라인 로드 성공 |
-| 4 | [학습 전 데이터·모델 검증](phase-4-preflight-validation.md) | 미시작 | 데이터 Gate와 200-step smoke 모두 통과 |
+| 4 | [학습 전 데이터·모델 검증](phase-4-preflight-validation.md) | 부분 진행 | A~C 비학습 preflight 통과, D~E 학습 smoke 미실행 |
 | 5 | [Baseline 학습](phase-5-baseline-training.md) | 미시작 | KI10·KI20 독립 Run과 산출물 완결 |
 | 6 | [평가·검수·v2 결정](phase-6-evaluation-v2-decision.md) | 미시작 | 고정 평가 후 50K 또는 v2 Lite 경로 결정 |
 
@@ -63,6 +63,7 @@ data/
         ├── audit-review/v1.2.0/build-ca756f3eb89f/reviewer-v1.1.0/
         ├── preprocessing-staging/v0.1.0/build-109815ee6879/
         ├── model-preparation/v1.0.0/build-32e2c84af3d3/
+        ├── preflight/v1.0.0/build-a6813ba3b778/
         └── phase-verification/v1.0.0/review-20260828/
 
 configs/data_versions/saju_1b_baseline/
@@ -73,6 +74,7 @@ configs/data_versions/saju_1b_baseline/
 ├── preprocessing-staging-v0.1.0.json
 ├── language-bank-v1.0.0.json
 ├── license-review-v1.0.0.json
+├── preflight-v1.0.0.json
 └── registry.json
 
 configs/model_versions/saju_1b_baseline/model-preparation-v1.0.0.json
@@ -233,3 +235,8 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
   - 변경 범위: Linux·Windows Codex와 Claude 전역 Markdown의 오래된 PyTorch 기본값을 같은 내용으로 갱신했다. 저장소에는 모델·환경 계약, 75개 전이 의존성 hash lock, 안전한 준비·검증 CLI와 테스트, `build-32e2c84af3d3` 공개 보고서를 추가했다. `.venv`와 모델 파일은 Git에서 제외했다.
   - 검증: `torch.version.cuda=13.0`, native `sm_120`, BF16 matmul, `libbitsandbytes_cuda130.so` Adam8bit state, 모델 14파일·2,593,309,962 bytes 전체 hash, 1,291,478,272개 BF16 CUDA parameter, load key 오류 0, 보고서 재검증과 전체 회귀 검사를 통과했다.
   - 남은 이슈·후속 작업: upstream YaRN factor 40과 암시적 비율 8 경고는 원본 불변 상태로 보고서에 남겼다. Phase 4 최종 데이터셋·assistant loss mask·200-step smoke와 실제 학습은 수행하지 않았고 `training_promotion_allowed=false`를 유지한다.
+- 2026-08-28
+  - 작업 요약: Phase 4A~C 비학습 preflight `v1.0.0/build-a6813ba3b778`을 완료해 24K schema/token/loss mask, Core Eval 200·source holdout 500, 중첩 MIX candidate와 원본 모델 K0 720case를 고정했다.
+  - 변경 범위: 재현 가능한 preflight CLI·테스트·공개 집계 보고서와 저장소 밖 제한 데이터 오프라인 검수 ZIP을 추가했다. 전역 Codex·Claude 규칙에는 native Triton용 Python header 검증과 정식 실행의 JIT 우회 금지를 동기화했다. 실제 학습·optimizer·backward·checkpoint·canonical manifest 승격은 하지 않았다.
+  - 검증: Gate A/B/C, BF16 SDPA native-JIT probe, K0 빈 출력·제어문자·special-token·missing-chart 안전 위반 0건, 결정성 재생, 700항목/720case ZIP checksum과 Windows Chrome 오프라인 렌더링을 통과했다.
+  - 남은 이슈·후속 작업: K0 371/720case가 512-token 상한에 도달했고 일부 hard 자동 계약 점수가 낮다. 사람 전문 검수와 Phase 4D/E 200-step 학습 smoke가 남았으므로 Phase 4는 `부분 진행`, `approved_derived=null`, `training_promotion_allowed=false`이며 Phase 5를 시작하지 않는다.

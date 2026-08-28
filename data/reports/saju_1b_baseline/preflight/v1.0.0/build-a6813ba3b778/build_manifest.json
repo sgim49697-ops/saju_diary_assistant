@@ -1,0 +1,65 @@
+{
+  "artifact_sha256": {
+    "k0_summary.json": "3a51f657639bbcf4c95f3de37bed4571fd14b8626efbc44ba2188d38908ae659",
+    "manifest_report.json": "98550f71893edd2b8ea83819ae95fa0ed0c14fc7432132526734c4bbd8d68b21",
+    "preflight_report.json": "128ede732c2974f7105bd141b414eabe5ae45122d9e0614ce35b1dc5d08492de",
+    "schema_validation.json": "f4a56f19fe29b090d862501cf154c4adff0a2d1b8b7f43662d5b06103c72760c",
+    "split_leakage_report.json": "2b20cc6e75a4aa01e440ff3c6fc7fbfae19389f7b0ea4f893a04431026be2cf7",
+    "tokenization_report.json": "2a004a5ebe03b93a705b9fb1c57ea73fee4f4ca1ea8988221d7fe839e004a30c"
+  },
+  "build_id": "build-a6813ba3b778",
+  "build_inputs": {
+    "canonical_plan_version": "2.5.0",
+    "implementation_hashes": {
+      "configs/chat_templates/kanana2_sft.jinja": "b8ee6b31575eada17ebbe73d3f1ac65d3efde64f0a25ff922031dec7e1cae3e3",
+      "configs/data_versions/saju_1b_baseline/preflight-v1.0.0.json": "476f949b86c832feb99fbc2a92b23b8e1b75a961146fe001f6a71298ffa50c0b",
+      "scripts/preflight/errors.py": "eb19d98acc11f0b58682365043f7d40d7efb24c7d63bc356f593d12485cd6180",
+      "scripts/preflight/phase4_common.py": "080df235d8ab7f6df73620cf61f95746cfdf54e4be4c4eb00f78f69f0949fa94",
+      "scripts/preflight/phase4_data.py": "734bab43d0fa44bc26f79dc9303e3ed932dd4145346df647441c7e95421df035",
+      "scripts/preflight/phase4_k0.py": "7b68d1350cf2531fc03276c1d574882e2b4aa7799bc6e6b45ddfa74c1fa44483",
+      "scripts/preflight/phase4_preflight.py": "1cbbd1530010b4bec2e9ad089a3b863a83183cdd2a55dd3fd16c738c17ad0bab",
+      "scripts/preflight/phase4_review.py": "007e3e99834a9eb5e41f362cfac863839e2eece2675639bcbc4134f2986873c6",
+      "scripts/preflight/review_assets/START_HERE.html": "f1c4bcc7c350eac38d1a03a10ad8990293d8985ee91fbbec262d12f33d203c4f",
+      "scripts/preflight/review_assets/review.css": "60253e31d08358f90a9966999d66e6865e550bedae5eb13d536654c46466f47b",
+      "scripts/preflight/review_assets/review.js": "f182cbcfa7d5dca1152499a5b0db635bebb82fdf2e2a1a75436faaf217caa33f"
+    },
+    "model": {
+      "phase3_build_id": "build-32e2c84af3d3",
+      "revision": "bf4786aa2a1908adce942d53976270132732f720",
+      "snapshot_manifest_sha256": "5786d04831c93192d234651df0894a1912b974cfab96011ce0676563185cc93d"
+    },
+    "parent_staging": {
+      "approval_sha256": "15b7a34257071bbe9d6c4cdaedeaa288c56bfcb409dc498bd759f0b4a5966d29",
+      "build_id": "build-109815ee6879",
+      "build_sha256": "109815ee687980e417c5831abd5a558e3790c8197051561844ef64417f0d4b41",
+      "implementation_commit": "88818017f37a998e4469345d2d6392be16d0ace3",
+      "version": "v0.1.0"
+    },
+    "preflight_version": "v1.0.0",
+    "runtime_headers": {
+      "bytes": 4765572,
+      "package": "libpython3.10-dev",
+      "sha256": "7ec59ebb7ecea34f416f37f74797712a7d477cc344f1bca1755528b154eaa04a",
+      "url": "https://security.ubuntu.com/ubuntu/pool/main/p/python3.10/libpython3.10-dev_3.10.12-1~22.04.16_amd64.deb",
+      "version": "3.10.12-1~22.04.16"
+    },
+    "seed": 42,
+    "split_contract_sha256": "83bca9fa0a4e67213c6b0d5f5d35f07a7aebe988bafc06e1da675590fcd016cb"
+  },
+  "build_sha256": "a6813ba3b778bbf7c663e7f2493ae3465bb35416c5fd4233ad4a913dce54023a",
+  "completed_gates": [
+    "A",
+    "B",
+    "C"
+  ],
+  "evaluated_gates": [
+    "A",
+    "B",
+    "C"
+  ],
+  "human_domain_review_performed": false,
+  "report_type": "phase4_abc_public_manifest",
+  "schema_version": "1.0.0",
+  "status": "gates_a_b_c_passed",
+  "training_promotion_allowed": false
+}

@@ -1,0 +1,105 @@
+{
+  "all_candidates": {
+    "assistant_share_percent": 46.72584,
+    "assistant_tokens": 4424288,
+    "input_tokens": 5044323,
+    "total_tokens": 9468611
+  },
+  "assistant_only_loss": true,
+  "axes": {
+    "aihub_empathy_multiturn": {
+      "assistant_fraction_percent": 14.212726,
+      "assistant_tokens": 17108,
+      "input_tokens": 103263,
+      "length": {
+        "count": 1200,
+        "max": 163,
+        "mean": 100.3092,
+        "median": 100,
+        "min": 70,
+        "p90": 115,
+        "p95": 119
+      },
+      "over_1024": 0,
+      "over_512": 0,
+      "over_768": 0
+    },
+    "aihub_empathy_single": {
+      "assistant_fraction_percent": 20.733622,
+      "assistant_tokens": 33010,
+      "input_tokens": 126200,
+      "length": {
+        "count": 2400,
+        "max": 105,
+        "mean": 66.3375,
+        "median": 66,
+        "min": 48,
+        "p90": 75,
+        "p95": 78
+      },
+      "over_1024": 0,
+      "over_512": 0,
+      "over_768": 0
+    },
+    "bazi_sft": {
+      "assistant_fraction_percent": 57.038303,
+      "assistant_tokens": 1115076,
+      "input_tokens": 839884,
+      "length": {
+        "count": 6000,
+        "max": 379,
+        "mean": 325.8267,
+        "median": 324,
+        "min": 272,
+        "p90": 371,
+        "p95": 375
+      },
+      "over_1024": 0,
+      "over_512": 0,
+      "over_768": 0
+    },
+    "nemotron_saju": {
+      "assistant_fraction_percent": 45.126382,
+      "assistant_tokens": 3177442,
+      "input_tokens": 3863765,
+      "length": {
+        "count": 13200,
+        "max": 716,
+        "mean": 533.4248,
+        "median": 531,
+        "min": 444,
+        "p90": 575,
+        "p95": 590
+      },
+      "over_1024": 0,
+      "over_512": 9619,
+      "over_768": 0
+    },
+    "yeji_shensha_derived": {
+      "assistant_fraction_percent": 42.336788,
+      "assistant_tokens": 81652,
+      "input_tokens": 111211,
+      "length": {
+        "count": 1200,
+        "max": 178,
+        "mean": 160.7192,
+        "median": 164,
+        "min": 140,
+        "p90": 172,
+        "p95": 174
+      },
+      "over_1024": 0,
+      "over_512": 0,
+      "over_768": 0
+    }
+  },
+  "chat_template_sha256": "b8ee6b31575eada17ebbe73d3f1ac65d3efde64f0a25ff922031dec7e1cae3e3",
+  "fixture_count": 50,
+  "missing_supervised_eos": 0,
+  "packing": false,
+  "schema_version": "1.0.0",
+  "serialization_mismatches": 0,
+  "status": "passed",
+  "tokenizer_revision": "bf4786aa2a1908adce942d53976270132732f720",
+  "zero_assistant_masks": 0
+}

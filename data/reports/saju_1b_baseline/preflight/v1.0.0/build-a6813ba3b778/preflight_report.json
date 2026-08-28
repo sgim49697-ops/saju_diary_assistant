@@ -1,0 +1,110 @@
+{
+  "backward_performed": false,
+  "build_id": "build-a6813ba3b778",
+  "build_sha256": "a6813ba3b778bbf7c663e7f2493ae3465bb35416c5fd4233ad4a913dce54023a",
+  "canonical_promotion_performed": false,
+  "completed_gates": [
+    "A",
+    "B",
+    "C"
+  ],
+  "evaluated_gates": [
+    "A",
+    "B",
+    "C"
+  ],
+  "generated_at": "2026-08-28T07:01:08+00:00",
+  "generation_contract": {
+    "batch_size": 1,
+    "do_sample": false,
+    "max_new_tokens": 512,
+    "num_beams": 1,
+    "use_cache": true
+  },
+  "human_domain_review_performed": false,
+  "k0": {
+    "control_character_outputs": 0,
+    "determinism_replay_passed": true,
+    "elapsed_seconds": 7426.566,
+    "empty_outputs": 0,
+    "evaluation_items": 700,
+    "gate_c_passed": true,
+    "generation_cases": 720,
+    "peak_vram_bytes": 2752092672,
+    "safety_violations": 0,
+    "special_token_text_outputs": 0,
+    "vram_total_bytes": 17094475776
+  },
+  "model": {
+    "attention_backend": "sdpa",
+    "dtype": "bfloat16",
+    "phase3_build_id": "build-32e2c84af3d3",
+    "repo_id": "kakaocorp/kanana-2-1.3b-instruct",
+    "revision": "bf4786aa2a1908adce942d53976270132732f720"
+  },
+  "notes": [
+    "출처별 assistant token share는 임계값 없이 보고만 하며 가중치를 자동 변경하지 않았다.",
+    "512 manifest는 기능 smoke 전용이고, 768/1024 정식 길이 선택은 Gate D/E 이후에만 한다.",
+    "K0 품질 지표는 missing-chart 안전 Gate와 파이프라인 무결성 외에는 진단값이며 학습 승격 판정이 아니다.",
+    "Upstream YaRN factor 40 설정과 implicit ratio 8 경고를 수정하지 않았다."
+  ],
+  "official_sources": [
+    "https://huggingface.co/kakaocorp/kanana-2-1.3b-instruct/tree/bf4786aa2a1908adce942d53976270132732f720",
+    "https://huggingface.co/docs/trl/v1.12.0/en/sft_trainer",
+    "https://huggingface.co/docs/transformers/v4.57.0/attention_interface",
+    "https://huggingface.co/docs/peft/main/package_reference/lora",
+    "https://huggingface.co/docs/peft/developer_guides/quantization",
+    "https://huggingface.co/docs/bitsandbytes/v0.50.2/en/optimizers",
+    "https://pytorch.org/blog/pytorch-2-13-release-blog/"
+  ],
+  "optimizer_created": false,
+  "parent_staging": {
+    "approval_sha256": "15b7a34257071bbe9d6c4cdaedeaa288c56bfcb409dc498bd759f0b4a5966d29",
+    "build_id": "build-109815ee6879",
+    "build_sha256": "109815ee687980e417c5831abd5a558e3790c8197051561844ef64417f0d4b41",
+    "implementation_commit": "88818017f37a998e4469345d2d6392be16d0ace3",
+    "version": "v0.1.0"
+  },
+  "phase4_training_smoke_allowed": true,
+  "phase_status": "부분 진행",
+  "remaining_gates": [
+    "D",
+    "E"
+  ],
+  "report_type": "phase4_abc_non_training_preflight",
+  "review_package": {
+    "archive_bytes": 479489,
+    "archive_name": "saju-phase4-k0-review-build-a6813ba3b778.zip",
+    "archive_sha256": "517abea91b551a193728ff9e6fa688659fcc923c1ed02c42c489edeeef42c3ea",
+    "case_count": 720,
+    "contains_restricted_source_text": true,
+    "item_count": 700,
+    "package_id": "review-ad5cd5c8bbc725e1",
+    "stored_outside_repository": true,
+    "verified_at_export": true
+  },
+  "runtime": {
+    "attention_backend": "sdpa",
+    "device": "cuda:0",
+    "gpu_capability": [
+      12,
+      0
+    ],
+    "gpu_name": "NVIDIA GeForce RTX 5070 Ti",
+    "parameter_count": 1291478272,
+    "parameter_dtype": "torch.bfloat16",
+    "torch": "2.13.0+cu130",
+    "torch_cuda": "13.0",
+    "transformers": "4.57.6"
+  },
+  "runtime_headers": {
+    "file_count": 164,
+    "manifest_sha256": "ff556bf9337745ad84f012d575158511b7f7306a5ced0a1a1a96ef9df6e7b466",
+    "root": ".venv/phase4-runtime/libpython3.10-dev-3.10.12-1~22.04.16",
+    "status": "verified"
+  },
+  "schema_version": "1.0.0",
+  "status": "gates_a_b_c_passed",
+  "training_performed": false,
+  "training_promotion_allowed": false
+}

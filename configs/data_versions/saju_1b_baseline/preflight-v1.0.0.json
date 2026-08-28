@@ -1,0 +1,101 @@
+{
+  "schema_version": "1.0.0",
+  "canonical_plan_version": "2.5.0",
+  "dataset_name": "saju_1b_baseline",
+  "preflight_version": "v1.0.0",
+  "seed": 42,
+  "parent_staging": {
+    "version": "v0.1.0",
+    "build_id": "build-109815ee6879",
+    "build_sha256": "109815ee687980e417c5831abd5a558e3790c8197051561844ef64417f0d4b41",
+    "implementation_commit": "88818017f37a998e4469345d2d6392be16d0ace3",
+    "approval_sha256": "15b7a34257071bbe9d6c4cdaedeaa288c56bfcb409dc498bd759f0b4a5966d29"
+  },
+  "model": {
+    "repo_id": "kakaocorp/kanana-2-1.3b-instruct",
+    "revision": "bf4786aa2a1908adce942d53976270132732f720",
+    "local_subdir": "models/saju_1b_baseline/kanana-2-1.3b-instruct/bf4786aa2a1908adce942d53976270132732f720",
+    "phase3_config": "configs/model_versions/saju_1b_baseline/model-preparation-v1.0.0.json",
+    "phase3_report": "data/reports/saju_1b_baseline/model-preparation/v1.0.0/build-32e2c84af3d3/verification_report.json",
+    "phase3_build_id": "build-32e2c84af3d3",
+    "snapshot_manifest_sha256": "5786d04831c93192d234651df0894a1912b974cfab96011ce0676563185cc93d",
+    "dtype": "bfloat16",
+    "attention_backend": "sdpa",
+    "trust_remote_code": true,
+    "local_files_only": true,
+    "expected_parameter_count": 1291478272
+  },
+  "chat_template": {
+    "path": "configs/chat_templates/kanana2_sft.jinja",
+    "bytes": 10725,
+    "sha256": "b8ee6b31575eada17ebbe73d3f1ac65d3efde64f0a25ff922031dec7e1cae3e3",
+    "bos_token_id": 128000,
+    "eos_token_id": 128010,
+    "pad_token_id": 128001
+  },
+  "runtime_headers": {
+    "package": "libpython3.10-dev",
+    "version": "3.10.12-1~22.04.16",
+    "url": "https://security.ubuntu.com/ubuntu/pool/main/p/python3.10/libpython3.10-dev_3.10.12-1~22.04.16_amd64.deb",
+    "bytes": 4765572,
+    "sha256": "7ec59ebb7ecea34f416f37f74797712a7d477cc344f1bca1755528b154eaa04a",
+    "local_root": ".venv/phase4-runtime/libpython3.10-dev-3.10.12-1~22.04.16",
+    "include_roots": [
+      "usr/include/python3.10",
+      "usr/include"
+    ],
+    "required_headers": [
+      "usr/include/python3.10/Python.h",
+      "usr/include/x86_64-linux-gnu/python3.10/pyconfig.h"
+    ]
+  },
+  "split": {
+    "token_share_policy": "report_only_no_threshold",
+    "promotable_max_lengths": [1024, 768],
+    "smoke_only_max_length": 512,
+    "axes": {
+      "nemotron_saju": {"mix1k": 550, "mix10k": 5500, "mix20k": 11000, "holdout": 100},
+      "bazi_sft": {"mix1k": 250, "mix10k": 2500, "mix20k": 5000, "holdout": 100},
+      "aihub_empathy_single": {"mix1k": 100, "mix10k": 1000, "mix20k": 2000, "holdout": 100},
+      "aihub_empathy_multiturn": {"mix1k": 50, "mix10k": 500, "mix20k": 1000, "holdout": 100},
+      "yeji_shensha_derived": {"mix1k": 50, "mix10k": 500, "mix20k": 1000, "holdout": 100}
+    },
+    "nemotron_variants": {
+      "mix1k": {"v6": 110, "v7": 440},
+      "mix10k": {"v6": 1100, "v7": 4400},
+      "mix20k": {"v6": 2200, "v7": 8800}
+    },
+    "core_eval": {
+      "structured_natal_reading": 45,
+      "grounded_rule_reading": 35,
+      "contradiction_hallucination": 35,
+      "shensha_rule_qa": 20,
+      "same_chart_consistency": 20,
+      "empathy": 20,
+      "multiturn": 15,
+      "missing_chart_handoff": 5,
+      "general_korean_instruction": 5
+    }
+  },
+  "generation": {
+    "do_sample": false,
+    "max_new_tokens": 512,
+    "num_beams": 1,
+    "use_cache": true,
+    "batch_size": 1
+  },
+  "outputs": {
+    "private_root": "data/derived/saju_1b_baseline/v1.0.0/{build_id}",
+    "public_root": "data/reports/saju_1b_baseline/preflight/v1.0.0/{build_id}",
+    "k0_root": "runs/K0-INSTRUCT/v1.0.0/{build_id}"
+  },
+  "official_sources": [
+    "https://huggingface.co/kakaocorp/kanana-2-1.3b-instruct/tree/bf4786aa2a1908adce942d53976270132732f720",
+    "https://huggingface.co/docs/trl/v1.12.0/en/sft_trainer",
+    "https://huggingface.co/docs/transformers/v4.57.0/attention_interface",
+    "https://huggingface.co/docs/peft/main/package_reference/lora",
+    "https://huggingface.co/docs/peft/developer_guides/quantization",
+    "https://huggingface.co/docs/bitsandbytes/v0.50.2/en/optimizers",
+    "https://pytorch.org/blog/pytorch-2-13-release-blog/"
+  ]
+}

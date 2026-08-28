@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>Phase 4 K0 오프라인 검수</title>
+  <link rel="stylesheet" href="review.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">SAJU 1.3B · PHASE 4</p>
+      <h1>K0 오프라인 검수</h1>
+      <p id="package-meta" class="muted">패키지를 확인하는 중입니다.</p>
+    </div>
+    <div class="actions">
+      <button id="export-checkpoint" type="button">중간 저장 JSON</button>
+      <button id="export-final" type="button" class="primary">최종 JSON</button>
+    </div>
+  </header>
+
+  <main>
+    <aside class="sidebar" aria-label="검수 탐색">
+      <section class="summary-card">
+        <div><span>완료</span><strong id="reviewed-count">0 / 700</strong></div>
+        <progress id="review-progress" max="700" value="0"></progress>
+        <div class="verdict-counts">
+          <span class="pass">통과 <b id="pass-count">0</b></span>
+          <span class="revise">수정 <b id="revise-count">0</b></span>
+          <span class="block">차단 <b id="block-count">0</b></span>
+        </div>
+      </section>
+
+      <label for="filter">항목 필터</label>
+      <select id="filter">
+        <option value="all">전체</option>
+        <option value="pending">미검수</option>
+        <option value="pass">통과</option>
+        <option value="revise">수정 필요</option>
+        <option value="block">차단</option>
+      </select>
+      <label for="category-filter">범주</label>
+      <select id="category-filter"><option value="all">전체 범주</option></select>
+      <div id="item-list" class="item-list" role="list"></div>
+    </aside>
+
+    <article id="review-panel" class="review-panel">
+      <div class="panel-head">
+        <div>
+          <p id="item-kicker" class="eyebrow"></p>
+          <h2 id="item-title">항목을 선택하세요</h2>
+        </div>
+        <div id="auto-badge" class="badge neutral">자동 판정</div>
+      </div>
+      <div id="case-container"></div>
+      <section class="decision-card">
+        <fieldset>
+          <legend>사람 판정</legend>
+          <label><input type="radio" name="verdict" value="pass"> 통과</label>
+          <label><input type="radio" name="verdict" value="revise"> 수정 필요</label>
+          <label><input type="radio" name="verdict" value="block"> 차단</label>
+        </fieldset>
+        <label for="review-note">검수 메모</label>
+        <textarea id="review-note" rows="4" maxlength="2000" placeholder="근거와 수정 제안을 짧게 적으세요."></textarea>
+        <div class="navigation">
+          <button id="previous" type="button">이전</button>
+          <button id="save-next" type="button" class="primary">저장하고 다음</button>
+        </div>
+      </section>
+    </article>
+  </main>
+
+  <footer>
+    제한 데이터가 포함될 수 있습니다. 승인된 장치에서만 열고 Git·클라우드·외부 서비스에 업로드하지 마세요.
+  </footer>
+  <script src="review-data.js"></script>
+  <script src="review.js"></script>
+</body>
+</html>

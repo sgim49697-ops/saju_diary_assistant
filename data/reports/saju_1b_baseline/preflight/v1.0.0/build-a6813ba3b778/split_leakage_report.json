@@ -1,0 +1,31 @@
+{
+  "blocked_leakage_groups": 615,
+  "core_eval_case_count": 220,
+  "core_eval_category_counts": {
+    "contradiction_hallucination": 35,
+    "empathy": 20,
+    "general_korean_instruction": 5,
+    "grounded_rule_reading": 35,
+    "missing_chart_handoff": 5,
+    "multiturn": 15,
+    "same_chart_consistency": 20,
+    "shensha_rule_qa": 20,
+    "structured_natal_reading": 45
+  },
+  "core_eval_rows": 200,
+  "core_holdout_group_overlap": 0,
+  "cross_axis_consistency_groups": 20,
+  "cross_axis_groups_total": 36,
+  "raw_samples_in_report": false,
+  "schema_version": "1.0.0",
+  "source_holdout_counts": {
+    "aihub_empathy_multiturn": 100,
+    "aihub_empathy_single": 100,
+    "bazi_sft": 100,
+    "nemotron_saju": 100,
+    "yeji_shensha_derived": 100
+  },
+  "source_holdout_rows": 500,
+  "status": "passed",
+  "train_eval_group_overlap": 0
+}
