@@ -12,11 +12,16 @@ import re
 import shutil
 import stat
 import subprocess
+import sys
 import tempfile
 from collections import Counter
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 PRIVATE_DIR_MODE = 0o700
 PRIVATE_FILE_MODE = 0o600
@@ -1067,7 +1072,7 @@ def _parser() -> argparse.ArgumentParser:
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = _parser().parse_args(argv)
-    repo_root = Path.cwd().resolve()
+    repo_root = REPO_ROOT
     config_path = args.config
     if not config_path.is_absolute():
         config_path = repo_root / config_path

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from scripts.training.phase5_readiness import (
     AXES,
@@ -114,6 +115,14 @@ class Phase5ReadinessTests(unittest.TestCase):
         self.assertNotIn(".train(", source)
         self.assertNotIn(".backward(", source)
         self.assertNotIn("optimizer.step(", source)
+
+    def test_cli_uses_repository_root_independent_of_cwd(self) -> None:
+        from scripts.training.phase5_readiness import REPO_ROOT as module_root
+        from scripts.training.phase5_readiness import main
+
+        with patch("pathlib.Path.cwd", return_value=Path("/tmp")):
+            self.assertEqual(main(["validate-contract"]), 0)
+        self.assertEqual(module_root, REPO_ROOT)
 
 
 if __name__ == "__main__":

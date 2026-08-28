@@ -211,4 +211,5 @@ runs/KI20-MIX-v2/
   - 작업 요약: 실제 학습 전에 승인된 Phase 4 v2 canonical, 10K/20K manifest, eval70, 고정 모델·환경·학습 설정을 다시 묶는 `phase5-readiness-v1.0.0` 비학습 Gate를 구현했다.
   - 변경 범위: registry·Phase 4 A~E hash chain, 7축 수량·중첩 manifest·record hash, eval70 leakage 분리, Python/uv/PyTorch CUDA/GPU·BF16, 64GiB disk, KI10/KI20 독립 초기화와 checkpoint state 보존 계약을 fail-closed로 검사한다. 학습 실행 코드는 포함하지 않는다.
   - 검증: 계약·dry-run, readiness 단위 테스트와 Ruff를 통과했다. 실제 불변 readiness 산출물은 구현 checkpoint를 커밋해 working tree를 깨끗하게 만든 뒤 생성한다.
+  - 실행 전 수정: 첫 `prepare --execute`는 부모 Phase 4 검증 모듈을 import하기 전에 `ModuleNotFoundError`로 중단됐고 출력 파일은 생성되지 않았다. CLI가 현재 작업 디렉터리가 아니라 스크립트 위치에서 저장소 루트를 고정하도록 수정하고 `/tmp` 실행 회귀 테스트를 추가했다.
   - 남은 이슈·후속 작업: readiness 실행·공개 보고서 고정 전까지 Phase 5는 `미시작`이다. 이후에도 KI10·KI20 실제 학습은 사용자의 별도 명시적 승인 없이는 시작하지 않는다.
