@@ -1,0 +1,70 @@
+{
+  "artifacts": {
+    "comparison_report.json": {
+      "bytes": 22817,
+      "sha256": "87c4a67a01eef1bf76de320abdd29b49155fc8793b444432377623b09f5ba1d0"
+    },
+    "conflict_samples_100.jsonl": {
+      "bytes": 57349,
+      "contains_birth_or_location_fields": false,
+      "contains_source_record_ids": false,
+      "rows": 100,
+      "sha256": "f0dce9e3ddca128f212e4a31715cf889e3303a4fb74deca28a5ea2ff1fe224d8"
+    }
+  },
+  "identity": {
+    "comparison_sha256": "87c4a67a01eef1bf76de320abdd29b49155fc8793b444432377623b09f5ba1d0",
+    "environment": {
+      "node": "v22.22.0",
+      "npm": "10.9.4",
+      "python": "3.10.12"
+    },
+    "external_checks": {
+      "build": "passed",
+      "npm_audit": "completed_with_findings",
+      "npm_audit_vulnerabilities": {
+        "critical": 0,
+        "high": 1,
+        "info": 0,
+        "low": 1,
+        "moderate": 0,
+        "total": 2
+      },
+      "npm_ci": "passed",
+      "test_count": 21,
+      "tests": "passed",
+      "typecheck": "passed"
+    },
+    "external_dist_sha256": "f0b08c64bfe7095d615766084ca9a27da61e9cc0a0f4456408de069b964eaaee",
+    "external_revision": "07b608a778be6dac8669e04b9ab794c441959208",
+    "input_sha256": {
+      "analyzer_sha256": "21acfb0a5f741d279d305c0284665abab8cf1e357433427cb38fc179f4ee3e0e",
+      "bazi_records_sha256": "80654a812d41dffeea80ea72a02c3101d24bc5ee694e4229639fcd12960f2965",
+      "canonical_build_manifest_sha256": "a2816a307644e57b0126c820410b1507767d08c2956a5e0e43874b71da7a8ba0",
+      "canonical_mix20k_sha256": "a61c16dc65ad24805b293ad50404d519c68d1ae844419b18c9e1538ea7a5bc3a",
+      "nemotron_records_sha256": "0242bad3b408e9143813bb94fc84ad2911146f8262f93a7a924f20c06d32d132",
+      "policy_sha256": "437bcf40f5c819139c6300939b95c73e31322ed1a21d7a38a39fed0a58c20db0",
+      "raw_bundle": {
+        "file_set_sha256": "24bc0767080ebec45515ec873f1ba8b0adcafac87435c93975fc3bf4e2769f51",
+        "source_manifest_sha256": "df200cd8faf366bcc45d595b5d1c0a9f2ff422df5c33aaf2b5d71406938dc383",
+        "verified_file_count": 22,
+        "verified_parquet_count": 20
+      },
+      "runtime_probe_sha256": "4c2675c315b98eeb72f7e0c85cd8268b016551f695e9f8b8e154ef6139ba1da8",
+      "staging_build_manifest_sha256": "1cd6733681748e4ed60b5eb293067ed08211562a09ed49b9dd8f1e5f9f527f1c"
+    },
+    "review_version": "v1.0.0",
+    "samples_sha256": "f0dce9e3ddca128f212e4a31715cf889e3303a4fb74deca28a5ea2ff1fe224d8",
+    "schema_version": "1.0.0"
+  },
+  "immutability": {
+    "existing_canonical_data_modified": false,
+    "phase5_training_performed": false,
+    "write_once": true
+  },
+  "report_type": "ssaju_policy_review_build_manifest",
+  "review_id": "review-c1e129b1e602",
+  "review_sha256": "c1e129b1e602d0ba3cad2a534efec18045b5c6ce401ebe40c2096fbc398cdf83",
+  "schema_version": "1.0.0",
+  "status": "completed_advisory_only"
+}
