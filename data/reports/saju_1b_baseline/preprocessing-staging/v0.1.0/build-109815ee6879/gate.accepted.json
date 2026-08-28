@@ -1,0 +1,13 @@
+{
+  "accepted_review_units": 300,
+  "build_id": "build-109815ee6879",
+  "contains_raw_samples": false,
+  "content_review_method": "owner_blanket_risk_acceptance",
+  "domain_item_review_performed": false,
+  "promotion_allowed": false,
+  "remaining_blockers": [
+    "phase4_tokenizer_and_model_preflight_not_completed"
+  ],
+  "schema_version": "1.0.0",
+  "status": "owner_risk_accepted_for_phase4_preflight"
+}

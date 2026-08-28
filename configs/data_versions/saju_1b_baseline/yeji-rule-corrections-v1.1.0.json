@@ -1,0 +1,53 @@
+{
+  "audit_version": "v1.1.0",
+  "correction_version": "v1.1.0",
+  "corrections": [
+    {
+      "basis": "고정 upstream 주석과 삼명통회의 정사관 규칙이 금명 정사관을 壬申으로 일치시킨다.",
+      "correction_id": "YEJI_CIGUAN_GOLD_PILLAR",
+      "expected_original": "壬卯",
+      "field_path": [
+        "condition",
+        "mapping",
+        "金",
+        "간지"
+      ],
+      "replacement": "壬申",
+      "resolves": [
+        "YEJI_CIGUAN_CONFLICT"
+      ],
+      "rule_id": 11
+    },
+    {
+      "basis": "조건 매핑은 upstream과 일치하며 의미가 기존 내부 taxonomy의 재앙류 설명에 해당한다.",
+      "correction_id": "YEJI_WUGUI_CATEGORY",
+      "expected_original": "흉살류",
+      "field_path": [
+        "category"
+      ],
+      "replacement": "재앙류",
+      "resolves": [
+        "YEJI_STRUCTURE_FAILURE"
+      ],
+      "rule_id": 19
+    }
+  ],
+  "dataset_name": "saju_1b_baseline",
+  "references": [
+    {
+      "checked_at": "2026-08-27",
+      "label": "chxb/shensha 고정 revision",
+      "url": "https://github.com/chxb/shensha/blob/5b90110e55feb92303ef7853ecacdb6f9ed59eac/shensha.js"
+    },
+    {
+      "checked_at": "2026-08-27",
+      "label": "삼명통회 학당·사관 원문 대조",
+      "url": "https://www.tianjihq.com/zh-CN/learn/glossary/bazi-ss-xuetang"
+    }
+  ],
+  "schema_version": "1.0.0",
+  "source": "yeji_bazi_rules",
+  "source_file": "rules/shensha_51.json",
+  "source_file_sha256": "9a11e1502983969407c43f82c65de6736b344da1a623e7a6557ad8b20cda939e",
+  "source_revision": "84583ca54e8fce257d3d5efd015bca1263a1cfe9"
+}

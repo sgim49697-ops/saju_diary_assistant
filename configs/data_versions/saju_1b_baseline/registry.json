@@ -1,0 +1,108 @@
+{
+  "approved_audit": {
+    "build_id": "build-ca756f3eb89f",
+    "build_sha256": "ca756f3eb89fa404c08dc49215b540b3294ed195c39c597303ec14777bb9c4f1",
+    "status": "approved",
+    "version": "v1.2.0"
+  },
+  "approved_derived": null,
+  "approved_staging": {
+    "accepted_gate_sha256": "3a23ba21dfef174e6604866de7b793d5e588611f4cfe674d65edeabec559c3bf",
+    "approval_manifest_sha256": "15b7a34257071bbe9d6c4cdaedeaa288c56bfcb409dc498bd759f0b4a5966d29",
+    "approval_basis": "explicit_owner_blanket_risk_acceptance",
+    "build_id": "build-109815ee6879",
+    "build_sha256": "109815ee687980e417c5831abd5a558e3790c8197051561844ef64417f0d4b41",
+    "domain_item_review_performed": false,
+    "implementation_commit": "88818017f37a998e4469345d2d6392be16d0ace3",
+    "private_manifest_sha256": "e936eaf29fb8843e47dd6018c7c629b0025d6b02757f50429c6699f1a43f22b8",
+    "public_manifest_sha256": "b8aec00acd2c7836bb289be828b9e001fc2805ca0d5e128c4e2f7b50ad58ac4c",
+    "review_acceptance_sha256": "15b7a34257071bbe9d6c4cdaedeaa288c56bfcb409dc498bd759f0b4a5966d29",
+    "review_decisions_sha256": "e959fb063f306face2156c41abd5ffc1b4abbbc0bc1cba5125e32744a13e3dd2",
+    "status": "owner_risk_accepted_for_phase4_preflight",
+    "version": "v0.1.0"
+  },
+  "audit_builds": [
+    {
+      "blocking_finding_codes": [
+        "YEJI_CIGUAN_CONFLICT",
+        "YEJI_STRUCTURE_FAILURE"
+      ],
+      "build_id": "build-336b8377063a",
+      "build_manifest_sha256": "5bfef974640876fa96680493f3aa60bbd0f1bfe93b64f5412ae2f365ba9f34bd",
+      "build_sha256": "336b8377063ab0ee131d526925750fea7fc94b4d6960ffcc705ebaae8abf837b",
+      "implementation_commit": "7565f1c0e27115f720b996ceb00dd0419cff1155",
+      "required_review_remaining": 150,
+      "status": "human_review_required",
+      "version": "v1.0.0"
+    },
+    {
+      "blocking_finding_codes": [],
+      "build_id": "build-e162d9b2b7dc",
+      "build_manifest_sha256": "fb83910d73bb85594ddc9b2a658dc532c7699f501e1f9d6420f743b96067c4ea",
+      "build_sha256": "e162d9b2b7dc54c68168eb74cb72586528f2fbecb5ed07f6a84af4d4998816fe",
+      "correction_manifest_sha256": "1a55645037d8bf6153cc401b62adb87ce9053742f055e72ae6d5ae0b3f833eec",
+      "implementation_commit": "da5985f2737007a4d3f4694724e2dcb612efccee",
+      "reference_review_completed": 0,
+      "required_review_remaining": 150,
+      "resolved_finding_codes": [
+        "YEJI_CIGUAN_CONFLICT",
+        "YEJI_STRUCTURE_FAILURE"
+      ],
+      "review_manifest_sha256": "d436407b4c948c309c67d190542b24c0673f6c92dd5852267c232c1f9e73ee75",
+      "reviewer_version": "reviewer-v1.0.0",
+      "status": "human_review_required",
+      "version": "v1.1.0"
+    },
+    {
+      "approval_manifest_sha256": "d8bc3e05707a536f5bf24946fdc08205db4fd38437a10af9c333de404f46c163",
+      "blocking_finding_codes": [],
+      "build_id": "build-ca756f3eb89f",
+      "build_manifest_sha256": "59df1d09ef74e86b88b34d40c3be7870df28f5787f676992ac774c67084ab468",
+      "build_sha256": "ca756f3eb89fa404c08dc49215b540b3294ed195c39c597303ec14777bb9c4f1",
+      "correction_manifest_sha256": "b355a37112bdb6bac94a16b4d341a5a7f034403a39d66f9830526ee53d926f81",
+      "domain_item_review_performed": false,
+      "implementation_commit": "8c6b95cef19653fc62dbb1ccbae01cbe4c82b13d",
+      "reference_review_completed": 150,
+      "required_review_remaining": 0,
+      "review_manifest_sha256": "d4997f3223cd00cef01311e2062ae7289108cdc3b3115d55e28e3153c2b5959f",
+      "reviewer_version": "owner-blanket-risk-acceptance-v1.0.0",
+      "status": "approved",
+      "version": "v1.2.0"
+    }
+  ],
+  "dataset_name": "saju_1b_baseline",
+  "schema_version": "1.0.0",
+  "source_builds": [
+    {
+      "build_id": "build-b3890c552e38",
+      "manifest": "configs/data_versions/saju_1b_baseline/source-bundle-v1.0.0.json",
+      "source_build_sha256": "b3890c552e38a52ca4bd6327c68a6d079ec8084ff251019579a24beefdbcfd5c",
+      "status": "approved",
+      "version": "v1.0.0"
+    },
+    {
+      "build_id": "build-9462ec148dcd",
+      "manifest": "configs/data_versions/saju_1b_baseline/source-bundle-v1.1.0.json",
+      "source_build_sha256": "9462ec148dcd93328b3b68522ad6c6f0d2c3694161d32a2d54332e8069d82f0a",
+      "status": "approved",
+      "version": "v1.1.0"
+    }
+  ],
+  "staging_builds": [
+    {
+      "accepted_gate_sha256": "3a23ba21dfef174e6604866de7b793d5e588611f4cfe674d65edeabec559c3bf",
+      "approval_manifest_sha256": "15b7a34257071bbe9d6c4cdaedeaa288c56bfcb409dc498bd759f0b4a5966d29",
+      "approval_basis": "explicit_owner_blanket_risk_acceptance",
+      "build_id": "build-109815ee6879",
+      "build_sha256": "109815ee687980e417c5831abd5a558e3790c8197051561844ef64417f0d4b41",
+      "domain_item_review_performed": false,
+      "implementation_commit": "88818017f37a998e4469345d2d6392be16d0ace3",
+      "private_manifest_sha256": "e936eaf29fb8843e47dd6018c7c629b0025d6b02757f50429c6699f1a43f22b8",
+      "public_manifest_sha256": "b8aec00acd2c7836bb289be828b9e001fc2805ca0d5e128c4e2f7b50ad58ac4c",
+      "review_acceptance_sha256": "15b7a34257071bbe9d6c4cdaedeaa288c56bfcb409dc498bd759f0b4a5966d29",
+      "review_decisions_sha256": "e959fb063f306face2156c41abd5ffc1b4abbbc0bc1cba5125e32744a13e3dd2",
+      "status": "owner_risk_accepted_for_phase4_preflight",
+      "version": "v0.1.0"
+    }
+  ]
+}

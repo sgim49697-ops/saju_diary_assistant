@@ -1,0 +1,79 @@
+{
+  "audit_version": "v1.2.0",
+  "correction_version": "v1.2.0",
+  "corrections": [
+    {
+      "basis": "고정 upstream 주석과 삼명통회의 정사관 규칙이 금명 정사관을 壬申으로 일치시킨다.",
+      "correction_id": "YEJI_CIGUAN_GOLD_PILLAR",
+      "expected_original": "壬卯",
+      "field_path": ["condition", "mapping", "金", "간지"],
+      "replacement": "壬申",
+      "resolves": ["YEJI_CIGUAN_CONFLICT"],
+      "rule_id": 11
+    },
+    {
+      "basis": "조건 매핑은 upstream과 일치하며 의미가 기존 내부 taxonomy의 재앙류 설명에 해당한다.",
+      "correction_id": "YEJI_WUGUI_CATEGORY",
+      "expected_original": "흉살류",
+      "field_path": ["category"],
+      "replacement": "재앙류",
+      "resolves": ["YEJI_STRUCTURE_FAILURE"],
+      "rule_id": 19
+    },
+    {
+      "basis": "고정 upstream dexiuguiren 함수는 월지 삼합국별 덕 천간과 수 천간 조합을 동시에 요구한다.",
+      "correction_id": "YEJI_DEXIU_RULE_DESCRIPTION",
+      "expected_original": "계절별 덕(德)과 수(秀) 천간 조합 확인",
+      "field_path": ["condition", "rule"],
+      "replacement": "월지 삼합국별 덕 천간 1개 이상과 수 천간 조합을 함께 확인",
+      "resolves": ["YEJI_DEXIU_CONDITION_CONFLICT"],
+      "rule_id": 5
+    },
+    {
+      "basis": "고정 upstream dexiuguiren 함수의 네 삼합국 분기와 천간 조합을 그대로 구조화했다.",
+      "correction_id": "YEJI_DEXIU_MAPPING",
+      "expected_original": {
+        "春(寅卯辰)": {"德": "丙", "秀": "丁"},
+        "夏(巳午未)": {"德": "戊", "秀": "己"},
+        "秋(申酉戌)": {"德": "壬", "秀": "癸"},
+        "冬(亥子丑)": {"德": "甲", "秀": "乙"}
+      },
+      "field_path": ["condition", "mapping"],
+      "replacement": {
+        "寅午戌": {"덕_천간": ["丙", "丁"], "수_천간_조합": [["戊", "癸"]]},
+        "申子辰": {"덕_천간": ["壬", "癸", "戊", "己"], "수_천간_조합": [["丙", "辛"], ["甲", "己"]]},
+        "巳酉丑": {"덕_천간": ["庚", "辛"], "수_천간_조합": [["乙", "庚"]]},
+        "亥卯未": {"덕_천간": ["甲", "乙"], "수_천간_조합": [["丁", "壬"]]}
+      },
+      "resolves": ["YEJI_DEXIU_CONDITION_CONFLICT"],
+      "rule_id": 5
+    },
+    {
+      "basis": "고정 upstream tongzi 함수는 월지 계절 조건과 년주 납음 오행 조건을 독립적인 OR 조건으로 검사한다.",
+      "correction_id": "YEJI_TONGZI_COMPLEX_RULE",
+      "expected_original": "봄秋(木火) 납음이면 일시지에 卯未巳 확인, 여름겨울(金水) 납음이면 일시지에 寅戌午 확인",
+      "field_path": ["condition", "complex_rule"],
+      "replacement": "월지가 봄(寅卯辰)·가을(申酉戌)이면 일지/시지 寅·子, 여름(巳午未)·겨울(亥子丑)이면 卯·未·辰을 확인하고, 년주 납음 오행이 金·木이면 午·卯, 水·火이면 酉·戌, 土이면 辰·巳를 독립적인 OR 조건으로 확인",
+      "resolves": ["YEJI_TONGZI_CONDITION_CONFLICT"],
+      "rule_id": 38
+    }
+  ],
+  "dataset_name": "saju_1b_baseline",
+  "references": [
+    {
+      "checked_at": "2026-08-27",
+      "label": "chxb/shensha 고정 revision",
+      "url": "https://github.com/chxb/shensha/blob/5b90110e55feb92303ef7853ecacdb6f9ed59eac/shensha.js"
+    },
+    {
+      "checked_at": "2026-08-27",
+      "label": "삼명통회 학당·사관 원문 대조",
+      "url": "https://www.tianjihq.com/zh-CN/learn/glossary/bazi-ss-xuetang"
+    }
+  ],
+  "schema_version": "1.0.0",
+  "source": "yeji_bazi_rules",
+  "source_file": "rules/shensha_51.json",
+  "source_file_sha256": "9a11e1502983969407c43f82c65de6736b344da1a623e7a6557ad8b20cda939e",
+  "source_revision": "84583ca54e8fce257d3d5efd015bca1263a1cfe9"
+}

@@ -1,0 +1,32 @@
+{
+  "dataset_name": "saju_1b_baseline",
+  "schema_version": "1.0.0",
+  "source_build_sha256": "9462ec148dcd93328b3b68522ad6c6f0d2c3694161d32a2d54332e8069d82f0a",
+  "sources": [
+    {
+      "manifest_path": "data/raw/aihub_empathy/dataset-86-filekeys-66046-66049/SOURCE_MANIFEST.json",
+      "manifest_sha256": "19d290b59906e74dc738d208e482f242b0ab3606087d104db7ed66f14c0f590e",
+      "revision": "dataset-86-filekeys-66046-66049",
+      "source": "aihub_empathy"
+    },
+    {
+      "manifest_path": "data/raw/bazi_sft/fad87063b317612e4164dfb0e0e08572c3831df4/SOURCE_MANIFEST.json",
+      "manifest_sha256": "6ead040c5ca2e7063ba829ed46d65c28321a558585cf4b9a19349d80de0aebed",
+      "revision": "fad87063b317612e4164dfb0e0e08572c3831df4",
+      "source": "bazi_sft"
+    },
+    {
+      "manifest_path": "data/raw/nemotron_saju/ffb934248746a2dea64ef771c0d86e1743d25702-full-1m/SOURCE_MANIFEST.json",
+      "manifest_sha256": "df200cd8faf366bcc45d595b5d1c0a9f2ff422df5c33aaf2b5d71406938dc383",
+      "revision": "ffb934248746a2dea64ef771c0d86e1743d25702",
+      "source": "nemotron_saju"
+    },
+    {
+      "manifest_path": "data/raw/yeji_bazi_rules/84583ca54e8fce257d3d5efd015bca1263a1cfe9/SOURCE_MANIFEST.json",
+      "manifest_sha256": "fa43882958f072e0a1716edaddd5ff8b6a4d0b9670e8902cf65b8802835f5d9a",
+      "revision": "84583ca54e8fce257d3d5efd015bca1263a1cfe9",
+      "source": "yeji_bazi_rules"
+    }
+  ],
+  "version": "v1.1.0"
+}

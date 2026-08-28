@@ -1,0 +1,1352 @@
+{
+  "canonical_plan_version": "2.2.0",
+  "contains_raw_samples": false,
+  "contract_validation": {
+    "aihub_271_policy": "contract_required_excluded",
+    "aihub_active_dataset": "86",
+    "canonical_plan_version": "2.2.0",
+    "mix_axis_count": 5,
+    "mix_totals": {
+      "mix10": 10000,
+      "mix1k": 1000,
+      "mix20": 20000
+    },
+    "raw_source_count": 4,
+    "schema_version": "1.0.0",
+    "status": "ok"
+  },
+  "generated_at": "2026-08-27T05:08:08+00:00",
+  "phase1_gate_status": "passed",
+  "schema_version": "1.0.0",
+  "sources": [
+    {
+      "access_approved_at": "2026-08-27",
+      "access_scope": "approved_account_private",
+      "aggregate_rows": 58268,
+      "aihub_cross_split_group_overlap_count": 6379,
+      "aihub_exact_record_cross_split_overlap_count": 0,
+      "aihub_multiturn_structural_group_count": 51886,
+      "aihub_multiturn_structural_group_counts_by_split": {
+        "train": 51625,
+        "unknown": 0,
+        "validation": 6640
+      },
+      "file_count": 12,
+      "files": [
+        {
+          "bytes": 10755584,
+          "path": "archives/filekey-66046.tar",
+          "sha256": "bf814d56cc6ea7fe92afd1eeba395271b36067257cb9ba37341539bdb92bf906"
+        },
+        {
+          "bytes": 8307200,
+          "path": "archives/filekey-66047.tar",
+          "sha256": "61c0aa71182a2c60b8876d5f99da187ca2522ee3ad96264534bd45590b512dda"
+        },
+        {
+          "bytes": 995840,
+          "path": "archives/filekey-66048.tar",
+          "sha256": "ca8b4f899ad24fc556d779078190ecf2d7f44b3e668853777efbb8fa84a0fa6b"
+        },
+        {
+          "bytes": 1292288,
+          "path": "archives/filekey-66049.tar",
+          "sha256": "a339140ff6a5b95f540f2752ecf6a52a9142306fdc3f7a34e05652610aad7c92"
+        },
+        {
+          "bytes": 10752697,
+          "path": "extracted/filekey-66046/018.감성대화/Training_221115_add/원천데이터/감성대화말뭉치(최종데이터)_Training.zip",
+          "sha256": "8f527059729af164116fb83f015d923e42786d4b327317a066efdbdcfc2b357d"
+        },
+        {
+          "bytes": 10752697,
+          "path": "extracted/filekey-66046/018.감성대화/Training_221115_add/원천데이터/감성대화말뭉치(최종데이터)_Training.zip.part0",
+          "sha256": "8f527059729af164116fb83f015d923e42786d4b327317a066efdbdcfc2b357d"
+        },
+        {
+          "bytes": 8304478,
+          "path": "extracted/filekey-66047/018.감성대화/Training_221115_add/라벨링데이터/감성대화말뭉치(최종데이터)_Training.zip",
+          "sha256": "38d9ec9de83e67ec8a736e2030b86c73ee36831a3e1fcddd94c350217eedc682"
+        },
+        {
+          "bytes": 8304478,
+          "path": "extracted/filekey-66047/018.감성대화/Training_221115_add/라벨링데이터/감성대화말뭉치(최종데이터)_Training.zip.part0",
+          "sha256": "38d9ec9de83e67ec8a736e2030b86c73ee36831a3e1fcddd94c350217eedc682"
+        },
+        {
+          "bytes": 992994,
+          "path": "extracted/filekey-66048/018.감성대화/Validation_221115_add/라벨링데이터/감성대화말뭉치(최종데이터)_Validation.zip",
+          "sha256": "e02f0d7e6325ceb697ecfe7f8260c0a17c8ded157188e769abdf496e2586a2e5"
+        },
+        {
+          "bytes": 992994,
+          "path": "extracted/filekey-66048/018.감성대화/Validation_221115_add/라벨링데이터/감성대화말뭉치(최종데이터)_Validation.zip.part0",
+          "sha256": "e02f0d7e6325ceb697ecfe7f8260c0a17c8ded157188e769abdf496e2586a2e5"
+        },
+        {
+          "bytes": 1289568,
+          "path": "extracted/filekey-66049/018.감성대화/Validation_221115_add/원천데이터/감성대화말뭉치(최종데이터)_Validation.zip",
+          "sha256": "43065a87bd4961cd2752f2f3663a92ee6cc8a69bd80730752bb22d1fc4700163"
+        },
+        {
+          "bytes": 1289568,
+          "path": "extracted/filekey-66049/018.감성대화/Validation_221115_add/원천데이터/감성대화말뭉치(최종데이터)_Validation.zip.part0",
+          "sha256": "43065a87bd4961cd2752f2f3663a92ee6cc8a69bd80730752bb22d1fc4700163"
+        }
+      ],
+      "license_expression": "AIHUB-GENERAL-POLICY",
+      "parquet": [],
+      "parquet_aggregate": null,
+      "parse_failure_count": 0,
+      "retrieved_at": "2026-08-27T04:58:58+00:00",
+      "revision": "dataset-86-filekeys-66046-66049",
+      "source": "aihub_empathy",
+      "standalone_json": [],
+      "status": "collected",
+      "total_bytes": 64030386,
+      "usage_class": "conditional_train_allow",
+      "zip_json": [
+        {
+          "json_member_count": 0,
+          "json_parse_failure_count": 0,
+          "json_parse_success_count": 0,
+          "path": "extracted/filekey-66046/018.감성대화/Training_221115_add/원천데이터/감성대화말뭉치(최종데이터)_Training.zip",
+          "record_count": 0,
+          "records_with_group_id": 0,
+          "records_with_two_or_more_turn_pairs": 0,
+          "repeated_field_names": [],
+          "split": "train",
+          "split_json_member_counts": {},
+          "turn_pair_count_distribution": {}
+        },
+        {
+          "json_member_count": 1,
+          "json_parse_failure_count": 0,
+          "json_parse_success_count": 1,
+          "path": "extracted/filekey-66047/018.감성대화/Training_221115_add/라벨링데이터/감성대화말뭉치(최종데이터)_Training.zip",
+          "record_count": 51628,
+          "records_with_group_id": 51628,
+          "records_with_two_or_more_turn_pairs": 51628,
+          "repeated_field_names": [
+            "HS01",
+            "HS02",
+            "HS03",
+            "SS01",
+            "SS02",
+            "SS03",
+            "computer",
+            "content",
+            "emotion",
+            "emotion-id",
+            "human",
+            "id",
+            "persona",
+            "persona-id",
+            "profile",
+            "profile-id",
+            "situation",
+            "talk",
+            "talk-id",
+            "type"
+          ],
+          "split": "train",
+          "split_json_member_counts": {
+            "train": 1
+          },
+          "turn_pair_count_distribution": {
+            "2": 8936,
+            "3": 42692
+          }
+        },
+        {
+          "json_member_count": 1,
+          "json_parse_failure_count": 0,
+          "json_parse_success_count": 1,
+          "path": "extracted/filekey-66048/018.감성대화/Validation_221115_add/라벨링데이터/감성대화말뭉치(최종데이터)_Validation.zip",
+          "record_count": 6640,
+          "records_with_group_id": 6640,
+          "records_with_two_or_more_turn_pairs": 6640,
+          "repeated_field_names": [
+            "HS01",
+            "HS02",
+            "HS03",
+            "SS01",
+            "SS02",
+            "SS03",
+            "computer",
+            "content",
+            "emotion",
+            "emotion-id",
+            "human",
+            "id",
+            "persona",
+            "persona-id",
+            "profile",
+            "profile-id",
+            "situation",
+            "talk",
+            "talk-id",
+            "type"
+          ],
+          "split": "validation",
+          "split_json_member_counts": {
+            "validation": 1
+          },
+          "turn_pair_count_distribution": {
+            "2": 1955,
+            "3": 4685
+          }
+        },
+        {
+          "json_member_count": 0,
+          "json_parse_failure_count": 0,
+          "json_parse_success_count": 0,
+          "path": "extracted/filekey-66049/018.감성대화/Validation_221115_add/원천데이터/감성대화말뭉치(최종데이터)_Validation.zip",
+          "record_count": 0,
+          "records_with_group_id": 0,
+          "records_with_two_or_more_turn_pairs": 0,
+          "repeated_field_names": [],
+          "split": "validation",
+          "split_json_member_counts": {},
+          "turn_pair_count_distribution": {}
+        }
+      ]
+    },
+    {
+      "access_approved_at": null,
+      "access_scope": "public",
+      "aggregate_rows": 100000,
+      "aihub_cross_split_group_overlap_count": null,
+      "aihub_exact_record_cross_split_overlap_count": null,
+      "aihub_multiturn_structural_group_count": null,
+      "aihub_multiturn_structural_group_counts_by_split": null,
+      "file_count": 6,
+      "files": [
+        {
+          "bytes": 2504,
+          "path": ".gitattributes",
+          "sha256": "9e75dd981de037ec3769f24f790e126bc5a160b6871f510214e68dc70649aeeb"
+        },
+        {
+          "bytes": 4171,
+          "path": "README.md",
+          "sha256": "79e13a260e53e8b556b2ccf4e88c030a5976ad396a2971a5f70416c3b3158167"
+        },
+        {
+          "bytes": 5138758,
+          "path": "data/test-00000-of-00001.parquet",
+          "sha256": "6a36cafb018e917a10ab0253ccdf0490f1d6db3a7a224b0573824699b3fc417e",
+          "split": "test"
+        },
+        {
+          "bytes": 92523145,
+          "path": "data/train-00000-of-00001.parquet",
+          "sha256": "b321a371b8fff39781926c43b5ca1eba3eaf489229dd9fee0d52024556cc0b6e",
+          "split": "train"
+        },
+        {
+          "bytes": 5245011,
+          "path": "data/validation-00000-of-00001.parquet",
+          "sha256": "afe3b05603fc0febfe8a41599323d433312726859921a1f966a25e75db2d07a0",
+          "split": "validation"
+        },
+        {
+          "bytes": 330,
+          "path": "dataset_stats.json",
+          "sha256": "e77408b479c156da1a3cba1303e8e37e0d310747f7a0ff064cc5386d0a53d856"
+        }
+      ],
+      "license_expression": "Apache-2.0",
+      "parquet": [
+        {
+          "categorical_counts": {
+            "question_type": [
+              {
+                "count": 1245,
+                "value": "career"
+              },
+              {
+                "count": 1245,
+                "value": "element_balance"
+              },
+              {
+                "count": 1245,
+                "value": "general_natal"
+              },
+              {
+                "count": 1245,
+                "value": "relationships"
+              }
+            ],
+            "source": [
+              {
+                "count": 4980,
+                "value": "rule_matched"
+              }
+            ]
+          },
+          "columns": [
+            {
+              "name": "example_id",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "synthetic_id",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "system",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "facts",
+              "type": "STRUCT(birth_input STRUCT(date TIMESTAMP, \"time\" VARCHAR, tz_offset_hours DOUBLE, place VARCHAR, lat DOUBLE, lon DOUBLE), bazi_year BIGINT, pillars STRUCT(\"year\" STRUCT(stem VARCHAR, stem_element VARCHAR, stem_polarity VARCHAR, branch VARCHAR, branch_animal VARCHAR, branch_element VARCHAR), \"month\" STRUCT(stem VARCHAR, stem_element VARCHAR, stem_polarity VARCHAR, branch VARCHAR, branch_animal VARCHAR, branch_element VARCHAR), \"day\" STRUCT(stem VARCHAR, stem_element VARCHAR, stem_polarity VARCHAR, branch VARCHAR, branch_animal VARCHAR, branch_element VARCHAR), \"hour\" STRUCT(stem VARCHAR, stem_element VARCHAR, stem_polarity VARCHAR, branch VARCHAR, branch_animal VARCHAR, branch_element VARCHAR)), day_master STRUCT(stem VARCHAR, element VARCHAR, polarity VARCHAR), element_counts STRUCT(Wood BIGINT, Fire BIGINT, Earth BIGINT, Metal BIGINT, Water BIGINT))"
+            },
+            {
+              "name": "retrieved_rules",
+              "type": "STRUCT(id VARCHAR, \"name\" VARCHAR, citation VARCHAR, effect VARCHAR)[]"
+            },
+            {
+              "name": "question_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "user_question",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "response",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "citations",
+              "type": "VARCHAR[]"
+            },
+            {
+              "name": "source",
+              "type": "VARCHAR"
+            }
+          ],
+          "id_duplicate_counts": {
+            "synthetic_id": 3735
+          },
+          "null_counts": {
+            "citations": 0,
+            "example_id": 0,
+            "facts": 0,
+            "question_type": 0,
+            "response": 0,
+            "retrieved_rules": 0,
+            "source": 0,
+            "synthetic_id": 0,
+            "system": 0,
+            "user_question": 0
+          },
+          "path": "data/test-00000-of-00001.parquet",
+          "row_hash_duplicate_estimate": 0,
+          "rows": 4980,
+          "text_stats": {
+            "cjk_character_ratio": 0.0,
+            "columns": [
+              "example_id",
+              "synthetic_id",
+              "system",
+              "facts",
+              "retrieved_rules",
+              "question_type",
+              "user_question",
+              "response",
+              "citations",
+              "source"
+            ],
+            "english_character_ratio": 0.7038175314658924,
+            "korean_character_ratio": 0.0,
+            "row_character_length": {
+              "max": 3158,
+              "mean": 2402.4387550200804,
+              "p50": 2253.0,
+              "p90": 3072.0,
+              "p95": 3094.0
+            },
+            "total_characters": 11964145
+          }
+        },
+        {
+          "categorical_counts": {
+            "question_type": [
+              {
+                "count": 22479,
+                "value": "career"
+              },
+              {
+                "count": 22479,
+                "value": "element_balance"
+              },
+              {
+                "count": 22479,
+                "value": "general_natal"
+              },
+              {
+                "count": 22479,
+                "value": "relationships"
+              }
+            ],
+            "source": [
+              {
+                "count": 89916,
+                "value": "rule_matched"
+              }
+            ]
+          },
+          "columns": [
+            {
+              "name": "example_id",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "synthetic_id",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "system",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "facts",
+              "type": "STRUCT(birth_input STRUCT(date TIMESTAMP, \"time\" VARCHAR, tz_offset_hours DOUBLE, place VARCHAR, lat DOUBLE, lon DOUBLE), bazi_year BIGINT, pillars STRUCT(\"year\" STRUCT(stem VARCHAR, stem_element VARCHAR, stem_polarity VARCHAR, branch VARCHAR, branch_animal VARCHAR, branch_element VARCHAR), \"month\" STRUCT(stem VARCHAR, stem_element VARCHAR, stem_polarity VARCHAR, branch VARCHAR, branch_animal VARCHAR, branch_element VARCHAR), \"day\" STRUCT(stem VARCHAR, stem_element VARCHAR, stem_polarity VARCHAR, branch VARCHAR, branch_animal VARCHAR, branch_element VARCHAR), \"hour\" STRUCT(stem VARCHAR, stem_element VARCHAR, stem_polarity VARCHAR, branch VARCHAR, branch_animal VARCHAR, branch_element VARCHAR)), day_master STRUCT(stem VARCHAR, element VARCHAR, polarity VARCHAR), element_counts STRUCT(Wood BIGINT, Fire BIGINT, Earth BIGINT, Metal BIGINT, Water BIGINT))"
+            },
+            {
+              "name": "retrieved_rules",
+              "type": "STRUCT(id VARCHAR, \"name\" VARCHAR, citation VARCHAR, effect VARCHAR)[]"
+            },
+            {
+              "name": "question_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "user_question",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "response",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "citations",
+              "type": "VARCHAR[]"
+            },
+            {
+              "name": "source",
+              "type": "VARCHAR"
+            }
+          ],
+          "id_duplicate_counts": {
+            "synthetic_id": 67437
+          },
+          "null_counts": {
+            "citations": 0,
+            "example_id": 0,
+            "facts": 0,
+            "question_type": 0,
+            "response": 0,
+            "retrieved_rules": 0,
+            "source": 0,
+            "synthetic_id": 0,
+            "system": 0,
+            "user_question": 0
+          },
+          "path": "data/train-00000-of-00001.parquet",
+          "row_hash_duplicate_estimate": 0,
+          "rows": 89916,
+          "text_stats": {
+            "cjk_character_ratio": 0.0,
+            "columns": [
+              "example_id",
+              "synthetic_id",
+              "system",
+              "facts",
+              "retrieved_rules",
+              "question_type",
+              "user_question",
+              "response",
+              "citations",
+              "source"
+            ],
+            "english_character_ratio": 0.7040087019820543,
+            "korean_character_ratio": 0.0,
+            "row_character_length": {
+              "max": 3172,
+              "mean": 2406.7150785177278,
+              "p50": 2258.0,
+              "p90": 3070.0,
+              "p95": 3092.0
+            },
+            "total_characters": 216402193
+          }
+        },
+        {
+          "categorical_counts": {
+            "question_type": [
+              {
+                "count": 1276,
+                "value": "career"
+              },
+              {
+                "count": 1276,
+                "value": "element_balance"
+              },
+              {
+                "count": 1276,
+                "value": "general_natal"
+              },
+              {
+                "count": 1276,
+                "value": "relationships"
+              }
+            ],
+            "source": [
+              {
+                "count": 5104,
+                "value": "rule_matched"
+              }
+            ]
+          },
+          "columns": [
+            {
+              "name": "example_id",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "synthetic_id",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "system",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "facts",
+              "type": "STRUCT(birth_input STRUCT(date TIMESTAMP, \"time\" VARCHAR, tz_offset_hours DOUBLE, place VARCHAR, lat DOUBLE, lon DOUBLE), bazi_year BIGINT, pillars STRUCT(\"year\" STRUCT(stem VARCHAR, stem_element VARCHAR, stem_polarity VARCHAR, branch VARCHAR, branch_animal VARCHAR, branch_element VARCHAR), \"month\" STRUCT(stem VARCHAR, stem_element VARCHAR, stem_polarity VARCHAR, branch VARCHAR, branch_animal VARCHAR, branch_element VARCHAR), \"day\" STRUCT(stem VARCHAR, stem_element VARCHAR, stem_polarity VARCHAR, branch VARCHAR, branch_animal VARCHAR, branch_element VARCHAR), \"hour\" STRUCT(stem VARCHAR, stem_element VARCHAR, stem_polarity VARCHAR, branch VARCHAR, branch_animal VARCHAR, branch_element VARCHAR)), day_master STRUCT(stem VARCHAR, element VARCHAR, polarity VARCHAR), element_counts STRUCT(Wood BIGINT, Fire BIGINT, Earth BIGINT, Metal BIGINT, Water BIGINT))"
+            },
+            {
+              "name": "retrieved_rules",
+              "type": "STRUCT(id VARCHAR, \"name\" VARCHAR, citation VARCHAR, effect VARCHAR)[]"
+            },
+            {
+              "name": "question_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "user_question",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "response",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "citations",
+              "type": "VARCHAR[]"
+            },
+            {
+              "name": "source",
+              "type": "VARCHAR"
+            }
+          ],
+          "id_duplicate_counts": {
+            "synthetic_id": 3828
+          },
+          "null_counts": {
+            "citations": 0,
+            "example_id": 0,
+            "facts": 0,
+            "question_type": 0,
+            "response": 0,
+            "retrieved_rules": 0,
+            "source": 0,
+            "synthetic_id": 0,
+            "system": 0,
+            "user_question": 0
+          },
+          "path": "data/validation-00000-of-00001.parquet",
+          "row_hash_duplicate_estimate": 0,
+          "rows": 5104,
+          "text_stats": {
+            "cjk_character_ratio": 0.0,
+            "columns": [
+              "example_id",
+              "synthetic_id",
+              "system",
+              "facts",
+              "retrieved_rules",
+              "question_type",
+              "user_question",
+              "response",
+              "citations",
+              "source"
+            ],
+            "english_character_ratio": 0.7036308638384782,
+            "korean_character_ratio": 0.0,
+            "row_character_length": {
+              "max": 3158,
+              "mean": 2396.911833855799,
+              "p50": 2255.0,
+              "p90": 3068.0,
+              "p95": 3094.0
+            },
+            "total_characters": 12233838
+          }
+        }
+      ],
+      "parquet_aggregate": {
+        "file_count": 3,
+        "id_duplicate_counts": {
+          "synthetic_id": 75000
+        },
+        "row_hash_duplicate_estimate": 0,
+        "rows": 100000,
+        "schema_consistent_across_files": true,
+        "unified_schema_sha256": "d4622e99e4642eb901e1f1813388464557276d44e243599eee39af92caf512ba"
+      },
+      "parse_failure_count": 0,
+      "retrieved_at": "2026-08-27T04:41:39+00:00",
+      "revision": "fad87063b317612e4164dfb0e0e08572c3831df4",
+      "source": "bazi_sft",
+      "standalone_json": [
+        {
+          "field_name_count": 12,
+          "max_depth": 1,
+          "multiturn_records_without_group_id": 0,
+          "object_count": 3,
+          "path": "dataset_stats.json",
+          "record_count": 1,
+          "records_with_group_id": 0,
+          "records_with_two_or_more_turn_pairs": 0,
+          "repeated_field_names": [],
+          "top_level_keys": [
+            "total_examples",
+            "splits",
+            "question_type_distribution",
+            "avg_citations_per_example",
+            "examples_with_zero_citations"
+          ],
+          "top_level_type": "dict",
+          "turn_pair_count_distribution": {
+            "0": 1
+          }
+        }
+      ],
+      "status": "collected",
+      "total_bytes": 102913919,
+      "usage_class": "derive_after_validation",
+      "zip_json": []
+    },
+    {
+      "access_approved_at": null,
+      "access_scope": "public",
+      "aggregate_rows": 116666,
+      "aihub_cross_split_group_overlap_count": null,
+      "aihub_exact_record_cross_split_overlap_count": null,
+      "aihub_multiturn_structural_group_count": null,
+      "aihub_multiturn_structural_group_counts_by_split": null,
+      "file_count": 3,
+      "files": [
+        {
+          "bytes": 33122,
+          "path": "README.huggingface.md",
+          "sha256": "3801e924ea2a80702caea05413f3de8e4d34e7edfc21b7b50dcb162715a24fea"
+        },
+        {
+          "bytes": 190451215,
+          "path": "data/train-00000-of-00003.parquet",
+          "sha256": "0ad75fedcd4df967592b510c9c31b3250123ef33933a281463323601506a1f22",
+          "source_variant": "v6",
+          "split": "train"
+        },
+        {
+          "bytes": 129879649,
+          "path": "data/train-extra-00000.parquet",
+          "sha256": "97616a1ae8725c68a665e9aef5396988cf16acfce1cc271a2c209c2b671d687a",
+          "source_variant": "v7",
+          "split": "train"
+        }
+      ],
+      "license_expression": "CC-BY-4.0",
+      "parquet": [
+        {
+          "categorical_counts": {},
+          "columns": [
+            {
+              "name": "uuid",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "professional_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "sports_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "arts_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "travel_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "culinary_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "family_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "cultural_background",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "skills_and_expertise",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "skills_and_expertise_list",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "hobbies_and_interests",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "hobbies_and_interests_list",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "career_goals_and_ambitions",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "sex",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "age",
+              "type": "BIGINT"
+            },
+            {
+              "name": "marital_status",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "military_status",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "family_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "housing_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "education_level",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "bachelors_field",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "occupation",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "district",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "province",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "country",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_datetime_synth",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_province",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_longitude_e",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "last_datetime",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "longitude_offset_minutes",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "equation_of_time_minutes",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "saju_pillars",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_day_master",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements_dominant",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements_lacking",
+              "type": "VARCHAR[]"
+            },
+            {
+              "name": "saju_sipsin",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_narrative",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_narrative_error",
+              "type": "INTEGER"
+            }
+          ],
+          "id_duplicate_counts": {
+            "uuid": 0
+          },
+          "null_counts": {
+            "age": 0,
+            "arts_persona": 0,
+            "bachelors_field": 0,
+            "birth_datetime_synth": 0,
+            "birth_longitude_e": 0,
+            "birth_province": 0,
+            "career_goals_and_ambitions": 0,
+            "country": 0,
+            "culinary_persona": 0,
+            "cultural_background": 0,
+            "district": 0,
+            "education_level": 0,
+            "equation_of_time_minutes": 0,
+            "family_persona": 0,
+            "family_type": 0,
+            "hobbies_and_interests": 0,
+            "hobbies_and_interests_list": 0,
+            "housing_type": 0,
+            "last_datetime": 0,
+            "longitude_offset_minutes": 0,
+            "marital_status": 0,
+            "military_status": 0,
+            "occupation": 0,
+            "persona": 0,
+            "professional_persona": 0,
+            "province": 0,
+            "saju_day_master": 0,
+            "saju_elements": 0,
+            "saju_elements_dominant": 0,
+            "saju_elements_lacking": 0,
+            "saju_narrative": 0,
+            "saju_narrative_error": 66666,
+            "saju_pillars": 0,
+            "saju_sipsin": 0,
+            "sex": 0,
+            "skills_and_expertise": 0,
+            "skills_and_expertise_list": 0,
+            "sports_persona": 0,
+            "travel_persona": 0,
+            "uuid": 0
+          },
+          "path": "data/train-00000-of-00003.parquet",
+          "row_hash_duplicate_estimate": 0,
+          "rows": 66666,
+          "text_stats": {
+            "cjk_character_ratio": 0.00898131922877133,
+            "columns": [
+              "uuid",
+              "professional_persona",
+              "sports_persona",
+              "arts_persona",
+              "travel_persona",
+              "culinary_persona",
+              "family_persona",
+              "persona",
+              "cultural_background",
+              "skills_and_expertise",
+              "skills_and_expertise_list",
+              "hobbies_and_interests",
+              "hobbies_and_interests_list",
+              "career_goals_and_ambitions",
+              "sex",
+              "marital_status",
+              "military_status",
+              "family_type",
+              "housing_type",
+              "education_level",
+              "bachelors_field",
+              "occupation",
+              "district",
+              "province",
+              "country",
+              "birth_datetime_synth",
+              "birth_province",
+              "last_datetime",
+              "saju_pillars",
+              "saju_day_master",
+              "saju_elements",
+              "saju_elements_dominant",
+              "saju_elements_lacking",
+              "saju_sipsin",
+              "saju_narrative"
+            ],
+            "english_character_ratio": 0.1458176368390359,
+            "korean_character_ratio": 0.5062174351929571,
+            "row_character_length": {
+              "max": 4124,
+              "mean": 3291.6317613176134,
+              "p50": 3305.0,
+              "p90": 3552.0,
+              "p95": 3620.0
+            },
+            "total_characters": 219439923
+          }
+        },
+        {
+          "categorical_counts": {},
+          "columns": [
+            {
+              "name": "uuid",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "professional_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "sports_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "arts_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "travel_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "culinary_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "family_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "cultural_background",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "skills_and_expertise",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "skills_and_expertise_list",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "hobbies_and_interests",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "hobbies_and_interests_list",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "career_goals_and_ambitions",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "sex",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "age",
+              "type": "BIGINT"
+            },
+            {
+              "name": "marital_status",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "military_status",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "family_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "housing_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "education_level",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "bachelors_field",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "occupation",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "district",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "province",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "country",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_datetime_synth",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_province",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_longitude_e",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "last_datetime",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "longitude_offset_minutes",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "equation_of_time_minutes",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "saju_pillars",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_day_master",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements_dominant",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements_lacking",
+              "type": "VARCHAR[]"
+            },
+            {
+              "name": "saju_sipsin",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_narrative",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_narrative_error",
+              "type": "INTEGER"
+            }
+          ],
+          "id_duplicate_counts": {
+            "uuid": 0
+          },
+          "null_counts": {
+            "age": 0,
+            "arts_persona": 0,
+            "bachelors_field": 0,
+            "birth_datetime_synth": 0,
+            "birth_longitude_e": 0,
+            "birth_province": 0,
+            "career_goals_and_ambitions": 0,
+            "country": 0,
+            "culinary_persona": 0,
+            "cultural_background": 0,
+            "district": 0,
+            "education_level": 0,
+            "equation_of_time_minutes": 0,
+            "family_persona": 0,
+            "family_type": 0,
+            "hobbies_and_interests": 0,
+            "hobbies_and_interests_list": 0,
+            "housing_type": 0,
+            "last_datetime": 0,
+            "longitude_offset_minutes": 0,
+            "marital_status": 0,
+            "military_status": 0,
+            "occupation": 0,
+            "persona": 0,
+            "professional_persona": 0,
+            "province": 0,
+            "saju_day_master": 0,
+            "saju_elements": 0,
+            "saju_elements_dominant": 0,
+            "saju_elements_lacking": 0,
+            "saju_narrative": 0,
+            "saju_narrative_error": 50000,
+            "saju_pillars": 0,
+            "saju_sipsin": 0,
+            "sex": 0,
+            "skills_and_expertise": 0,
+            "skills_and_expertise_list": 0,
+            "sports_persona": 0,
+            "travel_persona": 0,
+            "uuid": 0
+          },
+          "path": "data/train-extra-00000.parquet",
+          "row_hash_duplicate_estimate": 0,
+          "rows": 50000,
+          "text_stats": {
+            "cjk_character_ratio": 0.009731373888699688,
+            "columns": [
+              "uuid",
+              "professional_persona",
+              "sports_persona",
+              "arts_persona",
+              "travel_persona",
+              "culinary_persona",
+              "family_persona",
+              "persona",
+              "cultural_background",
+              "skills_and_expertise",
+              "skills_and_expertise_list",
+              "hobbies_and_interests",
+              "hobbies_and_interests_list",
+              "career_goals_and_ambitions",
+              "sex",
+              "marital_status",
+              "military_status",
+              "family_type",
+              "housing_type",
+              "education_level",
+              "bachelors_field",
+              "occupation",
+              "district",
+              "province",
+              "country",
+              "birth_datetime_synth",
+              "birth_province",
+              "last_datetime",
+              "saju_pillars",
+              "saju_day_master",
+              "saju_elements",
+              "saju_elements_dominant",
+              "saju_elements_lacking",
+              "saju_sipsin",
+              "saju_narrative"
+            ],
+            "english_character_ratio": 0.1524308566203811,
+            "korean_character_ratio": 0.49283298335111597,
+            "row_character_length": {
+              "max": 3868,
+              "mean": 3147.69326,
+              "p50": 3163.0,
+              "p90": 3397.0,
+              "p95": 3460.0
+            },
+            "total_characters": 157384663
+          }
+        }
+      ],
+      "parquet_aggregate": {
+        "file_count": 2,
+        "id_duplicate_counts": {
+          "uuid": 0
+        },
+        "row_hash_duplicate_estimate": 0,
+        "rows": 116666,
+        "schema_consistent_across_files": true,
+        "unified_schema_sha256": "23e775d2de213c27a77077a44bc6924cdca6307501f2562f1a53f37291f56bcd"
+      },
+      "parse_failure_count": 0,
+      "retrieved_at": "2026-08-26T09:36:11+00:00",
+      "revision": "ffb934248746a2dea64ef771c0d86e1743d25702",
+      "source": "nemotron_saju",
+      "standalone_json": [],
+      "status": "collected",
+      "total_bytes": 320363986,
+      "usage_class": "train_allow",
+      "zip_json": []
+    },
+    {
+      "access_approved_at": null,
+      "access_scope": "public",
+      "aggregate_rows": 0,
+      "aihub_cross_split_group_overlap_count": null,
+      "aihub_exact_record_cross_split_overlap_count": null,
+      "aihub_multiturn_structural_group_count": null,
+      "aihub_multiturn_structural_group_counts_by_split": null,
+      "file_count": 5,
+      "files": [
+        {
+          "bytes": 7105,
+          "path": "README.md",
+          "sha256": "7809a03e567197b79c2f456441bf03fabc852a57d81aa64fcf05bfb2965cd696"
+        },
+        {
+          "bytes": 1061,
+          "path": "provenance/5b90110e55feb92303ef7853ecacdb6f9ed59eac/LICENSE",
+          "sha256": "2825d7ded335793932f606a89f54d002a8d22b2c863ca6d35ec60f7a46ea50c4"
+        },
+        {
+          "bytes": 1311,
+          "path": "provenance/5b90110e55feb92303ef7853ecacdb6f9ed59eac/README.md",
+          "sha256": "8731a44230b3c2bd0723bcff79e25b7eefb3120a403f530ca972bec4f9847e48"
+        },
+        {
+          "bytes": 46597,
+          "path": "provenance/5b90110e55feb92303ef7853ecacdb6f9ed59eac/shensha.js",
+          "sha256": "38ea75aa8cae7da13e457ed8aac8d68cab39a9cd4d78945149ea7c4f395acaec"
+        },
+        {
+          "bytes": 29754,
+          "path": "rules/shensha_51.json",
+          "sha256": "9a11e1502983969407c43f82c65de6736b344da1a623e7a6557ad8b20cda939e"
+        }
+      ],
+      "license_expression": "MIT AND MIT",
+      "parquet": [],
+      "parquet_aggregate": null,
+      "parse_failure_count": 0,
+      "retrieved_at": "2026-08-27T04:41:45+00:00",
+      "revision": "84583ca54e8fce257d3d5efd015bca1263a1cfe9",
+      "source": "yeji_bazi_rules",
+      "standalone_json": [
+        {
+          "field_name_count": 95,
+          "max_depth": 5,
+          "multiturn_records_without_group_id": 0,
+          "object_count": 161,
+          "path": "rules/shensha_51.json",
+          "record_count": 51,
+          "records_with_group_id": 51,
+          "records_with_two_or_more_turn_pairs": 0,
+          "repeated_field_names": [
+            "id",
+            "name_cn",
+            "name_ko",
+            "type",
+            "category",
+            "condition",
+            "meaning",
+            "rule",
+            "mapping",
+            "甲",
+            "戊",
+            "乙",
+            "己",
+            "丙",
+            "丁",
+            "庚",
+            "辛",
+            "壬",
+            "癸",
+            "寅",
+            "卯",
+            "辰",
+            "巳",
+            "午",
+            "未",
+            "申",
+            "酉",
+            "戌",
+            "亥",
+            "子",
+            "丑",
+            "지지",
+            "간지",
+            "寅午戌",
+            "申子辰",
+            "亥卯未",
+            "巳酉丑",
+            "valid_pillars",
+            "德",
+            "秀",
+            "mnemonic",
+            "note",
+            "金",
+            "木",
+            "水",
+            "土",
+            "火",
+            "春(寅卯辰月)",
+            "夏(巳午未月)",
+            "秋(申酉戌月)",
+            "冬(亥子丑月)",
+            "亥子丑",
+            "寅卯辰",
+            "巳午未",
+            "申酉戌"
+          ],
+          "top_level_keys": [
+            "meta",
+            "shensha_list",
+            "categories",
+            "type_summary",
+            "glossary"
+          ],
+          "top_level_type": "dict",
+          "turn_pair_count_distribution": {
+            "0": 51
+          }
+        }
+      ],
+      "status": "collected",
+      "total_bytes": 85828,
+      "usage_class": "derive_after_validation",
+      "zip_json": []
+    }
+  ]
+}

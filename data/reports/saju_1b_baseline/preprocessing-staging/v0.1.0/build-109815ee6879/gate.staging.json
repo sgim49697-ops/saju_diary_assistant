@@ -1,0 +1,18 @@
+{
+  "approval_status": "staging_unapproved",
+  "audit_approved": true,
+  "audit_status": "approved",
+  "contains_raw_samples": false,
+  "promotion_allowed": false,
+  "promotion_blockers": [
+    "staging_human_review_not_completed",
+    "phase4_tokenizer_validation_not_completed"
+  ],
+  "review_required": {
+    "bazi_sft": 150,
+    "yeji_shensha_derived": 150
+  },
+  "schema_version": "1.0.0",
+  "staging_ready": true,
+  "status": "human_review_required"
+}

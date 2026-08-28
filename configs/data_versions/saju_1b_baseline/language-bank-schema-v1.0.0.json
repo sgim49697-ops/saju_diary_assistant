@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["bazi", "yeji"],
+  "properties": {
+    "bazi": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["system_prompt", "safety_disclaimer", "questions", "rule_explanations"],
+      "properties": {
+        "system_prompt": {"type": "string", "minLength": 20, "maxLength": 300},
+        "safety_disclaimer": {"type": "string", "minLength": 15, "maxLength": 200},
+        "questions": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["career", "element_balance", "general_natal", "relationships"],
+          "properties": {
+            "career": {"type": "string", "minLength": 5, "maxLength": 100},
+            "element_balance": {"type": "string", "minLength": 5, "maxLength": 100},
+            "general_natal": {"type": "string", "minLength": 5, "maxLength": 100},
+            "relationships": {"type": "string", "minLength": 5, "maxLength": 100}
+          }
+        },
+        "rule_explanations": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["day_master_strong", "day_master_weak", "dm_supported", "dominant_element", "missing_elements"],
+          "properties": {
+            "day_master_strong": {"type": "string", "minLength": 10, "maxLength": 160},
+            "day_master_weak": {"type": "string", "minLength": 10, "maxLength": 160},
+            "dm_supported": {"type": "string", "minLength": 10, "maxLength": 160},
+            "dominant_element": {"type": "string", "minLength": 10, "maxLength": 160},
+            "missing_elements": {"type": "string", "minLength": 10, "maxLength": 160}
+          }
+        }
+      }
+    },
+    "yeji": {
+      "type": "array",
+      "minItems": 51,
+      "maxItems": 51,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["rule_id", "name_ko", "safe_meaning_ko"],
+        "properties": {
+          "rule_id": {"type": "integer", "minimum": 1, "maximum": 51},
+          "name_ko": {"type": "string", "minLength": 1, "maxLength": 30},
+          "safe_meaning_ko": {"type": "string", "minLength": 15, "maxLength": 220}
+        }
+      }
+    }
+  }
+}

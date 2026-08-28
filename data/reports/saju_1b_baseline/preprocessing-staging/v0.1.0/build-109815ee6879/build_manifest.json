@@ -1,0 +1,37 @@
+{
+  "approval_status": "staging_unapproved",
+  "artifact_sha256": {
+    "aggregate.json": "7b631aa0c452bdaa0efe1bfc44720857f58738666f3793400bf5640f3b2b1c46",
+    "gate.staging.json": "838e24a6692dc8de55958f4de06ca762b9c9dcc9ba9175ab7ded406d69eb3b27",
+    "review_manifest.json": "2f7f2f2b1b94594395c38f7ef33314bd50fdacc8c53cccab290e888fcd91277f",
+    "reviewer-v1.0.0/index.html": "21b01d3a4690c0efbdec494ca3afd4ad8e6aed8e1d613cb7feafe68d0df673cb",
+    "reviewer-v1.0.0/review.css": "637bda1cf5b4382ec8d82c1eaba0f0cc4642c292f6f0d0d6e79ebce2ceb57800",
+    "reviewer-v1.0.0/review.js": "b17fe1ff24850cdfab9ae2898d21a14d0fe1b1009a014596a3652badd89ea77b"
+  },
+  "audit_build_sha256": "ca756f3eb89fa404c08dc49215b540b3294ed195c39c597303ec14777bb9c4f1",
+  "audit_policy_sha256": "8195d4c971747a52f56ae1d1b963ab499681ec4d8f0030bf446928cf7749d1a4",
+  "build_id": "build-109815ee6879",
+  "build_sha256": "109815ee687980e417c5831abd5a558e3790c8197051561844ef64417f0d4b41",
+  "code_sha256": "05326b7d2ccac201907e80d10ba9adb703f5361146bab0df9821f61ac6baf2c4",
+  "config_sha256": "30a19d9d28c223e2bad67b23874bf74cf8391719c3f1db1a578d800e35b09cce",
+  "contains_raw_samples": false,
+  "correction_manifest_sha256": "b355a37112bdb6bac94a16b4d341a5a7f034403a39d66f9830526ee53d926f81",
+  "dataset_name": "saju_1b_baseline",
+  "generated_at": "2026-08-27T14:51:59+00:00",
+  "language_bank_sha256": "ceae1af37f80d43c845af45f267118db7e55d729aaa0146578bae2f5bfeb82b2",
+  "private_manifest_sha256": "e936eaf29fb8843e47dd6018c7c629b0025d6b02757f50429c6699f1a43f22b8",
+  "promotion_allowed": false,
+  "row_counts": {
+    "aihub_empathy_multiturn": 1200,
+    "aihub_empathy_single": 2400,
+    "bazi_sft": 6000,
+    "nemotron_saju": 13200,
+    "yeji_shensha_derived": 1200
+  },
+  "schema_version": "1.0.0",
+  "seed": 42,
+  "source_build_sha256": "9462ec148dcd93328b3b68522ad6c6f0d2c3694161d32a2d54332e8069d82f0a",
+  "source_config_sha256": "b229e520dc95e6aada6dbee5730773d583d67cd581a7878f397aa8b80ea1dc98",
+  "staging_version": "v0.1.0",
+  "total_rows": 24000
+}

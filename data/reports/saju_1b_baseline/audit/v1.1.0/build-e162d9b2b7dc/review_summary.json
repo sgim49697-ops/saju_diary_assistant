@@ -1,0 +1,51 @@
+{
+  "by_source": {
+    "aihub_empathy": {
+      "reference": 30,
+      "required": 70
+    },
+    "bazi_sft": {
+      "reference": 40,
+      "required": 20
+    },
+    "nemotron_saju": {
+      "reference": 50,
+      "required": 40
+    },
+    "yeji_bazi_rules": {
+      "reference": 31,
+      "required": 20
+    }
+  },
+  "by_stratum": {
+    "reference:aihub_empathy:remaining_emotion_coverage": 30,
+    "reference:bazi_sft:question_type_reference": 40,
+    "reference:nemotron_saju:deterministic_random_v6": 20,
+    "reference:nemotron_saju:deterministic_random_v7": 20,
+    "reference:nemotron_saju:within_variant_same_chart_pair": 10,
+    "reference:yeji_bazi_rules:remaining_rules": 31,
+    "required:aihub_empathy:clinical_flag_nonoverlap": 10,
+    "required:aihub_empathy:rare_emotion_coverage": 30,
+    "required:aihub_empathy:response_length_extreme": 5,
+    "required:aihub_empathy:self_harm_flag": 15,
+    "required:aihub_empathy:upstream_cross_split_talk_pair": 10,
+    "required:bazi_sft:question_type_coverage": 8,
+    "required:bazi_sft:retrieved_rule_count_1": 1,
+    "required:bazi_sft:retrieved_rule_count_4": 1,
+    "required:bazi_sft:reused_chart_different_synthetic_pair": 10,
+    "required:nemotron_saju:certainty_flag": 6,
+    "required:nemotron_saju:cross_variant_same_chart_pair": 10,
+    "required:nemotron_saju:death_accident_flag": 6,
+    "required:nemotron_saju:health_flag": 8,
+    "required:nemotron_saju:longest_narrative": 5,
+    "required:nemotron_saju:shortest_narrative": 5,
+    "required:yeji_bazi_rules:known_conflict": 1,
+    "required:yeji_bazi_rules:structure_then_complexity": 19
+  },
+  "contains_raw_samples": false,
+  "pair_unit_count": 40,
+  "reference_review_units": 151,
+  "required_review_units": 150,
+  "schema_version": "1.0.0",
+  "total_review_units": 301
+}

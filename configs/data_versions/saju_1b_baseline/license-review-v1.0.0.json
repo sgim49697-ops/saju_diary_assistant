@@ -1,0 +1,101 @@
+{
+  "schema_version": "1.0.0",
+  "dataset_name": "saju_1b_baseline",
+  "review_version": "v1.0.0",
+  "reviewed_at": "2026-08-28",
+  "legal_advice": false,
+  "service_assumption": {
+    "allowed_candidate": "광고가 일부 포함된 운영자 자체 서비스",
+    "not_approved": [
+      "API 또는 클라우드 형태의 원격 모델 접근 판매",
+      "SI 또는 on-premise 판매",
+      "on-device 모델 판매",
+      "checkpoint 또는 통제 데이터 공개 배포"
+    ]
+  },
+  "model": {
+    "repo_id": "kakaocorp/kanana-2-1.3b-instruct",
+    "revision": "bf4786aa2a1908adce942d53976270132732f720",
+    "pinned_revision_card_license_tag": "other",
+    "current_card_license_tag_checked_2026_08_28": "kanana-open-license",
+    "license_document_title": "KANANA OPEN LICENSE AGREEMENT",
+    "license_document_release_date": "2025-07-17",
+    "operating_boundary": {
+      "section_4_1": "원격 접근 판매, SI/on-premise 판매, on-device 판매는 별도 상업 라이선스 대상",
+      "section_4_2": "Section 4.1에 해당하지 않는 자체 서비스 개발·운영은 별도 상업 라이선스 없이 허용",
+      "decision": "현재 광고형 자체 서비스 가정 아래 학습·내부 검증 후보로 허용"
+    },
+    "distribution_obligations": [
+      "라이선스 사본 제공",
+      "수정 사실 표시",
+      "요구되는 Notice 제공",
+      "Powered by Kanana 표시",
+      "Kanana로 학습·향상한 모델을 배포할 때 이름에 Kanana prefix 적용"
+    ],
+    "official_sources": [
+      "https://huggingface.co/kakaocorp/kanana-2-1.3b-instruct",
+      "https://huggingface.co/kakaocorp/kanana-2-1.3b-instruct/blob/bf4786aa2a1908adce942d53976270132732f720/LICENSE"
+    ]
+  },
+  "active_sources": {
+    "nemotron_saju": {
+      "repo_id": "rayraykim/Nemotron-Personas-Korea-Saju",
+      "revision": "ffb934248746a2dea64ef771c0d86e1743d25702",
+      "license_expression": "CC-BY-4.0",
+      "decision": "출처·라이선스 링크·변경 사실을 표시하고 학습 후보로 허용",
+      "limitations": [
+        "전문가 검증이 없는 합성 데이터",
+        "결정론적 또는 고위험 의사결정 용도로 사용하지 않음"
+      ],
+      "official_source": "https://huggingface.co/datasets/rayraykim/Nemotron-Personas-Korea-Saju"
+    },
+    "bazi_sft": {
+      "repo_id": "AmareshHebbar/bazi-sft",
+      "revision": "fad87063b317612e4164dfb0e0e08572c3831df4",
+      "license_expression": "Apache-2.0",
+      "decision": "원문 응답은 직접 학습하지 않고 구조 검산·한국어 재렌더를 통과한 파생 행만 허용",
+      "limitations": [
+        "합성 규칙 기반 데이터",
+        "계산 정확성과 도메인 타당성이 외부 전문가에 의해 보증되지 않음"
+      ],
+      "official_source": "https://huggingface.co/datasets/AmareshHebbar/bazi-sft"
+    },
+    "aihub_empathy": {
+      "dataset_id": "86",
+      "policy": "AI Hub 데이터 이용정책",
+      "decision": "승인 계정·승인 목적 범위의 AI 모델 학습과 내부 검증에만 허용",
+      "requirements": [
+        "영리·비영리 연구개발 모두 가능하나 AI 모델 학습 목적으로만 사용",
+        "사업 결과물에 한국지능정보사회진흥원(NIA)과 AI Hub 출처 표시",
+        "승인받지 않은 제3자에게 열람·제공·양도·대여·판매하지 않음",
+        "데이터셋 자체 판매는 사전 협의 없이는 금지",
+        "개인정보 발견 시 AI Hub에 신고하고 다운로드한 해당 데이터를 삭제"
+      ],
+      "official_source": "https://aihub.or.kr/intrcn/guid/usagepolicy.do"
+    },
+    "yeji_bazi_rules": {
+      "repo_id": "tellang/yeji-bazi-rules",
+      "revision": "84583ca54e8fce257d3d5efd015bca1263a1cfe9",
+      "license_expression": "MIT AND MIT",
+      "upstream_repo": "chxb/shensha",
+      "upstream_revision": "5b90110e55feb92303ef7853ecacdb6f9ed59eac",
+      "decision": "허용한 신살 규칙 파일과 MIT 원천 코드만 대조·교정한 뒤 자체 QA 파생에 허용",
+      "official_sources": [
+        "https://huggingface.co/datasets/tellang/yeji-bazi-rules",
+        "https://github.com/chxb/shensha/blob/5b90110e55feb92303ef7853ecacdb6f9ed59eac/LICENSE"
+      ]
+    }
+  },
+  "immutable_errata": [
+    {
+      "affected_files": [
+        "data/reports/saju_1b_baseline/source/v1.0.0/build-b3890c552e38/license_manifest.json",
+        "data/reports/saju_1b_baseline/source/v1.1.0/build-9462ec148dcd/license_manifest.json"
+      ],
+      "historical_text": "Kanana Open License 4.2",
+      "correction": "공식 문서명은 KANANA OPEN LICENSE AGREEMENT이고, 4.2는 라이선스 버전이 아니라 자체 서비스 경계를 규정한 Section 4.2다.",
+      "preserved_for_hash_integrity": true,
+      "superseded_by": "configs/data_versions/saju_1b_baseline/license-review-v1.0.0.json"
+    }
+  ]
+}

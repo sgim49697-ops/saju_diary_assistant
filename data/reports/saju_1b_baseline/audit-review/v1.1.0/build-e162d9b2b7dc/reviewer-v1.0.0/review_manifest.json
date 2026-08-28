@@ -1,0 +1,19 @@
+{
+  "artifact_sha256": {
+    "index.html": "ff0f89384f155c47de06966ccf0f76ba6e0e12480e31b4b613122005792de862",
+    "review.css": "9ab354903c2c611326e8497d80fc7afa87cafc9a459ffb7dd49682fb62f8f2ce",
+    "review.js": "bbb09fa82e4368b2eeaecd250274bae9a35d536900f84436b1f7ef7e356cc6be"
+  },
+  "audit_build_manifest_sha256": "fb83910d73bb85594ddc9b2a658dc532c7699f501e1f9d6420f743b96067c4ea",
+  "audit_version": "v1.1.0",
+  "build_id": "build-e162d9b2b7dc",
+  "build_sha256": "e162d9b2b7dc54c68168eb74cb72586528f2fbecb5ed07f6a84af4d4998816fe",
+  "contains_raw_samples": false,
+  "dataset_name": "saju_1b_baseline",
+  "entrypoint": "index.html",
+  "review_tool_sha256": "d73b1eebaaae897647d793a75efb47e0a30b4d3869b4a69ecf70bb357df050f8",
+  "reviewer_version": "reviewer-v1.0.0",
+  "schema_version": "1.0.0",
+  "server_entrypoint": "scripts/data/phase2_review_web.py",
+  "server_entrypoint_sha256": "2abd889b25f9b10518dd7c99720edbe1bda3584723f57603af7590d8cee0a8ab"
+}

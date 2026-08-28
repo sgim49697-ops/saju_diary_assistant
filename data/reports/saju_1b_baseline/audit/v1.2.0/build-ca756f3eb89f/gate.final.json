@@ -1,0 +1,14 @@
+{
+  "approval_created": false,
+  "blocking_finding_codes": [],
+  "contains_raw_samples": false,
+  "decision_counts": {
+    "accept": 300
+  },
+  "finalized_at": "2026-08-27T14:07:39+00:00",
+  "reference_review_completed": 150,
+  "required_review_completed": 150,
+  "required_review_total": 150,
+  "schema_version": "1.0.0",
+  "status": "ready_for_approval"
+}

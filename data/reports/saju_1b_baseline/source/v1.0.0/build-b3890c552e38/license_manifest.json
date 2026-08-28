@@ -1,0 +1,57 @@
+{
+  "schema_version": "1.0.0",
+  "canonical_plan_version": "2.2.0",
+  "reviewed_at": "2026-08-27",
+  "legal_notice": "기술적 이용조건 기록이며 법률 자문을 대신하지 않는다.",
+  "service_scope": "광고가 일부 포함될 수 있는 자체 운영 서비스 후보",
+  "model": {
+    "id": "kakaocorp/kanana-2-1.3b-instruct",
+    "revision": "bf4786aa2a1908adce942d53976270132732f720",
+    "license": "Kanana Open License 4.2",
+    "usage_class": "self_hosted_service_candidate",
+    "restrictions": [
+      "API 또는 클라우드 원격 모델 접근 판매는 별도 상업 라이선스 검토",
+      "SI, on-premise, on-device 판매는 별도 상업 라이선스 검토",
+      "배포 전 LICENSE, Notice, 수정 표시와 Powered by Kanana 의무 재검토"
+    ]
+  },
+  "sources": [
+    {
+      "source": "nemotron_saju",
+      "revision": "ffb934248746a2dea64ef771c0d86e1743d25702",
+      "license": "CC-BY-4.0",
+      "usage_class": "train_allow",
+      "attribution_draft": "rayraykim/Nemotron-Personas-Korea-Saju 및 원천 NVIDIA Nemotron Korea 자료, CC BY 4.0; 변경·선별 사실 표시"
+    },
+    {
+      "source": "bazi_sft",
+      "revision": "fad87063b317612e4164dfb0e0e08572c3831df4",
+      "license": "Apache-2.0",
+      "usage_class": "derive_after_validation",
+      "attribution_draft": "AmareshHebbar/bazi-sft, Apache License 2.0; 구조 검산과 한국어 재렌더 변경 표시"
+    },
+    {
+      "source": "aihub_empathy",
+      "revision": "dataset-86-filekeys-66046-66049",
+      "license": "AIHUB-GENERAL-POLICY",
+      "usage_class": "conditional_train_allow",
+      "access_approved_at": "2026-08-27",
+      "attribution_draft": "한국지능정보사회진흥원 AI Hub 감성대화 말뭉치 활용 사실을 사업 결과물에 표시",
+      "restrictions": ["승인 계정에서만 수집", "원문과 변환 원문 제3자 제공·공개 금지", "학습 목적 범위 유지"]
+    },
+    {
+      "source": "yeji_bazi_rules",
+      "revision": "84583ca54e8fce257d3d5efd015bca1263a1cfe9",
+      "license": "MIT AND MIT",
+      "usage_class": "derive_after_validation",
+      "attribution_draft": "tellang/yeji-bazi-rules와 chxb/shensha의 MIT notice 보존; 규칙 교정·QA 파생 사실 표시"
+    }
+  ],
+  "excluded_sources": [
+    {"source": "aihub_271_keti", "usage_class": "contract_required", "reason": "KETI 데이터 정책상 상업 이용은 별도 협의 대상"},
+    {"source": "yeji_fortune_telling_v9", "usage_class": "deny", "reason": "CC BY-NC 4.0"},
+    {"source": "yeji_processed", "usage_class": "deny", "reason": "원천 권리 사슬 불명확과 품질 실패"},
+    {"source": "yeji_interpretations", "usage_class": "deny", "reason": "명시 라이선스 없음"},
+    {"source": "yeji_translated", "usage_class": "reference_only", "reason": "해석 부재와 품질 감사 실패"}
+  ]
+}

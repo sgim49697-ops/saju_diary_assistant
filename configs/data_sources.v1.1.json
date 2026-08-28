@@ -1,0 +1,187 @@
+{
+  "schema_version": "1.0.0",
+  "canonical_plan_version": "2.3.1",
+  "approved_at": "2026-08-27",
+  "paths": {
+    "raw_root": "data/raw",
+    "inventory_report": "data/reports/saju_1b_baseline/source/v1.1.0/build-9462ec148dcd/source_inventory.json",
+    "license_manifest": "data/reports/saju_1b_baseline/source/v1.1.0/build-9462ec148dcd/license_manifest.json",
+    "aihub_key_file": "~/.config/saju_diary_assistant/aihub.env"
+  },
+  "mix_contract": {
+    "seed": 42,
+    "holdout_per_axis": 100,
+    "axes": {
+      "nemotron_saju": {"mix1k": 550, "mix10": 5500, "mix20": 11000},
+      "bazi_sft": {"mix1k": 250, "mix10": 2500, "mix20": 5000},
+      "aihub_empathy_single": {"mix1k": 100, "mix10": 1000, "mix20": 2000},
+      "aihub_empathy_multiturn": {"mix1k": 50, "mix10": 500, "mix20": 1000},
+      "yeji_shensha_derived": {"mix1k": 50, "mix10": 500, "mix20": 1000}
+    },
+    "aihub_multiturn_min_structural_groups": 1200,
+    "aihub_axes_require_disjoint_groups": true,
+    "nemotron_variant_ratio": {"v6": 0.2, "v7": 0.8}
+  },
+  "sources": {
+    "nemotron_saju": {
+      "provider": "huggingface",
+      "repo_id": "rayraykim/Nemotron-Personas-Korea-Saju",
+      "revision": "ffb934248746a2dea64ef771c0d86e1743d25702",
+      "license_expression": "CC-BY-4.0",
+      "usage_class": "train_allow",
+      "access_scope": "public",
+      "local_subdir": "nemotron_saju/ffb934248746a2dea64ef771c0d86e1743d25702-full-1m",
+      "allow_files": [
+        ".gitattributes",
+        "README.md",
+        "data/train-00000-of-00003.parquet",
+        "data/train-00001-of-00003.parquet",
+        "data/train-00002-of-00003.parquet",
+        "data/train-extra-00000.parquet",
+        "data/train-extra-00001.parquet",
+        "data/train-extra-00002.parquet",
+        "data/train-extra-00003.parquet",
+        "data/train-extra-00004.parquet",
+        "data/train-extra-00005.parquet",
+        "data/train-extra-00006.parquet",
+        "data/train-extra-00007.parquet",
+        "data/train-extra-00008.parquet",
+        "data/train-extra-00009.parquet",
+        "data/train-extra-00010.parquet",
+        "data/train-extra-00011.parquet",
+        "data/train-extra-00012.parquet",
+        "data/train-extra-00013.parquet",
+        "data/train-extra-00014.parquet",
+        "data/train-extra-00015.parquet",
+        "data/train-extra-00016.parquet"
+      ],
+      "expected_files": {
+        ".gitattributes": {"bytes": 2804, "sha256": "aec65f353b856df279bf507a914108391e7b86bbad3043ff1c72b5b2f76030a7"},
+        "README.md": {"bytes": 33122, "sha256": "3801e924ea2a80702caea05413f3de8e4d34e7edfc21b7b50dcb162715a24fea"},
+        "data/train-00000-of-00003.parquet": {"bytes": 190451215, "sha256": "0ad75fedcd4df967592b510c9c31b3250123ef33933a281463323601506a1f22"},
+        "data/train-00001-of-00003.parquet": {"bytes": 190310266, "sha256": "eeca25cf54efd34bf7b3e15e0a6cdcae2ead31f7ff9333aae58f88dd00bfb3cf"},
+        "data/train-00002-of-00003.parquet": {"bytes": 190259822, "sha256": "e1dc5469847bd8fc659eebb139943f733dae5e4d7ebb00aafbd1189a301488d5"},
+        "data/train-extra-00000.parquet": {"bytes": 129879649, "sha256": "97616a1ae8725c68a665e9aef5396988cf16acfce1cc271a2c209c2b671d687a"},
+        "data/train-extra-00001.parquet": {"bytes": 129730357, "sha256": "6cd1628746de1187ffd8f2d279de9f18e4e91da0dd2a41f3c21a92ee3a0d3dbe"},
+        "data/train-extra-00002.parquet": {"bytes": 129778577, "sha256": "7c86f74b91f99e8b61d1317fb9323ffa87c644edc891ac0381d9848dd0b4722c"},
+        "data/train-extra-00003.parquet": {"bytes": 129888052, "sha256": "c50341062bd438acddc11011b2849cc22fe745c204313a2cec6de5eb606c5ee1"},
+        "data/train-extra-00004.parquet": {"bytes": 129895833, "sha256": "11572e089ad9b858f8ebbb39ffa0ac863f6875b17d896c5c022ed12c1851459f"},
+        "data/train-extra-00005.parquet": {"bytes": 129808677, "sha256": "aa65900e98e77f156be910e20eae49d941ddf1ce3f9857286ce7d47a678abccf"},
+        "data/train-extra-00006.parquet": {"bytes": 129866730, "sha256": "28dec736036ac5e71eb0b6a01203d3f1cf1bc34c2b963e436018c7fcd1987360"},
+        "data/train-extra-00007.parquet": {"bytes": 129907596, "sha256": "e4b8016e06928f5914155cb8658683f13e41ae4817464b1144a2d62cbff5ed65"},
+        "data/train-extra-00008.parquet": {"bytes": 129775014, "sha256": "421a24c7e569d17eab862ea06ae182d20b787c255bb8f8fc1cafd4b3abda5026"},
+        "data/train-extra-00009.parquet": {"bytes": 129814571, "sha256": "f522dca3e7b871f29643257686d7859492a708055da2fb76c883ea89fb83f111"},
+        "data/train-extra-00010.parquet": {"bytes": 129920637, "sha256": "1a22969e0006ef8d294883b6c203223debdd7bcd15a2dffee5f385b21b243edc"},
+        "data/train-extra-00011.parquet": {"bytes": 129872022, "sha256": "00ca0129c420724b63eed0f71246ab0091dcb05b38bb3591ecdcd3733f6b84c3"},
+        "data/train-extra-00012.parquet": {"bytes": 129834227, "sha256": "fe5fadfb50fc5a358ddd67fd8b8471e0d92643940ee1f9dd65445e7f088c6659"},
+        "data/train-extra-00013.parquet": {"bytes": 129864989, "sha256": "f9e72e5cee0fec89b944da9cce4c7ec25992fcfd083b6c6af84229da4d1e5ec0"},
+        "data/train-extra-00014.parquet": {"bytes": 129898926, "sha256": "49d20a57f09d870ea1a5e78a3b1a0452db0dbb253894168933b53b33dea18bc0"},
+        "data/train-extra-00015.parquet": {"bytes": 129827687, "sha256": "bc05c1d96effb605e2c92d9ba980113b2ff4da5485895d57e76820e85ab0813c"},
+        "data/train-extra-00016.parquet": {"bytes": 59890, "sha256": "4c20f91dde3c96446bab91014c9b8d44be87e7148d529eb4d98a66fbdb4d67a6"}
+      },
+      "file_variants": {
+        "data/train-00000-of-00003.parquet": "v6",
+        "data/train-00001-of-00003.parquet": "v6",
+        "data/train-00002-of-00003.parquet": "v6",
+        "data/train-extra-00000.parquet": "v7",
+        "data/train-extra-00001.parquet": "v7",
+        "data/train-extra-00002.parquet": "v7",
+        "data/train-extra-00003.parquet": "v7",
+        "data/train-extra-00004.parquet": "v7",
+        "data/train-extra-00005.parquet": "v7",
+        "data/train-extra-00006.parquet": "v7",
+        "data/train-extra-00007.parquet": "v7",
+        "data/train-extra-00008.parquet": "v7",
+        "data/train-extra-00009.parquet": "v7",
+        "data/train-extra-00010.parquet": "v7",
+        "data/train-extra-00011.parquet": "v7",
+        "data/train-extra-00012.parquet": "v7",
+        "data/train-extra-00013.parquet": "v7",
+        "data/train-extra-00014.parquet": "v7",
+        "data/train-extra-00015.parquet": "v7",
+        "data/train-extra-00016.parquet": "v7"
+      },
+      "expected_rows": {"total": 1000000, "variants": {"v6": 199996, "v7": 800004}}
+    },
+    "bazi_sft": {
+      "provider": "huggingface",
+      "repo_id": "AmareshHebbar/bazi-sft",
+      "revision": "fad87063b317612e4164dfb0e0e08572c3831df4",
+      "license_expression": "Apache-2.0",
+      "usage_class": "derive_after_validation",
+      "access_scope": "public",
+      "local_subdir": "bazi_sft/fad87063b317612e4164dfb0e0e08572c3831df4",
+      "allow_files": [
+        ".gitattributes",
+        "README.md",
+        "data/test-00000-of-00001.parquet",
+        "data/train-00000-of-00001.parquet",
+        "data/validation-00000-of-00001.parquet",
+        "dataset_stats.json"
+      ]
+    },
+    "aihub_empathy": {
+      "provider": "aihub",
+      "dataset_id": "86",
+      "release": "dataset-86-filekeys-66046-66049",
+      "license_expression": "AIHUB-GENERAL-POLICY",
+      "usage_class": "conditional_train_allow",
+      "access_scope": "approved_account_private",
+      "access_approved_at": "2026-08-27",
+      "local_subdir": "aihub_empathy/dataset-86-filekeys-66046-66049",
+      "endpoint_template": "https://api.aihub.or.kr/down/0.6/{dataset_id}.do?fileSn={file_key}",
+      "file_keys": ["66046", "66047", "66048", "66049"],
+      "derive_mix_axes": ["aihub_empathy_single", "aihub_empathy_multiturn"],
+      "source_group_id_field": "talk.id.talk-id",
+      "leakage_group_policy": "hash_talk_id_across_all_derived_axes",
+      "upstream_split_policy": "provenance_only_regroup_by_leakage_group_id"
+    },
+    "yeji_bazi_rules": {
+      "provider": "huggingface",
+      "repo_id": "tellang/yeji-bazi-rules",
+      "revision": "84583ca54e8fce257d3d5efd015bca1263a1cfe9",
+      "license_expression": "MIT AND MIT",
+      "usage_class": "derive_after_validation",
+      "access_scope": "public",
+      "local_subdir": "yeji_bazi_rules/84583ca54e8fce257d3d5efd015bca1263a1cfe9",
+      "allow_files": ["README.md", "rules/shensha_51.json"],
+      "expected_files": {
+        "rules/shensha_51.json": {
+          "bytes": 29754,
+          "sha256": "9a11e1502983969407c43f82c65de6736b344da1a623e7a6557ad8b20cda939e"
+        }
+      },
+      "provenance": {
+        "repo_id": "chxb/shensha",
+        "revision": "5b90110e55feb92303ef7853ecacdb6f9ed59eac",
+        "allow_files": ["LICENSE", "README.md", "shensha.js"],
+        "expected_files": {
+          "LICENSE": {
+            "bytes": 1061,
+            "sha256": "2825d7ded335793932f606a89f54d002a8d22b2c863ca6d35ec60f7a46ea50c4"
+          },
+          "README.md": {
+            "bytes": 1311,
+            "sha256": "8731a44230b3c2bd0723bcff79e25b7eefb3120a403f530ca972bec4f9847e48"
+          },
+          "shensha.js": {
+            "bytes": 46597,
+            "sha256": "38ea75aa8cae7da13e457ed8aac8d68cab39a9cd4d78945149ea7c4f395acaec"
+          }
+        },
+        "raw_url_template": "https://raw.githubusercontent.com/chxb/shensha/{revision}/{path}"
+      }
+    }
+  },
+  "excluded_sources": {
+    "aihub_271_keti": {
+      "dataset_id": "271",
+      "usage_class": "contract_required",
+      "reason": "KETI 데이터 정책상 상업 이용은 별도 협의 대상이므로 다운로드와 학습 금지"
+    },
+    "yeji_fortune_telling_v9": {"usage_class": "deny", "reason": "CC BY-NC 4.0"},
+    "yeji_processed": {"usage_class": "deny", "reason": "원천 권리 사슬 불명확과 품질 실패"},
+    "yeji_interpretations": {"usage_class": "deny", "reason": "명시 라이선스 없음"},
+    "yeji_translated": {"usage_class": "reference_only", "reason": "해석 부재와 품질 감사 실패"}
+  }
+}

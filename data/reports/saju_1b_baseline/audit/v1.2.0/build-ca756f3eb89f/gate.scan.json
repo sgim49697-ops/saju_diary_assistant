@@ -1,0 +1,15 @@
+{
+  "approval_created": false,
+  "blocking_finding_codes": [],
+  "contains_raw_samples": false,
+  "reference_review_optional": 150,
+  "required_review_remaining": 150,
+  "resolved_finding_codes": [
+    "YEJI_CIGUAN_CONFLICT",
+    "YEJI_DEXIU_CONDITION_CONFLICT",
+    "YEJI_STRUCTURE_FAILURE",
+    "YEJI_TONGZI_CONDITION_CONFLICT"
+  ],
+  "schema_version": "1.0.0",
+  "status": "human_review_required"
+}

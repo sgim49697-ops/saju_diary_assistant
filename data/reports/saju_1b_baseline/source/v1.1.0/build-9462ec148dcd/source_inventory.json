@@ -1,0 +1,6217 @@
+{
+  "canonical_plan_version": "2.3.0",
+  "contains_raw_samples": false,
+  "contract_validation": {
+    "aihub_271_policy": "contract_required_excluded",
+    "aihub_active_dataset": "86",
+    "canonical_plan_version": "2.3.0",
+    "mix_axis_count": 5,
+    "mix_totals": {
+      "mix10": 10000,
+      "mix1k": 1000,
+      "mix20": 20000
+    },
+    "raw_source_count": 4,
+    "schema_version": "1.0.0",
+    "status": "ok"
+  },
+  "generated_at": "2026-08-27T13:25:21+00:00",
+  "phase1_gate_status": "passed",
+  "schema_version": "1.0.0",
+  "sources": [
+    {
+      "access_approved_at": "2026-08-27",
+      "access_scope": "approved_account_private",
+      "aggregate_rows": 58268,
+      "aihub_cross_split_group_overlap_count": 6379,
+      "aihub_exact_record_cross_split_overlap_count": 0,
+      "aihub_multiturn_structural_group_count": 51886,
+      "aihub_multiturn_structural_group_counts_by_split": {
+        "train": 51625,
+        "unknown": 0,
+        "validation": 6640
+      },
+      "file_count": 12,
+      "files": [
+        {
+          "bytes": 10755584,
+          "path": "archives/filekey-66046.tar",
+          "sha256": "bf814d56cc6ea7fe92afd1eeba395271b36067257cb9ba37341539bdb92bf906"
+        },
+        {
+          "bytes": 8307200,
+          "path": "archives/filekey-66047.tar",
+          "sha256": "61c0aa71182a2c60b8876d5f99da187ca2522ee3ad96264534bd45590b512dda"
+        },
+        {
+          "bytes": 995840,
+          "path": "archives/filekey-66048.tar",
+          "sha256": "ca8b4f899ad24fc556d779078190ecf2d7f44b3e668853777efbb8fa84a0fa6b"
+        },
+        {
+          "bytes": 1292288,
+          "path": "archives/filekey-66049.tar",
+          "sha256": "a339140ff6a5b95f540f2752ecf6a52a9142306fdc3f7a34e05652610aad7c92"
+        },
+        {
+          "bytes": 10752697,
+          "path": "extracted/filekey-66046/018.감성대화/Training_221115_add/원천데이터/감성대화말뭉치(최종데이터)_Training.zip",
+          "sha256": "8f527059729af164116fb83f015d923e42786d4b327317a066efdbdcfc2b357d"
+        },
+        {
+          "bytes": 10752697,
+          "path": "extracted/filekey-66046/018.감성대화/Training_221115_add/원천데이터/감성대화말뭉치(최종데이터)_Training.zip.part0",
+          "sha256": "8f527059729af164116fb83f015d923e42786d4b327317a066efdbdcfc2b357d"
+        },
+        {
+          "bytes": 8304478,
+          "path": "extracted/filekey-66047/018.감성대화/Training_221115_add/라벨링데이터/감성대화말뭉치(최종데이터)_Training.zip",
+          "sha256": "38d9ec9de83e67ec8a736e2030b86c73ee36831a3e1fcddd94c350217eedc682"
+        },
+        {
+          "bytes": 8304478,
+          "path": "extracted/filekey-66047/018.감성대화/Training_221115_add/라벨링데이터/감성대화말뭉치(최종데이터)_Training.zip.part0",
+          "sha256": "38d9ec9de83e67ec8a736e2030b86c73ee36831a3e1fcddd94c350217eedc682"
+        },
+        {
+          "bytes": 992994,
+          "path": "extracted/filekey-66048/018.감성대화/Validation_221115_add/라벨링데이터/감성대화말뭉치(최종데이터)_Validation.zip",
+          "sha256": "e02f0d7e6325ceb697ecfe7f8260c0a17c8ded157188e769abdf496e2586a2e5"
+        },
+        {
+          "bytes": 992994,
+          "path": "extracted/filekey-66048/018.감성대화/Validation_221115_add/라벨링데이터/감성대화말뭉치(최종데이터)_Validation.zip.part0",
+          "sha256": "e02f0d7e6325ceb697ecfe7f8260c0a17c8ded157188e769abdf496e2586a2e5"
+        },
+        {
+          "bytes": 1289568,
+          "path": "extracted/filekey-66049/018.감성대화/Validation_221115_add/원천데이터/감성대화말뭉치(최종데이터)_Validation.zip",
+          "sha256": "43065a87bd4961cd2752f2f3663a92ee6cc8a69bd80730752bb22d1fc4700163"
+        },
+        {
+          "bytes": 1289568,
+          "path": "extracted/filekey-66049/018.감성대화/Validation_221115_add/원천데이터/감성대화말뭉치(최종데이터)_Validation.zip.part0",
+          "sha256": "43065a87bd4961cd2752f2f3663a92ee6cc8a69bd80730752bb22d1fc4700163"
+        }
+      ],
+      "license_expression": "AIHUB-GENERAL-POLICY",
+      "parquet": [],
+      "parquet_aggregate": null,
+      "parse_failure_count": 0,
+      "retrieved_at": "2026-08-27T04:58:58+00:00",
+      "revision": "dataset-86-filekeys-66046-66049",
+      "source": "aihub_empathy",
+      "standalone_json": [],
+      "status": "collected",
+      "total_bytes": 64030386,
+      "usage_class": "conditional_train_allow",
+      "zip_json": [
+        {
+          "json_member_count": 0,
+          "json_parse_failure_count": 0,
+          "json_parse_success_count": 0,
+          "path": "extracted/filekey-66046/018.감성대화/Training_221115_add/원천데이터/감성대화말뭉치(최종데이터)_Training.zip",
+          "record_count": 0,
+          "records_with_group_id": 0,
+          "records_with_two_or_more_turn_pairs": 0,
+          "repeated_field_names": [],
+          "split": "train",
+          "split_json_member_counts": {},
+          "turn_pair_count_distribution": {}
+        },
+        {
+          "json_member_count": 1,
+          "json_parse_failure_count": 0,
+          "json_parse_success_count": 1,
+          "path": "extracted/filekey-66047/018.감성대화/Training_221115_add/라벨링데이터/감성대화말뭉치(최종데이터)_Training.zip",
+          "record_count": 51628,
+          "records_with_group_id": 51628,
+          "records_with_two_or_more_turn_pairs": 51628,
+          "repeated_field_names": [
+            "HS01",
+            "HS02",
+            "HS03",
+            "SS01",
+            "SS02",
+            "SS03",
+            "computer",
+            "content",
+            "emotion",
+            "emotion-id",
+            "human",
+            "id",
+            "persona",
+            "persona-id",
+            "profile",
+            "profile-id",
+            "situation",
+            "talk",
+            "talk-id",
+            "type"
+          ],
+          "split": "train",
+          "split_json_member_counts": {
+            "train": 1
+          },
+          "turn_pair_count_distribution": {
+            "2": 8936,
+            "3": 42692
+          }
+        },
+        {
+          "json_member_count": 1,
+          "json_parse_failure_count": 0,
+          "json_parse_success_count": 1,
+          "path": "extracted/filekey-66048/018.감성대화/Validation_221115_add/라벨링데이터/감성대화말뭉치(최종데이터)_Validation.zip",
+          "record_count": 6640,
+          "records_with_group_id": 6640,
+          "records_with_two_or_more_turn_pairs": 6640,
+          "repeated_field_names": [
+            "HS01",
+            "HS02",
+            "HS03",
+            "SS01",
+            "SS02",
+            "SS03",
+            "computer",
+            "content",
+            "emotion",
+            "emotion-id",
+            "human",
+            "id",
+            "persona",
+            "persona-id",
+            "profile",
+            "profile-id",
+            "situation",
+            "talk",
+            "talk-id",
+            "type"
+          ],
+          "split": "validation",
+          "split_json_member_counts": {
+            "validation": 1
+          },
+          "turn_pair_count_distribution": {
+            "2": 1955,
+            "3": 4685
+          }
+        },
+        {
+          "json_member_count": 0,
+          "json_parse_failure_count": 0,
+          "json_parse_success_count": 0,
+          "path": "extracted/filekey-66049/018.감성대화/Validation_221115_add/원천데이터/감성대화말뭉치(최종데이터)_Validation.zip",
+          "record_count": 0,
+          "records_with_group_id": 0,
+          "records_with_two_or_more_turn_pairs": 0,
+          "repeated_field_names": [],
+          "split": "validation",
+          "split_json_member_counts": {},
+          "turn_pair_count_distribution": {}
+        }
+      ]
+    },
+    {
+      "access_approved_at": null,
+      "access_scope": "public",
+      "aggregate_rows": 100000,
+      "aihub_cross_split_group_overlap_count": null,
+      "aihub_exact_record_cross_split_overlap_count": null,
+      "aihub_multiturn_structural_group_count": null,
+      "aihub_multiturn_structural_group_counts_by_split": null,
+      "file_count": 6,
+      "files": [
+        {
+          "bytes": 2504,
+          "path": ".gitattributes",
+          "sha256": "9e75dd981de037ec3769f24f790e126bc5a160b6871f510214e68dc70649aeeb"
+        },
+        {
+          "bytes": 4171,
+          "path": "README.md",
+          "sha256": "79e13a260e53e8b556b2ccf4e88c030a5976ad396a2971a5f70416c3b3158167"
+        },
+        {
+          "bytes": 5138758,
+          "path": "data/test-00000-of-00001.parquet",
+          "sha256": "6a36cafb018e917a10ab0253ccdf0490f1d6db3a7a224b0573824699b3fc417e",
+          "split": "test"
+        },
+        {
+          "bytes": 92523145,
+          "path": "data/train-00000-of-00001.parquet",
+          "sha256": "b321a371b8fff39781926c43b5ca1eba3eaf489229dd9fee0d52024556cc0b6e",
+          "split": "train"
+        },
+        {
+          "bytes": 5245011,
+          "path": "data/validation-00000-of-00001.parquet",
+          "sha256": "afe3b05603fc0febfe8a41599323d433312726859921a1f966a25e75db2d07a0",
+          "split": "validation"
+        },
+        {
+          "bytes": 330,
+          "path": "dataset_stats.json",
+          "sha256": "e77408b479c156da1a3cba1303e8e37e0d310747f7a0ff064cc5386d0a53d856"
+        }
+      ],
+      "license_expression": "Apache-2.0",
+      "parquet": [
+        {
+          "categorical_counts": {
+            "question_type": [
+              {
+                "count": 1245,
+                "value": "career"
+              },
+              {
+                "count": 1245,
+                "value": "element_balance"
+              },
+              {
+                "count": 1245,
+                "value": "general_natal"
+              },
+              {
+                "count": 1245,
+                "value": "relationships"
+              }
+            ],
+            "source": [
+              {
+                "count": 4980,
+                "value": "rule_matched"
+              }
+            ]
+          },
+          "columns": [
+            {
+              "name": "example_id",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "synthetic_id",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "system",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "facts",
+              "type": "STRUCT(birth_input STRUCT(date TIMESTAMP, \"time\" VARCHAR, tz_offset_hours DOUBLE, place VARCHAR, lat DOUBLE, lon DOUBLE), bazi_year BIGINT, pillars STRUCT(\"year\" STRUCT(stem VARCHAR, stem_element VARCHAR, stem_polarity VARCHAR, branch VARCHAR, branch_animal VARCHAR, branch_element VARCHAR), \"month\" STRUCT(stem VARCHAR, stem_element VARCHAR, stem_polarity VARCHAR, branch VARCHAR, branch_animal VARCHAR, branch_element VARCHAR), \"day\" STRUCT(stem VARCHAR, stem_element VARCHAR, stem_polarity VARCHAR, branch VARCHAR, branch_animal VARCHAR, branch_element VARCHAR), \"hour\" STRUCT(stem VARCHAR, stem_element VARCHAR, stem_polarity VARCHAR, branch VARCHAR, branch_animal VARCHAR, branch_element VARCHAR)), day_master STRUCT(stem VARCHAR, element VARCHAR, polarity VARCHAR), element_counts STRUCT(Wood BIGINT, Fire BIGINT, Earth BIGINT, Metal BIGINT, Water BIGINT))"
+            },
+            {
+              "name": "retrieved_rules",
+              "type": "STRUCT(id VARCHAR, \"name\" VARCHAR, citation VARCHAR, effect VARCHAR)[]"
+            },
+            {
+              "name": "question_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "user_question",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "response",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "citations",
+              "type": "VARCHAR[]"
+            },
+            {
+              "name": "source",
+              "type": "VARCHAR"
+            }
+          ],
+          "id_duplicate_counts": {
+            "synthetic_id": 3735
+          },
+          "null_counts": {
+            "citations": 0,
+            "example_id": 0,
+            "facts": 0,
+            "question_type": 0,
+            "response": 0,
+            "retrieved_rules": 0,
+            "source": 0,
+            "synthetic_id": 0,
+            "system": 0,
+            "user_question": 0
+          },
+          "path": "data/test-00000-of-00001.parquet",
+          "row_hash_duplicate_estimate": 0,
+          "rows": 4980,
+          "text_stats": {
+            "cjk_character_ratio": 0.0,
+            "columns": [
+              "example_id",
+              "synthetic_id",
+              "system",
+              "facts",
+              "retrieved_rules",
+              "question_type",
+              "user_question",
+              "response",
+              "citations",
+              "source"
+            ],
+            "english_character_ratio": 0.7038175314658924,
+            "korean_character_ratio": 0.0,
+            "row_character_length": {
+              "max": 3158,
+              "mean": 2402.4387550200804,
+              "p50": 2253.0,
+              "p90": 3072.0,
+              "p95": 3094.0
+            },
+            "total_characters": 11964145
+          }
+        },
+        {
+          "categorical_counts": {
+            "question_type": [
+              {
+                "count": 22479,
+                "value": "career"
+              },
+              {
+                "count": 22479,
+                "value": "element_balance"
+              },
+              {
+                "count": 22479,
+                "value": "general_natal"
+              },
+              {
+                "count": 22479,
+                "value": "relationships"
+              }
+            ],
+            "source": [
+              {
+                "count": 89916,
+                "value": "rule_matched"
+              }
+            ]
+          },
+          "columns": [
+            {
+              "name": "example_id",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "synthetic_id",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "system",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "facts",
+              "type": "STRUCT(birth_input STRUCT(date TIMESTAMP, \"time\" VARCHAR, tz_offset_hours DOUBLE, place VARCHAR, lat DOUBLE, lon DOUBLE), bazi_year BIGINT, pillars STRUCT(\"year\" STRUCT(stem VARCHAR, stem_element VARCHAR, stem_polarity VARCHAR, branch VARCHAR, branch_animal VARCHAR, branch_element VARCHAR), \"month\" STRUCT(stem VARCHAR, stem_element VARCHAR, stem_polarity VARCHAR, branch VARCHAR, branch_animal VARCHAR, branch_element VARCHAR), \"day\" STRUCT(stem VARCHAR, stem_element VARCHAR, stem_polarity VARCHAR, branch VARCHAR, branch_animal VARCHAR, branch_element VARCHAR), \"hour\" STRUCT(stem VARCHAR, stem_element VARCHAR, stem_polarity VARCHAR, branch VARCHAR, branch_animal VARCHAR, branch_element VARCHAR)), day_master STRUCT(stem VARCHAR, element VARCHAR, polarity VARCHAR), element_counts STRUCT(Wood BIGINT, Fire BIGINT, Earth BIGINT, Metal BIGINT, Water BIGINT))"
+            },
+            {
+              "name": "retrieved_rules",
+              "type": "STRUCT(id VARCHAR, \"name\" VARCHAR, citation VARCHAR, effect VARCHAR)[]"
+            },
+            {
+              "name": "question_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "user_question",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "response",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "citations",
+              "type": "VARCHAR[]"
+            },
+            {
+              "name": "source",
+              "type": "VARCHAR"
+            }
+          ],
+          "id_duplicate_counts": {
+            "synthetic_id": 67437
+          },
+          "null_counts": {
+            "citations": 0,
+            "example_id": 0,
+            "facts": 0,
+            "question_type": 0,
+            "response": 0,
+            "retrieved_rules": 0,
+            "source": 0,
+            "synthetic_id": 0,
+            "system": 0,
+            "user_question": 0
+          },
+          "path": "data/train-00000-of-00001.parquet",
+          "row_hash_duplicate_estimate": 0,
+          "rows": 89916,
+          "text_stats": {
+            "cjk_character_ratio": 0.0,
+            "columns": [
+              "example_id",
+              "synthetic_id",
+              "system",
+              "facts",
+              "retrieved_rules",
+              "question_type",
+              "user_question",
+              "response",
+              "citations",
+              "source"
+            ],
+            "english_character_ratio": 0.7040087019820543,
+            "korean_character_ratio": 0.0,
+            "row_character_length": {
+              "max": 3172,
+              "mean": 2406.7150785177278,
+              "p50": 2258.0,
+              "p90": 3070.0,
+              "p95": 3092.0
+            },
+            "total_characters": 216402193
+          }
+        },
+        {
+          "categorical_counts": {
+            "question_type": [
+              {
+                "count": 1276,
+                "value": "career"
+              },
+              {
+                "count": 1276,
+                "value": "element_balance"
+              },
+              {
+                "count": 1276,
+                "value": "general_natal"
+              },
+              {
+                "count": 1276,
+                "value": "relationships"
+              }
+            ],
+            "source": [
+              {
+                "count": 5104,
+                "value": "rule_matched"
+              }
+            ]
+          },
+          "columns": [
+            {
+              "name": "example_id",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "synthetic_id",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "system",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "facts",
+              "type": "STRUCT(birth_input STRUCT(date TIMESTAMP, \"time\" VARCHAR, tz_offset_hours DOUBLE, place VARCHAR, lat DOUBLE, lon DOUBLE), bazi_year BIGINT, pillars STRUCT(\"year\" STRUCT(stem VARCHAR, stem_element VARCHAR, stem_polarity VARCHAR, branch VARCHAR, branch_animal VARCHAR, branch_element VARCHAR), \"month\" STRUCT(stem VARCHAR, stem_element VARCHAR, stem_polarity VARCHAR, branch VARCHAR, branch_animal VARCHAR, branch_element VARCHAR), \"day\" STRUCT(stem VARCHAR, stem_element VARCHAR, stem_polarity VARCHAR, branch VARCHAR, branch_animal VARCHAR, branch_element VARCHAR), \"hour\" STRUCT(stem VARCHAR, stem_element VARCHAR, stem_polarity VARCHAR, branch VARCHAR, branch_animal VARCHAR, branch_element VARCHAR)), day_master STRUCT(stem VARCHAR, element VARCHAR, polarity VARCHAR), element_counts STRUCT(Wood BIGINT, Fire BIGINT, Earth BIGINT, Metal BIGINT, Water BIGINT))"
+            },
+            {
+              "name": "retrieved_rules",
+              "type": "STRUCT(id VARCHAR, \"name\" VARCHAR, citation VARCHAR, effect VARCHAR)[]"
+            },
+            {
+              "name": "question_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "user_question",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "response",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "citations",
+              "type": "VARCHAR[]"
+            },
+            {
+              "name": "source",
+              "type": "VARCHAR"
+            }
+          ],
+          "id_duplicate_counts": {
+            "synthetic_id": 3828
+          },
+          "null_counts": {
+            "citations": 0,
+            "example_id": 0,
+            "facts": 0,
+            "question_type": 0,
+            "response": 0,
+            "retrieved_rules": 0,
+            "source": 0,
+            "synthetic_id": 0,
+            "system": 0,
+            "user_question": 0
+          },
+          "path": "data/validation-00000-of-00001.parquet",
+          "row_hash_duplicate_estimate": 0,
+          "rows": 5104,
+          "text_stats": {
+            "cjk_character_ratio": 0.0,
+            "columns": [
+              "example_id",
+              "synthetic_id",
+              "system",
+              "facts",
+              "retrieved_rules",
+              "question_type",
+              "user_question",
+              "response",
+              "citations",
+              "source"
+            ],
+            "english_character_ratio": 0.7036308638384782,
+            "korean_character_ratio": 0.0,
+            "row_character_length": {
+              "max": 3158,
+              "mean": 2396.911833855799,
+              "p50": 2255.0,
+              "p90": 3068.0,
+              "p95": 3094.0
+            },
+            "total_characters": 12233838
+          }
+        }
+      ],
+      "parquet_aggregate": {
+        "file_count": 3,
+        "id_duplicate_counts": {
+          "synthetic_id": 75000
+        },
+        "row_hash_duplicate_estimate": 0,
+        "rows": 100000,
+        "schema_consistent_across_files": true,
+        "unified_schema_sha256": "d4622e99e4642eb901e1f1813388464557276d44e243599eee39af92caf512ba"
+      },
+      "parse_failure_count": 0,
+      "retrieved_at": "2026-08-27T04:41:39+00:00",
+      "revision": "fad87063b317612e4164dfb0e0e08572c3831df4",
+      "source": "bazi_sft",
+      "standalone_json": [
+        {
+          "field_name_count": 12,
+          "max_depth": 1,
+          "multiturn_records_without_group_id": 0,
+          "object_count": 3,
+          "path": "dataset_stats.json",
+          "record_count": 1,
+          "records_with_group_id": 0,
+          "records_with_two_or_more_turn_pairs": 0,
+          "repeated_field_names": [],
+          "top_level_keys": [
+            "total_examples",
+            "splits",
+            "question_type_distribution",
+            "avg_citations_per_example",
+            "examples_with_zero_citations"
+          ],
+          "top_level_type": "dict",
+          "turn_pair_count_distribution": {
+            "0": 1
+          }
+        }
+      ],
+      "status": "collected",
+      "total_bytes": 102913919,
+      "usage_class": "derive_after_validation",
+      "zip_json": []
+    },
+    {
+      "access_approved_at": null,
+      "access_scope": "public",
+      "aggregate_rows": 1000000,
+      "aihub_cross_split_group_overlap_count": null,
+      "aihub_exact_record_cross_split_overlap_count": null,
+      "aihub_multiturn_structural_group_count": null,
+      "aihub_multiturn_structural_group_counts_by_split": null,
+      "file_count": 22,
+      "files": [
+        {
+          "bytes": 2804,
+          "path": ".gitattributes",
+          "sha256": "aec65f353b856df279bf507a914108391e7b86bbad3043ff1c72b5b2f76030a7"
+        },
+        {
+          "bytes": 33122,
+          "path": "README.md",
+          "sha256": "3801e924ea2a80702caea05413f3de8e4d34e7edfc21b7b50dcb162715a24fea"
+        },
+        {
+          "bytes": 190451215,
+          "path": "data/train-00000-of-00003.parquet",
+          "sha256": "0ad75fedcd4df967592b510c9c31b3250123ef33933a281463323601506a1f22",
+          "source_variant": "v6",
+          "split": "train"
+        },
+        {
+          "bytes": 190310266,
+          "path": "data/train-00001-of-00003.parquet",
+          "sha256": "eeca25cf54efd34bf7b3e15e0a6cdcae2ead31f7ff9333aae58f88dd00bfb3cf",
+          "source_variant": "v6",
+          "split": "train"
+        },
+        {
+          "bytes": 190259822,
+          "path": "data/train-00002-of-00003.parquet",
+          "sha256": "e1dc5469847bd8fc659eebb139943f733dae5e4d7ebb00aafbd1189a301488d5",
+          "source_variant": "v6",
+          "split": "train"
+        },
+        {
+          "bytes": 129879649,
+          "path": "data/train-extra-00000.parquet",
+          "sha256": "97616a1ae8725c68a665e9aef5396988cf16acfce1cc271a2c209c2b671d687a",
+          "source_variant": "v7",
+          "split": "train"
+        },
+        {
+          "bytes": 129730357,
+          "path": "data/train-extra-00001.parquet",
+          "sha256": "6cd1628746de1187ffd8f2d279de9f18e4e91da0dd2a41f3c21a92ee3a0d3dbe",
+          "source_variant": "v7",
+          "split": "train"
+        },
+        {
+          "bytes": 129778577,
+          "path": "data/train-extra-00002.parquet",
+          "sha256": "7c86f74b91f99e8b61d1317fb9323ffa87c644edc891ac0381d9848dd0b4722c",
+          "source_variant": "v7",
+          "split": "train"
+        },
+        {
+          "bytes": 129888052,
+          "path": "data/train-extra-00003.parquet",
+          "sha256": "c50341062bd438acddc11011b2849cc22fe745c204313a2cec6de5eb606c5ee1",
+          "source_variant": "v7",
+          "split": "train"
+        },
+        {
+          "bytes": 129895833,
+          "path": "data/train-extra-00004.parquet",
+          "sha256": "11572e089ad9b858f8ebbb39ffa0ac863f6875b17d896c5c022ed12c1851459f",
+          "source_variant": "v7",
+          "split": "train"
+        },
+        {
+          "bytes": 129808677,
+          "path": "data/train-extra-00005.parquet",
+          "sha256": "aa65900e98e77f156be910e20eae49d941ddf1ce3f9857286ce7d47a678abccf",
+          "source_variant": "v7",
+          "split": "train"
+        },
+        {
+          "bytes": 129866730,
+          "path": "data/train-extra-00006.parquet",
+          "sha256": "28dec736036ac5e71eb0b6a01203d3f1cf1bc34c2b963e436018c7fcd1987360",
+          "source_variant": "v7",
+          "split": "train"
+        },
+        {
+          "bytes": 129907596,
+          "path": "data/train-extra-00007.parquet",
+          "sha256": "e4b8016e06928f5914155cb8658683f13e41ae4817464b1144a2d62cbff5ed65",
+          "source_variant": "v7",
+          "split": "train"
+        },
+        {
+          "bytes": 129775014,
+          "path": "data/train-extra-00008.parquet",
+          "sha256": "421a24c7e569d17eab862ea06ae182d20b787c255bb8f8fc1cafd4b3abda5026",
+          "source_variant": "v7",
+          "split": "train"
+        },
+        {
+          "bytes": 129814571,
+          "path": "data/train-extra-00009.parquet",
+          "sha256": "f522dca3e7b871f29643257686d7859492a708055da2fb76c883ea89fb83f111",
+          "source_variant": "v7",
+          "split": "train"
+        },
+        {
+          "bytes": 129920637,
+          "path": "data/train-extra-00010.parquet",
+          "sha256": "1a22969e0006ef8d294883b6c203223debdd7bcd15a2dffee5f385b21b243edc",
+          "source_variant": "v7",
+          "split": "train"
+        },
+        {
+          "bytes": 129872022,
+          "path": "data/train-extra-00011.parquet",
+          "sha256": "00ca0129c420724b63eed0f71246ab0091dcb05b38bb3591ecdcd3733f6b84c3",
+          "source_variant": "v7",
+          "split": "train"
+        },
+        {
+          "bytes": 129834227,
+          "path": "data/train-extra-00012.parquet",
+          "sha256": "fe5fadfb50fc5a358ddd67fd8b8471e0d92643940ee1f9dd65445e7f088c6659",
+          "source_variant": "v7",
+          "split": "train"
+        },
+        {
+          "bytes": 129864989,
+          "path": "data/train-extra-00013.parquet",
+          "sha256": "f9e72e5cee0fec89b944da9cce4c7ec25992fcfd083b6c6af84229da4d1e5ec0",
+          "source_variant": "v7",
+          "split": "train"
+        },
+        {
+          "bytes": 129898926,
+          "path": "data/train-extra-00014.parquet",
+          "sha256": "49d20a57f09d870ea1a5e78a3b1a0452db0dbb253894168933b53b33dea18bc0",
+          "source_variant": "v7",
+          "split": "train"
+        },
+        {
+          "bytes": 129827687,
+          "path": "data/train-extra-00015.parquet",
+          "sha256": "bc05c1d96effb605e2c92d9ba980113b2ff4da5485895d57e76820e85ab0813c",
+          "source_variant": "v7",
+          "split": "train"
+        },
+        {
+          "bytes": 59890,
+          "path": "data/train-extra-00016.parquet",
+          "sha256": "4c20f91dde3c96446bab91014c9b8d44be87e7148d529eb4d98a66fbdb4d67a6",
+          "source_variant": "v7",
+          "split": "train"
+        }
+      ],
+      "license_expression": "CC-BY-4.0",
+      "parquet": [
+        {
+          "categorical_counts": {},
+          "columns": [
+            {
+              "name": "uuid",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "professional_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "sports_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "arts_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "travel_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "culinary_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "family_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "cultural_background",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "skills_and_expertise",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "skills_and_expertise_list",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "hobbies_and_interests",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "hobbies_and_interests_list",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "career_goals_and_ambitions",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "sex",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "age",
+              "type": "BIGINT"
+            },
+            {
+              "name": "marital_status",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "military_status",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "family_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "housing_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "education_level",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "bachelors_field",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "occupation",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "district",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "province",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "country",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_datetime_synth",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_province",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_longitude_e",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "last_datetime",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "longitude_offset_minutes",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "equation_of_time_minutes",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "saju_pillars",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_day_master",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements_dominant",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements_lacking",
+              "type": "VARCHAR[]"
+            },
+            {
+              "name": "saju_sipsin",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_narrative",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_narrative_error",
+              "type": "INTEGER"
+            }
+          ],
+          "id_duplicate_counts": {
+            "uuid": 0
+          },
+          "null_counts": {
+            "age": 0,
+            "arts_persona": 0,
+            "bachelors_field": 0,
+            "birth_datetime_synth": 0,
+            "birth_longitude_e": 0,
+            "birth_province": 0,
+            "career_goals_and_ambitions": 0,
+            "country": 0,
+            "culinary_persona": 0,
+            "cultural_background": 0,
+            "district": 0,
+            "education_level": 0,
+            "equation_of_time_minutes": 0,
+            "family_persona": 0,
+            "family_type": 0,
+            "hobbies_and_interests": 0,
+            "hobbies_and_interests_list": 0,
+            "housing_type": 0,
+            "last_datetime": 0,
+            "longitude_offset_minutes": 0,
+            "marital_status": 0,
+            "military_status": 0,
+            "occupation": 0,
+            "persona": 0,
+            "professional_persona": 0,
+            "province": 0,
+            "saju_day_master": 0,
+            "saju_elements": 0,
+            "saju_elements_dominant": 0,
+            "saju_elements_lacking": 0,
+            "saju_narrative": 0,
+            "saju_narrative_error": 66666,
+            "saju_pillars": 0,
+            "saju_sipsin": 0,
+            "sex": 0,
+            "skills_and_expertise": 0,
+            "skills_and_expertise_list": 0,
+            "sports_persona": 0,
+            "travel_persona": 0,
+            "uuid": 0
+          },
+          "path": "data/train-00000-of-00003.parquet",
+          "row_hash_duplicate_estimate": 0,
+          "rows": 66666,
+          "text_stats": {
+            "cjk_character_ratio": 0.00898131922877133,
+            "columns": [
+              "uuid",
+              "professional_persona",
+              "sports_persona",
+              "arts_persona",
+              "travel_persona",
+              "culinary_persona",
+              "family_persona",
+              "persona",
+              "cultural_background",
+              "skills_and_expertise",
+              "skills_and_expertise_list",
+              "hobbies_and_interests",
+              "hobbies_and_interests_list",
+              "career_goals_and_ambitions",
+              "sex",
+              "marital_status",
+              "military_status",
+              "family_type",
+              "housing_type",
+              "education_level",
+              "bachelors_field",
+              "occupation",
+              "district",
+              "province",
+              "country",
+              "birth_datetime_synth",
+              "birth_province",
+              "last_datetime",
+              "saju_pillars",
+              "saju_day_master",
+              "saju_elements",
+              "saju_elements_dominant",
+              "saju_elements_lacking",
+              "saju_sipsin",
+              "saju_narrative"
+            ],
+            "english_character_ratio": 0.1458176368390359,
+            "korean_character_ratio": 0.5062174351929571,
+            "row_character_length": {
+              "max": 4124,
+              "mean": 3291.6317613176134,
+              "p50": 3305.0,
+              "p90": 3552.0,
+              "p95": 3620.0
+            },
+            "total_characters": 219439923
+          }
+        },
+        {
+          "categorical_counts": {},
+          "columns": [
+            {
+              "name": "uuid",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "professional_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "sports_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "arts_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "travel_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "culinary_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "family_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "cultural_background",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "skills_and_expertise",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "skills_and_expertise_list",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "hobbies_and_interests",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "hobbies_and_interests_list",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "career_goals_and_ambitions",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "sex",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "age",
+              "type": "BIGINT"
+            },
+            {
+              "name": "marital_status",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "military_status",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "family_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "housing_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "education_level",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "bachelors_field",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "occupation",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "district",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "province",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "country",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_datetime_synth",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_province",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_longitude_e",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "last_datetime",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "longitude_offset_minutes",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "equation_of_time_minutes",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "saju_pillars",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_day_master",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements_dominant",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements_lacking",
+              "type": "VARCHAR[]"
+            },
+            {
+              "name": "saju_sipsin",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_narrative",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_narrative_error",
+              "type": "INTEGER"
+            }
+          ],
+          "id_duplicate_counts": {
+            "uuid": 0
+          },
+          "null_counts": {
+            "age": 0,
+            "arts_persona": 0,
+            "bachelors_field": 0,
+            "birth_datetime_synth": 0,
+            "birth_longitude_e": 0,
+            "birth_province": 0,
+            "career_goals_and_ambitions": 0,
+            "country": 0,
+            "culinary_persona": 0,
+            "cultural_background": 0,
+            "district": 0,
+            "education_level": 0,
+            "equation_of_time_minutes": 0,
+            "family_persona": 0,
+            "family_type": 0,
+            "hobbies_and_interests": 0,
+            "hobbies_and_interests_list": 0,
+            "housing_type": 0,
+            "last_datetime": 0,
+            "longitude_offset_minutes": 0,
+            "marital_status": 0,
+            "military_status": 0,
+            "occupation": 0,
+            "persona": 0,
+            "professional_persona": 0,
+            "province": 0,
+            "saju_day_master": 0,
+            "saju_elements": 0,
+            "saju_elements_dominant": 0,
+            "saju_elements_lacking": 0,
+            "saju_narrative": 0,
+            "saju_narrative_error": 66665,
+            "saju_pillars": 0,
+            "saju_sipsin": 0,
+            "sex": 0,
+            "skills_and_expertise": 0,
+            "skills_and_expertise_list": 0,
+            "sports_persona": 0,
+            "travel_persona": 0,
+            "uuid": 0
+          },
+          "path": "data/train-00001-of-00003.parquet",
+          "row_hash_duplicate_estimate": 0,
+          "rows": 66665,
+          "text_stats": {
+            "cjk_character_ratio": 0.008946657561403152,
+            "columns": [
+              "uuid",
+              "professional_persona",
+              "sports_persona",
+              "arts_persona",
+              "travel_persona",
+              "culinary_persona",
+              "family_persona",
+              "persona",
+              "cultural_background",
+              "skills_and_expertise",
+              "skills_and_expertise_list",
+              "hobbies_and_interests",
+              "hobbies_and_interests_list",
+              "career_goals_and_ambitions",
+              "sex",
+              "marital_status",
+              "military_status",
+              "family_type",
+              "housing_type",
+              "education_level",
+              "bachelors_field",
+              "occupation",
+              "district",
+              "province",
+              "country",
+              "birth_datetime_synth",
+              "birth_province",
+              "last_datetime",
+              "saju_pillars",
+              "saju_day_master",
+              "saju_elements",
+              "saju_elements_dominant",
+              "saju_elements_lacking",
+              "saju_sipsin",
+              "saju_narrative"
+            ],
+            "english_character_ratio": 0.1458557509195194,
+            "korean_character_ratio": 0.506222711302575,
+            "row_character_length": {
+              "max": 4062,
+              "mean": 3290.8162454061353,
+              "p50": 3304.0,
+              "p90": 3552.0,
+              "p95": 3618.0
+            },
+            "total_characters": 219382265
+          }
+        },
+        {
+          "categorical_counts": {},
+          "columns": [
+            {
+              "name": "uuid",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "professional_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "sports_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "arts_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "travel_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "culinary_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "family_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "cultural_background",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "skills_and_expertise",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "skills_and_expertise_list",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "hobbies_and_interests",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "hobbies_and_interests_list",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "career_goals_and_ambitions",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "sex",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "age",
+              "type": "BIGINT"
+            },
+            {
+              "name": "marital_status",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "military_status",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "family_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "housing_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "education_level",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "bachelors_field",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "occupation",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "district",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "province",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "country",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_datetime_synth",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_province",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_longitude_e",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "last_datetime",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "longitude_offset_minutes",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "equation_of_time_minutes",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "saju_pillars",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_day_master",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements_dominant",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements_lacking",
+              "type": "VARCHAR[]"
+            },
+            {
+              "name": "saju_sipsin",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_narrative",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_narrative_error",
+              "type": "INTEGER"
+            }
+          ],
+          "id_duplicate_counts": {
+            "uuid": 0
+          },
+          "null_counts": {
+            "age": 0,
+            "arts_persona": 0,
+            "bachelors_field": 0,
+            "birth_datetime_synth": 0,
+            "birth_longitude_e": 0,
+            "birth_province": 0,
+            "career_goals_and_ambitions": 0,
+            "country": 0,
+            "culinary_persona": 0,
+            "cultural_background": 0,
+            "district": 0,
+            "education_level": 0,
+            "equation_of_time_minutes": 0,
+            "family_persona": 0,
+            "family_type": 0,
+            "hobbies_and_interests": 0,
+            "hobbies_and_interests_list": 0,
+            "housing_type": 0,
+            "last_datetime": 0,
+            "longitude_offset_minutes": 0,
+            "marital_status": 0,
+            "military_status": 0,
+            "occupation": 0,
+            "persona": 0,
+            "professional_persona": 0,
+            "province": 0,
+            "saju_day_master": 0,
+            "saju_elements": 0,
+            "saju_elements_dominant": 0,
+            "saju_elements_lacking": 0,
+            "saju_narrative": 0,
+            "saju_narrative_error": 66665,
+            "saju_pillars": 0,
+            "saju_sipsin": 0,
+            "sex": 0,
+            "skills_and_expertise": 0,
+            "skills_and_expertise_list": 0,
+            "sports_persona": 0,
+            "travel_persona": 0,
+            "uuid": 0
+          },
+          "path": "data/train-00002-of-00003.parquet",
+          "row_hash_duplicate_estimate": 0,
+          "rows": 66665,
+          "text_stats": {
+            "cjk_character_ratio": 0.00897926831467407,
+            "columns": [
+              "uuid",
+              "professional_persona",
+              "sports_persona",
+              "arts_persona",
+              "travel_persona",
+              "culinary_persona",
+              "family_persona",
+              "persona",
+              "cultural_background",
+              "skills_and_expertise",
+              "skills_and_expertise_list",
+              "hobbies_and_interests",
+              "hobbies_and_interests_list",
+              "career_goals_and_ambitions",
+              "sex",
+              "marital_status",
+              "military_status",
+              "family_type",
+              "housing_type",
+              "education_level",
+              "bachelors_field",
+              "occupation",
+              "district",
+              "province",
+              "country",
+              "birth_datetime_synth",
+              "birth_province",
+              "last_datetime",
+              "saju_pillars",
+              "saju_day_master",
+              "saju_elements",
+              "saju_elements_dominant",
+              "saju_elements_lacking",
+              "saju_sipsin",
+              "saju_narrative"
+            ],
+            "english_character_ratio": 0.1458555008517961,
+            "korean_character_ratio": 0.5061824755819145,
+            "row_character_length": {
+              "max": 4114,
+              "mean": 3290.7640891022274,
+              "p50": 3305.0,
+              "p90": 3550.0,
+              "p95": 3619.0
+            },
+            "total_characters": 219378788
+          }
+        },
+        {
+          "categorical_counts": {},
+          "columns": [
+            {
+              "name": "uuid",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "professional_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "sports_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "arts_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "travel_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "culinary_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "family_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "cultural_background",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "skills_and_expertise",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "skills_and_expertise_list",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "hobbies_and_interests",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "hobbies_and_interests_list",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "career_goals_and_ambitions",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "sex",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "age",
+              "type": "BIGINT"
+            },
+            {
+              "name": "marital_status",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "military_status",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "family_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "housing_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "education_level",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "bachelors_field",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "occupation",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "district",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "province",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "country",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_datetime_synth",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_province",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_longitude_e",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "last_datetime",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "longitude_offset_minutes",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "equation_of_time_minutes",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "saju_pillars",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_day_master",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements_dominant",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements_lacking",
+              "type": "VARCHAR[]"
+            },
+            {
+              "name": "saju_sipsin",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_narrative",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_narrative_error",
+              "type": "INTEGER"
+            }
+          ],
+          "id_duplicate_counts": {
+            "uuid": 0
+          },
+          "null_counts": {
+            "age": 0,
+            "arts_persona": 0,
+            "bachelors_field": 0,
+            "birth_datetime_synth": 0,
+            "birth_longitude_e": 0,
+            "birth_province": 0,
+            "career_goals_and_ambitions": 0,
+            "country": 0,
+            "culinary_persona": 0,
+            "cultural_background": 0,
+            "district": 0,
+            "education_level": 0,
+            "equation_of_time_minutes": 0,
+            "family_persona": 0,
+            "family_type": 0,
+            "hobbies_and_interests": 0,
+            "hobbies_and_interests_list": 0,
+            "housing_type": 0,
+            "last_datetime": 0,
+            "longitude_offset_minutes": 0,
+            "marital_status": 0,
+            "military_status": 0,
+            "occupation": 0,
+            "persona": 0,
+            "professional_persona": 0,
+            "province": 0,
+            "saju_day_master": 0,
+            "saju_elements": 0,
+            "saju_elements_dominant": 0,
+            "saju_elements_lacking": 0,
+            "saju_narrative": 0,
+            "saju_narrative_error": 50000,
+            "saju_pillars": 0,
+            "saju_sipsin": 0,
+            "sex": 0,
+            "skills_and_expertise": 0,
+            "skills_and_expertise_list": 0,
+            "sports_persona": 0,
+            "travel_persona": 0,
+            "uuid": 0
+          },
+          "path": "data/train-extra-00000.parquet",
+          "row_hash_duplicate_estimate": 0,
+          "rows": 50000,
+          "text_stats": {
+            "cjk_character_ratio": 0.009731373888699688,
+            "columns": [
+              "uuid",
+              "professional_persona",
+              "sports_persona",
+              "arts_persona",
+              "travel_persona",
+              "culinary_persona",
+              "family_persona",
+              "persona",
+              "cultural_background",
+              "skills_and_expertise",
+              "skills_and_expertise_list",
+              "hobbies_and_interests",
+              "hobbies_and_interests_list",
+              "career_goals_and_ambitions",
+              "sex",
+              "marital_status",
+              "military_status",
+              "family_type",
+              "housing_type",
+              "education_level",
+              "bachelors_field",
+              "occupation",
+              "district",
+              "province",
+              "country",
+              "birth_datetime_synth",
+              "birth_province",
+              "last_datetime",
+              "saju_pillars",
+              "saju_day_master",
+              "saju_elements",
+              "saju_elements_dominant",
+              "saju_elements_lacking",
+              "saju_sipsin",
+              "saju_narrative"
+            ],
+            "english_character_ratio": 0.1524308566203811,
+            "korean_character_ratio": 0.49283298335111597,
+            "row_character_length": {
+              "max": 3868,
+              "mean": 3147.69326,
+              "p50": 3163.0,
+              "p90": 3397.0,
+              "p95": 3460.0
+            },
+            "total_characters": 157384663
+          }
+        },
+        {
+          "categorical_counts": {},
+          "columns": [
+            {
+              "name": "uuid",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "professional_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "sports_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "arts_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "travel_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "culinary_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "family_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "cultural_background",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "skills_and_expertise",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "skills_and_expertise_list",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "hobbies_and_interests",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "hobbies_and_interests_list",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "career_goals_and_ambitions",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "sex",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "age",
+              "type": "BIGINT"
+            },
+            {
+              "name": "marital_status",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "military_status",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "family_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "housing_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "education_level",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "bachelors_field",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "occupation",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "district",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "province",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "country",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_datetime_synth",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_province",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_longitude_e",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "last_datetime",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "longitude_offset_minutes",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "equation_of_time_minutes",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "saju_pillars",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_day_master",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements_dominant",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements_lacking",
+              "type": "VARCHAR[]"
+            },
+            {
+              "name": "saju_sipsin",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_narrative",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_narrative_error",
+              "type": "INTEGER"
+            }
+          ],
+          "id_duplicate_counts": {
+            "uuid": 0
+          },
+          "null_counts": {
+            "age": 0,
+            "arts_persona": 0,
+            "bachelors_field": 0,
+            "birth_datetime_synth": 0,
+            "birth_longitude_e": 0,
+            "birth_province": 0,
+            "career_goals_and_ambitions": 0,
+            "country": 0,
+            "culinary_persona": 0,
+            "cultural_background": 0,
+            "district": 0,
+            "education_level": 0,
+            "equation_of_time_minutes": 0,
+            "family_persona": 0,
+            "family_type": 0,
+            "hobbies_and_interests": 0,
+            "hobbies_and_interests_list": 0,
+            "housing_type": 0,
+            "last_datetime": 0,
+            "longitude_offset_minutes": 0,
+            "marital_status": 0,
+            "military_status": 0,
+            "occupation": 0,
+            "persona": 0,
+            "professional_persona": 0,
+            "province": 0,
+            "saju_day_master": 0,
+            "saju_elements": 0,
+            "saju_elements_dominant": 0,
+            "saju_elements_lacking": 0,
+            "saju_narrative": 0,
+            "saju_narrative_error": 50000,
+            "saju_pillars": 0,
+            "saju_sipsin": 0,
+            "sex": 0,
+            "skills_and_expertise": 0,
+            "skills_and_expertise_list": 0,
+            "sports_persona": 0,
+            "travel_persona": 0,
+            "uuid": 0
+          },
+          "path": "data/train-extra-00001.parquet",
+          "row_hash_duplicate_estimate": 0,
+          "rows": 50000,
+          "text_stats": {
+            "cjk_character_ratio": 0.009712747561118625,
+            "columns": [
+              "uuid",
+              "professional_persona",
+              "sports_persona",
+              "arts_persona",
+              "travel_persona",
+              "culinary_persona",
+              "family_persona",
+              "persona",
+              "cultural_background",
+              "skills_and_expertise",
+              "skills_and_expertise_list",
+              "hobbies_and_interests",
+              "hobbies_and_interests_list",
+              "career_goals_and_ambitions",
+              "sex",
+              "marital_status",
+              "military_status",
+              "family_type",
+              "housing_type",
+              "education_level",
+              "bachelors_field",
+              "occupation",
+              "district",
+              "province",
+              "country",
+              "birth_datetime_synth",
+              "birth_province",
+              "last_datetime",
+              "saju_pillars",
+              "saju_day_master",
+              "saju_elements",
+              "saju_elements_dominant",
+              "saju_elements_lacking",
+              "saju_sipsin",
+              "saju_narrative"
+            ],
+            "english_character_ratio": 0.15250358610925707,
+            "korean_character_ratio": 0.49276231133896853,
+            "row_character_length": {
+              "max": 3880,
+              "mean": 3146.01402,
+              "p50": 3161.0,
+              "p90": 3396.0,
+              "p95": 3458.0
+            },
+            "total_characters": 157300701
+          }
+        },
+        {
+          "categorical_counts": {},
+          "columns": [
+            {
+              "name": "uuid",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "professional_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "sports_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "arts_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "travel_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "culinary_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "family_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "cultural_background",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "skills_and_expertise",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "skills_and_expertise_list",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "hobbies_and_interests",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "hobbies_and_interests_list",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "career_goals_and_ambitions",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "sex",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "age",
+              "type": "BIGINT"
+            },
+            {
+              "name": "marital_status",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "military_status",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "family_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "housing_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "education_level",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "bachelors_field",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "occupation",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "district",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "province",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "country",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_datetime_synth",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_province",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_longitude_e",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "last_datetime",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "longitude_offset_minutes",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "equation_of_time_minutes",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "saju_pillars",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_day_master",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements_dominant",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements_lacking",
+              "type": "VARCHAR[]"
+            },
+            {
+              "name": "saju_sipsin",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_narrative",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_narrative_error",
+              "type": "INTEGER"
+            }
+          ],
+          "id_duplicate_counts": {
+            "uuid": 0
+          },
+          "null_counts": {
+            "age": 0,
+            "arts_persona": 0,
+            "bachelors_field": 0,
+            "birth_datetime_synth": 0,
+            "birth_longitude_e": 0,
+            "birth_province": 0,
+            "career_goals_and_ambitions": 0,
+            "country": 0,
+            "culinary_persona": 0,
+            "cultural_background": 0,
+            "district": 0,
+            "education_level": 0,
+            "equation_of_time_minutes": 0,
+            "family_persona": 0,
+            "family_type": 0,
+            "hobbies_and_interests": 0,
+            "hobbies_and_interests_list": 0,
+            "housing_type": 0,
+            "last_datetime": 0,
+            "longitude_offset_minutes": 0,
+            "marital_status": 0,
+            "military_status": 0,
+            "occupation": 0,
+            "persona": 0,
+            "professional_persona": 0,
+            "province": 0,
+            "saju_day_master": 0,
+            "saju_elements": 0,
+            "saju_elements_dominant": 0,
+            "saju_elements_lacking": 0,
+            "saju_narrative": 0,
+            "saju_narrative_error": 50000,
+            "saju_pillars": 0,
+            "saju_sipsin": 0,
+            "sex": 0,
+            "skills_and_expertise": 0,
+            "skills_and_expertise_list": 0,
+            "sports_persona": 0,
+            "travel_persona": 0,
+            "uuid": 0
+          },
+          "path": "data/train-extra-00002.parquet",
+          "row_hash_duplicate_estimate": 0,
+          "rows": 50000,
+          "text_stats": {
+            "cjk_character_ratio": 0.0097207370842748,
+            "columns": [
+              "uuid",
+              "professional_persona",
+              "sports_persona",
+              "arts_persona",
+              "travel_persona",
+              "culinary_persona",
+              "family_persona",
+              "persona",
+              "cultural_background",
+              "skills_and_expertise",
+              "skills_and_expertise_list",
+              "hobbies_and_interests",
+              "hobbies_and_interests_list",
+              "career_goals_and_ambitions",
+              "sex",
+              "marital_status",
+              "military_status",
+              "family_type",
+              "housing_type",
+              "education_level",
+              "bachelors_field",
+              "occupation",
+              "district",
+              "province",
+              "country",
+              "birth_datetime_synth",
+              "birth_province",
+              "last_datetime",
+              "saju_pillars",
+              "saju_day_master",
+              "saju_elements",
+              "saju_elements_dominant",
+              "saju_elements_lacking",
+              "saju_sipsin",
+              "saju_narrative"
+            ],
+            "english_character_ratio": 0.15248353005464368,
+            "korean_character_ratio": 0.4927424003623861,
+            "row_character_length": {
+              "max": 3854,
+              "mean": 3146.43424,
+              "p50": 3161.0,
+              "p90": 3396.0,
+              "p95": 3459.0
+            },
+            "total_characters": 157321712
+          }
+        },
+        {
+          "categorical_counts": {},
+          "columns": [
+            {
+              "name": "uuid",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "professional_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "sports_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "arts_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "travel_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "culinary_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "family_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "cultural_background",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "skills_and_expertise",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "skills_and_expertise_list",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "hobbies_and_interests",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "hobbies_and_interests_list",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "career_goals_and_ambitions",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "sex",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "age",
+              "type": "BIGINT"
+            },
+            {
+              "name": "marital_status",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "military_status",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "family_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "housing_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "education_level",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "bachelors_field",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "occupation",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "district",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "province",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "country",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_datetime_synth",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_province",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_longitude_e",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "last_datetime",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "longitude_offset_minutes",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "equation_of_time_minutes",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "saju_pillars",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_day_master",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements_dominant",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements_lacking",
+              "type": "VARCHAR[]"
+            },
+            {
+              "name": "saju_sipsin",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_narrative",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_narrative_error",
+              "type": "INTEGER"
+            }
+          ],
+          "id_duplicate_counts": {
+            "uuid": 0
+          },
+          "null_counts": {
+            "age": 0,
+            "arts_persona": 0,
+            "bachelors_field": 0,
+            "birth_datetime_synth": 0,
+            "birth_longitude_e": 0,
+            "birth_province": 0,
+            "career_goals_and_ambitions": 0,
+            "country": 0,
+            "culinary_persona": 0,
+            "cultural_background": 0,
+            "district": 0,
+            "education_level": 0,
+            "equation_of_time_minutes": 0,
+            "family_persona": 0,
+            "family_type": 0,
+            "hobbies_and_interests": 0,
+            "hobbies_and_interests_list": 0,
+            "housing_type": 0,
+            "last_datetime": 0,
+            "longitude_offset_minutes": 0,
+            "marital_status": 0,
+            "military_status": 0,
+            "occupation": 0,
+            "persona": 0,
+            "professional_persona": 0,
+            "province": 0,
+            "saju_day_master": 0,
+            "saju_elements": 0,
+            "saju_elements_dominant": 0,
+            "saju_elements_lacking": 0,
+            "saju_narrative": 0,
+            "saju_narrative_error": 50000,
+            "saju_pillars": 0,
+            "saju_sipsin": 0,
+            "sex": 0,
+            "skills_and_expertise": 0,
+            "skills_and_expertise_list": 0,
+            "sports_persona": 0,
+            "travel_persona": 0,
+            "uuid": 0
+          },
+          "path": "data/train-extra-00003.parquet",
+          "row_hash_duplicate_estimate": 0,
+          "rows": 50000,
+          "text_stats": {
+            "cjk_character_ratio": 0.009716004004855837,
+            "columns": [
+              "uuid",
+              "professional_persona",
+              "sports_persona",
+              "arts_persona",
+              "travel_persona",
+              "culinary_persona",
+              "family_persona",
+              "persona",
+              "cultural_background",
+              "skills_and_expertise",
+              "skills_and_expertise_list",
+              "hobbies_and_interests",
+              "hobbies_and_interests_list",
+              "career_goals_and_ambitions",
+              "sex",
+              "marital_status",
+              "military_status",
+              "family_type",
+              "housing_type",
+              "education_level",
+              "bachelors_field",
+              "occupation",
+              "district",
+              "province",
+              "country",
+              "birth_datetime_synth",
+              "birth_province",
+              "last_datetime",
+              "saju_pillars",
+              "saju_day_master",
+              "saju_elements",
+              "saju_elements_dominant",
+              "saju_elements_lacking",
+              "saju_sipsin",
+              "saju_narrative"
+            ],
+            "english_character_ratio": 0.15238348270045088,
+            "korean_character_ratio": 0.4929394816441958,
+            "row_character_length": {
+              "max": 3882,
+              "mean": 3148.55778,
+              "p50": 3165.0,
+              "p90": 3396.0,
+              "p95": 3458.0
+            },
+            "total_characters": 157427889
+          }
+        },
+        {
+          "categorical_counts": {},
+          "columns": [
+            {
+              "name": "uuid",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "professional_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "sports_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "arts_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "travel_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "culinary_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "family_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "cultural_background",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "skills_and_expertise",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "skills_and_expertise_list",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "hobbies_and_interests",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "hobbies_and_interests_list",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "career_goals_and_ambitions",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "sex",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "age",
+              "type": "BIGINT"
+            },
+            {
+              "name": "marital_status",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "military_status",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "family_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "housing_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "education_level",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "bachelors_field",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "occupation",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "district",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "province",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "country",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_datetime_synth",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_province",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_longitude_e",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "last_datetime",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "longitude_offset_minutes",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "equation_of_time_minutes",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "saju_pillars",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_day_master",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements_dominant",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements_lacking",
+              "type": "VARCHAR[]"
+            },
+            {
+              "name": "saju_sipsin",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_narrative",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_narrative_error",
+              "type": "INTEGER"
+            }
+          ],
+          "id_duplicate_counts": {
+            "uuid": 0
+          },
+          "null_counts": {
+            "age": 0,
+            "arts_persona": 0,
+            "bachelors_field": 0,
+            "birth_datetime_synth": 0,
+            "birth_longitude_e": 0,
+            "birth_province": 0,
+            "career_goals_and_ambitions": 0,
+            "country": 0,
+            "culinary_persona": 0,
+            "cultural_background": 0,
+            "district": 0,
+            "education_level": 0,
+            "equation_of_time_minutes": 0,
+            "family_persona": 0,
+            "family_type": 0,
+            "hobbies_and_interests": 0,
+            "hobbies_and_interests_list": 0,
+            "housing_type": 0,
+            "last_datetime": 0,
+            "longitude_offset_minutes": 0,
+            "marital_status": 0,
+            "military_status": 0,
+            "occupation": 0,
+            "persona": 0,
+            "professional_persona": 0,
+            "province": 0,
+            "saju_day_master": 0,
+            "saju_elements": 0,
+            "saju_elements_dominant": 0,
+            "saju_elements_lacking": 0,
+            "saju_narrative": 0,
+            "saju_narrative_error": 50000,
+            "saju_pillars": 0,
+            "saju_sipsin": 0,
+            "sex": 0,
+            "skills_and_expertise": 0,
+            "skills_and_expertise_list": 0,
+            "sports_persona": 0,
+            "travel_persona": 0,
+            "uuid": 0
+          },
+          "path": "data/train-extra-00004.parquet",
+          "row_hash_duplicate_estimate": 0,
+          "rows": 50000,
+          "text_stats": {
+            "cjk_character_ratio": 0.009701315120471463,
+            "columns": [
+              "uuid",
+              "professional_persona",
+              "sports_persona",
+              "arts_persona",
+              "travel_persona",
+              "culinary_persona",
+              "family_persona",
+              "persona",
+              "cultural_background",
+              "skills_and_expertise",
+              "skills_and_expertise_list",
+              "hobbies_and_interests",
+              "hobbies_and_interests_list",
+              "career_goals_and_ambitions",
+              "sex",
+              "marital_status",
+              "military_status",
+              "family_type",
+              "housing_type",
+              "education_level",
+              "bachelors_field",
+              "occupation",
+              "district",
+              "province",
+              "country",
+              "birth_datetime_synth",
+              "birth_province",
+              "last_datetime",
+              "saju_pillars",
+              "saju_day_master",
+              "saju_elements",
+              "saju_elements_dominant",
+              "saju_elements_lacking",
+              "saju_sipsin",
+              "saju_narrative"
+            ],
+            "english_character_ratio": 0.1523754516350005,
+            "korean_character_ratio": 0.49297041415608367,
+            "row_character_length": {
+              "max": 4060,
+              "mean": 3148.837,
+              "p50": 3165.0,
+              "p90": 3397.0,
+              "p95": 3461.0
+            },
+            "total_characters": 157441850
+          }
+        },
+        {
+          "categorical_counts": {},
+          "columns": [
+            {
+              "name": "uuid",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "professional_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "sports_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "arts_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "travel_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "culinary_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "family_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "cultural_background",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "skills_and_expertise",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "skills_and_expertise_list",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "hobbies_and_interests",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "hobbies_and_interests_list",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "career_goals_and_ambitions",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "sex",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "age",
+              "type": "BIGINT"
+            },
+            {
+              "name": "marital_status",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "military_status",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "family_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "housing_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "education_level",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "bachelors_field",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "occupation",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "district",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "province",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "country",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_datetime_synth",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_province",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_longitude_e",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "last_datetime",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "longitude_offset_minutes",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "equation_of_time_minutes",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "saju_pillars",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_day_master",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements_dominant",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements_lacking",
+              "type": "VARCHAR[]"
+            },
+            {
+              "name": "saju_sipsin",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_narrative",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_narrative_error",
+              "type": "INTEGER"
+            }
+          ],
+          "id_duplicate_counts": {
+            "uuid": 0
+          },
+          "null_counts": {
+            "age": 0,
+            "arts_persona": 0,
+            "bachelors_field": 0,
+            "birth_datetime_synth": 0,
+            "birth_longitude_e": 0,
+            "birth_province": 0,
+            "career_goals_and_ambitions": 0,
+            "country": 0,
+            "culinary_persona": 0,
+            "cultural_background": 0,
+            "district": 0,
+            "education_level": 0,
+            "equation_of_time_minutes": 0,
+            "family_persona": 0,
+            "family_type": 0,
+            "hobbies_and_interests": 0,
+            "hobbies_and_interests_list": 0,
+            "housing_type": 0,
+            "last_datetime": 0,
+            "longitude_offset_minutes": 0,
+            "marital_status": 0,
+            "military_status": 0,
+            "occupation": 0,
+            "persona": 0,
+            "professional_persona": 0,
+            "province": 0,
+            "saju_day_master": 0,
+            "saju_elements": 0,
+            "saju_elements_dominant": 0,
+            "saju_elements_lacking": 0,
+            "saju_narrative": 0,
+            "saju_narrative_error": 50000,
+            "saju_pillars": 0,
+            "saju_sipsin": 0,
+            "sex": 0,
+            "skills_and_expertise": 0,
+            "skills_and_expertise_list": 0,
+            "sports_persona": 0,
+            "travel_persona": 0,
+            "uuid": 0
+          },
+          "path": "data/train-extra-00005.parquet",
+          "row_hash_duplicate_estimate": 0,
+          "rows": 50000,
+          "text_stats": {
+            "cjk_character_ratio": 0.009720338468531525,
+            "columns": [
+              "uuid",
+              "professional_persona",
+              "sports_persona",
+              "arts_persona",
+              "travel_persona",
+              "culinary_persona",
+              "family_persona",
+              "persona",
+              "cultural_background",
+              "skills_and_expertise",
+              "skills_and_expertise_list",
+              "hobbies_and_interests",
+              "hobbies_and_interests_list",
+              "career_goals_and_ambitions",
+              "sex",
+              "marital_status",
+              "military_status",
+              "family_type",
+              "housing_type",
+              "education_level",
+              "bachelors_field",
+              "occupation",
+              "district",
+              "province",
+              "country",
+              "birth_datetime_synth",
+              "birth_province",
+              "last_datetime",
+              "saju_pillars",
+              "saju_day_master",
+              "saju_elements",
+              "saju_elements_dominant",
+              "saju_elements_lacking",
+              "saju_sipsin",
+              "saju_narrative"
+            ],
+            "english_character_ratio": 0.1524201878950223,
+            "korean_character_ratio": 0.4928635402063596,
+            "row_character_length": {
+              "max": 3836,
+              "mean": 3147.91096,
+              "p50": 3164.0,
+              "p90": 3397.0,
+              "p95": 3457.0
+            },
+            "total_characters": 157395548
+          }
+        },
+        {
+          "categorical_counts": {},
+          "columns": [
+            {
+              "name": "uuid",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "professional_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "sports_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "arts_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "travel_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "culinary_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "family_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "cultural_background",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "skills_and_expertise",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "skills_and_expertise_list",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "hobbies_and_interests",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "hobbies_and_interests_list",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "career_goals_and_ambitions",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "sex",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "age",
+              "type": "BIGINT"
+            },
+            {
+              "name": "marital_status",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "military_status",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "family_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "housing_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "education_level",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "bachelors_field",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "occupation",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "district",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "province",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "country",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_datetime_synth",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_province",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_longitude_e",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "last_datetime",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "longitude_offset_minutes",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "equation_of_time_minutes",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "saju_pillars",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_day_master",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements_dominant",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements_lacking",
+              "type": "VARCHAR[]"
+            },
+            {
+              "name": "saju_sipsin",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_narrative",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_narrative_error",
+              "type": "INTEGER"
+            }
+          ],
+          "id_duplicate_counts": {
+            "uuid": 0
+          },
+          "null_counts": {
+            "age": 0,
+            "arts_persona": 0,
+            "bachelors_field": 0,
+            "birth_datetime_synth": 0,
+            "birth_longitude_e": 0,
+            "birth_province": 0,
+            "career_goals_and_ambitions": 0,
+            "country": 0,
+            "culinary_persona": 0,
+            "cultural_background": 0,
+            "district": 0,
+            "education_level": 0,
+            "equation_of_time_minutes": 0,
+            "family_persona": 0,
+            "family_type": 0,
+            "hobbies_and_interests": 0,
+            "hobbies_and_interests_list": 0,
+            "housing_type": 0,
+            "last_datetime": 0,
+            "longitude_offset_minutes": 0,
+            "marital_status": 0,
+            "military_status": 0,
+            "occupation": 0,
+            "persona": 0,
+            "professional_persona": 0,
+            "province": 0,
+            "saju_day_master": 0,
+            "saju_elements": 0,
+            "saju_elements_dominant": 0,
+            "saju_elements_lacking": 0,
+            "saju_narrative": 0,
+            "saju_narrative_error": 50000,
+            "saju_pillars": 0,
+            "saju_sipsin": 0,
+            "sex": 0,
+            "skills_and_expertise": 0,
+            "skills_and_expertise_list": 0,
+            "sports_persona": 0,
+            "travel_persona": 0,
+            "uuid": 0
+          },
+          "path": "data/train-extra-00006.parquet",
+          "row_hash_duplicate_estimate": 0,
+          "rows": 50000,
+          "text_stats": {
+            "cjk_character_ratio": 0.009712941520300642,
+            "columns": [
+              "uuid",
+              "professional_persona",
+              "sports_persona",
+              "arts_persona",
+              "travel_persona",
+              "culinary_persona",
+              "family_persona",
+              "persona",
+              "cultural_background",
+              "skills_and_expertise",
+              "skills_and_expertise_list",
+              "hobbies_and_interests",
+              "hobbies_and_interests_list",
+              "career_goals_and_ambitions",
+              "sex",
+              "marital_status",
+              "military_status",
+              "family_type",
+              "housing_type",
+              "education_level",
+              "bachelors_field",
+              "occupation",
+              "district",
+              "province",
+              "country",
+              "birth_datetime_synth",
+              "birth_province",
+              "last_datetime",
+              "saju_pillars",
+              "saju_day_master",
+              "saju_elements",
+              "saju_elements_dominant",
+              "saju_elements_lacking",
+              "saju_sipsin",
+              "saju_narrative"
+            ],
+            "english_character_ratio": 0.15241210573297373,
+            "korean_character_ratio": 0.4928730880292764,
+            "row_character_length": {
+              "max": 3842,
+              "mean": 3147.93,
+              "p50": 3164.0,
+              "p90": 3398.0,
+              "p95": 3458.0
+            },
+            "total_characters": 157396500
+          }
+        },
+        {
+          "categorical_counts": {},
+          "columns": [
+            {
+              "name": "uuid",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "professional_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "sports_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "arts_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "travel_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "culinary_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "family_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "cultural_background",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "skills_and_expertise",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "skills_and_expertise_list",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "hobbies_and_interests",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "hobbies_and_interests_list",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "career_goals_and_ambitions",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "sex",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "age",
+              "type": "BIGINT"
+            },
+            {
+              "name": "marital_status",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "military_status",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "family_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "housing_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "education_level",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "bachelors_field",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "occupation",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "district",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "province",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "country",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_datetime_synth",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_province",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_longitude_e",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "last_datetime",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "longitude_offset_minutes",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "equation_of_time_minutes",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "saju_pillars",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_day_master",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements_dominant",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements_lacking",
+              "type": "VARCHAR[]"
+            },
+            {
+              "name": "saju_sipsin",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_narrative",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_narrative_error",
+              "type": "INTEGER"
+            }
+          ],
+          "id_duplicate_counts": {
+            "uuid": 0
+          },
+          "null_counts": {
+            "age": 0,
+            "arts_persona": 0,
+            "bachelors_field": 0,
+            "birth_datetime_synth": 0,
+            "birth_longitude_e": 0,
+            "birth_province": 0,
+            "career_goals_and_ambitions": 0,
+            "country": 0,
+            "culinary_persona": 0,
+            "cultural_background": 0,
+            "district": 0,
+            "education_level": 0,
+            "equation_of_time_minutes": 0,
+            "family_persona": 0,
+            "family_type": 0,
+            "hobbies_and_interests": 0,
+            "hobbies_and_interests_list": 0,
+            "housing_type": 0,
+            "last_datetime": 0,
+            "longitude_offset_minutes": 0,
+            "marital_status": 0,
+            "military_status": 0,
+            "occupation": 0,
+            "persona": 0,
+            "professional_persona": 0,
+            "province": 0,
+            "saju_day_master": 0,
+            "saju_elements": 0,
+            "saju_elements_dominant": 0,
+            "saju_elements_lacking": 0,
+            "saju_narrative": 0,
+            "saju_narrative_error": 50000,
+            "saju_pillars": 0,
+            "saju_sipsin": 0,
+            "sex": 0,
+            "skills_and_expertise": 0,
+            "skills_and_expertise_list": 0,
+            "sports_persona": 0,
+            "travel_persona": 0,
+            "uuid": 0
+          },
+          "path": "data/train-extra-00007.parquet",
+          "row_hash_duplicate_estimate": 0,
+          "rows": 50000,
+          "text_stats": {
+            "cjk_character_ratio": 0.009728308334841937,
+            "columns": [
+              "uuid",
+              "professional_persona",
+              "sports_persona",
+              "arts_persona",
+              "travel_persona",
+              "culinary_persona",
+              "family_persona",
+              "persona",
+              "cultural_background",
+              "skills_and_expertise",
+              "skills_and_expertise_list",
+              "hobbies_and_interests",
+              "hobbies_and_interests_list",
+              "career_goals_and_ambitions",
+              "sex",
+              "marital_status",
+              "military_status",
+              "family_type",
+              "housing_type",
+              "education_level",
+              "bachelors_field",
+              "occupation",
+              "district",
+              "province",
+              "country",
+              "birth_datetime_synth",
+              "birth_province",
+              "last_datetime",
+              "saju_pillars",
+              "saju_day_master",
+              "saju_elements",
+              "saju_elements_dominant",
+              "saju_elements_lacking",
+              "saju_sipsin",
+              "saju_narrative"
+            ],
+            "english_character_ratio": 0.15238852242459533,
+            "korean_character_ratio": 0.49289989049809446,
+            "row_character_length": {
+              "max": 3848,
+              "mean": 3148.27398,
+              "p50": 3163.0,
+              "p90": 3398.0,
+              "p95": 3461.0
+            },
+            "total_characters": 157413699
+          }
+        },
+        {
+          "categorical_counts": {},
+          "columns": [
+            {
+              "name": "uuid",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "professional_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "sports_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "arts_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "travel_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "culinary_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "family_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "cultural_background",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "skills_and_expertise",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "skills_and_expertise_list",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "hobbies_and_interests",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "hobbies_and_interests_list",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "career_goals_and_ambitions",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "sex",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "age",
+              "type": "BIGINT"
+            },
+            {
+              "name": "marital_status",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "military_status",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "family_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "housing_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "education_level",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "bachelors_field",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "occupation",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "district",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "province",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "country",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_datetime_synth",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_province",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_longitude_e",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "last_datetime",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "longitude_offset_minutes",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "equation_of_time_minutes",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "saju_pillars",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_day_master",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements_dominant",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements_lacking",
+              "type": "VARCHAR[]"
+            },
+            {
+              "name": "saju_sipsin",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_narrative",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_narrative_error",
+              "type": "INTEGER"
+            }
+          ],
+          "id_duplicate_counts": {
+            "uuid": 0
+          },
+          "null_counts": {
+            "age": 0,
+            "arts_persona": 0,
+            "bachelors_field": 0,
+            "birth_datetime_synth": 0,
+            "birth_longitude_e": 0,
+            "birth_province": 0,
+            "career_goals_and_ambitions": 0,
+            "country": 0,
+            "culinary_persona": 0,
+            "cultural_background": 0,
+            "district": 0,
+            "education_level": 0,
+            "equation_of_time_minutes": 0,
+            "family_persona": 0,
+            "family_type": 0,
+            "hobbies_and_interests": 0,
+            "hobbies_and_interests_list": 0,
+            "housing_type": 0,
+            "last_datetime": 0,
+            "longitude_offset_minutes": 0,
+            "marital_status": 0,
+            "military_status": 0,
+            "occupation": 0,
+            "persona": 0,
+            "professional_persona": 0,
+            "province": 0,
+            "saju_day_master": 0,
+            "saju_elements": 0,
+            "saju_elements_dominant": 0,
+            "saju_elements_lacking": 0,
+            "saju_narrative": 0,
+            "saju_narrative_error": 50000,
+            "saju_pillars": 0,
+            "saju_sipsin": 0,
+            "sex": 0,
+            "skills_and_expertise": 0,
+            "skills_and_expertise_list": 0,
+            "sports_persona": 0,
+            "travel_persona": 0,
+            "uuid": 0
+          },
+          "path": "data/train-extra-00008.parquet",
+          "row_hash_duplicate_estimate": 0,
+          "rows": 50000,
+          "text_stats": {
+            "cjk_character_ratio": 0.009715328236204251,
+            "columns": [
+              "uuid",
+              "professional_persona",
+              "sports_persona",
+              "arts_persona",
+              "travel_persona",
+              "culinary_persona",
+              "family_persona",
+              "persona",
+              "cultural_background",
+              "skills_and_expertise",
+              "skills_and_expertise_list",
+              "hobbies_and_interests",
+              "hobbies_and_interests_list",
+              "career_goals_and_ambitions",
+              "sex",
+              "marital_status",
+              "military_status",
+              "family_type",
+              "housing_type",
+              "education_level",
+              "bachelors_field",
+              "occupation",
+              "district",
+              "province",
+              "country",
+              "birth_datetime_synth",
+              "birth_province",
+              "last_datetime",
+              "saju_pillars",
+              "saju_day_master",
+              "saju_elements",
+              "saju_elements_dominant",
+              "saju_elements_lacking",
+              "saju_sipsin",
+              "saju_narrative"
+            ],
+            "english_character_ratio": 0.15244135652390503,
+            "korean_character_ratio": 0.49278928195074134,
+            "row_character_length": {
+              "max": 3851,
+              "mean": 3147.28018,
+              "p50": 3164.0,
+              "p90": 3397.0,
+              "p95": 3458.0
+            },
+            "total_characters": 157364009
+          }
+        },
+        {
+          "categorical_counts": {},
+          "columns": [
+            {
+              "name": "uuid",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "professional_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "sports_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "arts_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "travel_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "culinary_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "family_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "cultural_background",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "skills_and_expertise",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "skills_and_expertise_list",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "hobbies_and_interests",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "hobbies_and_interests_list",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "career_goals_and_ambitions",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "sex",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "age",
+              "type": "BIGINT"
+            },
+            {
+              "name": "marital_status",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "military_status",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "family_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "housing_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "education_level",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "bachelors_field",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "occupation",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "district",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "province",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "country",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_datetime_synth",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_province",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_longitude_e",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "last_datetime",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "longitude_offset_minutes",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "equation_of_time_minutes",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "saju_pillars",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_day_master",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements_dominant",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements_lacking",
+              "type": "VARCHAR[]"
+            },
+            {
+              "name": "saju_sipsin",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_narrative",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_narrative_error",
+              "type": "INTEGER"
+            }
+          ],
+          "id_duplicate_counts": {
+            "uuid": 0
+          },
+          "null_counts": {
+            "age": 0,
+            "arts_persona": 0,
+            "bachelors_field": 0,
+            "birth_datetime_synth": 0,
+            "birth_longitude_e": 0,
+            "birth_province": 0,
+            "career_goals_and_ambitions": 0,
+            "country": 0,
+            "culinary_persona": 0,
+            "cultural_background": 0,
+            "district": 0,
+            "education_level": 0,
+            "equation_of_time_minutes": 0,
+            "family_persona": 0,
+            "family_type": 0,
+            "hobbies_and_interests": 0,
+            "hobbies_and_interests_list": 0,
+            "housing_type": 0,
+            "last_datetime": 0,
+            "longitude_offset_minutes": 0,
+            "marital_status": 0,
+            "military_status": 0,
+            "occupation": 0,
+            "persona": 0,
+            "professional_persona": 0,
+            "province": 0,
+            "saju_day_master": 0,
+            "saju_elements": 0,
+            "saju_elements_dominant": 0,
+            "saju_elements_lacking": 0,
+            "saju_narrative": 0,
+            "saju_narrative_error": 50000,
+            "saju_pillars": 0,
+            "saju_sipsin": 0,
+            "sex": 0,
+            "skills_and_expertise": 0,
+            "skills_and_expertise_list": 0,
+            "sports_persona": 0,
+            "travel_persona": 0,
+            "uuid": 0
+          },
+          "path": "data/train-extra-00009.parquet",
+          "row_hash_duplicate_estimate": 0,
+          "rows": 50000,
+          "text_stats": {
+            "cjk_character_ratio": 0.00971341833822901,
+            "columns": [
+              "uuid",
+              "professional_persona",
+              "sports_persona",
+              "arts_persona",
+              "travel_persona",
+              "culinary_persona",
+              "family_persona",
+              "persona",
+              "cultural_background",
+              "skills_and_expertise",
+              "skills_and_expertise_list",
+              "hobbies_and_interests",
+              "hobbies_and_interests_list",
+              "career_goals_and_ambitions",
+              "sex",
+              "marital_status",
+              "military_status",
+              "family_type",
+              "housing_type",
+              "education_level",
+              "bachelors_field",
+              "occupation",
+              "district",
+              "province",
+              "country",
+              "birth_datetime_synth",
+              "birth_province",
+              "last_datetime",
+              "saju_pillars",
+              "saju_day_master",
+              "saju_elements",
+              "saju_elements_dominant",
+              "saju_elements_lacking",
+              "saju_sipsin",
+              "saju_narrative"
+            ],
+            "english_character_ratio": 0.15245770647236453,
+            "korean_character_ratio": 0.49278350352981776,
+            "row_character_length": {
+              "max": 3882,
+              "mean": 3147.05482,
+              "p50": 3161.0,
+              "p90": 3398.0,
+              "p95": 3459.0
+            },
+            "total_characters": 157352741
+          }
+        },
+        {
+          "categorical_counts": {},
+          "columns": [
+            {
+              "name": "uuid",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "professional_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "sports_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "arts_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "travel_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "culinary_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "family_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "cultural_background",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "skills_and_expertise",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "skills_and_expertise_list",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "hobbies_and_interests",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "hobbies_and_interests_list",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "career_goals_and_ambitions",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "sex",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "age",
+              "type": "BIGINT"
+            },
+            {
+              "name": "marital_status",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "military_status",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "family_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "housing_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "education_level",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "bachelors_field",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "occupation",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "district",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "province",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "country",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_datetime_synth",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_province",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_longitude_e",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "last_datetime",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "longitude_offset_minutes",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "equation_of_time_minutes",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "saju_pillars",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_day_master",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements_dominant",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements_lacking",
+              "type": "VARCHAR[]"
+            },
+            {
+              "name": "saju_sipsin",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_narrative",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_narrative_error",
+              "type": "INTEGER"
+            }
+          ],
+          "id_duplicate_counts": {
+            "uuid": 0
+          },
+          "null_counts": {
+            "age": 0,
+            "arts_persona": 0,
+            "bachelors_field": 0,
+            "birth_datetime_synth": 0,
+            "birth_longitude_e": 0,
+            "birth_province": 0,
+            "career_goals_and_ambitions": 0,
+            "country": 0,
+            "culinary_persona": 0,
+            "cultural_background": 0,
+            "district": 0,
+            "education_level": 0,
+            "equation_of_time_minutes": 0,
+            "family_persona": 0,
+            "family_type": 0,
+            "hobbies_and_interests": 0,
+            "hobbies_and_interests_list": 0,
+            "housing_type": 0,
+            "last_datetime": 0,
+            "longitude_offset_minutes": 0,
+            "marital_status": 0,
+            "military_status": 0,
+            "occupation": 0,
+            "persona": 0,
+            "professional_persona": 0,
+            "province": 0,
+            "saju_day_master": 0,
+            "saju_elements": 0,
+            "saju_elements_dominant": 0,
+            "saju_elements_lacking": 0,
+            "saju_narrative": 0,
+            "saju_narrative_error": 50000,
+            "saju_pillars": 0,
+            "saju_sipsin": 0,
+            "sex": 0,
+            "skills_and_expertise": 0,
+            "skills_and_expertise_list": 0,
+            "sports_persona": 0,
+            "travel_persona": 0,
+            "uuid": 0
+          },
+          "path": "data/train-extra-00010.parquet",
+          "row_hash_duplicate_estimate": 0,
+          "rows": 50000,
+          "text_stats": {
+            "cjk_character_ratio": 0.009709680635985882,
+            "columns": [
+              "uuid",
+              "professional_persona",
+              "sports_persona",
+              "arts_persona",
+              "travel_persona",
+              "culinary_persona",
+              "family_persona",
+              "persona",
+              "cultural_background",
+              "skills_and_expertise",
+              "skills_and_expertise_list",
+              "hobbies_and_interests",
+              "hobbies_and_interests_list",
+              "career_goals_and_ambitions",
+              "sex",
+              "marital_status",
+              "military_status",
+              "family_type",
+              "housing_type",
+              "education_level",
+              "bachelors_field",
+              "occupation",
+              "district",
+              "province",
+              "country",
+              "birth_datetime_synth",
+              "birth_province",
+              "last_datetime",
+              "saju_pillars",
+              "saju_day_master",
+              "saju_elements",
+              "saju_elements_dominant",
+              "saju_elements_lacking",
+              "saju_sipsin",
+              "saju_narrative"
+            ],
+            "english_character_ratio": 0.15234677864309842,
+            "korean_character_ratio": 0.49297279627114854,
+            "row_character_length": {
+              "max": 3845,
+              "mean": 3149.35796,
+              "p50": 3165.0,
+              "p90": 3398.0,
+              "p95": 3460.0
+            },
+            "total_characters": 157467898
+          }
+        },
+        {
+          "categorical_counts": {},
+          "columns": [
+            {
+              "name": "uuid",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "professional_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "sports_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "arts_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "travel_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "culinary_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "family_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "cultural_background",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "skills_and_expertise",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "skills_and_expertise_list",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "hobbies_and_interests",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "hobbies_and_interests_list",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "career_goals_and_ambitions",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "sex",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "age",
+              "type": "BIGINT"
+            },
+            {
+              "name": "marital_status",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "military_status",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "family_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "housing_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "education_level",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "bachelors_field",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "occupation",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "district",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "province",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "country",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_datetime_synth",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_province",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_longitude_e",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "last_datetime",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "longitude_offset_minutes",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "equation_of_time_minutes",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "saju_pillars",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_day_master",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements_dominant",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements_lacking",
+              "type": "VARCHAR[]"
+            },
+            {
+              "name": "saju_sipsin",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_narrative",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_narrative_error",
+              "type": "INTEGER"
+            }
+          ],
+          "id_duplicate_counts": {
+            "uuid": 0
+          },
+          "null_counts": {
+            "age": 0,
+            "arts_persona": 0,
+            "bachelors_field": 0,
+            "birth_datetime_synth": 0,
+            "birth_longitude_e": 0,
+            "birth_province": 0,
+            "career_goals_and_ambitions": 0,
+            "country": 0,
+            "culinary_persona": 0,
+            "cultural_background": 0,
+            "district": 0,
+            "education_level": 0,
+            "equation_of_time_minutes": 0,
+            "family_persona": 0,
+            "family_type": 0,
+            "hobbies_and_interests": 0,
+            "hobbies_and_interests_list": 0,
+            "housing_type": 0,
+            "last_datetime": 0,
+            "longitude_offset_minutes": 0,
+            "marital_status": 0,
+            "military_status": 0,
+            "occupation": 0,
+            "persona": 0,
+            "professional_persona": 0,
+            "province": 0,
+            "saju_day_master": 0,
+            "saju_elements": 0,
+            "saju_elements_dominant": 0,
+            "saju_elements_lacking": 0,
+            "saju_narrative": 0,
+            "saju_narrative_error": 50000,
+            "saju_pillars": 0,
+            "saju_sipsin": 0,
+            "sex": 0,
+            "skills_and_expertise": 0,
+            "skills_and_expertise_list": 0,
+            "sports_persona": 0,
+            "travel_persona": 0,
+            "uuid": 0
+          },
+          "path": "data/train-extra-00011.parquet",
+          "row_hash_duplicate_estimate": 0,
+          "rows": 50000,
+          "text_stats": {
+            "cjk_character_ratio": 0.009713929357560292,
+            "columns": [
+              "uuid",
+              "professional_persona",
+              "sports_persona",
+              "arts_persona",
+              "travel_persona",
+              "culinary_persona",
+              "family_persona",
+              "persona",
+              "cultural_background",
+              "skills_and_expertise",
+              "skills_and_expertise_list",
+              "hobbies_and_interests",
+              "hobbies_and_interests_list",
+              "career_goals_and_ambitions",
+              "sex",
+              "marital_status",
+              "military_status",
+              "family_type",
+              "housing_type",
+              "education_level",
+              "bachelors_field",
+              "occupation",
+              "district",
+              "province",
+              "country",
+              "birth_datetime_synth",
+              "birth_province",
+              "last_datetime",
+              "saju_pillars",
+              "saju_day_master",
+              "saju_elements",
+              "saju_elements_dominant",
+              "saju_elements_lacking",
+              "saju_sipsin",
+              "saju_narrative"
+            ],
+            "english_character_ratio": 0.15238196141710708,
+            "korean_character_ratio": 0.49293446660434237,
+            "row_character_length": {
+              "max": 3816,
+              "mean": 3148.6908,
+              "p50": 3164.0,
+              "p90": 3398.0,
+              "p95": 3459.0
+            },
+            "total_characters": 157434540
+          }
+        },
+        {
+          "categorical_counts": {},
+          "columns": [
+            {
+              "name": "uuid",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "professional_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "sports_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "arts_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "travel_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "culinary_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "family_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "cultural_background",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "skills_and_expertise",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "skills_and_expertise_list",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "hobbies_and_interests",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "hobbies_and_interests_list",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "career_goals_and_ambitions",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "sex",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "age",
+              "type": "BIGINT"
+            },
+            {
+              "name": "marital_status",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "military_status",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "family_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "housing_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "education_level",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "bachelors_field",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "occupation",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "district",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "province",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "country",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_datetime_synth",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_province",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_longitude_e",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "last_datetime",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "longitude_offset_minutes",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "equation_of_time_minutes",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "saju_pillars",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_day_master",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements_dominant",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements_lacking",
+              "type": "VARCHAR[]"
+            },
+            {
+              "name": "saju_sipsin",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_narrative",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_narrative_error",
+              "type": "INTEGER"
+            }
+          ],
+          "id_duplicate_counts": {
+            "uuid": 0
+          },
+          "null_counts": {
+            "age": 0,
+            "arts_persona": 0,
+            "bachelors_field": 0,
+            "birth_datetime_synth": 0,
+            "birth_longitude_e": 0,
+            "birth_province": 0,
+            "career_goals_and_ambitions": 0,
+            "country": 0,
+            "culinary_persona": 0,
+            "cultural_background": 0,
+            "district": 0,
+            "education_level": 0,
+            "equation_of_time_minutes": 0,
+            "family_persona": 0,
+            "family_type": 0,
+            "hobbies_and_interests": 0,
+            "hobbies_and_interests_list": 0,
+            "housing_type": 0,
+            "last_datetime": 0,
+            "longitude_offset_minutes": 0,
+            "marital_status": 0,
+            "military_status": 0,
+            "occupation": 0,
+            "persona": 0,
+            "professional_persona": 0,
+            "province": 0,
+            "saju_day_master": 0,
+            "saju_elements": 0,
+            "saju_elements_dominant": 0,
+            "saju_elements_lacking": 0,
+            "saju_narrative": 0,
+            "saju_narrative_error": 50000,
+            "saju_pillars": 0,
+            "saju_sipsin": 0,
+            "sex": 0,
+            "skills_and_expertise": 0,
+            "skills_and_expertise_list": 0,
+            "sports_persona": 0,
+            "travel_persona": 0,
+            "uuid": 0
+          },
+          "path": "data/train-extra-00012.parquet",
+          "row_hash_duplicate_estimate": 0,
+          "rows": 50000,
+          "text_stats": {
+            "cjk_character_ratio": 0.009698993767505062,
+            "columns": [
+              "uuid",
+              "professional_persona",
+              "sports_persona",
+              "arts_persona",
+              "travel_persona",
+              "culinary_persona",
+              "family_persona",
+              "persona",
+              "cultural_background",
+              "skills_and_expertise",
+              "skills_and_expertise_list",
+              "hobbies_and_interests",
+              "hobbies_and_interests_list",
+              "career_goals_and_ambitions",
+              "sex",
+              "marital_status",
+              "military_status",
+              "family_type",
+              "housing_type",
+              "education_level",
+              "bachelors_field",
+              "occupation",
+              "district",
+              "province",
+              "country",
+              "birth_datetime_synth",
+              "birth_province",
+              "last_datetime",
+              "saju_pillars",
+              "saju_day_master",
+              "saju_elements",
+              "saju_elements_dominant",
+              "saju_elements_lacking",
+              "saju_sipsin",
+              "saju_narrative"
+            ],
+            "english_character_ratio": 0.15243164163773945,
+            "korean_character_ratio": 0.4928760153516749,
+            "row_character_length": {
+              "max": 3846,
+              "mean": 3147.59662,
+              "p50": 3163.0,
+              "p90": 3395.0,
+              "p95": 3457.0
+            },
+            "total_characters": 157379831
+          }
+        },
+        {
+          "categorical_counts": {},
+          "columns": [
+            {
+              "name": "uuid",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "professional_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "sports_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "arts_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "travel_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "culinary_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "family_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "cultural_background",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "skills_and_expertise",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "skills_and_expertise_list",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "hobbies_and_interests",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "hobbies_and_interests_list",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "career_goals_and_ambitions",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "sex",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "age",
+              "type": "BIGINT"
+            },
+            {
+              "name": "marital_status",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "military_status",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "family_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "housing_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "education_level",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "bachelors_field",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "occupation",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "district",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "province",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "country",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_datetime_synth",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_province",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_longitude_e",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "last_datetime",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "longitude_offset_minutes",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "equation_of_time_minutes",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "saju_pillars",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_day_master",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements_dominant",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements_lacking",
+              "type": "VARCHAR[]"
+            },
+            {
+              "name": "saju_sipsin",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_narrative",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_narrative_error",
+              "type": "INTEGER"
+            }
+          ],
+          "id_duplicate_counts": {
+            "uuid": 0
+          },
+          "null_counts": {
+            "age": 0,
+            "arts_persona": 0,
+            "bachelors_field": 0,
+            "birth_datetime_synth": 0,
+            "birth_longitude_e": 0,
+            "birth_province": 0,
+            "career_goals_and_ambitions": 0,
+            "country": 0,
+            "culinary_persona": 0,
+            "cultural_background": 0,
+            "district": 0,
+            "education_level": 0,
+            "equation_of_time_minutes": 0,
+            "family_persona": 0,
+            "family_type": 0,
+            "hobbies_and_interests": 0,
+            "hobbies_and_interests_list": 0,
+            "housing_type": 0,
+            "last_datetime": 0,
+            "longitude_offset_minutes": 0,
+            "marital_status": 0,
+            "military_status": 0,
+            "occupation": 0,
+            "persona": 0,
+            "professional_persona": 0,
+            "province": 0,
+            "saju_day_master": 0,
+            "saju_elements": 0,
+            "saju_elements_dominant": 0,
+            "saju_elements_lacking": 0,
+            "saju_narrative": 0,
+            "saju_narrative_error": 50000,
+            "saju_pillars": 0,
+            "saju_sipsin": 0,
+            "sex": 0,
+            "skills_and_expertise": 0,
+            "skills_and_expertise_list": 0,
+            "sports_persona": 0,
+            "travel_persona": 0,
+            "uuid": 0
+          },
+          "path": "data/train-extra-00013.parquet",
+          "row_hash_duplicate_estimate": 0,
+          "rows": 50000,
+          "text_stats": {
+            "cjk_character_ratio": 0.009716376365319652,
+            "columns": [
+              "uuid",
+              "professional_persona",
+              "sports_persona",
+              "arts_persona",
+              "travel_persona",
+              "culinary_persona",
+              "family_persona",
+              "persona",
+              "cultural_background",
+              "skills_and_expertise",
+              "skills_and_expertise_list",
+              "hobbies_and_interests",
+              "hobbies_and_interests_list",
+              "career_goals_and_ambitions",
+              "sex",
+              "marital_status",
+              "military_status",
+              "family_type",
+              "housing_type",
+              "education_level",
+              "bachelors_field",
+              "occupation",
+              "district",
+              "province",
+              "country",
+              "birth_datetime_synth",
+              "birth_province",
+              "last_datetime",
+              "saju_pillars",
+              "saju_day_master",
+              "saju_elements",
+              "saju_elements_dominant",
+              "saju_elements_lacking",
+              "saju_sipsin",
+              "saju_narrative"
+            ],
+            "english_character_ratio": 0.1523908713029759,
+            "korean_character_ratio": 0.49289525583858335,
+            "row_character_length": {
+              "max": 3875,
+              "mean": 3148.3836,
+              "p50": 3164.0,
+              "p90": 3398.0,
+              "p95": 3459.0
+            },
+            "total_characters": 157419180
+          }
+        },
+        {
+          "categorical_counts": {},
+          "columns": [
+            {
+              "name": "uuid",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "professional_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "sports_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "arts_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "travel_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "culinary_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "family_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "cultural_background",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "skills_and_expertise",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "skills_and_expertise_list",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "hobbies_and_interests",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "hobbies_and_interests_list",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "career_goals_and_ambitions",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "sex",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "age",
+              "type": "BIGINT"
+            },
+            {
+              "name": "marital_status",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "military_status",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "family_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "housing_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "education_level",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "bachelors_field",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "occupation",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "district",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "province",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "country",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_datetime_synth",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_province",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_longitude_e",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "last_datetime",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "longitude_offset_minutes",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "equation_of_time_minutes",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "saju_pillars",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_day_master",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements_dominant",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements_lacking",
+              "type": "VARCHAR[]"
+            },
+            {
+              "name": "saju_sipsin",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_narrative",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_narrative_error",
+              "type": "INTEGER"
+            }
+          ],
+          "id_duplicate_counts": {
+            "uuid": 0
+          },
+          "null_counts": {
+            "age": 0,
+            "arts_persona": 0,
+            "bachelors_field": 0,
+            "birth_datetime_synth": 0,
+            "birth_longitude_e": 0,
+            "birth_province": 0,
+            "career_goals_and_ambitions": 0,
+            "country": 0,
+            "culinary_persona": 0,
+            "cultural_background": 0,
+            "district": 0,
+            "education_level": 0,
+            "equation_of_time_minutes": 0,
+            "family_persona": 0,
+            "family_type": 0,
+            "hobbies_and_interests": 0,
+            "hobbies_and_interests_list": 0,
+            "housing_type": 0,
+            "last_datetime": 0,
+            "longitude_offset_minutes": 0,
+            "marital_status": 0,
+            "military_status": 0,
+            "occupation": 0,
+            "persona": 0,
+            "professional_persona": 0,
+            "province": 0,
+            "saju_day_master": 0,
+            "saju_elements": 0,
+            "saju_elements_dominant": 0,
+            "saju_elements_lacking": 0,
+            "saju_narrative": 0,
+            "saju_narrative_error": 50000,
+            "saju_pillars": 0,
+            "saju_sipsin": 0,
+            "sex": 0,
+            "skills_and_expertise": 0,
+            "skills_and_expertise_list": 0,
+            "sports_persona": 0,
+            "travel_persona": 0,
+            "uuid": 0
+          },
+          "path": "data/train-extra-00014.parquet",
+          "row_hash_duplicate_estimate": 0,
+          "rows": 50000,
+          "text_stats": {
+            "cjk_character_ratio": 0.009710049895161823,
+            "columns": [
+              "uuid",
+              "professional_persona",
+              "sports_persona",
+              "arts_persona",
+              "travel_persona",
+              "culinary_persona",
+              "family_persona",
+              "persona",
+              "cultural_background",
+              "skills_and_expertise",
+              "skills_and_expertise_list",
+              "hobbies_and_interests",
+              "hobbies_and_interests_list",
+              "career_goals_and_ambitions",
+              "sex",
+              "marital_status",
+              "military_status",
+              "family_type",
+              "housing_type",
+              "education_level",
+              "bachelors_field",
+              "occupation",
+              "district",
+              "province",
+              "country",
+              "birth_datetime_synth",
+              "birth_province",
+              "last_datetime",
+              "saju_pillars",
+              "saju_day_master",
+              "saju_elements",
+              "saju_elements_dominant",
+              "saju_elements_lacking",
+              "saju_sipsin",
+              "saju_narrative"
+            ],
+            "english_character_ratio": 0.15239080419945783,
+            "korean_character_ratio": 0.4929097086224623,
+            "row_character_length": {
+              "max": 3874,
+              "mean": 3148.30926,
+              "p50": 3163.0,
+              "p90": 3399.0,
+              "p95": 3460.0
+            },
+            "total_characters": 157415463
+          }
+        },
+        {
+          "categorical_counts": {},
+          "columns": [
+            {
+              "name": "uuid",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "professional_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "sports_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "arts_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "travel_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "culinary_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "family_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "cultural_background",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "skills_and_expertise",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "skills_and_expertise_list",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "hobbies_and_interests",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "hobbies_and_interests_list",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "career_goals_and_ambitions",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "sex",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "age",
+              "type": "BIGINT"
+            },
+            {
+              "name": "marital_status",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "military_status",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "family_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "housing_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "education_level",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "bachelors_field",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "occupation",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "district",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "province",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "country",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_datetime_synth",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_province",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_longitude_e",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "last_datetime",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "longitude_offset_minutes",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "equation_of_time_minutes",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "saju_pillars",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_day_master",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements_dominant",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements_lacking",
+              "type": "VARCHAR[]"
+            },
+            {
+              "name": "saju_sipsin",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_narrative",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_narrative_error",
+              "type": "INTEGER"
+            }
+          ],
+          "id_duplicate_counts": {
+            "uuid": 0
+          },
+          "null_counts": {
+            "age": 0,
+            "arts_persona": 0,
+            "bachelors_field": 0,
+            "birth_datetime_synth": 0,
+            "birth_longitude_e": 0,
+            "birth_province": 0,
+            "career_goals_and_ambitions": 0,
+            "country": 0,
+            "culinary_persona": 0,
+            "cultural_background": 0,
+            "district": 0,
+            "education_level": 0,
+            "equation_of_time_minutes": 0,
+            "family_persona": 0,
+            "family_type": 0,
+            "hobbies_and_interests": 0,
+            "hobbies_and_interests_list": 0,
+            "housing_type": 0,
+            "last_datetime": 0,
+            "longitude_offset_minutes": 0,
+            "marital_status": 0,
+            "military_status": 0,
+            "occupation": 0,
+            "persona": 0,
+            "professional_persona": 0,
+            "province": 0,
+            "saju_day_master": 0,
+            "saju_elements": 0,
+            "saju_elements_dominant": 0,
+            "saju_elements_lacking": 0,
+            "saju_narrative": 0,
+            "saju_narrative_error": 50000,
+            "saju_pillars": 0,
+            "saju_sipsin": 0,
+            "sex": 0,
+            "skills_and_expertise": 0,
+            "skills_and_expertise_list": 0,
+            "sports_persona": 0,
+            "travel_persona": 0,
+            "uuid": 0
+          },
+          "path": "data/train-extra-00015.parquet",
+          "row_hash_duplicate_estimate": 0,
+          "rows": 50000,
+          "text_stats": {
+            "cjk_character_ratio": 0.009718380904568252,
+            "columns": [
+              "uuid",
+              "professional_persona",
+              "sports_persona",
+              "arts_persona",
+              "travel_persona",
+              "culinary_persona",
+              "family_persona",
+              "persona",
+              "cultural_background",
+              "skills_and_expertise",
+              "skills_and_expertise_list",
+              "hobbies_and_interests",
+              "hobbies_and_interests_list",
+              "career_goals_and_ambitions",
+              "sex",
+              "marital_status",
+              "military_status",
+              "family_type",
+              "housing_type",
+              "education_level",
+              "bachelors_field",
+              "occupation",
+              "district",
+              "province",
+              "country",
+              "birth_datetime_synth",
+              "birth_province",
+              "last_datetime",
+              "saju_pillars",
+              "saju_day_master",
+              "saju_elements",
+              "saju_elements_dominant",
+              "saju_elements_lacking",
+              "saju_sipsin",
+              "saju_narrative"
+            ],
+            "english_character_ratio": 0.1524239081073432,
+            "korean_character_ratio": 0.4928448255545805,
+            "row_character_length": {
+              "max": 3807,
+              "mean": 3147.63954,
+              "p50": 3162.0,
+              "p90": 3398.0,
+              "p95": 3459.0
+            },
+            "total_characters": 157381977
+          }
+        },
+        {
+          "categorical_counts": {},
+          "columns": [
+            {
+              "name": "uuid",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "professional_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "sports_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "arts_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "travel_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "culinary_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "family_persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "persona",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "cultural_background",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "skills_and_expertise",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "skills_and_expertise_list",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "hobbies_and_interests",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "hobbies_and_interests_list",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "career_goals_and_ambitions",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "sex",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "age",
+              "type": "BIGINT"
+            },
+            {
+              "name": "marital_status",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "military_status",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "family_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "housing_type",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "education_level",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "bachelors_field",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "occupation",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "district",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "province",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "country",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_datetime_synth",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_province",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "birth_longitude_e",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "last_datetime",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "longitude_offset_minutes",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "equation_of_time_minutes",
+              "type": "DOUBLE"
+            },
+            {
+              "name": "saju_pillars",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_day_master",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements_dominant",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_elements_lacking",
+              "type": "VARCHAR[]"
+            },
+            {
+              "name": "saju_sipsin",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_narrative",
+              "type": "VARCHAR"
+            },
+            {
+              "name": "saju_narrative_error",
+              "type": "INTEGER"
+            }
+          ],
+          "id_duplicate_counts": {
+            "uuid": 0
+          },
+          "null_counts": {
+            "age": 0,
+            "arts_persona": 0,
+            "bachelors_field": 0,
+            "birth_datetime_synth": 0,
+            "birth_longitude_e": 0,
+            "birth_province": 0,
+            "career_goals_and_ambitions": 0,
+            "country": 0,
+            "culinary_persona": 0,
+            "cultural_background": 0,
+            "district": 0,
+            "education_level": 0,
+            "equation_of_time_minutes": 0,
+            "family_persona": 0,
+            "family_type": 0,
+            "hobbies_and_interests": 0,
+            "hobbies_and_interests_list": 0,
+            "housing_type": 0,
+            "last_datetime": 0,
+            "longitude_offset_minutes": 0,
+            "marital_status": 0,
+            "military_status": 0,
+            "occupation": 0,
+            "persona": 0,
+            "professional_persona": 0,
+            "province": 0,
+            "saju_day_master": 0,
+            "saju_elements": 0,
+            "saju_elements_dominant": 0,
+            "saju_elements_lacking": 0,
+            "saju_narrative": 0,
+            "saju_narrative_error": 4,
+            "saju_pillars": 0,
+            "saju_sipsin": 0,
+            "sex": 0,
+            "skills_and_expertise": 0,
+            "skills_and_expertise_list": 0,
+            "sports_persona": 0,
+            "travel_persona": 0,
+            "uuid": 0
+          },
+          "path": "data/train-extra-00016.parquet",
+          "row_hash_duplicate_estimate": 0,
+          "rows": 4,
+          "text_stats": {
+            "cjk_character_ratio": 0.00981756338899196,
+            "columns": [
+              "uuid",
+              "professional_persona",
+              "sports_persona",
+              "arts_persona",
+              "travel_persona",
+              "culinary_persona",
+              "family_persona",
+              "persona",
+              "cultural_background",
+              "skills_and_expertise",
+              "skills_and_expertise_list",
+              "hobbies_and_interests",
+              "hobbies_and_interests_list",
+              "career_goals_and_ambitions",
+              "sex",
+              "marital_status",
+              "military_status",
+              "family_type",
+              "housing_type",
+              "education_level",
+              "bachelors_field",
+              "occupation",
+              "district",
+              "province",
+              "country",
+              "birth_datetime_synth",
+              "birth_province",
+              "last_datetime",
+              "saju_pillars",
+              "saju_day_master",
+              "saju_elements",
+              "saju_elements_dominant",
+              "saju_elements_lacking",
+              "saju_sipsin",
+              "saju_narrative"
+            ],
+            "english_character_ratio": 0.14749536178107606,
+            "korean_character_ratio": 0.49451144094001237,
+            "row_character_length": {
+              "max": 3497,
+              "mean": 3234.0,
+              "p50": 3195.5,
+              "p90": 3415.1,
+              "p95": 3456.05
+            },
+            "total_characters": 12936
+          }
+        }
+      ],
+      "parquet_aggregate": {
+        "file_count": 20,
+        "id_duplicate_counts": {
+          "uuid": 0
+        },
+        "row_hash_duplicate_estimate": 0,
+        "rows": 1000000,
+        "schema_consistent_across_files": true,
+        "unified_schema_sha256": "23e775d2de213c27a77077a44bc6924cdca6307501f2562f1a53f37291f56bcd"
+      },
+      "parse_failure_count": 0,
+      "retrieved_at": "2026-08-26T09:36:33+00:00",
+      "revision": "ffb934248746a2dea64ef771c0d86e1743d25702",
+      "source": "nemotron_saju",
+      "standalone_json": [],
+      "status": "collected",
+      "total_bytes": 2648680663,
+      "usage_class": "train_allow",
+      "zip_json": []
+    },
+    {
+      "access_approved_at": null,
+      "access_scope": "public",
+      "aggregate_rows": 0,
+      "aihub_cross_split_group_overlap_count": null,
+      "aihub_exact_record_cross_split_overlap_count": null,
+      "aihub_multiturn_structural_group_count": null,
+      "aihub_multiturn_structural_group_counts_by_split": null,
+      "file_count": 5,
+      "files": [
+        {
+          "bytes": 7105,
+          "path": "README.md",
+          "sha256": "7809a03e567197b79c2f456441bf03fabc852a57d81aa64fcf05bfb2965cd696"
+        },
+        {
+          "bytes": 1061,
+          "path": "provenance/5b90110e55feb92303ef7853ecacdb6f9ed59eac/LICENSE",
+          "sha256": "2825d7ded335793932f606a89f54d002a8d22b2c863ca6d35ec60f7a46ea50c4"
+        },
+        {
+          "bytes": 1311,
+          "path": "provenance/5b90110e55feb92303ef7853ecacdb6f9ed59eac/README.md",
+          "sha256": "8731a44230b3c2bd0723bcff79e25b7eefb3120a403f530ca972bec4f9847e48"
+        },
+        {
+          "bytes": 46597,
+          "path": "provenance/5b90110e55feb92303ef7853ecacdb6f9ed59eac/shensha.js",
+          "sha256": "38ea75aa8cae7da13e457ed8aac8d68cab39a9cd4d78945149ea7c4f395acaec"
+        },
+        {
+          "bytes": 29754,
+          "path": "rules/shensha_51.json",
+          "sha256": "9a11e1502983969407c43f82c65de6736b344da1a623e7a6557ad8b20cda939e"
+        }
+      ],
+      "license_expression": "MIT AND MIT",
+      "parquet": [],
+      "parquet_aggregate": null,
+      "parse_failure_count": 0,
+      "retrieved_at": "2026-08-27T04:41:45+00:00",
+      "revision": "84583ca54e8fce257d3d5efd015bca1263a1cfe9",
+      "source": "yeji_bazi_rules",
+      "standalone_json": [
+        {
+          "field_name_count": 95,
+          "max_depth": 5,
+          "multiturn_records_without_group_id": 0,
+          "object_count": 161,
+          "path": "rules/shensha_51.json",
+          "record_count": 51,
+          "records_with_group_id": 51,
+          "records_with_two_or_more_turn_pairs": 0,
+          "repeated_field_names": [
+            "id",
+            "name_cn",
+            "name_ko",
+            "type",
+            "category",
+            "condition",
+            "meaning",
+            "rule",
+            "mapping",
+            "甲",
+            "戊",
+            "乙",
+            "己",
+            "丙",
+            "丁",
+            "庚",
+            "辛",
+            "壬",
+            "癸",
+            "寅",
+            "卯",
+            "辰",
+            "巳",
+            "午",
+            "未",
+            "申",
+            "酉",
+            "戌",
+            "亥",
+            "子",
+            "丑",
+            "지지",
+            "간지",
+            "寅午戌",
+            "申子辰",
+            "亥卯未",
+            "巳酉丑",
+            "valid_pillars",
+            "德",
+            "秀",
+            "mnemonic",
+            "note",
+            "金",
+            "木",
+            "水",
+            "土",
+            "火",
+            "春(寅卯辰月)",
+            "夏(巳午未月)",
+            "秋(申酉戌月)",
+            "冬(亥子丑月)",
+            "亥子丑",
+            "寅卯辰",
+            "巳午未",
+            "申酉戌"
+          ],
+          "top_level_keys": [
+            "meta",
+            "shensha_list",
+            "categories",
+            "type_summary",
+            "glossary"
+          ],
+          "top_level_type": "dict",
+          "turn_pair_count_distribution": {
+            "0": 51
+          }
+        }
+      ],
+      "status": "collected",
+      "total_bytes": 85828,
+      "usage_class": "derive_after_validation",
+      "zip_json": []
+    }
+  ]
+}
