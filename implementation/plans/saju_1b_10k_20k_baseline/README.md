@@ -57,6 +57,7 @@ data/
 │   ├── unified/
 │   ├── manifests/
 │   └── eval/
+├── derived/saju_1b_baseline/phase5-readiness/v1.0.0/build-f6c8171f454f/
 └── reports/
     └── saju_1b_baseline/
         ├── audit/v1.2.0/build-ca756f3eb89f/
@@ -66,6 +67,7 @@ data/
         ├── preflight/v1.0.0/build-a6813ba3b778/       # 과거 A~C build
         ├── preflight/v1.1.0/build-a1a34616dd72/      # 과거 A~E 완료 build
         ├── preflight/v2.0.0/build-6f32d52c2868/      # 현재 품질 보정 canonical
+        ├── phase5-readiness/v1.0.0/build-f6c8171f454f/ # 비학습 실행 계약
         └── phase-verification/v1.0.0/review-20260828/
 
 configs/data_versions/saju_1b_baseline/
@@ -193,6 +195,11 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
 
 ## 진행 기록
 
+- 2026-08-29
+  - 작업 요약: Phase 4 v2 canonical을 부모로 실제 학습 없는 Phase 5 readiness `build-f6c8171f454f`을 완료했다. KI10·KI20 학습은 시작하지 않아 Phase 5 상태는 `미시작`이다.
+  - 변경 범위: KI10 10K·KI20 20K, 축별 10건 eval70, 고정 Kanana·CUDA 13.0·BF16·package lock, 독립 Run과 checkpoint state 계약을 고정했다. AI Hub 원문이 포함된 eval70은 Git 제외 private 경로에만 저장했다.
+  - 검증: readiness 생성·독립 verify, 7축 manifest strict subset과 eval/train 누수 0, 단일 RTX 5070 Ti와 754,540,773,376 bytes 가용 disk를 확인했다. public/private manifest SHA-256은 `9b71d2d3…8a176`/`6f72abe1…8c273`이다.
+  - 남은 이슈·후속 작업: 실제 Phase 5 실행은 별도 승인 대상이며 `phase5_training_performed=false`다. KI10과 KI20은 같은 Instruct snapshot에서 각각 독립 시작한다.
 - 2026-08-29
   - 작업 요약: 품질 보정 Phase 4 v2의 A~E를 완료하고 768 canonical `v2.0.0/build-6f32d52c2868`을 registry의 `approved_derived`로 승격했다. Phase 5 실제 학습은 실행하지 않았다.
   - 변경 범위: 7축 MIX1K/10K/20K와 1,000항목·1,020case K0, 자동 위험 분류, BF16 Full FT forward/backward·8-bit optimizer, 100→200-step resume와 새 process 재로드를 검증했다. 이전 v1 canonical은 이력으로 보존한다.

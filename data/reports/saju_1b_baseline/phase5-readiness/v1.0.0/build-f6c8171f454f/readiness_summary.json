@@ -1,0 +1,113 @@
+{
+  "available_disk_bytes": 754540773376,
+  "build_id": "build-f6c8171f454f",
+  "build_sha256": "f6c8171f454fd28464ef304b5f3094b7c64936dd27a550f35fc0fb5e4d1135c3",
+  "checkpoint_state_required": [
+    "model",
+    "optimizer",
+    "scheduler",
+    "trainer_state"
+  ],
+  "environment_lock": {
+    "bytes": 160907,
+    "path": "requirements-phase3.lock.txt",
+    "sha256": "0301de92dea4a21eb8077abb01aae6eaf412590ac670e436bcd5d7b3717b8aed"
+  },
+  "evaluation": {
+    "axis_counts": {
+      "aihub_empathy_multiturn": 10,
+      "aihub_empathy_single": 10,
+      "bazi_sft": 10,
+      "deterministic_saju_qa": 10,
+      "nemotron_saju": 10,
+      "saju_diary_bridge": 10,
+      "yeji_shensha_derived": 10
+    },
+    "contains_restricted_text": true,
+    "rows": 70,
+    "sha256": "aa61d2a763e3194e3a25561a3030c74bebb002c702ef8469c27a1bc22a2bcb31",
+    "stored_in_git_ignored_private_root": true,
+    "train_component_overlap": 0
+  },
+  "expected_optimizer_steps": {
+    "ki10": 1250,
+    "ki20": 2500
+  },
+  "human_domain_review_performed": false,
+  "independent_run_initialization_verified": true,
+  "manifest_axis_counts": {
+    "ki10": {
+      "aihub_empathy_multiturn": 750,
+      "aihub_empathy_single": 750,
+      "bazi_sft": 2000,
+      "deterministic_saju_qa": 1000,
+      "nemotron_saju": 3400,
+      "saju_diary_bridge": 1600,
+      "yeji_shensha_derived": 500
+    },
+    "ki20": {
+      "aihub_empathy_multiturn": 1500,
+      "aihub_empathy_single": 1500,
+      "bazi_sft": 4000,
+      "deterministic_saju_qa": 2000,
+      "nemotron_saju": 6800,
+      "saju_diary_bridge": 3200,
+      "yeji_shensha_derived": 1000
+    }
+  },
+  "manifest_rows": {
+    "ki10": 10000,
+    "ki20": 20000
+  },
+  "minimum_available_disk_bytes": 68719476736,
+  "nested_manifest_verified": true,
+  "parent_phase4": {
+    "canonical_build_id": "build-6f32d52c2868",
+    "canonical_build_sha256": "6f32d52c2868bb8b5e07724cbdc00a6bc0b2f1608fe53ac54c357a6ec0832ee9",
+    "completion_report_sha256": "f4d576789b1774164fbb5a58758c96a9cc31da9a8827b3e5df9d9397e4fc7e5c",
+    "phase5_training_performed": false,
+    "preflight_build_id": "build-2feaee353252",
+    "preflight_build_sha256": "2feaee35325205809e342097b69dbefb6dbe1609e08f913b434ee6bb3ec8f399",
+    "preflight_config": "configs/data_versions/saju_1b_baseline/preflight-v2.0.0.json",
+    "private_manifest_sha256": "66b21f086aa836ee595826f5f8f6eeb3bd234b47a15ec210a2131f548c4bedbf",
+    "public_manifest_sha256": "c670c2ad6481221ec140f49fc79ef4d83bdd275342d7692c3134a9e133ff7fec",
+    "selected_max_length": 768,
+    "status": "approved_for_phase5_training",
+    "training_promotion_allowed": true,
+    "version": "v2.0.0"
+  },
+  "phase5_training_performed": false,
+  "python": "3.10.12",
+  "quality_certification_claimed": false,
+  "raw_samples_in_report": false,
+  "report_type": "phase5_readiness_summary",
+  "runtime_hardware": {
+    "bf16_supported": true,
+    "compute_capability": [
+      12,
+      0
+    ],
+    "device_count": 1,
+    "gpu_name": "NVIDIA GeForce RTX 5070 Ti",
+    "torch_build": "2.13.0+cu130",
+    "torch_cuda": "13.0",
+    "vram_total_bytes": 17094475776
+  },
+  "runtime_versions": {
+    "accelerate": "1.14.0",
+    "bitsandbytes": "0.50.2",
+    "datasets": "4.7.0",
+    "torch": "2.13.0",
+    "torchaudio": "2.11.0",
+    "torchvision": "0.28.0",
+    "transformers": "4.57.6",
+    "trl": "1.12.0"
+  },
+  "schema_version": "1.0.0",
+  "selected_max_length": 768,
+  "status": "ready_for_explicit_phase5_execution",
+  "training_execution_requires_separate_explicit_command": true,
+  "uv": "0.9.26",
+  "working_tree_clean_at_build_start": true,
+  "workspace_commit": "89685ba82927a96c40654a47a4b0daa7f8b3a91f"
+}

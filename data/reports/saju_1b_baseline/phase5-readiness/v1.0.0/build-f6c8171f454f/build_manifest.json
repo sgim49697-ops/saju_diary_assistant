@@ -1,0 +1,51 @@
+{
+  "artifact_sha256": {
+    "readiness_summary.json": "a25703fa85aa61a3b3758c36f6b684cdfa5b6ed879f8b7ef7e756bbb912bbac5"
+  },
+  "build_id": "build-f6c8171f454f",
+  "build_inputs": {
+    "canonical_plan_version": "3.0.0",
+    "chat_template_sha256": "b8ee6b31575eada17ebbe73d3f1ac65d3efde64f0a25ff922031dec7e1cae3e3",
+    "data_sha256": "6f193c9b25e020405d0ee10deea868267cc3318d4b2e6d0f362fe9c0318cdd0d",
+    "environment_lock": {
+      "bytes": 160907,
+      "path": "requirements-phase3.lock.txt",
+      "sha256": "0301de92dea4a21eb8077abb01aae6eaf412590ac670e436bcd5d7b3717b8aed"
+    },
+    "implementation_hashes": {
+      "configs/data_versions/saju_1b_baseline/phase5-readiness-v1.0.0.json": "6a3765affe49976059991cfdae70374ca3a4d6e46d0a976ae56fa63f95426bb7",
+      "scripts/training/__init__.py": "3d17a1fc4e2e8b0241a47ee3c9a1f5da218212a30a987b7cc4419c65460848ff",
+      "scripts/training/phase5_readiness.py": "01ba800abbf2ecca63f615b98f3bf9f32efeceb7b654289548c39fac4b376c30"
+    },
+    "model_sha256": "153518c7f3da8c10e5f9f286f780f2ecf3ff59e4c6d1d071c6197c7468fa932e",
+    "parent_phase4": {
+      "canonical_build_id": "build-6f32d52c2868",
+      "canonical_build_sha256": "6f32d52c2868bb8b5e07724cbdc00a6bc0b2f1608fe53ac54c357a6ec0832ee9",
+      "completion_report_sha256": "f4d576789b1774164fbb5a58758c96a9cc31da9a8827b3e5df9d9397e4fc7e5c",
+      "phase5_training_performed": false,
+      "preflight_build_id": "build-2feaee353252",
+      "preflight_build_sha256": "2feaee35325205809e342097b69dbefb6dbe1609e08f913b434ee6bb3ec8f399",
+      "preflight_config": "configs/data_versions/saju_1b_baseline/preflight-v2.0.0.json",
+      "private_manifest_sha256": "66b21f086aa836ee595826f5f8f6eeb3bd234b47a15ec210a2131f548c4bedbf",
+      "public_manifest_sha256": "c670c2ad6481221ec140f49fc79ef4d83bdd275342d7692c3134a9e133ff7fec",
+      "selected_max_length": 768,
+      "status": "approved_for_phase5_training",
+      "training_promotion_allowed": true,
+      "version": "v2.0.0"
+    },
+    "readiness_version": "v1.0.0",
+    "runs_sha256": "8312f5b3d612b174ea688b31c772fcfb28caf5fa6d09e9ceb2e4b2c7acf02430",
+    "runtime_sha256": "4b8de3118ed212351e31ba5b3bfa1b0f12f686d6c5facb97e303bed9c043de4a",
+    "safety_sha256": "6f74caa0f3b67f3af63b83d1fc69b396f7ab5eed757b1933ae191f66c472c010",
+    "seed": 42,
+    "training_sha256": "02e9ba5d448865ff4ffd8f8337856a364b9fd2347c9c0824a38dfc597a33c02d"
+  },
+  "build_sha256": "f6c8171f454fd28464ef304b5f3094b7c64936dd27a550f35fc0fb5e4d1135c3",
+  "human_domain_review_performed": false,
+  "phase5_training_performed": false,
+  "quality_certification_claimed": false,
+  "report_type": "phase5_readiness_public_manifest",
+  "schema_version": "1.0.0",
+  "status": "ready_for_explicit_phase5_execution",
+  "training_promotion_allowed": true
+}

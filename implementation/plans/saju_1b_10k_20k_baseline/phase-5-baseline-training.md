@@ -208,6 +208,11 @@ runs/KI20-MIX-v2/
 ## 진행 기록
 
 - 2026-08-29
+  - 작업 요약: 구현 checkpoint `89685ba82927a96c40654a47a4b0daa7f8b3a91f`에서 비학습 readiness `v1.0.0/build-f6c8171f454f`을 생성하고 독립 재검증했다. Phase 5 상태는 실제 KI10·KI20 학습을 시작하지 않았으므로 계속 `미시작`이다.
+  - 변경 범위: canonical KI10 10,000행·KI20 20,000행의 7축 수량과 strict subset, 축별 10건 eval70의 train component 교집합 0, 고정 Kanana revision·template·package lock, 단일 RTX 5070 Ti·CUDA 13.0·BF16 및 64GiB disk 최소값을 불변 입력 계약으로 고정했다.
+  - 검증: `prepare --execute`와 별도 `verify`가 통과했다. readiness SHA-256은 `f6c8171f…1135c3`, private/public manifest는 `6f72abe1…8c273`/`9b71d2d3…8a176`, eval70은 `aa61d2a7…bcb31`이며 생성 시 가용 disk는 754,540,773,376 bytes였다.
+  - 남은 이슈·후속 작업: `human_domain_review_performed=false`, `quality_certification_claimed=false`, `phase5_training_performed=false`다. 다음 작업은 사용자가 별도로 승인할 때 KI10부터 실행하는 것이며 KI20은 KI10 checkpoint를 재사용하지 않는다.
+- 2026-08-29
   - 작업 요약: 실제 학습 전에 승인된 Phase 4 v2 canonical, 10K/20K manifest, eval70, 고정 모델·환경·학습 설정을 다시 묶는 `phase5-readiness-v1.0.0` 비학습 Gate를 구현했다.
   - 변경 범위: registry·Phase 4 A~E hash chain, 7축 수량·중첩 manifest·record hash, eval70 leakage 분리, Python/uv/PyTorch CUDA/GPU·BF16, 64GiB disk, KI10/KI20 독립 초기화와 checkpoint state 보존 계약을 fail-closed로 검사한다. 학습 실행 코드는 포함하지 않는다.
   - 검증: 계약·dry-run, readiness 단위 테스트와 Ruff를 통과했다. 실제 불변 readiness 산출물은 구현 checkpoint를 커밋해 working tree를 깨끗하게 만든 뒤 생성한다.
