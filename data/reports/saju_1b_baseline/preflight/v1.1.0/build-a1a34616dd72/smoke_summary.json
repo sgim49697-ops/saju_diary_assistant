@@ -1,0 +1,369 @@
+{
+  "phase5_training_performed": false,
+  "raw_samples_in_summary": false,
+  "report_type": "phase4_de_public_smoke_summary",
+  "schema_version": "1.0.0",
+  "selected_max_length": 768,
+  "stages": {
+    "diagnostic_1024_1": {
+      "elapsed_seconds": 14.121,
+      "first_pre_optimizer_global_step": 0,
+      "gradient_probe": {
+        "element_count": 1291478272,
+        "finite": true,
+        "nonzero": true,
+        "observed_after_gradient_clip": true,
+        "tensor_count": 354
+      },
+      "loss_report": {
+        "first_window_median_loss": 2.8112,
+        "first_window_size": 1,
+        "grad_norms_finite": true,
+        "last_window_median_loss": 2.8112,
+        "logged_optimizer_steps": 1,
+        "loss_decrease_trend": true,
+        "losses_finite": true,
+        "maximum_loss": 2.8112,
+        "minimum_loss": 2.8112
+      },
+      "max_length": 1024,
+      "optimizer_probe": {
+        "optimizer_class": "AdamW",
+        "state_element_count": 2591877632,
+        "state_tensor_count": 1604,
+        "state_tensor_dtype_counts": {
+          "torch.float32": 1156,
+          "torch.uint8": 448
+        },
+        "uint8_state_present": true,
+        "wrapper_class": "AcceleratedOptimizer"
+      },
+      "optimizer_steps": 1,
+      "peak_vram_bytes": 6743428096,
+      "resumed_from_checkpoint": false,
+      "runtime": {
+        "attention_backend": "sdpa",
+        "bitsandbytes": "0.50.2",
+        "datasets": "4.7.0",
+        "device": "cuda:0",
+        "gpu_capability": [
+          12,
+          0
+        ],
+        "gpu_name": "NVIDIA GeForce RTX 5070 Ti",
+        "parameter_count": 1291478272,
+        "parameter_dtype": "torch.bfloat16",
+        "python": ".venv/bin/python",
+        "torch": "2.13.0+cu130",
+        "torch_cuda": "13.0",
+        "trainable_parameter_count": 1291478272,
+        "transformers": "4.57.6",
+        "trl": "1.12.0",
+        "vram_total_bytes": 17094475776
+      },
+      "status": "passed",
+      "system_ram": {
+        "available_bytes": 9733160960,
+        "swap_free_bytes": 8169791488,
+        "swap_total_bytes": 8589934592,
+        "total_bytes": 16769019904
+      },
+      "train_begin_global_step": 0,
+      "training_loss": 2.8111684322357178,
+      "vram_free_bytes_at_finish": 6728712192,
+      "vram_headroom_requirement_bytes": 1073741824,
+      "vram_total_bytes": 17094475776
+    },
+    "gate_d_512_1": {
+      "elapsed_seconds": 13.511,
+      "first_pre_optimizer_global_step": 0,
+      "gradient_probe": {
+        "element_count": 1291478272,
+        "finite": true,
+        "nonzero": true,
+        "observed_after_gradient_clip": true,
+        "tensor_count": 354
+      },
+      "loss_report": {
+        "first_window_median_loss": 2.9506,
+        "first_window_size": 1,
+        "grad_norms_finite": true,
+        "last_window_median_loss": 2.9506,
+        "logged_optimizer_steps": 1,
+        "loss_decrease_trend": true,
+        "losses_finite": true,
+        "maximum_loss": 2.9506,
+        "minimum_loss": 2.9506
+      },
+      "max_length": 512,
+      "optimizer_probe": {
+        "optimizer_class": "AdamW",
+        "state_element_count": 2591877632,
+        "state_tensor_count": 1604,
+        "state_tensor_dtype_counts": {
+          "torch.float32": 1156,
+          "torch.uint8": 448
+        },
+        "uint8_state_present": true,
+        "wrapper_class": "AcceleratedOptimizer"
+      },
+      "optimizer_steps": 1,
+      "peak_vram_bytes": 6729681920,
+      "resumed_from_checkpoint": false,
+      "runtime": {
+        "attention_backend": "sdpa",
+        "bitsandbytes": "0.50.2",
+        "datasets": "4.7.0",
+        "device": "cuda:0",
+        "gpu_capability": [
+          12,
+          0
+        ],
+        "gpu_name": "NVIDIA GeForce RTX 5070 Ti",
+        "parameter_count": 1291478272,
+        "parameter_dtype": "torch.bfloat16",
+        "python": ".venv/bin/python",
+        "torch": "2.13.0+cu130",
+        "torch_cuda": "13.0",
+        "trainable_parameter_count": 1291478272,
+        "transformers": "4.57.6",
+        "trl": "1.12.0",
+        "vram_total_bytes": 17094475776
+      },
+      "status": "passed",
+      "system_ram": {
+        "available_bytes": 9757511680,
+        "swap_free_bytes": 8169005056,
+        "swap_total_bytes": 8589934592,
+        "total_bytes": 16769019904
+      },
+      "train_begin_global_step": 0,
+      "training_loss": 2.950615406036377,
+      "vram_free_bytes_at_finish": 6944718848,
+      "vram_headroom_requirement_bytes": 1073741824,
+      "vram_total_bytes": 17094475776
+    },
+    "main_768_100": {
+      "elapsed_seconds": 293.892,
+      "first_pre_optimizer_global_step": 0,
+      "gradient_probe": {
+        "element_count": 1291478272,
+        "finite": true,
+        "nonzero": true,
+        "observed_after_gradient_clip": true,
+        "tensor_count": 354
+      },
+      "loss_report": {
+        "first_window_median_loss": 2.3489,
+        "first_window_size": 20,
+        "grad_norms_finite": true,
+        "last_window_median_loss": 1.1013,
+        "logged_optimizer_steps": 100,
+        "loss_decrease_trend": true,
+        "losses_finite": true,
+        "maximum_loss": 3.078,
+        "minimum_loss": 0.6741
+      },
+      "max_length": 768,
+      "optimizer_probe": {
+        "optimizer_class": "AdamW",
+        "state_element_count": 2591877632,
+        "state_tensor_count": 1604,
+        "state_tensor_dtype_counts": {
+          "torch.float32": 1156,
+          "torch.uint8": 448
+        },
+        "uint8_state_present": true,
+        "wrapper_class": "AcceleratedOptimizer"
+      },
+      "optimizer_steps": 100,
+      "peak_vram_bytes": 6754364416,
+      "resumed_from_checkpoint": false,
+      "runtime": {
+        "attention_backend": "sdpa",
+        "bitsandbytes": "0.50.2",
+        "datasets": "4.7.0",
+        "device": "cuda:0",
+        "gpu_capability": [
+          12,
+          0
+        ],
+        "gpu_name": "NVIDIA GeForce RTX 5070 Ti",
+        "parameter_count": 1291478272,
+        "parameter_dtype": "torch.bfloat16",
+        "python": ".venv/bin/python",
+        "torch": "2.13.0+cu130",
+        "torch_cuda": "13.0",
+        "trainable_parameter_count": 1291478272,
+        "transformers": "4.57.6",
+        "trl": "1.12.0",
+        "vram_total_bytes": 17094475776
+      },
+      "status": "passed",
+      "system_ram": {
+        "available_bytes": 9319620608,
+        "swap_free_bytes": 8122941440,
+        "swap_total_bytes": 8589934592,
+        "total_bytes": 16769019904
+      },
+      "train_begin_global_step": 0,
+      "training_loss": 1.5226693063974381,
+      "vram_free_bytes_at_finish": 6858735616,
+      "vram_headroom_requirement_bytes": 1073741824,
+      "vram_total_bytes": 17094475776
+    },
+    "reload_768_generate5": {
+      "elapsed_seconds": 10.432,
+      "nonempty_outputs": 5,
+      "peak_vram_bytes": 2663102464,
+      "runtime": {
+        "gpu_name": "NVIDIA GeForce RTX 5070 Ti",
+        "torch": "2.13.0+cu130",
+        "torch_cuda": "13.0",
+        "transformers": "4.57.6"
+      },
+      "status": "passed",
+      "task_count": 5,
+      "vram_free_bytes_at_finish": 12785287168,
+      "vram_total_bytes": 17094475776
+    },
+    "resume_768_200": {
+      "elapsed_seconds": 257.06,
+      "first_pre_optimizer_global_step": 100,
+      "gradient_probe": {
+        "element_count": 1291478272,
+        "finite": true,
+        "nonzero": true,
+        "observed_after_gradient_clip": true,
+        "tensor_count": 354
+      },
+      "loss_report": {
+        "first_window_median_loss": 2.3489,
+        "first_window_size": 20,
+        "grad_norms_finite": true,
+        "last_window_median_loss": 0.9452,
+        "logged_optimizer_steps": 200,
+        "loss_decrease_trend": true,
+        "losses_finite": true,
+        "maximum_loss": 3.078,
+        "minimum_loss": 0.3417
+      },
+      "max_length": 768,
+      "optimizer_probe": {
+        "optimizer_class": "AdamW",
+        "state_element_count": 2591877632,
+        "state_tensor_count": 1604,
+        "state_tensor_dtype_counts": {
+          "torch.float32": 1156,
+          "torch.uint8": 448
+        },
+        "uint8_state_present": true,
+        "wrapper_class": "AcceleratedOptimizer"
+      },
+      "optimizer_steps": 200,
+      "peak_vram_bytes": 10498061312,
+      "resumed_from_checkpoint": true,
+      "runtime": {
+        "attention_backend": "sdpa",
+        "bitsandbytes": "0.50.2",
+        "datasets": "4.7.0",
+        "device": "cuda:0",
+        "gpu_capability": [
+          12,
+          0
+        ],
+        "gpu_name": "NVIDIA GeForce RTX 5070 Ti",
+        "parameter_count": 1291478272,
+        "parameter_dtype": "torch.bfloat16",
+        "python": ".venv/bin/python",
+        "torch": "2.13.0+cu130",
+        "torch_cuda": "13.0",
+        "trainable_parameter_count": 1291478272,
+        "transformers": "4.57.6",
+        "trl": "1.12.0",
+        "vram_total_bytes": 17094475776
+      },
+      "status": "passed",
+      "system_ram": {
+        "available_bytes": 13004144640,
+        "swap_free_bytes": 8065822720,
+        "swap_total_bytes": 8589934592,
+        "total_bytes": 16769019904
+      },
+      "train_begin_global_step": 100,
+      "training_loss": 0.4996196246147156,
+      "vram_free_bytes_at_finish": 3005186048,
+      "vram_headroom_requirement_bytes": 1073741824,
+      "vram_total_bytes": 17094475776
+    },
+    "smoke_512_20": {
+      "elapsed_seconds": 59.101,
+      "first_pre_optimizer_global_step": 0,
+      "gradient_probe": {
+        "element_count": 1291478272,
+        "finite": true,
+        "nonzero": true,
+        "observed_after_gradient_clip": true,
+        "tensor_count": 354
+      },
+      "loss_report": {
+        "first_window_median_loss": 2.514,
+        "first_window_size": 10,
+        "grad_norms_finite": true,
+        "last_window_median_loss": 2.18905,
+        "logged_optimizer_steps": 20,
+        "loss_decrease_trend": true,
+        "losses_finite": true,
+        "maximum_loss": 3.0116,
+        "minimum_loss": 2.0606
+      },
+      "max_length": 512,
+      "optimizer_probe": {
+        "optimizer_class": "AdamW",
+        "state_element_count": 2591877632,
+        "state_tensor_count": 1604,
+        "state_tensor_dtype_counts": {
+          "torch.float32": 1156,
+          "torch.uint8": 448
+        },
+        "uint8_state_present": true,
+        "wrapper_class": "AcceleratedOptimizer"
+      },
+      "optimizer_steps": 20,
+      "peak_vram_bytes": 6729681920,
+      "resumed_from_checkpoint": false,
+      "runtime": {
+        "attention_backend": "sdpa",
+        "bitsandbytes": "0.50.2",
+        "datasets": "4.7.0",
+        "device": "cuda:0",
+        "gpu_capability": [
+          12,
+          0
+        ],
+        "gpu_name": "NVIDIA GeForce RTX 5070 Ti",
+        "parameter_count": 1291478272,
+        "parameter_dtype": "torch.bfloat16",
+        "python": ".venv/bin/python",
+        "torch": "2.13.0+cu130",
+        "torch_cuda": "13.0",
+        "trainable_parameter_count": 1291478272,
+        "transformers": "4.57.6",
+        "trl": "1.12.0",
+        "vram_total_bytes": 17094475776
+      },
+      "status": "passed",
+      "system_ram": {
+        "available_bytes": 9704128512,
+        "swap_free_bytes": 8169791488,
+        "swap_total_bytes": 8589934592,
+        "total_bytes": 16769019904
+      },
+      "train_begin_global_step": 0,
+      "training_loss": 2.37543271780014,
+      "vram_free_bytes_at_finish": 6936330240,
+      "vram_headroom_requirement_bytes": 1073741824,
+      "vram_total_bytes": 17094475776
+    }
+  }
+}

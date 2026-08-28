@@ -1,0 +1,66 @@
+{
+  "automated_second_pass_performed": true,
+  "build_id": "build-7d59833b8d59",
+  "build_sha256": "7d59833b8d59f3c7c730d60707377c15ee6d876c42966c64edc61f9deef63dae",
+  "category_severity_counts": {
+    "contradiction_hallucination": {
+      "high": 35
+    },
+    "empathy": {
+      "low": 20
+    },
+    "general_korean_instruction": {
+      "high": 1,
+      "low": 4
+    },
+    "grounded_rule_reading": {
+      "low": 2,
+      "medium": 33
+    },
+    "missing_chart_handoff": {
+      "low": 4,
+      "medium": 1
+    },
+    "multiturn": {
+      "low": 15
+    },
+    "same_chart_consistency": {
+      "low": 1,
+      "medium": 19
+    },
+    "shensha_rule_qa": {
+      "high": 12,
+      "medium": 8
+    },
+    "source_holdout": {
+      "low": 261,
+      "medium": 239
+    },
+    "structured_natal_reading": {
+      "low": 16,
+      "medium": 29
+    }
+  },
+  "critical_or_high_items": 48,
+  "evaluation_items": 700,
+  "generation_cases": 720,
+  "human_domain_review_performed": false,
+  "priority_items": 40,
+  "priority_limit": 40,
+  "quality_certification_claimed": false,
+  "raw_samples_in_summary": false,
+  "report_type": "phase4_k0_automated_risk_triage",
+  "schema_version": "1.0.0",
+  "severity_counts": {
+    "high": 48,
+    "low": 323,
+    "medium": 329
+  },
+  "signal_counts": {
+    "generation_limit_reached": 361,
+    "hard_contract_failed": 48,
+    "high_repetition": 16
+  },
+  "status": "completed",
+  "training_promotion_allowed": false
+}

@@ -33,7 +33,7 @@
 | 1 | [데이터 수집](phase-1-data-collection.md) | 완료 | 네 원천의 revision·해시·이용조건과 #86 구조 Gate 통과 |
 | 2 | [데이터 전처리](phase-2-data-preprocessing.md) | 완료 | 승인 audit 부모의 MIX20K용 24K staging 완결, 학습 승격은 Phase 4 Gate로 분리 |
 | 3 | [학습 모델·환경 준비](phase-3-model-preparation.md) | 완료 | 고정 PyTorch cu130 환경에서 모델·tokenizer·template 전체 BF16 오프라인 로드 성공 |
-| 4 | [학습 전 데이터·모델 검증](phase-4-preflight-validation.md) | 진행 중 | 교정 staging 기반 A~E 재검증·자동 위험 분류·Full FT smoke 실행 중 |
+| 4 | [학습 전 데이터·모델 검증](phase-4-preflight-validation.md) | 완료 | 교정 staging 기반 A~E·자동 위험 분류·Full FT 200-step resume 통과, 768 canonical 승인 |
 | 5 | [Baseline 학습](phase-5-baseline-training.md) | 미시작 | KI10·KI20 독립 Run과 산출물 완결 |
 | 6 | [평가·검수·v2 결정](phase-6-evaluation-v2-decision.md) | 미시작 | 고정 평가 후 50K 또는 v2 Lite 경로 결정 |
 
@@ -53,7 +53,7 @@ data/
 ├── raw/<source>/<revision>/
 ├── audit/saju_1b_baseline/v1.2.0/build-ca756f3eb89f/  # 비공개 locator·결정·seal
 ├── staging/saju_1b_baseline/v0.2.0/build-847088ee804d/ # Git 제외·현재 24K 후보
-├── derived/saju_1b_baseline/v1.1.0/build-<derived-hash>/
+├── derived/saju_1b_baseline/v1.1.0/build-a1a34616dd72/
 │   ├── unified/
 │   ├── manifests/
 │   └── eval/
@@ -64,7 +64,8 @@ data/
         ├── preprocessing-staging/v0.2.0/build-847088ee804d/
         ├── model-preparation/v1.0.0/build-32e2c84af3d3/
         ├── preflight/v1.0.0/build-a6813ba3b778/       # 과거 A~C build
-        ├── preflight/v1.1.0/build-<fingerprint>/      # 현재 A~E build
+        ├── preflight/v1.1.0/build-7d59833b8d59/      # 현재 A~C 부모 build
+        ├── preflight/v1.1.0/build-a1a34616dd72/      # 현재 A~E 완료 build
         └── phase-verification/v1.0.0/review-20260828/
 
 configs/data_versions/saju_1b_baseline/
@@ -188,6 +189,11 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
 
 ## 진행 기록
 
+- 2026-08-28
+  - 작업 요약: 구현 checkpoint `31fe13b08e04d4015d30ac670d92dd6427e6427d`에서 교정 staging 기반 Phase 4A~E를 완료하고 768 canonical `v1.1.0/build-a1a34616dd72`를 `approved_derived`로 승인했다. Phase 5 실제 10K·20K 학습은 실행하지 않았다.
+  - 변경 범위: 부모 preflight `build-7d59833b8d59`에서 24K 전수 token/loss-mask, Core Eval 200·source holdout 500, K0 700항목/720case와 자동 위험 분류를 재검증했다. BF16 Full FT 512 1/20-step, 1024 1-step 진단, 768 100→200-step 별도 process resume와 checkpoint 재로드 5-task 생성을 수행했다.
+  - 검증: A~E, canonical hash chain과 `verify-final`이 통과했다. K0 안전 위반 0, 위험도 high 48·medium 329·low 323, 200-step 손실 중앙값 2.3489→0.9452, peak VRAM 10,498,061,312 bytes, 종료 여유 3,005,186,048 bytes였다.
+  - 남은 이슈·후속 작업: 사람 전문 판독과 품질 인증은 수행하지 않았으며 `quality_certification_claimed=false`다. Transformers의 checkpoint tokenizer 정규식 경고는 원본·저장본 `tokenizer.json` SHA-256 `1c4be9ec…f2b5ab` 일치와 표본 token ID 일치로 비-Mistral 오탐임을 확인했으므로 일반 Mistral 교정값을 적용하지 않는다. 다음 작업은 별도 승격된 Phase 5다.
 - 2026-08-28
   - 작업 요약: 정본을 v2.6으로 올리고 교정 staging 기반 Phase 4 `v1.1.0` 재실행 계약과 K0 자동 위험 분류·Full FT smoke/resume·canonical 승격 실행기를 구현했다.
   - 변경 범위: K0는 고정 모델·template·prompt hash가 같은 과거 출력만 재사용하고 지표를 재계산한다. D/E는 512 단일/20-step, 1024 진단, 768 100-step 저장·새 process 200-step resume·5-task reload로 고정했다.
