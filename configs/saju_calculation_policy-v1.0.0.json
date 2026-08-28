@@ -1,0 +1,114 @@
+{
+  "_description": "독립 구현과 lunar-python 1.4.8 전수 대조를 통과해야만 학습용 deterministic fact를 만들 수 있는 프로젝트 계산 정책이다.",
+  "schema_version": "1.0.0",
+  "policy_version": "v1.0.0",
+  "policy_id": "saju-calculation-policy-v1.0.0",
+  "status": "approved_project_policy_not_expert_certified",
+  "approved_at": "2026-08-29",
+  "scope": {
+    "runtime_enabled_fields": [
+      "stem_branch_identity",
+      "yin_yang_elements",
+      "surface_five_elements",
+      "hidden_stems",
+      "stem_ten_gods",
+      "branch_ten_gods"
+    ],
+    "training_data_new_version_mutation_allowed": true,
+    "immutable_build_mutation_allowed": false,
+    "evaluation_gold_generation_allowed": true,
+    "human_domain_review_performed": false,
+    "quality_certification_claimed": false,
+    "phase5_training_performed": false
+  },
+  "evidence": {
+    "external_reference": {
+      "repository": "https://github.com/golbin/ssaju.git",
+      "revision": "07b608a778be6dac8669e04b9ab794c441959208",
+      "review_id": "review-c1e129b1e602",
+      "adoption": "calculation_policy_only_no_dependency",
+      "license": "MIT",
+      "copyright_notice": "Copyright (c) 2026 Jin"
+    },
+    "independent_oracle": {
+      "distribution": "lunar-python",
+      "version": "1.4.8",
+      "artifact_sha256": "3aa11cc73c25e70ddf0ba5bdac7398c03acc9491a3aa512a91c9642973b669d6",
+      "comparison": "10_day_stems_x_12_branches_exhaustive"
+    },
+    "expert_certification": false
+  },
+  "calendar_boundary": {
+    "birth_to_pillars_runtime_status": "blocked_pending_independent_gold",
+    "birth_to_pillars_training_allowed": false,
+    "generator_anchor_semantics": "private_provenance_only_not_model_input",
+    "timezone": "Asia/Seoul",
+    "day_boundary_policy": "undecided",
+    "solar_term_source": "undecided"
+  },
+  "tables": {
+    "stems": ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"],
+    "branches": ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"],
+    "stem_elements": {
+      "甲": "목", "乙": "목", "丙": "화", "丁": "화", "戊": "토",
+      "己": "토", "庚": "금", "辛": "금", "壬": "수", "癸": "수"
+    },
+    "branch_elements": {
+      "子": "수", "丑": "토", "寅": "목", "卯": "목", "辰": "토", "巳": "화",
+      "午": "화", "未": "토", "申": "금", "酉": "금", "戌": "토", "亥": "수"
+    },
+    "stem_yin_yang": {
+      "甲": "양", "乙": "음", "丙": "양", "丁": "음", "戊": "양",
+      "己": "음", "庚": "양", "辛": "음", "壬": "양", "癸": "음"
+    },
+    "branch_yin_yang": {
+      "子": "양", "丑": "음", "寅": "양", "卯": "음", "辰": "양", "巳": "음",
+      "午": "양", "未": "음", "申": "양", "酉": "음", "戌": "양", "亥": "음"
+    },
+    "hidden_stems_main_first": {
+      "子": ["癸"],
+      "丑": ["己", "癸", "辛"],
+      "寅": ["甲", "丙", "戊"],
+      "卯": ["乙"],
+      "辰": ["戊", "乙", "癸"],
+      "巳": ["丙", "庚", "戊"],
+      "午": ["丁", "己"],
+      "未": ["己", "丁", "乙"],
+      "申": ["庚", "壬", "戊"],
+      "酉": ["辛"],
+      "戌": ["戊", "辛", "丁"],
+      "亥": ["壬", "甲"]
+    },
+    "ten_god_label_normalization": {
+      "比肩": "비견", "劫财": "겁재", "食神": "식신", "伤官": "상관", "偏财": "편재",
+      "正财": "정재", "七杀": "편관", "正官": "정관", "偏印": "편인", "正印": "정인"
+    }
+  },
+  "contracts": {
+    "branch_ten_god_policy_id": "branch_main_hidden_stem_v1",
+    "branch_ten_god_rule": "day_stem_compared_with_first_hidden_stem",
+    "validator_mode": "enforce",
+    "qa_label_tier": "HARD_GT",
+    "enabled_qa_fields": [
+      "stem_branch_identity",
+      "yin_yang_elements_and_surface_counts",
+      "hidden_stems",
+      "stem_ten_gods",
+      "branch_ten_gods"
+    ],
+    "blocked_qa_fields": [
+      "birth_to_pillars",
+      "gongmang",
+      "twelve_stages",
+      "branch_relations",
+      "luck_cycle_ganzhi",
+      "day_strength",
+      "geukguk",
+      "yongsin",
+      "relation_priority",
+      "automatic_interpretation",
+      "remedy_advice"
+    ],
+    "weak_fields_must_never_be_gold": true
+  }
+}

@@ -416,3 +416,8 @@ data/derived/saju_1b_baseline/v1.0.0/build-<derived-hash>/eval/<holdout-and-core
   - 변경 범위: 기존 `v0.1.0`은 불변으로 보존했다. 새 공개 aggregate·Gate·승인 hash chain과 registry 포인터를 추가했으며 비공개 원문·달력 anchor·판정 원장은 Git에서 제외했다.
   - 검증: 고유 ID/message 24,000, 축별 수량, AI Hub 축 교집합 0, BaZi 완전 group 1,500개, 역법 관계 Nemotron 13,200/13,200·BaZi 6,000/6,000·YEJI 1,200/1,200을 통과했다. Nemotron 나이 오류 0건, 영문 일치 49,248건, AI Hub 2쌍 10,891건·3쌍 47,377건을 기록했다.
   - 남은 이슈·후속 작업: 항목별 전문 검수와 품질 인증은 수행하지 않았고 `training_promotion_allowed=false`다. 새 부모로 Phase 4A~E를 다시 실행해 기술 Gate를 별도로 판정한다.
+- 2026-08-29
+  - 작업 요약: 기존 staging을 덮어쓰지 않는 품질 보정 `v1.0.0` 계약과 생성기를 구현했다. Nemotron 개인정보성 문구·고정 면책문·지지 십신·오행 처방을 보정하고, AI Hub 로컬 전용 10K reservoir, deterministic 사주 QA, 앱 브리지 축을 추가했다.
+  - 변경 범위: 공통 레코드 schema `2.0.0`, 7축 24K/20K/10K/1K 정확한 중첩 수량, 다중 leakage group, 자동 위험도 전수 분류, private 0600/public 비식별 hash chain, `saju-calculation-policy-v1.0.0`을 추가했다. 생년월일시→원국, 신강약·격국·용신·자동 해석·보완 처방은 Gold 생성에서 차단했다.
+  - 검증: `lunar-python==1.4.8`의 지장간 12개와 일간×지지 십신 120조합을 독립 비교했고, 계약·보정·QA·브리지·공개 경계 단위 테스트 12건, Ruff, Python compile, dry-run plan을 통과했다.
+  - 남은 이슈·후속 작업: 이 항목은 구현 체크포인트이며 실제 24K/AI Hub 10K 산출물은 아직 만들지 않았다. 구현 commit을 고정한 뒤 새 build를 생성·재검증하고, 그 fingerprint로 Phase 4 preflight를 다시 실행하기 전까지 `training_promotion_allowed=false`다.

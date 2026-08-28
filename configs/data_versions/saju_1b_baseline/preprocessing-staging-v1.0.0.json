@@ -1,0 +1,156 @@
+{
+  "schema_version": "1.0.0",
+  "record_schema_version": "2.0.0",
+  "dataset_name": "saju_1b_baseline",
+  "staging_version": "v1.0.0",
+  "seed": 42,
+  "status": "contract_ready_build_pending",
+  "scope": {
+    "final_train_rows": 20000,
+    "reserve_ratio": 0.2,
+    "staging_rows": 24000,
+    "aihub_local_reservoir_rows": 10000,
+    "overwrite_existing_builds": false,
+    "human_domain_review_performed": false,
+    "quality_certification_claimed": false,
+    "phase5_training_performed": false
+  },
+  "parents": {
+    "source_config": "configs/data_sources.v1.1.json",
+    "source_bundle": "configs/data_versions/saju_1b_baseline/source-bundle-v1.1.0.json",
+    "source_build_sha256": "9462ec148dcd93328b3b68522ad6c6f0d2c3694161d32a2d54332e8069d82f0a",
+    "audit_policy": "configs/data_versions/saju_1b_baseline/audit-policy-v1.2.0.json",
+    "audit_policy_sha256": "8195d4c971747a52f56ae1d1b963ab499681ec4d8f0030bf446928cf7749d1a4",
+    "correction_manifest": "configs/data_versions/saju_1b_baseline/yeji-rule-corrections-v1.2.0.json",
+    "correction_manifest_sha256": "b355a37112bdb6bac94a16b4d341a5a7f034403a39d66f9830526ee53d926f81",
+    "language_bank": "configs/data_versions/saju_1b_baseline/language-bank-v1.0.0.json",
+    "language_bank_sha256": "ceae1af37f80d43c845af45f267118db7e55d729aaa0146578bae2f5bfeb82b2",
+    "calculation_policy": "configs/saju_calculation_policy-v1.0.0.json",
+    "calculation_policy_sha256": "d6a20582dd52d3928674b3e6a65a586d6f71c1e22e2ab8b925ca431debf3286c",
+    "immutable_staging": {
+      "version": "v0.2.0",
+      "build_id": "build-847088ee804d",
+      "build_sha256": "847088ee804d8bc8933c0d83767a2251fc820ae3cb4235965a9a27a3f0f34801",
+      "manifest_sha256": "1cd6733681748e4ed60b5eb293067ed08211562a09ed49b9dd8f1e5f9f527f1c",
+      "use": "exclusion_parent_only"
+    },
+    "external_review": {
+      "review_id": "review-6e3ad5418434",
+      "verification_sha256": "87300331e5ffa20106a6d137f464365a9be687814434c401e06c037b1385b2e6",
+      "advisory_only": true
+    },
+    "ssaju_review": {
+      "review_id": "review-c1e129b1e602",
+      "external_revision": "07b608a778be6dac8669e04b9ab794c441959208"
+    }
+  },
+  "calendar_backend": {
+    "distribution": "lunar-python",
+    "version": "1.4.8",
+    "artifact_sha256": "3aa11cc73c25e70ddf0ba5bdac7398c03acc9491a3aa512a91c9642973b669d6",
+    "algorithm": "sha256-counter-v2",
+    "anchor_start": "1950-01-01",
+    "anchor_end": "2050-12-31",
+    "anchor_hours": [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22],
+    "anchor_semantics": "private_generator_provenance_only",
+    "timezone_assumption": "Asia/Seoul"
+  },
+  "axes": {
+    "nemotron_saju": {
+      "source": "nemotron_saju",
+      "staging_rows": 8400,
+      "mix20k": 7000,
+      "mix10k": 3500,
+      "mix1k": 350,
+      "variants": {
+        "staging": {"v6": 1680, "v7": 6720},
+        "mix20k": {"v6": 1400, "v7": 5600},
+        "mix10k": {"v6": 700, "v7": 2800},
+        "mix1k": {"v6": 70, "v7": 280}
+      },
+      "raw_candidate_pool": {"v6": 2400, "v7": 9600}
+    },
+    "bazi_sft": {
+      "source": "bazi_sft",
+      "staging_rows": 4800,
+      "mix20k": 4000,
+      "mix10k": 2000,
+      "mix1k": 200,
+      "complete_question_group_size": 4
+    },
+    "aihub_empathy_single": {
+      "source": "aihub_empathy",
+      "staging_rows": 1800,
+      "mix20k": 1500,
+      "mix10k": 750,
+      "mix1k": 75
+    },
+    "aihub_empathy_multiturn": {
+      "source": "aihub_empathy",
+      "staging_rows": 1800,
+      "mix20k": 1500,
+      "mix10k": 750,
+      "mix1k": 75
+    },
+    "yeji_shensha_derived": {
+      "source": "yeji_bazi_rules",
+      "staging_rows": 1200,
+      "mix20k": 1000,
+      "mix10k": 500,
+      "mix1k": 50,
+      "task_balance": {"shensha_rule_validation": 600, "shensha_neutral_explanation": 600}
+    },
+    "deterministic_saju_qa": {
+      "source": "project_deterministic_saju",
+      "staging_rows": 2400,
+      "mix20k": 2000,
+      "mix10k": 1000,
+      "mix1k": 100,
+      "category_rows": 480
+    },
+    "saju_diary_bridge": {
+      "source": "aihub_empathy",
+      "staging_rows": 3600,
+      "mix20k": 3000,
+      "mix10k": 1500,
+      "mix1k": 150,
+      "origin_balance": {"single": 1800, "multiturn": 1800}
+    }
+  },
+  "aihub_reservoir": {
+    "contract_id": "AIHUB-STYLE10K-v1",
+    "single_rows": 5000,
+    "multiturn_rows": 5000,
+    "scanner_candidate_targets": {"single": 10000, "multiturn": 7000},
+    "exclude_all_v0_2_staging_groups": true,
+    "oversampling_allowed": false,
+    "git_or_external_source_text_allowed": false,
+    "file_mode": "0600"
+  },
+  "quality_contract": {
+    "critical_or_high_allowed": 0,
+    "full_scan_required": true,
+    "assistant_fixed_disclaimer_allowed": 0,
+    "target_only_name_allowed": 0,
+    "target_only_full_birthdate_allowed": 0,
+    "foreign_cjk_residue_allowed": 0,
+    "yeji_particle_error_allowed": 0,
+    "branch_ten_god_mismatch_allowed": 0,
+    "hard_fact_mismatch_allowed": 0,
+    "duplicate_id_or_message_allowed": 0,
+    "cross_split_connected_component_leak_allowed": 0,
+    "aihub_and_bridge_minimum_assistant_loss_token_percent": 10.0,
+    "training_acceptance_basis": "explicit_owner_automated_technical_acceptance",
+    "human_domain_review_performed": false,
+    "quality_certification_claimed": false
+  },
+  "outputs": {
+    "private_root": "data/staging/{dataset_name}/{staging_version}",
+    "public_root": "data/reports/{dataset_name}/preprocessing-staging/{staging_version}"
+  },
+  "implementation_files": [
+    "scripts/data/quality_v2_tools.py",
+    "scripts/data/phase2_quality_v2.py",
+    "configs/saju_calculation_policy-v1.0.0.json"
+  ]
+}
