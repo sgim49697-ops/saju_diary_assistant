@@ -1,0 +1,45 @@
+{
+  "aihub_local_reservoir": {
+    "individual_hashes_shared": false,
+    "individual_ids_shared": false,
+    "local_only": true,
+    "multiturn_rows": 5000,
+    "rows": 10000,
+    "single_rows": 5000,
+    "source_text_shared": false,
+    "unique_groups": 10000
+  },
+  "build_id": "build-a5a9e76d6a8c",
+  "build_sha256": "a5a9e76d6a8cd524314fbdb0d4ebf11f0b984c3748606eda56de2d7708d3cd23",
+  "calculation_policy_validation": {
+    "expert_certification": false,
+    "external_reference_revision": "07b608a778be6dac8669e04b9ab794c441959208",
+    "hidden_stem_branch_ten_god_checks": 120,
+    "hidden_stem_table_checks": 12,
+    "independent_oracle": "lunar-python==1.4.8",
+    "policy_id": "saju-calculation-policy-v1.0.0",
+    "policy_sha256": "d6a20582dd52d3928674b3e6a65a586d6f71c1e22e2ab8b925ca431debf3286c"
+  },
+  "human_domain_review_performed": false,
+  "label_tier_counts": {
+    "HARD_GT": 2400,
+    "RULE_DERIVED": 6000,
+    "SOFT_INTERPRETATION": 8400,
+    "STYLE_REFERENCE": 7200
+  },
+  "phase5_training_performed": false,
+  "quality_certification_claimed": false,
+  "raw_samples_in_report": false,
+  "report_type": "quality_corrected_staging_public_aggregate",
+  "row_counts": {
+    "aihub_empathy_multiturn": 1800,
+    "aihub_empathy_single": 1800,
+    "bazi_sft": 4800,
+    "deterministic_saju_qa": 2400,
+    "nemotron_saju": 8400,
+    "saju_diary_bridge": 3600,
+    "yeji_shensha_derived": 1200
+  },
+  "schema_version": "2.0.0",
+  "total_rows": 24000
+}
