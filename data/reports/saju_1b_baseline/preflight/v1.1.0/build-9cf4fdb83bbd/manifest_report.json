@@ -1,0 +1,90 @@
+{
+  "canonical_promotion_performed": false,
+  "diagnostic_max_length": 1024,
+  "formal_max_length": 768,
+  "full_512_manifest_feasible": false,
+  "manifest_axis_counts": {
+    "mix10k": {
+      "aihub_empathy_multiturn": 500,
+      "aihub_empathy_single": 1000,
+      "bazi_sft": 2500,
+      "nemotron_saju": 5500,
+      "yeji_shensha_derived": 500
+    },
+    "mix1k": {
+      "aihub_empathy_multiturn": 50,
+      "aihub_empathy_single": 100,
+      "bazi_sft": 250,
+      "nemotron_saju": 550,
+      "yeji_shensha_derived": 50
+    },
+    "mix1k_smoke_512": {
+      "aihub_empathy_multiturn": 50,
+      "aihub_empathy_single": 100,
+      "bazi_sft": 250,
+      "nemotron_saju": 550,
+      "yeji_shensha_derived": 50
+    },
+    "mix20k": {
+      "aihub_empathy_multiturn": 1000,
+      "aihub_empathy_single": 2000,
+      "bazi_sft": 5000,
+      "nemotron_saju": 11000,
+      "yeji_shensha_derived": 1000
+    }
+  },
+  "manifest_counts": {
+    "mix10k_candidate_v1.jsonl": 10000,
+    "mix1k_candidate_v1.jsonl": 1000,
+    "mix1k_smoke_512_v1.jsonl": 1000,
+    "mix20k_candidate_v1.jsonl": 20000
+  },
+  "mix10k_subset_mix20k": true,
+  "mix1k_subset_mix10k": true,
+  "mix20_assistant_loss_token_shares": {
+    "aihub_empathy_multiturn": {
+      "assistant_loss_token_share_percent": 0.38234,
+      "assistant_tokens": 14103
+    },
+    "aihub_empathy_single": {
+      "assistant_loss_token_share_percent": 0.746136,
+      "assistant_tokens": 27522
+    },
+    "bazi_sft": {
+      "assistant_loss_token_share_percent": 25.23433,
+      "assistant_tokens": 930794
+    },
+    "nemotron_saju": {
+      "assistant_loss_token_share_percent": 71.799479,
+      "assistant_tokens": 2648397
+    },
+    "yeji_shensha_derived": {
+      "assistant_loss_token_share_percent": 1.837715,
+      "assistant_tokens": 67786
+    }
+  },
+  "nemotron_variant_counts": {
+    "mix10k": {
+      "v6": 1100,
+      "v7": 4400
+    },
+    "mix1k": {
+      "v6": 110,
+      "v7": 440
+    },
+    "mix1k_smoke_512_report_only": {
+      "v6": 15,
+      "v7": 535
+    },
+    "mix20k": {
+      "v6": 2200,
+      "v7": 8800
+    }
+  },
+  "schema_version": "1.0.0",
+  "smoke512_subset_mix20k": true,
+  "smoke_only_max_length": 512,
+  "status": "candidate_manifests_built",
+  "token_share_policy": "report_only_no_threshold",
+  "training_promotion_allowed": false
+}

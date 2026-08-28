@@ -22,7 +22,7 @@
 - K0는 BF16·SDPA·batch 1·greedy·`max_new_tokens=512`로 실행하고, 임의 네 기둥 생성·빈 출력·제어문자/special-token 노출·결정성 재생 실패만 Gate C 차단 조건으로 삼는다. reference overlap과 범주별 자동 계약 점수는 기준선 진단값이며 임의 합격 임계값을 만들지 않는다.
 - 700항목 오프라인 검수 ZIP은 제한 원문이 있을 수 있으므로 저장소 밖에만 만들고 내부 ID·원천 locator를 제거한다. 이 패키지의 생성은 전문 사람 검수를 수행했다는 뜻이 아니며 `human_domain_review_performed=false`를 유지한다.
 - K0 700항목은 안전·무결성, hard 계약 실패, 생성 상한, 반복, 한국어 비율 순서로 자동 위험 분류한다. 전체 결과는 Git 제외 경로에 두고 공개 보고서에는 심각도·신호 집계만, 검토용으로는 상위 40항목만 별도 고정한다. 이는 사람 전문 판독이나 품질 인증을 대신하지 않는다.
-- `v1.0.0` K0는 모델·template·generation·runtime·prompt SHA-256이 모두 같은 case만 재사용하고, 새 eval 계약으로 지표를 다시 계산한다. 하나라도 다르면 새로 생성한다.
+- 이전 고정 K0는 모델·template·generation·runtime·prompt SHA-256이 모두 같은 case만 재사용하고, 새 eval 계약으로 지표를 다시 계산한다. 하나라도 다르면 새로 생성한다.
 
 ## Gate A. 데이터 검증
 
@@ -233,6 +233,11 @@ runs/KI1K-SMOKE-v1/v1.1.0/build-<fingerprint>/
   - 변경 범위: YEJI 포함 그룹을 결정론적으로 최대 20개까지만 우선 선택하고 부족분만 다른 교차 축 그룹으로 채우도록 했으며 42개 입력 회귀 테스트를 추가했다. 실패한 임시 build는 최종 경로로 승격되지 않았다.
   - 검증: 새 staging의 cross-axis 76개를 `YEJI 포함 42`, `그 외 34`로 직접 집계했고 targeted test·Ruff·`git diff --check`를 통과했다.
   - 남은 이슈·후속 작업: 수정 구현을 새 Git checkpoint로 고정한 뒤 새 fingerprint에서 A~E를 다시 시작한다.
+- 2026-08-28
+  - 작업 요약: `build-9cf4fdb83bbd`에서 Gate A/B, K0 720case와 자동 위험 분류를 완료했으나 첫 Gate D가 Trainer 학습 진입 전 gradient-checkpointing flag를 검사해 안전하게 차단됐다.
+  - 변경 범위: flag 검사를 `trainer.train()` 이후로 옮겼다. 실패 시점에는 backward·optimizer step·checkpoint가 0회였고, 완결된 K0 manifest `d06b4454…c65f`를 다음 fingerprint의 exact 재사용 부모로 고정했다.
+  - 검증: K0는 새 생성 307·exact 재사용 413, 안전 위반 0, 결정성 통과였다. 자동 분류는 high 48·medium 329·low 323·critical 0이며 high는 모순 계약 35, 신살 12, 일반 지시 1건이다.
+  - 남은 이슈·후속 작업: 새 구현 checkpoint에서 A/B를 재생성하고 K0 720case를 전부 exact 재사용·지표 재계산한 뒤 Gate D를 다시 실행한다.
 
 - 2026-08-28
   - 작업 요약: 승인된 24K staging과 Phase 3 모델을 부모로 Phase 4A~C 비학습 preflight `v1.0.0/build-a6813ba3b778`을 구현·실행했다. Gate A/B/C는 통과했고 Phase 4는 `부분 진행`으로 판정했다.

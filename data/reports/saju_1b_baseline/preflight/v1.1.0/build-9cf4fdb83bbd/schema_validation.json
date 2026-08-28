@@ -1,0 +1,36 @@
+{
+  "control_character_rows": 0,
+  "cross_axis_group_axis_patterns": {
+    "bazi_sft+nemotron_saju": 34,
+    "bazi_sft+yeji_shensha_derived": 5,
+    "nemotron_saju+yeji_shensha_derived": 37
+  },
+  "cross_axis_leakage_groups": 76,
+  "empty_assistant_rows": 0,
+  "license_metadata_missing": 0,
+  "parse_failures": 0,
+  "raw_hash_alias_rows_within_source_group": 4500,
+  "raw_hash_cross_source_group_duplicates": 0,
+  "raw_samples_in_report": false,
+  "row_counts": {
+    "aihub_empathy_multiturn": 1200,
+    "aihub_empathy_single": 2400,
+    "bazi_sft": 6000,
+    "nemotron_saju": 13200,
+    "yeji_shensha_derived": 1200
+  },
+  "schema_version": "1.0.0",
+  "status": "passed",
+  "total_rows": 24000,
+  "unique_ids": 24000,
+  "unique_leakage_groups": 19424,
+  "unique_message_hashes": 24000,
+  "unique_raw_hashes": 19500,
+  "unique_source_groups": {
+    "aihub_empathy_multiturn": 1200,
+    "aihub_empathy_single": 2400,
+    "bazi_sft": 1500,
+    "nemotron_saju": 13200,
+    "yeji_shensha_derived": 1200
+  }
+}

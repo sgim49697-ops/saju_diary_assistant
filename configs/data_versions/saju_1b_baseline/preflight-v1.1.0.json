@@ -83,10 +83,10 @@
     "batch_size": 1
   },
   "k0_reuse": {
-    "source_root": "runs/K0-INSTRUCT/v1.0.0/build-a6813ba3b778",
-    "source_build_id": "build-a6813ba3b778",
-    "source_run_manifest_sha256": "67d6ca3b80dea0b43d0dab033ca24add166bd170ed7143b103827475f1602ab1",
-    "source_run_config_sha256": "7d3811241801a41a317208f1a34459d7f20820f79059fbec3eaa6be0e7f22b42",
+    "source_root": "runs/K0-INSTRUCT/v1.1.0/build-9cf4fdb83bbd",
+    "source_build_id": "build-9cf4fdb83bbd",
+    "source_run_manifest_sha256": "d06b44548d76b311e2f8b2decf64dc253a147e8d581907101bf2cfea44f7c65f",
+    "source_run_config_sha256": "63bf2dd5053037e4c4d273f2107267dbe7e551ac20a2038033a119f16e926243",
     "reuse_key": "model-template-generation-prompt-sha256",
     "recompute_metrics": true
   },

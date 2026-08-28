@@ -308,11 +308,11 @@ def validate_contract(config: dict[str, Any], repo_root: Path) -> dict[str, Any]
     reuse = config.get("k0_reuse")
     if (
         not isinstance(reuse, dict)
-        or reuse.get("source_build_id") != "build-a6813ba3b778"
+        or reuse.get("source_build_id") != "build-9cf4fdb83bbd"
         or reuse.get("source_run_manifest_sha256")
-        != "67d6ca3b80dea0b43d0dab033ca24add166bd170ed7143b103827475f1602ab1"
+        != "d06b44548d76b311e2f8b2decf64dc253a147e8d581907101bf2cfea44f7c65f"
         or reuse.get("source_run_config_sha256")
-        != "7d3811241801a41a317208f1a34459d7f20820f79059fbec3eaa6be0e7f22b42"
+        != "63bf2dd5053037e4c4d273f2107267dbe7e551ac20a2038033a119f16e926243"
         or reuse.get("reuse_key")
         != "model-template-generation-prompt-sha256"
         or reuse.get("recompute_metrics") is not True

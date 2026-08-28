@@ -566,9 +566,6 @@ def _run_training_stage(
             processing_class=tokenizer,
             callbacks=[_make_callback(probe, trainer_callback)],
         )
-        expected_gc = context["config"]["training_smoke"]["gradient_checkpointing"]
-        if bool(model.is_gradient_checkpointing) is not expected_gc:
-            raise Phase4Error("gradient checkpointing 활성 상태가 다릅니다.")
         resume_path: str | None = None
         if stage == "resume_768_200":
             checkpoint = _checkpoint_path(context, stage_config["resume_step"])
@@ -578,6 +575,9 @@ def _run_training_stage(
             )
             resume_path = str(checkpoint)
         train_output = trainer.train(resume_from_checkpoint=resume_path)
+        expected_gc = context["config"]["training_smoke"]["gradient_checkpointing"]
+        if bool(model.is_gradient_checkpointing) is not expected_gc:
+            raise Phase4Error("학습 중 gradient checkpointing 활성 상태가 다릅니다.")
         global_step = int(trainer.state.global_step)
         expected_step = (
             100 if stage == "main_768_100" else int(stage_config["optimizer_steps"])
