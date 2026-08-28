@@ -1,0 +1,222 @@
+{
+  "_description": "한국식 사주 계산 필드의 근거 등급, runtime 채택 상태, validator 동작을 고정하는 초안 정책이다.",
+  "schema_version": "1.0.0",
+  "policy_version": "0.1.0",
+  "status": "draft_not_runtime_approved",
+  "policy_id": "saju-calculation-policy-draft-v0.1.0",
+  "reviewed_at": "2026-08-29",
+  "scope": {
+    "runtime_enabled": false,
+    "training_data_mutation_allowed": false,
+    "evaluation_gold_generation_allowed": false,
+    "phase5_training_state_changed": false
+  },
+  "evidence_classes": {
+    "deterministic_fact": "고정 입력과 명시된 역법·시간 정책에서 재현되는 사실 후보",
+    "policy_bound_deterministic": "학파 또는 표 선택을 먼저 고정해야 재현되는 계산 후보",
+    "heuristic_only": "점수·임계값·우선순위가 구현자의 휴리스틱인 결과",
+    "generated_interpretation": "자연어 해석 또는 생활 조언으로 정답 라벨로 사용할 수 없는 결과"
+  },
+  "validator_modes": {
+    "enforce": "독립 검증과 fixture를 통과한 뒤 불일치를 오류로 처리",
+    "advisory": "불일치를 보고하되 기존 데이터나 Gate를 자동 변경하지 않음",
+    "disabled": "정답 검증에 사용하지 않음"
+  },
+  "external_reference": {
+    "name": "golbin/ssaju",
+    "repository": "https://github.com/golbin/ssaju.git",
+    "revision": "07b608a778be6dac8669e04b9ab794c441959208",
+    "package_version": "0.2.0",
+    "license": "MIT",
+    "copyright_notice": "Copyright (c) 2026 Jin",
+    "adoption_decision": "일부 모듈만 참고 구현",
+    "dependency_added": false,
+    "submodule_added": false,
+    "source_copied": false,
+    "focus_file_sha256": {
+      "LICENSE": "237d62618b9d436054ad0dfdd53a93b6cdea1a3d4b62abb313b9f455c8c7e48a",
+      "README.md": "ad2e0f348fdc7100172ba63b09354e2762271106755208ec271c7c25163fe83d",
+      "package-lock.json": "e5a5aca7a2360db0365364e24fe279f27351569e7eb0fd843c003c2ca5aa5de8",
+      "package.json": "a2450e41149c2e1f558181f4a42f13b86794319d1006db8248c66bd0d1f4d206",
+      "src/analyze.ts": "5238c3e2dfbf2358406d32cc0e36bd83de618e27f49e8cd6938cd64c128fc7c3",
+      "src/constants.ts": "4402529a5efe252d89377782ef92a2fd7d62d162c33e73eb2c38e679aaac60ad",
+      "src/format.ts": "df0cb2b40284d3e794debf1a235200fc8206fb9a29061787bd100f40b4bd761d",
+      "src/manse.ts": "ba1c32fb9f3ea02aac80e6fe7de79b4c9439fe01639562fae2ad0f1b65b6bfec",
+      "tests/calculateSaju.test.ts": "22c3e90e19027a82e75d21f4ee3f2b92fd70e5ddd363c28d509d93ac31df3971"
+    }
+  },
+  "time_and_calendar_contract": {
+    "status": "blocked_pending_independent_gold",
+    "timezone": "Asia/Seoul",
+    "longitude_policy": "explicit_location_required",
+    "day_boundary_policy": "undecided",
+    "hour_boundary_policy": "undecided",
+    "solar_term_source": "undecided",
+    "lunar_conversion_source": "KASI_candidate_not_integrated",
+    "historical_timezone_source": "IANA_tzdb_candidate_not_integrated",
+    "reason": "ssaju의 지원 범위 내 음양력 역변환 실패와 한국 역사 DST 누락이 확인되어 birth-to-pillars를 runtime 정답으로 승인할 수 없음"
+  },
+  "branch_ten_god_contract": {
+    "current_dataset_policy_id": "branch_surface_element_yinyang_v1",
+    "current_dataset_policy": "지지 자체의 오행·음양을 동등한 천간 성질로 투영",
+    "reference_policy_id": "branch_main_hidden_stem_v1",
+    "reference_policy": "지장간 정기(본기)를 일간과 비교",
+    "recommended_runtime_policy_id": "branch_main_hidden_stem_v1",
+    "runtime_adoption": "blocked_pending_gold",
+    "validator_mode": "advisory",
+    "existing_dataset_action": "new_version_migration_required_before_gold_use",
+    "immutable_builds_must_not_change": true,
+    "main_hidden_stem": {
+      "子": "癸",
+      "丑": "己",
+      "寅": "甲",
+      "卯": "乙",
+      "辰": "戊",
+      "巳": "丙",
+      "午": "丁",
+      "未": "己",
+      "申": "庚",
+      "酉": "辛",
+      "戌": "戊",
+      "亥": "壬"
+    }
+  },
+  "fields": {
+    "pillars": {
+      "evidence_class": "deterministic_fact",
+      "runtime_adoption": "blocked_pending_gold",
+      "validator_mode": "advisory",
+      "qa_gold_candidate": true,
+      "expert_review_required": true,
+      "dataset_correction_required": "unknown"
+    },
+    "stem_branch_identity": {
+      "evidence_class": "deterministic_fact",
+      "runtime_adoption": "candidate",
+      "validator_mode": "advisory",
+      "qa_gold_candidate": true,
+      "expert_review_required": false,
+      "dataset_correction_required": false
+    },
+    "yin_yang_elements": {
+      "evidence_class": "deterministic_fact",
+      "runtime_adoption": "candidate",
+      "validator_mode": "advisory",
+      "qa_gold_candidate": true,
+      "expert_review_required": false,
+      "dataset_correction_required": false
+    },
+    "surface_five_elements": {
+      "evidence_class": "policy_bound_deterministic",
+      "runtime_adoption": "candidate",
+      "validator_mode": "advisory",
+      "qa_gold_candidate": true,
+      "expert_review_required": true,
+      "dataset_correction_required": false
+    },
+    "hidden_stems": {
+      "evidence_class": "policy_bound_deterministic",
+      "runtime_adoption": "blocked_pending_gold",
+      "validator_mode": "advisory",
+      "qa_gold_candidate": true,
+      "expert_review_required": true,
+      "dataset_correction_required": "not_comparable"
+    },
+    "stem_ten_gods": {
+      "evidence_class": "policy_bound_deterministic",
+      "runtime_adoption": "candidate",
+      "validator_mode": "advisory",
+      "qa_gold_candidate": true,
+      "expert_review_required": true,
+      "dataset_correction_required": false
+    },
+    "branch_ten_gods": {
+      "evidence_class": "policy_bound_deterministic",
+      "runtime_adoption": "blocked_pending_gold",
+      "validator_mode": "advisory",
+      "qa_gold_candidate": true,
+      "expert_review_required": true,
+      "dataset_correction_required": "new_version_only"
+    },
+    "gongmang": {
+      "evidence_class": "policy_bound_deterministic",
+      "runtime_adoption": "blocked_pending_gold",
+      "validator_mode": "advisory",
+      "qa_gold_candidate": true,
+      "expert_review_required": true,
+      "dataset_correction_required": "not_comparable"
+    },
+    "twelve_stages": {
+      "evidence_class": "policy_bound_deterministic",
+      "runtime_adoption": "blocked_pending_gold",
+      "validator_mode": "advisory",
+      "qa_gold_candidate": true,
+      "expert_review_required": true,
+      "dataset_correction_required": "not_comparable"
+    },
+    "branch_relations": {
+      "evidence_class": "policy_bound_deterministic",
+      "runtime_adoption": "blocked_pending_gold",
+      "validator_mode": "advisory",
+      "qa_gold_candidate": true,
+      "expert_review_required": true,
+      "dataset_correction_required": "not_comparable"
+    },
+    "luck_cycle_ganzhi": {
+      "evidence_class": "policy_bound_deterministic",
+      "runtime_adoption": "blocked_pending_gold",
+      "validator_mode": "advisory",
+      "qa_gold_candidate": true,
+      "expert_review_required": true,
+      "dataset_correction_required": "not_comparable"
+    },
+    "day_strength": {
+      "evidence_class": "heuristic_only",
+      "runtime_adoption": "rejected",
+      "validator_mode": "disabled",
+      "qa_gold_candidate": false,
+      "expert_review_required": true,
+      "dataset_correction_required": false
+    },
+    "geukguk": {
+      "evidence_class": "heuristic_only",
+      "runtime_adoption": "rejected",
+      "validator_mode": "disabled",
+      "qa_gold_candidate": false,
+      "expert_review_required": true,
+      "dataset_correction_required": false
+    },
+    "yongsin": {
+      "evidence_class": "heuristic_only",
+      "runtime_adoption": "rejected",
+      "validator_mode": "disabled",
+      "qa_gold_candidate": false,
+      "expert_review_required": true,
+      "dataset_correction_required": false
+    },
+    "relation_priority": {
+      "evidence_class": "heuristic_only",
+      "runtime_adoption": "rejected",
+      "validator_mode": "disabled",
+      "qa_gold_candidate": false,
+      "expert_review_required": true,
+      "dataset_correction_required": false
+    },
+    "automatic_interpretation": {
+      "evidence_class": "generated_interpretation",
+      "runtime_adoption": "rejected",
+      "validator_mode": "disabled",
+      "qa_gold_candidate": false,
+      "expert_review_required": true,
+      "dataset_correction_required": false
+    },
+    "remedy_advice": {
+      "evidence_class": "generated_interpretation",
+      "runtime_adoption": "rejected",
+      "validator_mode": "disabled",
+      "qa_gold_candidate": false,
+      "expert_review_required": true,
+      "dataset_correction_required": false
+    }
+  }
+}

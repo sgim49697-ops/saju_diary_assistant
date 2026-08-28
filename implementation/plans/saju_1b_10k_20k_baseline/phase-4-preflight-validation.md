@@ -244,6 +244,11 @@ runs/KI1K-SMOKE-v1/v1.1.0/build-7d59833b8d59/
 
 ## 진행 기록
 
+- 2026-08-29
+  - 작업 요약: 외부 참고 구현 `golbin/ssaju`의 2026-08-29 `main` HEAD `07b608a778be6dac8669e04b9ab794c441959208`을 프로젝트 밖 임시 checkout에서 read-only 검토하고, canonical MIX20K의 구조화 계산 정책을 전수 비교한 `review-c1e129b1e602`를 생성했다. 결론은 dependency·submodule·source copy 없는 `일부 모듈만 참고 구현`이다.
+  - 변경 범위: field별 `deterministic_fact`·`policy_bound_deterministic`·`heuristic_only`·`generated_interpretation` flag와 runtime/validator Gate를 가진 draft 정책, fail-closed 비교기·runtime probe·회귀 테스트, 공개 가능한 충돌 표본 100건과 MIT `THIRD_PARTY_NOTICES` 후보를 추가했다. 기존 canonical/staging/eval·Phase 4 승인 상태와 학습데이터는 수정하지 않았고 실제 학습도 실행하지 않았다.
+  - 검증: ssaju focus 9파일·Nemotron raw 22파일과 canonical/staging hash를 재검증하고 외부 테스트 21건·typecheck·build를 통과했다. Nemotron 11,000행에서 현재 지지 자체 음양오행 정책은 44,000필드 전부 재현됐고 정기 지장간 정책과 8,563행·13,808필드가 달랐다. bazi는 1,250명식 중 594개가 서로 다른 휴리스틱 class였다. 원국 11,000행 진단과 1900~2099 양력 73,049일 역변환을 실행해 후자에서 오변환 2,398일·예외 104일을 확인했으며, 보고서 artifact SHA-256 chain과 지지별 25건씩 표본을 검증했다.
+  - 남은 이슈·후속 작업: 지지 십신은 정기 기준을 runtime 권장 후보로 두되 전문가 Gold 전까지 advisory이며, 기존 build는 바꾸지 않고 새 dataset/schema version에서만 이관한다. KASI 음양력·절입, IANA 역사 시간대, 전문가 승인 지장간·12운성·공망·합충형파해 fixture와 fact-only serializer가 다음 Gate다. 신강약·격국·용신·관계 점수·자동 해석은 전문가 Gold로 사용하지 않는다.
 - 2026-08-28
   - 작업 요약: 외부 GPT Pro가 반환한 MIX20K 검수 제출본을 `review-6e3ad5418434` 자문 자료로 수용하고, 원본 4파일·검증 보고서·소유자 평가·SHA-256 manifest를 불변 공개 보고서로 보존했다.
   - 변경 범위: 독립 intake CLI로 ZIP/sidecar·제출 파일 보안·17K projection·300건 token-decile 표본·소스별 token 지표를 fail-closed 재검증했다. AI Hub 3K 미제공은 누락이 아닌 제3자 공유 제한 준수로 기록하고, 후속 로컬 전용 `AIHUB-STYLE10K-v1`을 기존 MIX20K·평가군과 겹치지 않는 신규 단일턴 5K+멀티턴 5K 계약으로 고정했다. canonical·Gate·실제 데이터와 학습 상태는 바꾸지 않았다.

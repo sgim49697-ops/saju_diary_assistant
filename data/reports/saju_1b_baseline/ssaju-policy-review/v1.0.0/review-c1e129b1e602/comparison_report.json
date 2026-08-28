@@ -1,0 +1,663 @@
+{
+  "adoption_conclusion": {
+    "decision": "일부 모듈만 참고 구현",
+    "next_gate": [
+      "KASI 음양력·절입 및 IANA 역사 시간대 기반 fixture 구축",
+      "전문가가 승인한 지장간·십신·12운성·공망·관계 정책표 고정",
+      "기존 immutable dataset을 건드리지 않는 새 schema/version migration 설계",
+      "fact-only runtime serializer와 evidence_class flag 구현"
+    ],
+    "reason": "상수·순수 계산 함수의 구조는 유용하지만 birth-to-pillars와 관계표는 Gold가 부족하고, 신강약·격국·용신·해석은 명시적 휴리스틱이므로 모듈별 독립 검증이 필요함",
+    "rejected_choices": [
+      "그대로 도입",
+      "계산 정책 전체 채택",
+      "사용하지 않음"
+    ]
+  },
+  "dataset_comparison": {
+    "bazi_sft": {
+      "classification": "heuristic_vs_heuristic_not_correction_truth",
+      "comparison_matrix": {
+        "neutral": {
+          "neutral": 198,
+          "strong": 247,
+          "weak": 5
+        },
+        "strong": {
+          "neutral": 76,
+          "strong": 437,
+          "weak": 0
+        },
+        "weak": {
+          "neutral": 218,
+          "strong": 48,
+          "weak": 21
+        }
+      },
+      "conflict_repeated_rows": 2376,
+      "conflict_unique_chart_rate": 0.4752,
+      "conflict_unique_charts": 594,
+      "rows_per_chart": 4,
+      "selected_rows": 5000,
+      "ssaju_score_range": {
+        "maximum": 157,
+        "minimum": 5
+      },
+      "unique_charts": 1250
+    },
+    "birth_to_pillars_diagnostic": {
+      "civil_clock": {
+        "errors": 0,
+        "field_conflicts": 3717,
+        "field_conflicts_by_pillar": {
+          "day": 269,
+          "hour": 3259,
+          "month": 173,
+          "year": 16
+        },
+        "row_conflicts": 3381,
+        "rows_compared": 11000
+      },
+      "documented_policy_hybrid": {
+        "errors": 0,
+        "field_conflicts": 191,
+        "field_conflicts_by_pillar": {
+          "day": 1,
+          "hour": 1,
+          "month": 173,
+          "year": 16
+        },
+        "row_conflicts": 174,
+        "rows_compared": 11000
+      },
+      "local_mean_time_only": {
+        "errors": 0,
+        "field_conflicts": 996,
+        "field_conflicts_by_pillar": {
+          "day": 73,
+          "hour": 723,
+          "month": 182,
+          "year": 18
+        },
+        "row_conflicts": 888,
+        "rows_compared": 11000
+      },
+      "source_last_replay": {
+        "errors": 0,
+        "field_conflicts": 201,
+        "field_conflicts_by_pillar": {
+          "day": 1,
+          "hour": 1,
+          "month": 181,
+          "year": 18
+        },
+        "row_conflicts": 182,
+        "rows_compared": 11000
+      }
+    },
+    "field_comparison": [
+      {
+        "comparison_scope": "11,000행 documented-policy hybrid 진단; ssaju를 정답으로 간주하지 않음",
+        "conflict_rows": 174,
+        "current_dataset_policy": "Nemotron 원천 제공 원국; 생성기 소스 부재로 세부 역법은 미확정",
+        "existing_dataset_modification": "자동 수정 금지",
+        "field": "원국 4주",
+        "recommended_runtime_policy": "KASI·IANA 기반 독립 Gold fixture 확정 전 채택 보류",
+        "ssaju_policy": "근사 태양황경 절입·Asia/Seoul·선택적 경도 평균태양시"
+      },
+      {
+        "comparison_scope": "11,000개 구조화 원국의 문자 집합·60갑자 소속",
+        "conflict_rows": 0,
+        "current_dataset_policy": "원국 문자열의 4주 8자",
+        "existing_dataset_modification": "불필요",
+        "field": "천간·지지",
+        "recommended_runtime_policy": "공통 상수 채택 후보",
+        "ssaju_policy": "동일 10천간·12지지 상수"
+      },
+      {
+        "comparison_scope": "Nemotron 11,000행",
+        "conflict_rows": 0,
+        "current_dataset_policy": "천간·지지 자체 오행을 각 1회 집계",
+        "existing_dataset_modification": "불필요",
+        "field": "음양·오행(표면 8자)",
+        "recommended_runtime_policy": "표면 집계임을 명시해 채택 후보",
+        "ssaju_policy": "천간·지지 자체 오행을 각 1회 집계"
+      },
+      {
+        "comparison_scope": "필드 부재",
+        "conflict_rows": "not_comparable",
+        "current_dataset_policy": "구조화 학습 label 없음",
+        "existing_dataset_modification": "새 버전 생성 시에만 추가",
+        "field": "지장간",
+        "recommended_runtime_policy": "전문가 표 교차검증 후 일부 참고 구현",
+        "ssaju_policy": "지지별 여기·중기·정기 고정표"
+      },
+      {
+        "comparison_scope": "44,000개 천간 field",
+        "conflict_rows": 0,
+        "current_dataset_policy": "일간과 각 천간의 오행 생극·음양 비교",
+        "existing_dataset_modification": "불필요",
+        "field": "십신(천간)",
+        "recommended_runtime_policy": "공통 표를 독립 fixture로 재검증 후 채택",
+        "ssaju_policy": "TEN_GODS 대응표"
+      },
+      {
+        "comparison_scope": "13,808개 field",
+        "conflict_rows": 8563,
+        "current_dataset_policy": "지지 자체 오행·음양",
+        "existing_dataset_modification": "기존 build 불변; 새 dataset version 이관 필요",
+        "field": "십신(지지)",
+        "recommended_runtime_policy": "정기 기준을 권장하되 전문가 Gold 전까지 advisory",
+        "ssaju_policy": "지장간 정기(본기)를 일간과 비교"
+      },
+      {
+        "comparison_scope": "필드 부재",
+        "conflict_rows": "not_comparable",
+        "current_dataset_policy": "구조화 학습 label 없음",
+        "existing_dataset_modification": "새 버전 생성 시에만 추가",
+        "field": "공망",
+        "recommended_runtime_policy": "독립 fixture 후 validator 후보",
+        "ssaju_policy": "일주 순공 기준 2지지"
+      },
+      {
+        "comparison_scope": "필드 부재",
+        "conflict_rows": "not_comparable",
+        "current_dataset_policy": "구조화 학습 label 없음",
+        "existing_dataset_modification": "새 버전 생성 시에만 추가",
+        "field": "12운성",
+        "recommended_runtime_policy": "봉법/거법 계약을 분리한 뒤 후보",
+        "ssaju_policy": "봉법·거법을 함께 제공"
+      },
+      {
+        "comparison_scope": "필드 부재 및 direct relation assertion 부족",
+        "conflict_rows": "not_comparable",
+        "current_dataset_policy": "구조화 학습 label 없음",
+        "existing_dataset_modification": "새 버전 생성 시에만 추가",
+        "field": "합충형파해",
+        "recommended_runtime_policy": "관계별 독립 표·fixture 후 validator 후보",
+        "ssaju_policy": "상수 pair/group 탐지; 일부 관계표·반합 범위 검토 필요"
+      },
+      {
+        "comparison_scope": "필드 부재",
+        "conflict_rows": "not_comparable",
+        "current_dataset_policy": "구조화 학습 label 없음",
+        "existing_dataset_modification": "새 버전 생성 시에만 추가",
+        "field": "대운·세운·월운 간지",
+        "recommended_runtime_policy": "시간·절입 Gold 확정 뒤 간지만 후보",
+        "ssaju_policy": "절입·성별/년간 음양·현재시각 기반 계산"
+      },
+      {
+        "comparison_scope": "1,250개 고유 명식; 반복 행 환산 2,376행",
+        "conflict_rows": 594,
+        "current_dataset_policy": "bazi rule ID 기반 strong/weak/neutral soft label",
+        "existing_dataset_modification": "정답 교정 금지",
+        "field": "신강약",
+        "recommended_runtime_policy": "둘 다 heuristic_only로 격리",
+        "ssaju_policy": "표면 오행 가중치·월지·12운성 임계값 점수"
+      },
+      {
+        "comparison_scope": "필드 부재",
+        "conflict_rows": "not_comparable",
+        "current_dataset_policy": "직접 비교 가능한 구조화 Gold label 없음",
+        "existing_dataset_modification": "불필요",
+        "field": "격국·용신·자동 해석",
+        "recommended_runtime_policy": "전문가 Gold로 사용 금지; 참고 해석에만 명시적 flag",
+        "ssaju_policy": "점수 임계값·월간 십신·정적 후보표·템플릿"
+      }
+    ],
+    "nemotron_saju": {
+      "branch_ten_god_conflict_fields_against_ssaju_main_hidden_stem": 13808,
+      "branch_ten_god_conflict_rows_against_ssaju_main_hidden_stem": 8563,
+      "branch_ten_god_mismatches_against_current_surface_policy": 0,
+      "conflict_fields_by_branch": {
+        "亥": 3435,
+        "午": 3509,
+        "子": 3489,
+        "巳": 3375
+      },
+      "conflict_fields_by_pillar": {
+        "day": 3675,
+        "hour": 3643,
+        "month": 2881,
+        "year": 3609
+      },
+      "current_policy_inference_basis": "44,000개 지지 label을 branch_surface_element_yinyang_v1으로 전수 재계산",
+      "pillar_fields": 44000,
+      "selected_rows": 11000,
+      "stem_ten_god_mismatches_against_ssaju_table": 0,
+      "surface_five_element_row_mismatches": 0,
+      "upstream_generator_source_available": false
+    }
+  },
+  "external_engine_findings": {
+    "analyze": {
+      "blocked_or_heuristic": {
+        "automatic_interpretation": "템플릿 기반 생성문",
+        "branch_relations": "self-punishment 누락·반합 범위·귀문 issue를 fixture로 재검증해야 함",
+        "day_strength": "50점 시작과 20/10/8/15 가중치 및 70/30 임계값",
+        "geukguk": "강약 점수와 월간 십신에 대한 단순 분기",
+        "relation_priority": "수동 점수와 텍스트 우선순위",
+        "yongsin": "일간별 정적 후보표"
+      },
+      "hard_fact_candidates": [
+        "십신 대응표",
+        "공망",
+        "봉법·거법 12운성",
+        "관계 탐지 구조",
+        "운 간지 생성 구조"
+      ]
+    },
+    "constants": {
+      "limits": [
+        "한국 DST 표가 1960·1987·1988만 포함해 1948~1951·1955~1959를 누락",
+        "지장간·12운성·신살·용신 표는 학파 정책이므로 독립 검증 필요"
+      ],
+      "strengths": [
+        "천간·지지·음양·오행·십신·지장간 상수를 명시적으로 분리",
+        "지지 십신을 지장간 정기 기준으로 일관되게 계산"
+      ]
+    },
+    "format": {
+      "assessment": "toCompact()/toMarkdown()는 deterministic fact와 휴리스틱·현재시각 기반 운세·자동 해석을 한 문자열에 섞고 confidence/provenance flag를 직렬화하지 않음",
+      "llm_use_recommendation": "field별 evidence_class를 보존하는 별도 JSON serializer를 먼저 설계"
+    },
+    "manse": {
+      "limits": [
+        "절입은 근사 태양황경이며 공인 ephemeris Gold가 아님",
+        "DST가 day/hour 경로와 절입 경로에 일관되게 적용되지 않음",
+        "광고된 1900~2099 양력 73,049일 전수 역변환에서 실패가 확인됨"
+      ],
+      "solar_lunar_roundtrip": {
+        "conversion_throws": 104,
+        "mismatch_examples": [
+          {
+            "input": {
+              "day": 1,
+              "month": 3,
+              "year": 1900
+            },
+            "lunar": {
+              "day": 1,
+              "isLeapMonth": false,
+              "month": 1,
+              "year": 1900
+            },
+            "output": {
+              "day": 31,
+              "month": 1,
+              "year": 1900
+            }
+          },
+          {
+            "input": {
+              "day": 31,
+              "month": 3,
+              "year": 1900
+            },
+            "lunar": {
+              "day": 1,
+              "isLeapMonth": false,
+              "month": 1,
+              "year": 1900
+            },
+            "output": {
+              "day": 31,
+              "month": 1,
+              "year": 1900
+            }
+          },
+          {
+            "input": {
+              "day": 29,
+              "month": 4,
+              "year": 1900
+            },
+            "lunar": {
+              "day": 1,
+              "isLeapMonth": false,
+              "month": 1,
+              "year": 1900
+            },
+            "output": {
+              "day": 31,
+              "month": 1,
+              "year": 1900
+            }
+          },
+          {
+            "input": {
+              "day": 28,
+              "month": 5,
+              "year": 1900
+            },
+            "lunar": {
+              "day": 1,
+              "isLeapMonth": false,
+              "month": 1,
+              "year": 1900
+            },
+            "output": {
+              "day": 31,
+              "month": 1,
+              "year": 1900
+            }
+          },
+          {
+            "input": {
+              "day": 27,
+              "month": 6,
+              "year": 1900
+            },
+            "lunar": {
+              "day": 1,
+              "isLeapMonth": false,
+              "month": 1,
+              "year": 1900
+            },
+            "output": {
+              "day": 31,
+              "month": 1,
+              "year": 1900
+            }
+          },
+          {
+            "input": {
+              "day": 26,
+              "month": 7,
+              "year": 1900
+            },
+            "lunar": {
+              "day": 1,
+              "isLeapMonth": false,
+              "month": 1,
+              "year": 1900
+            },
+            "output": {
+              "day": 31,
+              "month": 1,
+              "year": 1900
+            }
+          },
+          {
+            "input": {
+              "day": 25,
+              "month": 8,
+              "year": 1900
+            },
+            "lunar": {
+              "day": 1,
+              "isLeapMonth": false,
+              "month": 1,
+              "year": 1900
+            },
+            "output": {
+              "day": 31,
+              "month": 1,
+              "year": 1900
+            }
+          },
+          {
+            "input": {
+              "day": 24,
+              "month": 9,
+              "year": 1900
+            },
+            "lunar": {
+              "day": 1,
+              "isLeapMonth": false,
+              "month": 1,
+              "year": 1900
+            },
+            "output": {
+              "day": 31,
+              "month": 1,
+              "year": 1900
+            }
+          },
+          {
+            "input": {
+              "day": 22,
+              "month": 11,
+              "year": 1900
+            },
+            "lunar": {
+              "day": 1,
+              "isLeapMonth": false,
+              "month": 1,
+              "year": 1900
+            },
+            "output": {
+              "day": 31,
+              "month": 1,
+              "year": 1900
+            }
+          },
+          {
+            "input": {
+              "day": 22,
+              "month": 12,
+              "year": 1900
+            },
+            "lunar": {
+              "day": 1,
+              "isLeapMonth": false,
+              "month": 1,
+              "year": 1900
+            },
+            "output": {
+              "day": 31,
+              "month": 1,
+              "year": 1900
+            }
+          }
+        ],
+        "supported_solar_dates": 73049,
+        "throw_examples": [
+          {
+            "error": "lunar day must be between 1 and 30",
+            "input": {
+              "day": 1,
+              "month": 1,
+              "year": 1900
+            }
+          },
+          {
+            "error": "lunar day must be between 1 and 30",
+            "input": {
+              "day": 2,
+              "month": 1,
+              "year": 1900
+            }
+          },
+          {
+            "error": "lunar day must be between 1 and 30",
+            "input": {
+              "day": 3,
+              "month": 1,
+              "year": 1900
+            }
+          },
+          {
+            "error": "lunar day must be between 1 and 30",
+            "input": {
+              "day": 4,
+              "month": 1,
+              "year": 1900
+            }
+          },
+          {
+            "error": "lunar day must be between 1 and 30",
+            "input": {
+              "day": 5,
+              "month": 1,
+              "year": 1900
+            }
+          },
+          {
+            "error": "lunar day must be between 1 and 30",
+            "input": {
+              "day": 6,
+              "month": 1,
+              "year": 1900
+            }
+          },
+          {
+            "error": "lunar day must be between 1 and 30",
+            "input": {
+              "day": 7,
+              "month": 1,
+              "year": 1900
+            }
+          },
+          {
+            "error": "lunar day must be between 1 and 30",
+            "input": {
+              "day": 8,
+              "month": 1,
+              "year": 1900
+            }
+          },
+          {
+            "error": "lunar day must be between 1 and 30",
+            "input": {
+              "day": 9,
+              "month": 1,
+              "year": 1900
+            }
+          },
+          {
+            "error": "lunar day must be between 1 and 30",
+            "input": {
+              "day": 10,
+              "month": 1,
+              "year": 1900
+            }
+          }
+        ],
+        "total_failures": 2502,
+        "wrong_roundtrips": 2398
+      },
+      "strengths": [
+        "양력·음력 변환, 절입시각, 연월일시주를 단일 deterministic API로 제공",
+        "timezone·longitude·local mean time 선택지를 노출"
+      ]
+    },
+    "tests": {
+      "count": 21,
+      "covered": [
+        "단일 golden 원국",
+        "일부 음양력·시각 경계",
+        "12운성·신살·포맷 기본 동작"
+      ],
+      "gaps": [
+        "1900~2099 전수 음양력 역변환",
+        "공식 KASI fixture 대조",
+        "역사 한국 DST 전체",
+        "합충형파해 관계별 direct assertion",
+        "전문가 Gold 기반 십신·공망·12운성·대운 fixture"
+      ],
+      "result": "passed",
+      "typecheck": "passed"
+    }
+  },
+  "external_repository": {
+    "checks": {
+      "build": "passed",
+      "npm_audit": "completed_with_findings",
+      "npm_audit_vulnerabilities": {
+        "critical": 0,
+        "high": 1,
+        "info": 0,
+        "low": 1,
+        "moderate": 0,
+        "total": 2
+      },
+      "npm_ci": "passed",
+      "test_count": 21,
+      "tests": "passed",
+      "typecheck": "passed"
+    },
+    "commit_date": "2026-04-20T12:04:40+09:00",
+    "copyright_notice": "Copyright (c) 2026 Jin",
+    "dist_index_mjs_sha256": "f0b08c64bfe7095d615766084ca9a27da61e9cc0a0f4456408de069b964eaaee",
+    "focus_file_sha256": {
+      "LICENSE": "237d62618b9d436054ad0dfdd53a93b6cdea1a3d4b62abb313b9f455c8c7e48a",
+      "README.md": "ad2e0f348fdc7100172ba63b09354e2762271106755208ec271c7c25163fe83d",
+      "package-lock.json": "e5a5aca7a2360db0365364e24fe279f27351569e7eb0fd843c003c2ca5aa5de8",
+      "package.json": "a2450e41149c2e1f558181f4a42f13b86794319d1006db8248c66bd0d1f4d206",
+      "src/analyze.ts": "5238c3e2dfbf2358406d32cc0e36bd83de618e27f49e8cd6938cd64c128fc7c3",
+      "src/constants.ts": "4402529a5efe252d89377782ef92a2fd7d62d162c33e73eb2c38e679aaac60ad",
+      "src/format.ts": "df0cb2b40284d3e794debf1a235200fc8206fb9a29061787bd100f40b4bd761d",
+      "src/manse.ts": "ba1c32fb9f3ea02aac80e6fe7de79b4c9439fe01639562fae2ad0f1b65b6bfec",
+      "tests/calculateSaju.test.ts": "22c3e90e19027a82e75d21f4ee3f2b92fd70e5ddd363c28d509d93ac31df3971"
+    },
+    "license": "MIT",
+    "node_version": "v22.22.0",
+    "npm_version": "10.9.4",
+    "package_version": "0.2.0",
+    "repository": "https://github.com/golbin/ssaju.git",
+    "revision": "07b608a778be6dac8669e04b9ab794c441959208",
+    "runtime_dependencies": 0
+  },
+  "inputs": {
+    "analyzer_sha256": "21acfb0a5f741d279d305c0284665abab8cf1e357433427cb38fc179f4ee3e0e",
+    "bazi_records_sha256": "80654a812d41dffeea80ea72a02c3101d24bc5ee694e4229639fcd12960f2965",
+    "canonical_build_manifest_sha256": "a2816a307644e57b0126c820410b1507767d08c2956a5e0e43874b71da7a8ba0",
+    "canonical_mix20k_sha256": "a61c16dc65ad24805b293ad50404d519c68d1ae844419b18c9e1538ea7a5bc3a",
+    "nemotron_records_sha256": "0242bad3b408e9143813bb94fc84ad2911146f8262f93a7a924f20c06d32d132",
+    "policy_sha256": "437bcf40f5c819139c6300939b95c73e31322ed1a21d7a38a39fed0a58c20db0",
+    "raw_bundle": {
+      "file_set_sha256": "24bc0767080ebec45515ec873f1ba8b0adcafac87435c93975fc3bf4e2769f51",
+      "source_manifest_sha256": "df200cd8faf366bcc45d595b5d1c0a9f2ff422df5c33aaf2b5d71406938dc383",
+      "verified_file_count": 22,
+      "verified_parquet_count": 20
+    },
+    "runtime_probe_sha256": "4c2675c315b98eeb72f7e0c85cd8268b016551f695e9f8b8e154ef6139ba1da8",
+    "staging_build_manifest_sha256": "1cd6733681748e4ed60b5eb293067ed08211562a09ed49b9dd8f1e5f9f527f1c"
+  },
+  "report_type": "ssaju_policy_comparison",
+  "review_version": "v1.0.0",
+  "reviewed_at": "2026-08-29",
+  "schema_version": "1.0.0",
+  "scope_guards": {
+    "evaluation_data_modified": false,
+    "external_source_copied": false,
+    "phase4_training_promotion_state_changed": false,
+    "runtime_dependency_added": false,
+    "submodule_added": false,
+    "training_data_modified": false,
+    "training_run_performed": false
+  },
+  "status": "completed_advisory_only",
+  "third_party_notices_candidate": {
+    "copyright_notice": "Copyright (c) 2026 Jin",
+    "legal_advice": false,
+    "license": "MIT License",
+    "name": "ssaju",
+    "preservation_requirement": "저작권 고지와 MIT 허가·면책 문구를 소프트웨어의 모든 복제본 또는 중요 부분에 포함",
+    "repository": "https://github.com/golbin/ssaju",
+    "revision": "07b608a778be6dac8669e04b9ab794c441959208",
+    "status": "candidate_only_not_yet_required",
+    "trigger": "ssaju 코드 또는 실질적 파생 구현을 배포물에 포함할 때"
+  },
+  "usage_options": [
+    {
+      "benefit": "작고 빠르며 단일 API·직렬화 제공",
+      "decision": "그대로 도입하지 않음",
+      "option": "runtime 계산 엔진",
+      "risk": "역법 roundtrip·DST·관계표·휴리스틱이 runtime 정답에 혼재"
+    },
+    {
+      "benefit": "정책을 고정하면 대량 구조화 문제 생성 가능",
+      "decision": "독립 Gold를 통과한 field만 일부 참고 구현",
+      "option": "deterministic QA 생성기",
+      "risk": "생성기 오류가 train/eval에 함께 복제될 수 있음"
+    },
+    {
+      "benefit": "기존 label과 정책 차이를 빠르게 advisory 탐지",
+      "decision": "현재는 advisory differential validator로만 사용",
+      "option": "검증 validator",
+      "risk": "단일 구현을 oracle로 쓰면 정책 차이를 오류로 오판"
+    }
+  ]
+}
