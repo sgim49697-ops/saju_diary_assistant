@@ -1,0 +1,78 @@
+{
+  "automated_second_pass_performed": true,
+  "build_id": "build-2feaee353252",
+  "build_sha256": "2feaee35325205809e342097b69dbefb6dbe1609e08f913b434ee6bb3ec8f399",
+  "category_severity_counts": {
+    "branch_policy_contradiction": {
+      "high": 39,
+      "medium": 1
+    },
+    "deterministic_hard_fact": {
+      "high": 43,
+      "low": 16,
+      "medium": 1
+    },
+    "empathy": {
+      "low": 20
+    },
+    "general_korean_instruction": {
+      "high": 1,
+      "low": 4
+    },
+    "grounded_rule_reading": {
+      "low": 1,
+      "medium": 29
+    },
+    "missing_chart_handoff": {
+      "low": 4,
+      "medium": 1
+    },
+    "multiturn": {
+      "low": 14,
+      "medium": 1
+    },
+    "saju_diary_bridge": {
+      "medium": 40
+    },
+    "same_chart_consistency": {
+      "low": 1,
+      "medium": 19
+    },
+    "shensha_rule_qa": {
+      "high": 14,
+      "low": 1,
+      "medium": 10
+    },
+    "source_holdout": {
+      "low": 473,
+      "medium": 227
+    },
+    "structured_natal_reading": {
+      "low": 9,
+      "medium": 31
+    }
+  },
+  "critical_or_high_items": 97,
+  "evaluation_items": 1000,
+  "generation_cases": 1020,
+  "human_domain_review_performed": false,
+  "priority_items": 50,
+  "priority_limit": 50,
+  "quality_certification_claimed": false,
+  "raw_samples_in_summary": false,
+  "report_type": "phase4_k0_automated_risk_triage",
+  "schema_version": "1.0.0",
+  "severity_counts": {
+    "high": 97,
+    "low": 543,
+    "medium": 360
+  },
+  "signal_counts": {
+    "automated_contract_failed": 40,
+    "generation_limit_reached": 322,
+    "hard_contract_failed": 97,
+    "high_repetition": 70
+  },
+  "status": "completed",
+  "training_promotion_allowed": false
+}

@@ -1,0 +1,35 @@
+{
+  "blocked_leakage_components": 915,
+  "core_eval_case_count": 320,
+  "core_eval_category_counts": {
+    "branch_policy_contradiction": 40,
+    "deterministic_hard_fact": 60,
+    "empathy": 20,
+    "general_korean_instruction": 5,
+    "grounded_rule_reading": 30,
+    "missing_chart_handoff": 5,
+    "multiturn": 15,
+    "saju_diary_bridge": 40,
+    "same_chart_consistency": 20,
+    "shensha_rule_qa": 25,
+    "structured_natal_reading": 40
+  },
+  "core_eval_rows": 300,
+  "core_holdout_component_overlap": 0,
+  "cross_axis_components_total": 54,
+  "cross_axis_consistency_components": 20,
+  "raw_samples_in_report": false,
+  "schema_version": "2.0.0",
+  "source_holdout_counts": {
+    "aihub_empathy_multiturn": 100,
+    "aihub_empathy_single": 100,
+    "bazi_sft": 100,
+    "deterministic_saju_qa": 100,
+    "nemotron_saju": 100,
+    "saju_diary_bridge": 100,
+    "yeji_shensha_derived": 100
+  },
+  "source_holdout_rows": 700,
+  "status": "passed",
+  "train_eval_component_overlap": 0
+}

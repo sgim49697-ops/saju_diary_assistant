@@ -1,0 +1,43 @@
+{
+  "artifact_sha256": {
+    "canonical_manifest_report.json": "8e2c158cd46a3af6898cc64ff1ab86778e3fd7e2bad6238924f8ad55d383ddee",
+    "phase4_completion_report.json": "f4d576789b1774164fbb5a58758c96a9cc31da9a8827b3e5df9d9397e4fc7e5c",
+    "smoke_summary.json": "984827cf67f097c36c8ceca86718ce2b405490d9d5bbbbb276963cc1f5cbbe5d"
+  },
+  "build_id": "build-6f32d52c2868",
+  "build_inputs": {
+    "candidate_manifest_sha256": {
+      "mix10k_candidate_v2.jsonl": "7863270e5a16fe9f92b52e82d45ae0b60f0b68ee3f0003955d662eb0392472e9",
+      "mix1k_candidate_v2.jsonl": "e29fa6f861152008d6059c7dbc765624072aa8f3ee44cc5a4a05cb79be42dbe9",
+      "mix20k_candidate_v2.jsonl": "731ace0ac5584fd97fc38f157a4ecdb1babedefd79e2ec5b2d755fa26e48a550"
+    },
+    "canonical_plan_version": "3.0.0",
+    "human_domain_review_performed": false,
+    "k0_manifest_sha256": "bd8bd9aa962c64d8c037024a7f7defa758366cb5185b28a1b26331a02481c07d",
+    "parent_preflight_build_id": "build-2feaee353252",
+    "parent_preflight_build_sha256": "2feaee35325205809e342097b69dbefb6dbe1609e08f913b434ee6bb3ec8f399",
+    "parent_private_manifest_sha256": "dc3b4faea1d89c4f7ef13939a94f2c2f4a0169f432a85dcae6a6619d301deee1",
+    "parent_public_manifest_sha256": "6b5401a2f12a9668f3e5ed71ca03f4147f1ee6361fc90088e869d1fc9493bf0d",
+    "phase5_training_performed": false,
+    "preflight_version": "v2.0.0",
+    "promotion_basis": "explicit_user_authorization_after_automated_risk_triage_and_phase4_de",
+    "quality_certification_claimed": false,
+    "schema_version": "1.0.0",
+    "selected_max_length": 768,
+    "smoke_stage_manifest_sha256": {
+      "diagnostic_1024_1": "512027d258911466bfb5c909de08be2c19ce5a88b2121369b2bdeff782c05604",
+      "gate_d_512_1": "76271c032c28be258045dc26424f0bcab63e4ca89be8be974c54fa1a63d9f05c",
+      "main_768_100": "3c76419749f1efb57b454bdd3f6496734ec402aa742f9c3f560a96fd34e539e6",
+      "reload_768_generate5": "900663c3e2e9576ecdc77ef708ce806270ebd58932ac9c8727ef9aa4e6ba1ccc",
+      "resume_768_200": "5d0f5bf4fb7cce201aaa96277b51491fcf0c22e74110f4f8f97b922215f99338",
+      "smoke_512_20": "3179175c3f0101ddeeca7b5ba14a138c677dcd226cb59634654b114b517f116d"
+    },
+    "triage_manifest_sha256": "c1dec189d30abeb1c6666516e5beb4856e36a16fea1aa58c22de1a1da3e1b75a"
+  },
+  "build_sha256": "6f32d52c2868bb8b5e07724cbdc00a6bc0b2f1608fe53ac54c357a6ec0832ee9",
+  "phase5_training_performed": false,
+  "report_type": "phase4_completion_public_manifest",
+  "schema_version": "1.0.0",
+  "status": "gates_a_b_c_d_e_passed",
+  "training_promotion_allowed": true
+}

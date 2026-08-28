@@ -6,20 +6,20 @@
     "version": "v1.2.0"
   },
   "approved_derived": {
-    "build_id": "build-a1a34616dd72",
-    "build_sha256": "a1a34616dd72ab510fe783037ed70edc693d48220b344210599f9fe2c932c1ef",
+    "build_id": "build-6f32d52c2868",
+    "build_sha256": "6f32d52c2868bb8b5e07724cbdc00a6bc0b2f1608fe53ac54c357a6ec0832ee9",
     "human_domain_review_performed": false,
-    "parent_preflight_build_id": "build-7d59833b8d59",
-    "parent_staging_build_id": "build-847088ee804d",
+    "parent_preflight_build_id": "build-2feaee353252",
+    "parent_staging_build_id": "build-a5a9e76d6a8c",
     "phase5_training_performed": false,
-    "private_manifest_sha256": "a2816a307644e57b0126c820410b1507767d08c2956a5e0e43874b71da7a8ba0",
-    "public_manifest_sha256": "ffe3def5a6b07bdbb077aef67f89c8b70976eba9afde2cab314a4a6edee309e4",
+    "private_manifest_sha256": "66b21f086aa836ee595826f5f8f6eeb3bd234b47a15ec210a2131f548c4bedbf",
+    "public_manifest_sha256": "c670c2ad6481221ec140f49fc79ef4d83bdd275342d7692c3134a9e133ff7fec",
     "quality_certification_claimed": false,
     "selected_max_length": 768,
     "status": "approved_for_phase5_training",
     "technical_full_ft_preflight_passed": true,
     "training_promotion_allowed": true,
-    "version": "v1.1.0"
+    "version": "v2.0.0"
   },
   "approved_staging": {
     "approval_basis": "explicit_owner_automated_technical_acceptance",
@@ -102,6 +102,22 @@
       "technical_full_ft_preflight_passed": true,
       "training_promotion_allowed": true,
       "version": "v1.1.0"
+    },
+    {
+      "build_id": "build-6f32d52c2868",
+      "build_sha256": "6f32d52c2868bb8b5e07724cbdc00a6bc0b2f1608fe53ac54c357a6ec0832ee9",
+      "human_domain_review_performed": false,
+      "parent_preflight_build_id": "build-2feaee353252",
+      "parent_staging_build_id": "build-a5a9e76d6a8c",
+      "phase5_training_performed": false,
+      "private_manifest_sha256": "66b21f086aa836ee595826f5f8f6eeb3bd234b47a15ec210a2131f548c4bedbf",
+      "public_manifest_sha256": "c670c2ad6481221ec140f49fc79ef4d83bdd275342d7692c3134a9e133ff7fec",
+      "quality_certification_claimed": false,
+      "selected_max_length": 768,
+      "status": "approved_for_phase5_training",
+      "technical_full_ft_preflight_passed": true,
+      "training_promotion_allowed": true,
+      "version": "v2.0.0"
     }
   ],
   "schema_version": "1.0.0",

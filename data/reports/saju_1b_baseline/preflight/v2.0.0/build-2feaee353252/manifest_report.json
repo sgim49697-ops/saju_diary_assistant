@@ -1,0 +1,119 @@
+{
+  "aihub_and_bridge": {
+    "assistant_loss_token_share_percent": 10.220322,
+    "assistant_tokens": 240982,
+    "gate_passed": true,
+    "minimum_percent": 10.0
+  },
+  "canonical_promotion_performed": false,
+  "deterministic_shuffle_seed": 42,
+  "diagnostic_max_length": 1024,
+  "eligible_rows_after_eval_and_768": {
+    "aihub_empathy_multiturn": 1685,
+    "aihub_empathy_single": 1680,
+    "bazi_sft": 4552,
+    "deterministic_saju_qa": 2200,
+    "nemotron_saju": 8240,
+    "saju_diary_bridge": 3460,
+    "yeji_shensha_derived": 1062
+  },
+  "formal_max_length": 768,
+  "manifest_axis_counts": {
+    "mix10k": {
+      "aihub_empathy_multiturn": 750,
+      "aihub_empathy_single": 750,
+      "bazi_sft": 2000,
+      "deterministic_saju_qa": 1000,
+      "nemotron_saju": 3400,
+      "saju_diary_bridge": 1600,
+      "yeji_shensha_derived": 500
+    },
+    "mix1k": {
+      "aihub_empathy_multiturn": 75,
+      "aihub_empathy_single": 75,
+      "bazi_sft": 200,
+      "deterministic_saju_qa": 100,
+      "nemotron_saju": 340,
+      "saju_diary_bridge": 160,
+      "yeji_shensha_derived": 50
+    },
+    "mix1k_smoke_512": {
+      "aihub_empathy_multiturn": 75,
+      "aihub_empathy_single": 75,
+      "bazi_sft": 200,
+      "deterministic_saju_qa": 100,
+      "nemotron_saju": 340,
+      "saju_diary_bridge": 160,
+      "yeji_shensha_derived": 50
+    },
+    "mix20k": {
+      "aihub_empathy_multiturn": 1500,
+      "aihub_empathy_single": 1500,
+      "bazi_sft": 4000,
+      "deterministic_saju_qa": 2000,
+      "nemotron_saju": 6800,
+      "saju_diary_bridge": 3200,
+      "yeji_shensha_derived": 1000
+    }
+  },
+  "manifest_counts": {
+    "mix10k_candidate_v2.jsonl": 10000,
+    "mix1k_candidate_v2.jsonl": 1000,
+    "mix1k_smoke_512_v2.jsonl": 1000,
+    "mix20k_candidate_v2.jsonl": 20000
+  },
+  "mix10k_subset_mix20k": true,
+  "mix1k_subset_mix10k": true,
+  "mix20_assistant_loss_token_shares": {
+    "aihub_empathy_multiturn": {
+      "assistant_loss_token_share_percent": 0.906623,
+      "assistant_tokens": 21377
+    },
+    "aihub_empathy_single": {
+      "assistant_loss_token_share_percent": 0.861964,
+      "assistant_tokens": 20324
+    },
+    "bazi_sft": {
+      "assistant_loss_token_share_percent": 25.218343,
+      "assistant_tokens": 594616
+    },
+    "deterministic_saju_qa": {
+      "assistant_loss_token_share_percent": 3.589891,
+      "assistant_tokens": 84645
+    },
+    "nemotron_saju": {
+      "assistant_loss_token_share_percent": 58.080955,
+      "assistant_tokens": 1369474
+    },
+    "saju_diary_bridge": {
+      "assistant_loss_token_share_percent": 8.451735,
+      "assistant_tokens": 199281
+    },
+    "yeji_shensha_derived": {
+      "assistant_loss_token_share_percent": 2.890489,
+      "assistant_tokens": 68154
+    }
+  },
+  "nemotron_variant_counts": {
+    "mix10k": {
+      "v6": 680,
+      "v7": 2720
+    },
+    "mix1k": {
+      "v6": 68,
+      "v7": 272
+    },
+    "mix20k": {
+      "v6": 1360,
+      "v7": 5440
+    }
+  },
+  "observed_mix20_max_tokens": 638,
+  "raw_samples_in_report": false,
+  "schema_version": "2.0.0",
+  "smoke512_subset_mix20k": true,
+  "smoke_only_max_length": 512,
+  "status": "candidate_manifests_built",
+  "token_share_policy": "aihub_and_bridge_assistant_loss_minimum",
+  "training_promotion_allowed": false
+}
