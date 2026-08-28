@@ -4,7 +4,7 @@
 
 | 항목 | 값 |
 |---|---|
-| 문서 버전 | `2.3.1` |
+| 문서 버전 | `2.4.0` |
 | 정본화 기준일 | 2026-08-28 |
 | 주 장비 | NVIDIA GeForce RTX 5070 Ti 16GiB, WSL2 |
 | 주 모델 | `kakaocorp/kanana-2-1.3b-instruct@bf4786aa2a1908adce942d53976270132732f720` |
@@ -32,7 +32,7 @@
 | 0 | [거버넌스·실험 계약](phase-0-governance.md) | 완료 | 라이선스·범위·재현성 승인 |
 | 1 | [데이터 수집](phase-1-data-collection.md) | 완료 | 네 원천의 revision·해시·이용조건과 #86 구조 Gate 통과 |
 | 2 | [데이터 전처리](phase-2-data-preprocessing.md) | 완료 | 승인 audit 부모의 MIX20K용 24K staging 완결, 학습 승격은 Phase 4 Gate로 분리 |
-| 3 | [학습 모델·환경 준비](phase-3-model-preparation.md) | 미시작 | 고정 환경에서 모델·template 로드 성공 |
+| 3 | [학습 모델·환경 준비](phase-3-model-preparation.md) | 완료 | 고정 PyTorch cu130 환경에서 모델·tokenizer·template 전체 BF16 오프라인 로드 성공 |
 | 4 | [학습 전 데이터·모델 검증](phase-4-preflight-validation.md) | 미시작 | 데이터 Gate와 200-step smoke 모두 통과 |
 | 5 | [Baseline 학습](phase-5-baseline-training.md) | 미시작 | KI10·KI20 독립 Run과 산출물 완결 |
 | 6 | [평가·검수·v2 결정](phase-6-evaluation-v2-decision.md) | 미시작 | 고정 평가 후 50K 또는 v2 Lite 경로 결정 |
@@ -62,6 +62,7 @@ data/
         ├── audit/v1.2.0/build-ca756f3eb89f/
         ├── audit-review/v1.2.0/build-ca756f3eb89f/reviewer-v1.1.0/
         ├── preprocessing-staging/v0.1.0/build-109815ee6879/
+        ├── model-preparation/v1.0.0/build-32e2c84af3d3/
         └── phase-verification/v1.0.0/review-20260828/
 
 configs/data_versions/saju_1b_baseline/
@@ -73,6 +74,11 @@ configs/data_versions/saju_1b_baseline/
 ├── language-bank-v1.0.0.json
 ├── license-review-v1.0.0.json
 └── registry.json
+
+configs/model_versions/saju_1b_baseline/model-preparation-v1.0.0.json
+configs/chat_templates/kanana2_sft.jinja
+requirements.txt
+requirements-phase3.lock.txt
 
 runs/
 ├── K0-INSTRUCT/
@@ -165,6 +171,7 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
 - Base 학습·비교와 `NC` Run을 제거하고 광고형 자체 서비스 후보용 allowlist 혼합으로 교체했다.
 - 명식 계산을 모델 학습에서 분리하고, 구조화 명식에 근거한 해석·규칙 적용만 학습한다.
 - TRL 1.12.0 기준으로 `max_seq_length`를 `max_length`, `micro_batch_size`를 `per_device_train_batch_size`, 개념형 `precision`을 `bf16=True`로 교정했다.
+- RTX 5070 Ti Blackwell 환경은 최신 안정 PyTorch 2.13.0·torchvision 0.28.0·TorchAudio 2.11.0의 cu130 wheel로 고정하고 native `sm_120`·BF16·bitsandbytes CUDA backend를 실제 검증했다.
 - 16GiB GPU에서 Full FT가 된다고 가정하지 않고, 512 기능 검사와 1024→768→512 memory smoke를 통과 조건으로 바꿨다.
 - 20행 블록은 정확한 소스 수량 산출에만 쓰고, 실제 학습 manifest는 seed 42로 최종 shuffle해 주기적 순서 편향을 막는다.
 - 512 smoke 실패 시 DeepSpeed·CPU offload·LoRA로 자동 우회하지 않고 Phase 4를 `차단`한다.
@@ -221,3 +228,8 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
   - 변경 범위: archive 중복·별칭 경로, link/device, 기존 추출본·병합 ZIP 변조, 원천 symlink·미등록 파일, 비공식 URL·redirect·무해시 다운로드를 fail-closed로 보강했다. 승인 audit의 registry 상태·seal·approval 일치와 승인 staging의 실행 commit·승인·decision·manifest 해시를 강제하고, 현재 라이선스 재검토·과거 표현 정오표를 추가했다.
   - 검증: 현재 원천 4종 전체 manifest 재해시, 과거 audit v1.0·v1.1·승인 v1.2, 승인 staging 24,000행·검수 300건, loopback HTML read-only bootstrap, 전체 회귀 테스트 68건과 정적·보안 검사를 통과했다. 상세 결과는 `data/reports/saju_1b_baseline/phase-verification/v1.0.0/review-20260828/verification_report.json`에 고정한다.
   - 남은 이슈·후속 작업: 스테이징에 서로 다른 축의 동일 명식 `leakage_group_id` 36개가 있으므로 Phase 4 split에서 반드시 같은 쪽에 배치한다. holdout/core eval, 중첩 MIX manifest, tokenizer·assistant mask·모델 preflight와 `training_promotion_allowed=true` 판정은 Phase 4 전용 Gate로 남긴다.
+- 2026-08-28
+  - 작업 요약: 최신 공식 문서와 RTX 5070 Ti 실장비를 기준으로 Phase 3 환경을 PyTorch 2.13.0·CUDA 13.0 wheel로 고정하고, Kanana 2 1.3B Instruct의 고정 revision·tokenizer·chat template·전체 BF16 모델 load를 완료했다.
+  - 변경 범위: Linux·Windows Codex와 Claude 전역 Markdown의 오래된 PyTorch 기본값을 같은 내용으로 갱신했다. 저장소에는 모델·환경 계약, 75개 전이 의존성 hash lock, 안전한 준비·검증 CLI와 테스트, `build-32e2c84af3d3` 공개 보고서를 추가했다. `.venv`와 모델 파일은 Git에서 제외했다.
+  - 검증: `torch.version.cuda=13.0`, native `sm_120`, BF16 matmul, `libbitsandbytes_cuda130.so` Adam8bit state, 모델 14파일·2,593,309,962 bytes 전체 hash, 1,291,478,272개 BF16 CUDA parameter, load key 오류 0, 보고서 재검증과 전체 회귀 검사를 통과했다.
+  - 남은 이슈·후속 작업: upstream YaRN factor 40과 암시적 비율 8 경고는 원본 불변 상태로 보고서에 남겼다. Phase 4 최종 데이터셋·assistant loss mask·200-step smoke와 실제 학습은 수행하지 않았고 `training_promotion_allowed=false`를 유지한다.

@@ -1,0 +1,107 @@
+{
+  "file_count": 14,
+  "files": [
+    {
+      "bytes": 1578,
+      "path": ".gitattributes",
+      "sha256": "bcdabdd4731312282016b3cee5e7a57581ebd5ce198e3eec3860234749cca4f2"
+    },
+    {
+      "bytes": 11490,
+      "path": "LICENSE",
+      "sha256": "80745468c3213787d08ae8c3b1bc1ffb6b3563d6214ba53626547c39dfcdffd8"
+    },
+    {
+      "bytes": 12634,
+      "path": "README.md",
+      "sha256": "fe33ea775030c376cbf27f5fde4e474c647467596de55cc2741d1ab2a179c2f6"
+    },
+    {
+      "bytes": 109633,
+      "path": "assets/logo/kanana.png",
+      "sha256": "52b7b1de0b928150c7b8fe3517a7b86b4116271f2f0f0108bf2520281d6bac52"
+    },
+    {
+      "bytes": 10725,
+      "path": "chat_template.jinja",
+      "sha256": "b8ee6b31575eada17ebbe73d3f1ac65d3efde64f0a25ff922031dec7e1cae3e3"
+    },
+    {
+      "bytes": 2019,
+      "path": "config.json",
+      "sha256": "fe14b20b4b616d62ca0682312c2fcd2b90d9a836d14a1ff6448db3f533fd15a1"
+    },
+    {
+      "bytes": 6600,
+      "path": "configuration_kanana2_tiny.py",
+      "sha256": "191fb6fbfd63968cc24b3beeb8190aaa88868d4cf1695f8c5a379fb0a077d79d"
+    },
+    {
+      "bytes": 147,
+      "path": "generation_config.json",
+      "sha256": "c9737da2d70d630fab5c7ad22a57b6628e60de0f6b8de64787603d71c9acf997"
+    },
+    {
+      "bytes": 2582997160,
+      "path": "model.safetensors",
+      "sha256": "49aa6cd8686563c59321d83810731956c61ec8d5c8538a249d38007986cdc942"
+    },
+    {
+      "bytes": 27943,
+      "path": "modeling_kanana2_tiny.py",
+      "sha256": "e47cd8cc99e71fc69eea9bf5ba1221526fb8c6d4fc8677177e82de997b766500"
+    },
+    {
+      "bytes": 1713,
+      "path": "sglang/config.json",
+      "sha256": "ddfd078b5c3913e95cbf472521930cc838d249daa1073470a255a7e8f79b7687"
+    },
+    {
+      "bytes": 20708,
+      "path": "sglang/qwen3.py",
+      "sha256": "0e623d122a548934c39026207ddd68b8f372d5a59347d9d497549fbf476e5cd3"
+    },
+    {
+      "bytes": 10057457,
+      "path": "tokenizer.json",
+      "sha256": "1c4be9ecf77c926456fb82d4cf07ff1218a91907f3408f44895d2b01e0f2b5ab"
+    },
+    {
+      "bytes": 50155,
+      "path": "tokenizer_config.json",
+      "sha256": "1cdee8fcd4f6209e07e6d9966c8a3ff2d738830d79475193e94e448e153ae2d5"
+    }
+  ],
+  "manifest_sha256": "5786d04831c93192d234651df0894a1912b974cfab96011ce0676563185cc93d",
+  "remote_code_review": [
+    {
+      "call_count": 12,
+      "imports": [
+        "transformers"
+      ],
+      "network_subprocess_or_delete_calls": 0,
+      "path": "configuration_kanana2_tiny.py",
+      "sha256": "191fb6fbfd63968cc24b3beeb8190aaa88868d4cf1695f8c5a379fb0a077d79d",
+      "status": "reviewed"
+    },
+    {
+      "call_count": 102,
+      "imports": [
+        "configuration_kanana2_tiny",
+        "copy",
+        "inspect",
+        "torch",
+        "transformers",
+        "typing"
+      ],
+      "network_subprocess_or_delete_calls": 0,
+      "path": "modeling_kanana2_tiny.py",
+      "sha256": "e47cd8cc99e71fc69eea9bf5ba1221526fb8c6d4fc8677177e82de997b766500",
+      "status": "reviewed"
+    }
+  ],
+  "repo_id": "kakaocorp/kanana-2-1.3b-instruct",
+  "revision": "bf4786aa2a1908adce942d53976270132732f720",
+  "schema_version": "1.0.0",
+  "total_bytes": 2593309962
+}
