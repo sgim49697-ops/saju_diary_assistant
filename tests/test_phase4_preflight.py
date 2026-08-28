@@ -10,7 +10,10 @@ from pathlib import Path
 
 from scripts.preflight.errors import Phase4Error
 from scripts.preflight.phase4_common import load_json, validate_contract
-from scripts.preflight.phase4_data import _false_chart_signature
+from scripts.preflight.phase4_data import (
+    _false_chart_signature,
+    _select_consistency_groups,
+)
 from scripts.preflight.phase4_k0 import _score_output
 from scripts.preflight.phase4_preflight import build_parser
 from scripts.preflight.phase4_review import (
@@ -77,6 +80,22 @@ class Phase4ContractTests(unittest.TestCase):
 
 
 class Phase4ScoringTests(unittest.TestCase):
+    def test_consistency_selection_caps_preferred_yeji_groups(self) -> None:
+        groups = [f"yeji-{index}" for index in range(42)] + [
+            f"other-{index}" for index in range(34)
+        ]
+        axes = {
+            group: (
+                {"nemotron_saju", "yeji_shensha_derived"}
+                if group.startswith("yeji-")
+                else {"nemotron_saju", "bazi_sft"}
+            )
+            for group in groups
+        }
+        selected = _select_consistency_groups(groups, axes, 20)
+        self.assertEqual(len(selected), 20)
+        self.assertTrue(all(value.startswith("yeji-") for value in selected))
+
     def test_false_chart_signature_changes_one_stem(self) -> None:
         self.assertEqual(_false_chart_signature("甲子乙丑丙寅丁卯"), "乙子乙丑丙寅丁卯")
         with self.assertRaises(Phase4Error):

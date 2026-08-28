@@ -596,6 +596,19 @@ def _false_chart_signature(signature: str) -> str:
     return replacement + signature[1:]
 
 
+def _select_consistency_groups(
+    cross_groups: list[str], group_axes: dict[str, set[str]], count: int
+) -> list[str]:
+    yeji_cross = [
+        group
+        for group in cross_groups
+        if "yeji_shensha_derived" in group_axes[group]
+    ]
+    other_cross = [group for group in cross_groups if group not in yeji_cross]
+    preferred = yeji_cross[:count]
+    return [*preferred, *other_cross[: count - len(preferred)]]
+
+
 def _build_eval_splits(
     records_by_id: dict[str, dict[str, Any]],
     ordered_ids: list[str],
@@ -608,9 +621,7 @@ def _build_eval_splits(
 
     cross_groups = [group for group, axes in group_axes.items() if len(axes) > 1]
     cross_groups.sort(key=lambda group: min(positions[value] for value in groups[group]))
-    yeji_cross = [group for group in cross_groups if "yeji_shensha_derived" in group_axes[group]]
-    other_cross = [group for group in cross_groups if group not in yeji_cross]
-    consistency_groups = [*yeji_cross, *other_cross[: 20 - len(yeji_cross)]]
+    consistency_groups = _select_consistency_groups(cross_groups, group_axes, 20)
     if len(consistency_groups) != 20:
         raise Phase4Error("동일 명식 cross-axis consistency group이 20개 미만입니다.")
     for group in consistency_groups:

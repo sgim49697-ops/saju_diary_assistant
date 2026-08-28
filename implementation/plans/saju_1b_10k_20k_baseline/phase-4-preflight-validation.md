@@ -228,6 +228,11 @@ runs/KI1K-SMOKE-v1/v1.1.0/build-<fingerprint>/
   - 변경 범위: A~C는 계속 비학습으로 격리하고, D/E만 BF16 전체 파라미터·SDPA·assistant-only `chunked_nll`·실제 `paged_adamw_8bit` state를 검사하도록 했다. 1024는 진단, 768은 100→200-step 정식 resume로 역할을 분리했다.
   - 검증: Ruff, Python compile, Phase 4 단위 테스트, `validate-contract`, dry-run, 과거 v1.0 artifact hash chain 재검증을 통과했다.
   - 남은 이슈·후속 작업: 이 항목은 실행 전 구현 체크포인트다. 새 build A~C/K0·triage와 D/E GPU 단계, canonical 승격을 순서대로 실행하며 그 전까지 `training_promotion_allowed=false`다.
+- 2026-08-28
+  - 작업 요약: 첫 v1.1 Gate A/B 실행에서 YEJI 포함 cross-axis group이 42개로 늘자 기존 선택식이 정확히 20개로 상한 처리하지 못하는 회귀를 발견해 수정했다.
+  - 변경 범위: YEJI 포함 그룹을 결정론적으로 최대 20개까지만 우선 선택하고 부족분만 다른 교차 축 그룹으로 채우도록 했으며 42개 입력 회귀 테스트를 추가했다. 실패한 임시 build는 최종 경로로 승격되지 않았다.
+  - 검증: 새 staging의 cross-axis 76개를 `YEJI 포함 42`, `그 외 34`로 직접 집계했고 targeted test·Ruff·`git diff --check`를 통과했다.
+  - 남은 이슈·후속 작업: 수정 구현을 새 Git checkpoint로 고정한 뒤 새 fingerprint에서 A~E를 다시 시작한다.
 
 - 2026-08-28
   - 작업 요약: 승인된 24K staging과 Phase 3 모델을 부모로 Phase 4A~C 비학습 preflight `v1.0.0/build-a6813ba3b778`을 구현·실행했다. Gate A/B/C는 통과했고 Phase 4는 `부분 진행`으로 판정했다.
