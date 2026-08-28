@@ -402,3 +402,8 @@ data/derived/saju_1b_baseline/v1.0.0/build-<derived-hash>/eval/<holdout-and-core
   - 변경 범위: audit v1.2의 correction fingerprint·가변 큐 수량 검증을 보강하고, staging 구현 commit·approval·acceptance·decision·private/public manifest hash를 registry에 pin했다. 당시 산출물은 수정하지 않았다.
   - 검증: 24,000행·고유 ID/message hash 24,000·축별 13,200/6,000/2,400/1,200/1,200·BaZi 1,500 완전 group·AI Hub 축 교집 0·검수 decision 300건·private 0600 권한을 재확인했다. loopback HTML은 HTTP 200, CSP/no-store, read-only, 항목 300개를 확인했다.
   - 남은 이슈·후속 작업: 축 간 동일 명식 leakage group 36개를 Phase 4에서 group-first로 함께 배치한다. 현재 승인은 전문 항목별 품질 인증이 아니며 `training_promotion_allowed=false`다.
+- 2026-08-28
+  - 작업 요약: 생성기 후속 검수 소견을 반영해 기존 `v0.1.0`을 보존한 채 staging `v0.2.0` 생성·검증 계약을 구현했다.
+  - 변경 범위: YEJI 명식을 `lunar-python==1.4.8` 고정 sdist에서 결정론적 유효 달력 명식으로 생성하고 오호둔·오서둔을 이중 검증한다. AI Hub turn projection provenance, 겹침 가능한 정책 필터 집계, Nemotron 나이 `19~99` fail-closed 검증과 승인 hash chain을 추가했다.
+  - 검증: Ruff·Python compile·전처리 단위 테스트 12건과 YEJI 1,200건 생성 검사를 통과했다. 생성 명식은 고유 1,200건·역법 관계 유효 1,200건이고 최대 탐색 65회, 평균 3.374167회다.
+  - 남은 이슈·후속 작업: 구현 commit을 고정한 뒤 새 24K build를 생성·자동 검증하고 사용자 지시에 따른 위험 수용을 별도 기록한다. 그 결과를 부모로 Phase 4A~E를 다시 실행하기 전까지 기존 승격 상태는 바꾸지 않는다.

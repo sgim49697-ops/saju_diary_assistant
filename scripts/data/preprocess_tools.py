@@ -6,9 +6,12 @@ import json
 import re
 import shutil
 import stat
+import subprocess
 import tempfile
 from collections import Counter, defaultdict
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
+from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as distribution_version
 from pathlib import Path
 from typing import Any
 
@@ -20,6 +23,7 @@ from scripts.data.preprocess_adapters import (
     build_bazi_records,
     build_nemotron_records,
     build_yeji_records,
+    calendar_relations_valid,
     sha256_json,
     stable_rank,
 )
@@ -67,10 +71,68 @@ REQUIRED_RECORD_KEYS = {
 PRIVATE_FILE_MODE = stat.S_IRUSR | stat.S_IWUSR
 PRIVATE_DIR_MODE = stat.S_IRWXU
 ASCII_WORD_PATTERN = re.compile(r"[A-Za-z]{2,}")
+CALENDAR_BACKEND_CONTRACT = {
+    "distribution": "lunar-python",
+    "import_name": "lunar_python",
+    "version": "1.4.8",
+    "artifact_filename": "lunar_python-1.4.8.tar.gz",
+    "artifact_sha256": (
+        "3aa11cc73c25e70ddf0ba5bdac7398c03acc9491a3aa512a91c9642973b669d6"
+    ),
+    "artifact_url": (
+        "https://files.pythonhosted.org/packages/59/45/"
+        "5154c95ae7feaab7ca508e71c3288692c09952dfe33b03b7c2f18a32e2cd/"
+        "lunar_python-1.4.8.tar.gz"
+    ),
+    "license_expression": "MIT",
+    "algorithm": "sha256-counter-v1",
+    "anchor_start": "1950-01-01",
+    "anchor_end": "2050-12-31",
+    "anchor_hours": list(range(0, 24, 2)),
+    "anchor_semantics": "naive-local-civil-time",
+    "timezone_assumption": "Asia/Seoul",
+    "max_attempts_per_case": 200_000,
+}
 
 
 def utc_now() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+
+
+def _git_head(repo_root: Path) -> str:
+    completed = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=repo_root,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    value = completed.stdout.strip()
+    if completed.returncode != 0 or re.fullmatch(r"[0-9a-f]{40}", value) is None:
+        raise Phase2AuditError("현재 Git implementation commit을 확인할 수 없습니다.")
+    return value
+
+
+def _calendar_anchor_valid(anchor: Any, calendar_backend: dict[str, Any]) -> bool:
+    if not isinstance(anchor, dict) or set(anchor) != {
+        "date",
+        "hour",
+        "minute",
+        "second",
+    }:
+        return False
+    try:
+        anchor_date = date.fromisoformat(anchor["date"])
+    except (TypeError, ValueError):
+        return False
+    return (
+        date.fromisoformat(calendar_backend["anchor_start"])
+        <= anchor_date
+        <= date.fromisoformat(calendar_backend["anchor_end"])
+        and anchor.get("hour") in calendar_backend["anchor_hours"]
+        and anchor.get("minute") == 0
+        and anchor.get("second") == 0
+    )
 
 
 def _load_json(path: Path, label: str) -> dict[str, Any]:
@@ -94,8 +156,8 @@ def load_staging_config(path: Path) -> dict[str, Any]:
         raise Phase2AuditError("지원하지 않는 staging schema_version입니다.")
     if config.get("dataset_name") != "saju_1b_baseline":
         raise Phase2AuditError("staging dataset_name이 정본과 다릅니다.")
-    if config.get("staging_version") != "v0.1.0" or config.get("seed") != 42:
-        raise Phase2AuditError("첫 MIX20K staging은 v0.1.0/seed 42로 고정합니다.")
+    if config.get("staging_version") != "v0.2.0" or config.get("seed") != 42:
+        raise Phase2AuditError("현재 MIX20K staging은 v0.2.0/seed 42로 고정합니다.")
     if config.get("approval_status") != "staging_unapproved":
         raise Phase2AuditError("검토 전 staging은 staging_unapproved여야 합니다.")
     axes = config.get("axes")
@@ -115,6 +177,18 @@ def load_staging_config(path: Path) -> dict[str, Any]:
     variants = axes["nemotron_saju"].get("variants")
     if variants != {"v6": 2640, "v7": 10560}:
         raise Phase2AuditError("Nemotron v6/v7 staging 비율이 20:80이 아닙니다.")
+    if config.get("calendar_backend") != CALENDAR_BACKEND_CONTRACT:
+        raise Phase2AuditError("YEJI 달력 backend 고정 계약이 다릅니다.")
+    contracts = config.get("contracts")
+    if not isinstance(contracts, dict) or any(
+        (
+            contracts.get("aihub_single_turn_projection") != "first_pair",
+            contracts.get("aihub_multiturn_projection") != "first_two_pairs",
+            contracts.get("chart_calendar_relations_required") is not True,
+            contracts.get("nemotron_age_range") != [19, 99],
+        )
+    ):
+        raise Phase2AuditError("v0.2 추가 전처리 계약이 다릅니다.")
     return config
 
 
@@ -166,6 +240,19 @@ def prepare_staging(
     repo_root: Path, config_path: Path, *, verify_raw: bool
 ) -> dict[str, Any]:
     config = load_staging_config(config_path)
+    try:
+        installed_calendar_version = distribution_version(
+            config["calendar_backend"]["distribution"]
+        )
+    except PackageNotFoundError as exc:
+        raise Phase2AuditError(
+            "lunar-python이 없습니다. uv pip으로 requirements-data.txt를 설치하세요."
+        ) from exc
+    if installed_calendar_version != config["calendar_backend"]["version"]:
+        raise Phase2AuditError(
+            "lunar-python 설치 버전이 staging 고정 계약과 다릅니다: "
+            f"{installed_calendar_version}"
+        )
     parents = config["parents"]
     source_config_path = resolve_repo_path(repo_root, parents["source_config"])
     source_config = load_config(source_config_path)
@@ -240,6 +327,7 @@ def prepare_staging(
         "audit_policy_sha256": sha256_file(audit_policy_path),
         "correction_manifest_sha256": sha256_file(correction_path),
         "language_bank_sha256": sha256_file(language_path),
+        "calendar_backend_sha256": sha256_json(config["calendar_backend"]),
         "code_sha256": sha256_json(code_files),
     }
     build_sha = sha256_json(inputs)
@@ -332,6 +420,7 @@ def _validate_records(
     messages: set[str] = set()
     axis_groups: dict[str, set[str]] = defaultdict(set)
     role_patterns: Counter[str] = Counter()
+    calendar_relation_valid_rows: Counter[str] = Counter()
     lengths: dict[str, dict[str, Any]] = {}
     for axis, records in records_by_axis.items():
         input_lengths: list[int] = []
@@ -366,6 +455,44 @@ def _validate_records(
                 raise Phase2AuditError(
                     f"학습 messages에 영문 단어 잔여가 있습니다: {record['id']}"
                 )
+            if axis in {"nemotron_saju", "bazi_sft", "yeji_shensha_derived"}:
+                signature = record["meta"].get("chart_signature")
+                if not isinstance(signature, str) or len(signature) != 8:
+                    raise Phase2AuditError(f"명식 signature가 없습니다: {record['id']}")
+                chart = tuple(signature[index : index + 2] for index in range(0, 8, 2))
+                if not calendar_relations_valid(chart):
+                    raise Phase2AuditError(
+                        f"오호둔·오서둔 관계가 어긋난 명식입니다: {record['id']}"
+                    )
+                calendar_relation_valid_rows[axis] += 1
+            if axis == "yeji_shensha_derived":
+                anchor = record["meta"].get("calendar_anchor")
+                if (
+                    record["meta"].get("calendar_backend")
+                    != config["calendar_backend"]["distribution"]
+                    or record["meta"].get("calendar_backend_version")
+                    != config["calendar_backend"]["version"]
+                    or not _calendar_anchor_valid(anchor, config["calendar_backend"])
+                ):
+                    raise Phase2AuditError(
+                        f"YEJI 달력 provenance가 올바르지 않습니다: {record['id']}"
+                    )
+            if axis.startswith("aihub_empathy_"):
+                pair_count = record["meta"].get("source_pair_count")
+                expected_projection = (
+                    "first_pair"
+                    if axis == "aihub_empathy_single"
+                    else "first_two_pairs"
+                )
+                if (
+                    not isinstance(pair_count, int)
+                    or isinstance(pair_count, bool)
+                    or pair_count < 2
+                    or record["meta"].get("turn_projection") != expected_projection
+                ):
+                    raise Phase2AuditError(
+                        f"AI Hub turn projection provenance가 다릅니다: {record['id']}"
+                    )
             input_lengths.append(int(record["meta"]["input_chars"]))
             assistant_lengths.append(int(record["meta"]["assistant_chars"]))
         lengths[axis] = {
@@ -390,6 +517,9 @@ def _validate_records(
         "role_patterns": dict(sorted(role_patterns.items())),
         "aihub_cross_axis_group_overlap": 0,
         "bazi_complete_group_count": len(bazi_group_sizes),
+        "calendar_relation_valid_rows": dict(
+            sorted(calendar_relation_valid_rows.items())
+        ),
         "length_stats": lengths,
     }
 
@@ -465,6 +595,7 @@ def _build_into(
         language_bank=context["language_content"]["yeji"],
         target_rows=int(config["axes"]["yeji_shensha_derived"]["staging_rows"]),
         seed=seed,
+        calendar_backend=config["calendar_backend"],
     )
     records_by_axis = {
         "nemotron_saju": nemotron,
@@ -733,6 +864,8 @@ def verify_staging(
             or approval.get("approval_basis") != "explicit_owner_blanket_risk_acceptance"
             or approval.get("domain_item_review_performed") is not False
             or approval.get("accepted_review_units") != 300
+            or approval.get("quality_certification_claimed") is not False
+            or approval.get("training_promotion_allowed") is not False
         ):
             raise Phase2AuditError("staging owner risk acceptance identity가 다릅니다.")
         decisions_path = private_path / "review_decisions.jsonl"
@@ -789,6 +922,15 @@ def record_owner_risk_acceptance(
             "mode": "owner_risk_acceptance_reused",
             "writes_performed": False,
         }
+    registry_path = config_path.parent / "registry.json"
+    registry = _load_json(registry_path, "data version registry")
+    builds = registry.setdefault("staging_builds", [])
+    if any(
+        item.get("version") == verified["staging_version"]
+        or item.get("build_id") == verified["build_id"]
+        for item in builds
+    ):
+        raise Phase2AuditError("registry에 같은 staging version 또는 build가 이미 있습니다.")
     selection = _load_json(private_path / "review_selection.json", "review selection")
     selected_ids = [
         item
@@ -798,6 +940,7 @@ def record_owner_risk_acceptance(
     if len(selected_ids) != 300 or len(set(selected_ids)) != 300:
         raise Phase2AuditError("일괄 위험 수용 대상은 정확히 300개여야 합니다.")
     recorded_at = utc_now()
+    implementation_commit = _git_head(repo_root)
     decisions = []
     for record_id in selected_ids:
         value = {
@@ -829,6 +972,7 @@ def record_owner_risk_acceptance(
         "automated_validation_passed": True,
         "approved_for": "phase4_preflight_only",
         "training_promotion_allowed": False,
+        "implementation_commit": implementation_commit,
         "accepted_at": recorded_at,
     }
     gate = {
@@ -851,8 +995,6 @@ def record_owner_risk_acceptance(
             json.dump(value, stream, ensure_ascii=False, indent=2, sort_keys=True)
             stream.write("\n")
 
-    registry_path = config_path.parent / "registry.json"
-    registry = _load_json(registry_path, "data version registry")
     entry = {
         "version": verified["staging_version"],
         "build_id": verified["build_id"],
@@ -860,8 +1002,18 @@ def record_owner_risk_acceptance(
         "status": "owner_risk_accepted_for_phase4_preflight",
         "approval_basis": "explicit_owner_blanket_risk_acceptance",
         "domain_item_review_performed": False,
+        "implementation_commit": implementation_commit,
+        "private_manifest_sha256": sha256_file(
+            private_path / "build_manifest.json"
+        ),
+        "public_manifest_sha256": sha256_file(public_path / "build_manifest.json"),
+        "review_decisions_sha256": sha256_file(decisions_path),
+        "review_acceptance_sha256": sha256_file(
+            public_path / "REVIEW_ACCEPTANCE.json"
+        ),
+        "accepted_gate_sha256": sha256_file(public_path / "gate.accepted.json"),
+        "approval_manifest_sha256": sha256_file(approval_path),
     }
-    builds = registry.setdefault("staging_builds", [])
     builds.append(entry)
     registry["approved_staging"] = entry
     write_json_atomic(registry_path, registry)

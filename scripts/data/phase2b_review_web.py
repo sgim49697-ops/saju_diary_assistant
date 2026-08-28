@@ -26,7 +26,7 @@ from scripts.data.preprocess_tools import verify_staging
 
 DEFAULT_CONFIG = (
     REPO_ROOT
-    / "configs/data_versions/saju_1b_baseline/preprocessing-staging-v0.1.0.json"
+    / "configs/data_versions/saju_1b_baseline/preprocessing-staging-v0.2.0.json"
 )
 ALLOWED_DECISIONS = {"accept", "exclude_candidate", "needs_fix", "uncertain"}
 MAX_BODY_BYTES = 16 * 1024
