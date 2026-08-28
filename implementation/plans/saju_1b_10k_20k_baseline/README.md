@@ -52,7 +52,7 @@ Phase 0 → Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5 → Phase 6
 data/
 ├── raw/<source>/<revision>/
 ├── audit/saju_1b_baseline/v1.2.0/build-ca756f3eb89f/  # 비공개 locator·결정·seal
-├── staging/saju_1b_baseline/v0.1.0/build-109815ee6879/ # Git 제외·24K 후보
+├── staging/saju_1b_baseline/v0.2.0/build-847088ee804d/ # Git 제외·현재 24K 후보
 ├── derived/saju_1b_baseline/v1.0.0/build-<derived-hash>/
 │   ├── unified/
 │   ├── manifests/
@@ -61,7 +61,7 @@ data/
     └── saju_1b_baseline/
         ├── audit/v1.2.0/build-ca756f3eb89f/
         ├── audit-review/v1.2.0/build-ca756f3eb89f/reviewer-v1.1.0/
-        ├── preprocessing-staging/v0.1.0/build-109815ee6879/
+        ├── preprocessing-staging/v0.2.0/build-847088ee804d/
         ├── model-preparation/v1.0.0/build-32e2c84af3d3/
         ├── preflight/v1.0.0/build-a6813ba3b778/
         └── phase-verification/v1.0.0/review-20260828/
@@ -72,6 +72,7 @@ configs/data_versions/saju_1b_baseline/
 ├── audit-policy-v1.2.0.json                 # 승인된 전체 원천 감사
 ├── yeji-rule-corrections-v1.2.0.json
 ├── preprocessing-staging-v0.1.0.json
+├── preprocessing-staging-v0.2.0.json
 ├── language-bank-v1.0.0.json
 ├── license-review-v1.0.0.json
 ├── preflight-v1.0.0.json
@@ -240,3 +241,8 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
   - 변경 범위: 재현 가능한 preflight CLI·테스트·공개 집계 보고서와 저장소 밖 제한 데이터 오프라인 검수 ZIP을 추가했다. 전역 Codex·Claude 규칙에는 native Triton용 Python header 검증과 정식 실행의 JIT 우회 금지를 동기화했다. 실제 학습·optimizer·backward·checkpoint·canonical manifest 승격은 하지 않았다.
   - 검증: Gate A/B/C, BF16 SDPA native-JIT probe, K0 빈 출력·제어문자·special-token·missing-chart 안전 위반 0건, 결정성 재생, 700항목/720case ZIP checksum과 Windows Chrome 오프라인 렌더링을 통과했다.
   - 남은 이슈·후속 작업: K0 371/720case가 512-token 상한에 도달했고 일부 hard 자동 계약 점수가 낮다. 사람 전문 검수와 Phase 4D/E 200-step 학습 smoke가 남았으므로 Phase 4는 `부분 진행`, `approved_derived=null`, `training_promotion_allowed=false`이며 Phase 5를 시작하지 않는다.
+- 2026-08-28
+  - 작업 요약: 생성기 검수 6건을 원천·기존 staging과 대조하고, 유효 달력 명식을 사용하는 새 24K staging `v0.2.0/build-847088ee804d`를 승인된 Phase 4 입력으로 고정했다.
+  - 변경 범위: 기존 `v0.1.0`은 불변 보존했다. YEJI 달력 backend·역법 관계 Gate, 필터 겹침 카운터, AI Hub projection provenance, Nemotron 나이 검증, 새 공개 보고서와 registry hash chain을 추가했다.
+  - 검증: 24,000행 전수 schema·중복·수량 검사, Nemotron/BaZi/YEJI 역법 관계 20,400/20,400, AI Hub 원천 58,268건의 turn 수·정책 사유, YEJI 고유 명식 1,200건을 통과했다. 기존 YEJI는 1,151/1,200건이 역법 불일치이고 단순 천간 교정 시 evaluator 56건이 바뀜을 별도 확인했다.
+  - 남은 이슈·후속 작업: 승인 방식은 자동 검증 기반 사용자 위험 수용이며 전문 항목 검수·품질 인증은 아니다. 새 staging 부모로 Phase 4A~E를 재실행하기 전까지 `training_promotion_allowed=false`를 유지한다.

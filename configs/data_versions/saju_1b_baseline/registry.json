@@ -7,19 +7,19 @@
   },
   "approved_derived": null,
   "approved_staging": {
-    "accepted_gate_sha256": "3a23ba21dfef174e6604866de7b793d5e588611f4cfe674d65edeabec559c3bf",
-    "approval_manifest_sha256": "15b7a34257071bbe9d6c4cdaedeaa288c56bfcb409dc498bd759f0b4a5966d29",
+    "accepted_gate_sha256": "b1f389d723795efd5eae89d27eb09d69e211774b1cb7fa839bf4496ba0f3cb6a",
     "approval_basis": "explicit_owner_blanket_risk_acceptance",
-    "build_id": "build-109815ee6879",
-    "build_sha256": "109815ee687980e417c5831abd5a558e3790c8197051561844ef64417f0d4b41",
+    "approval_manifest_sha256": "3be8fa8c2d9948bcbe3c8a8367026ac814ad86e2087e6c2d32701a88e4de7c52",
+    "build_id": "build-847088ee804d",
+    "build_sha256": "847088ee804d8bc8933c0d83767a2251fc820ae3cb4235965a9a27a3f0f34801",
     "domain_item_review_performed": false,
-    "implementation_commit": "88818017f37a998e4469345d2d6392be16d0ace3",
-    "private_manifest_sha256": "e936eaf29fb8843e47dd6018c7c629b0025d6b02757f50429c6699f1a43f22b8",
-    "public_manifest_sha256": "b8aec00acd2c7836bb289be828b9e001fc2805ca0d5e128c4e2f7b50ad58ac4c",
-    "review_acceptance_sha256": "15b7a34257071bbe9d6c4cdaedeaa288c56bfcb409dc498bd759f0b4a5966d29",
-    "review_decisions_sha256": "e959fb063f306face2156c41abd5ffc1b4abbbc0bc1cba5125e32744a13e3dd2",
+    "implementation_commit": "21705fe72fefe5bd9933a9ac9cc2cf30aad08ce7",
+    "private_manifest_sha256": "1cd6733681748e4ed60b5eb293067ed08211562a09ed49b9dd8f1e5f9f527f1c",
+    "public_manifest_sha256": "7f0418e4cdd2d8dbd44735186a80f4c9de3ca279ac19f1bd82ebf7363c8b3b46",
+    "review_acceptance_sha256": "3be8fa8c2d9948bcbe3c8a8367026ac814ad86e2087e6c2d32701a88e4de7c52",
+    "review_decisions_sha256": "8a5f79a7fe78cbc628249d76afd9e62880f13982add182c486d54e3bb5f97bfc",
     "status": "owner_risk_accepted_for_phase4_preflight",
-    "version": "v0.1.0"
+    "version": "v0.2.0"
   },
   "audit_builds": [
     {
@@ -91,8 +91,8 @@
   "staging_builds": [
     {
       "accepted_gate_sha256": "3a23ba21dfef174e6604866de7b793d5e588611f4cfe674d65edeabec559c3bf",
-      "approval_manifest_sha256": "15b7a34257071bbe9d6c4cdaedeaa288c56bfcb409dc498bd759f0b4a5966d29",
       "approval_basis": "explicit_owner_blanket_risk_acceptance",
+      "approval_manifest_sha256": "15b7a34257071bbe9d6c4cdaedeaa288c56bfcb409dc498bd759f0b4a5966d29",
       "build_id": "build-109815ee6879",
       "build_sha256": "109815ee687980e417c5831abd5a558e3790c8197051561844ef64417f0d4b41",
       "domain_item_review_performed": false,
@@ -103,6 +103,21 @@
       "review_decisions_sha256": "e959fb063f306face2156c41abd5ffc1b4abbbc0bc1cba5125e32744a13e3dd2",
       "status": "owner_risk_accepted_for_phase4_preflight",
       "version": "v0.1.0"
+    },
+    {
+      "accepted_gate_sha256": "b1f389d723795efd5eae89d27eb09d69e211774b1cb7fa839bf4496ba0f3cb6a",
+      "approval_basis": "explicit_owner_blanket_risk_acceptance",
+      "approval_manifest_sha256": "3be8fa8c2d9948bcbe3c8a8367026ac814ad86e2087e6c2d32701a88e4de7c52",
+      "build_id": "build-847088ee804d",
+      "build_sha256": "847088ee804d8bc8933c0d83767a2251fc820ae3cb4235965a9a27a3f0f34801",
+      "domain_item_review_performed": false,
+      "implementation_commit": "21705fe72fefe5bd9933a9ac9cc2cf30aad08ce7",
+      "private_manifest_sha256": "1cd6733681748e4ed60b5eb293067ed08211562a09ed49b9dd8f1e5f9f527f1c",
+      "public_manifest_sha256": "7f0418e4cdd2d8dbd44735186a80f4c9de3ca279ac19f1bd82ebf7363c8b3b46",
+      "review_acceptance_sha256": "3be8fa8c2d9948bcbe3c8a8367026ac814ad86e2087e6c2d32701a88e4de7c52",
+      "review_decisions_sha256": "8a5f79a7fe78cbc628249d76afd9e62880f13982add182c486d54e3bb5f97bfc",
+      "status": "owner_risk_accepted_for_phase4_preflight",
+      "version": "v0.2.0"
     }
   ]
 }

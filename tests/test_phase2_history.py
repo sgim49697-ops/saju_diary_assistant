@@ -103,6 +103,32 @@ class HistoricalStagingTests(unittest.TestCase):
         self.assertEqual(result["review_decision_count"], 300)
         self.assertFalse(result["training_promotion_allowed"])
 
+    def test_current_v02_staging_is_historically_reproducible(self) -> None:
+        private_root = (
+            REPO_ROOT
+            / "data/staging/saju_1b_baseline/v0.2.0/build-847088ee804d"
+        )
+        if not private_root.is_dir():
+            self.skipTest("Git 제외 v0.2.0 staging build가 없는 환경입니다.")
+        result = verify_historical_staging(
+            REPO_ROOT,
+            staging_version="v0.2.0",
+            build_id="build-847088ee804d",
+            implementation_commit=None,
+        )
+        self.assertEqual(result["record_validation"]["total_rows"], 24_000)
+        self.assertEqual(
+            result["record_validation"]["calendar_relation_valid_rows"],
+            {
+                "bazi_sft": 6_000,
+                "nemotron_saju": 13_200,
+                "yeji_shensha_derived": 1_200,
+            },
+        )
+        self.assertEqual(
+            result["record_validation"]["cross_axis_leakage_group_count"], 76
+        )
+
     def test_invalid_commit_and_tampered_artifact_fail_closed(self) -> None:
         with self.assertRaises(Phase2AuditError):
             _git_blob(REPO_ROOT, "--help", "README.md")

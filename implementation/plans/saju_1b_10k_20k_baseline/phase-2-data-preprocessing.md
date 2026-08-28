@@ -5,7 +5,7 @@
 | 실행 상태 | 완료 |
 | 선행 Phase | Phase 1 완료 |
 | 입력 | source bundle `v1.1.0/build-9462ec148dcd`, 승인 audit `v1.2.0/build-ca756f3eb89f`, 고정 원본·교정·한국어 문구 은행 |
-| 현재 출력 | MIX20K 전용 24K staging `v0.1.0/build-109815ee6879`, 공개 집계·검수 HTML·사용자 일괄 위험 수용 기록 |
+| 현재 출력 | MIX20K 전용 24K staging `v0.2.0/build-847088ee804d`, 공개 집계·검수 HTML·사용자 일괄 위험 수용 기록 |
 | Phase 4 인계 | 정확한 MIX20K·중첩 MIX1K·MIX10 manifest, holdout/core eval, tokenizer·누수·모델 preflight |
 | 완료 Gate | 승인 audit 부모의 결정론적 24K staging·검수·인계 계약 통과. `training_promotion_allowed=false` 유지 |
 | 웹 확인일 | 2026-08-28 |
@@ -23,8 +23,8 @@ data/raw/<source>/<upstream-revision>/
 data/audit/saju_1b_baseline/v1.2.0/build-ca756f3eb89f/       # Git 제외·seal 후 읽기 전용
 data/reports/saju_1b_baseline/audit/v1.2.0/build-ca756f3eb89f/
 data/reports/saju_1b_baseline/audit-review/v1.2.0/build-ca756f3eb89f/reviewer-v1.1.0/
-data/staging/saju_1b_baseline/v0.1.0/build-109815ee6879/     # Git 제외·24K
-data/reports/saju_1b_baseline/preprocessing-staging/v0.1.0/build-109815ee6879/
+data/staging/saju_1b_baseline/v0.2.0/build-847088ee804d/     # Git 제외·24K
+data/reports/saju_1b_baseline/preprocessing-staging/v0.2.0/build-847088ee804d/
 ```
 
 source build는 네 원천 manifest hash, audit build는 source build·감사 정책·seed 42·감사 코드 hash로 계산한다. 절대경로와 실행 시각은 fingerprint에서 제외하고 전체 SHA-256을 manifest에 기록한다. 기존 build는 덮어쓰지 않으며 동일 입력 재실행은 무결성 검증만 한다.
@@ -33,7 +33,8 @@ source build는 네 원천 manifest hash, audit build는 source build·감사 �
 .venv-data/bin/python scripts/data/phase2_verify_history.py --audit-version v1.2.0 --build build-ca756f3eb89f
 .venv-data/bin/python scripts/data/phase2b_preprocess.py plan
 .venv-data/bin/python scripts/data/phase2b_verify_history.py --staging-version v0.1.0 --build build-109815ee6879
-.venv-data/bin/python scripts/data/phase2b_review_web.py --build build-109815ee6879 --port 8765
+.venv-data/bin/python scripts/data/phase2b_preprocess.py --build build-847088ee804d verify
+.venv-data/bin/python scripts/data/phase2b_review_web.py --build build-847088ee804d --port 8765
 ```
 
 승인된 과거 build는 registry의 `implementation_commit`과 artifact hash를 기준으로 `*_verify_history.py`가 검증한다. 일반 `phase2_audit.py verify`와 `phase2b_preprocess.py verify`는 현재 설정·코드로 새 build를 만들 때 사용하며, 현재 fingerprint를 과거 build에 억지로 대입하지 않는다.
@@ -100,7 +101,7 @@ source build는 네 원천 manifest hash, audit build는 source build·감사 �
 
 전처리 build는 Nemotron 1,000,000행, BaZi 100,000행, AI Hub 58,268행을 전수 검사했다. Nemotron 안전·언어 필터 후 적격 761,985행, AI Hub 안전·언어 필터 후 적격 53,768행·48,190 group을 확인했다. BaZi 다섯 규칙 재계산 불일치 0건, YEJI evaluator 미지원 규칙 0개다. 최종 24K는 고유 ID·고유 message hash 각 24,000, 영문 단어 잔여 0건, 지원하지 않는 role 순서 0건이다.
 
-24K 안에서 AI Hub 단일턴·멀티턴 축의 `leakage_group_id` 교집합은 0개다. Nemotron·BaZi·YEJI처럼 명식을 공유하는 서로 다른 축 간에는 동일 전역 `leakage_group_id` 36개가 있다. 이는 중복 오류가 아니라 교차 원천의 같은 명식을 표시한 누수 방지 정보이며, Phase 4는 해당 36개 group을 분할하지 않고 통째로 한 split에 배치한다.
+24K 안에서 AI Hub 단일턴·멀티턴 축의 `leakage_group_id` 교집합은 0개다. 달력 기반 YEJI를 포함한 `v0.2.0`에서 명식을 공유하는 서로 다른 축 간 동일 전역 `leakage_group_id`는 76개다. 이는 중복 오류가 아니라 교차 원천의 같은 명식을 표시한 누수 방지 정보이며, Phase 4는 해당 group을 분할하지 않고 통째로 한 split에 배치한다. 과거 `v0.1.0`의 대응 값은 36개였다.
 
 사용자는 BaZi 150건·YEJI 150건을 항목별로 판독하지 않고 모두 통과시키라고 명시했다. 따라서 `APPROVAL.json`은 `explicit_owner_blanket_risk_acceptance`, `domain_item_review_performed=false`, `quality_certification_claimed=false`로 기록한다. 이 승인은 Phase 4 preflight 입력만 허용하며 `training_promotion_allowed=false`를 유지한다.
 
@@ -222,7 +223,7 @@ source build는 네 원천 manifest hash, audit build는 source build·감사 �
 - SHA-256이 고정된 `rules/shensha_51.json` 외의 YEJI 파일을 읽으면 실패한다.
 - 51개 condition을 원천 `chxb/shensha.js`와 대조하고 허용 stem·branch·60갑자 집합, mapping 내부 일관성을 검사한다.
 - `词馆` 원본의 `壬卯`는 그대로 보존하고, 독립 기준으로 확인한 `壬申`을 versioned correction overlay에서만 적용한다. 교정 ID·전후 값·근거·attribution을 파생 행에 남긴다.
-- 검증된 rule마다 정의, 조건 판정, 반례, 잘못된 판정 교정 태스크를 구조화 명식 조합으로 생성한다. 날짜·실존 인물은 사용하지 않는다.
+- 검증된 rule마다 정의, 조건 판정, 반례, 잘못된 판정 교정 태스크를 구조화 명식 조합으로 생성한다. 고정 `lunar-python==1.4.8` sdist와 SHA-256 counter로 1950-01-01~2050-12-31의 비공개 달력 anchor를 선택하고, 오호둔·오서둔이 성립하는 명식을 생성한 뒤 목표 판정을 다시 평가한다. 날짜는 provenance에만 두고 messages에는 넣지 않으며 실존 인물은 사용하지 않는다.
 - `meaning`은 soft reference로만 쓰며 죽음·질병·재난을 확정하는 문구는 중립적인 전통 해석 설명으로 제한한다.
 - `source_group_id = rule_id + chart_signature`, `leakage_group_id = chart:<SHA-256>`로 만들고 동일 명식은 다른 사주 원천과도 split을 넘지 않는다.
 
@@ -337,12 +338,12 @@ token 수, 512/768/1024 초과율, assistant loss token 비율과 special token 
 ## 산출물
 
 ```text
-data/staging/saju_1b_baseline/v0.1.0/build-109815ee6879/records/<mix-axis>.jsonl
-data/staging/saju_1b_baseline/v0.1.0/build-109815ee6879/candidate_order.jsonl
-data/staging/saju_1b_baseline/v0.1.0/build-109815ee6879/review_selection.json
-data/reports/saju_1b_baseline/preprocessing-staging/v0.1.0/build-109815ee6879/aggregate.json
-data/reports/saju_1b_baseline/preprocessing-staging/v0.1.0/build-109815ee6879/gate.accepted.json
-data/reports/saju_1b_baseline/preprocessing-staging/v0.1.0/build-109815ee6879/reviewer-v1.0.0/
+data/staging/saju_1b_baseline/v0.2.0/build-847088ee804d/records/<mix-axis>.jsonl
+data/staging/saju_1b_baseline/v0.2.0/build-847088ee804d/candidate_order.jsonl
+data/staging/saju_1b_baseline/v0.2.0/build-847088ee804d/review_selection.json
+data/reports/saju_1b_baseline/preprocessing-staging/v0.2.0/build-847088ee804d/aggregate.json
+data/reports/saju_1b_baseline/preprocessing-staging/v0.2.0/build-847088ee804d/gate.accepted.json
+data/reports/saju_1b_baseline/preprocessing-staging/v0.2.0/build-847088ee804d/reviewer-v1.0.0/
 data/reports/saju_1b_baseline/phase-verification/v1.0.0/review-20260828/
 
 # Phase 4에서만 생성
@@ -356,6 +357,8 @@ data/derived/saju_1b_baseline/v1.0.0/build-<derived-hash>/eval/<holdout-and-core
 - [DuckDB 1.5 Parquet 읽기](https://duckdb.org/docs/current/data/parquet/overview)
 - [DuckDB 1.5 JSON 개요](https://duckdb.org/docs/current/data/json/overview)
 - [TRL 1.12.0 dataset formats](https://huggingface.co/docs/trl/v1.12.0/en/dataset_formats)
+- [`lunar-python` 1.4.8 고정 릴리스](https://pypi.org/project/lunar-python/1.4.8/)
+- [`lunar-python` 공식 저장소·MIT 라이선스](https://github.com/6tail/lunar-python)
 
 ## 웹 확인 기록
 
@@ -369,6 +372,7 @@ data/derived/saju_1b_baseline/v1.0.0/build-<derived-hash>/eval/<holdout-and-core
 | 2026-08-27 | [AI Hub 데이터 이용정책](https://aihub.or.kr/intrcn/guid/usagepolicy.do) | 미승인 법인·단체·개인에 대한 열람·제공 금지를 재확인하고, 사용자가 동일 승인 범위라고 확인한 팀원에게만 최소 투영본을 내부 전달하도록 제한 |
 | 2026-08-28 | [AI Hub 데이터 이용정책](https://aihub.or.kr/intrcn/guid/usagepolicy.do) | 단순 팀 소속이 아니라 #86 동일 신청 포함 또는 AI Hub의 명시적 열람 권한이 필요하도록 공유 Gate를 강화 |
 | 2026-08-28 | 고정 원천·과거 build 재검증 | 현재 코드 fingerprint와 과거 승인 build를 혼용하지 않고 registry의 당시 commit·manifest·approval·decision hash로 audit v1.0~v1.2와 staging v0.1.0을 독립 검증 |
+| 2026-08-28 | `lunar-python` 공식 저장소와 PyPI 1.4.8 | MIT 라이선스, 무의존성 sdist, SHA-256 `3aa11c…d6`를 확인하고 달력 anchor 기반 명식 생성 backend로 고정 |
 
 ## 진행 기록
 
@@ -407,3 +411,8 @@ data/derived/saju_1b_baseline/v1.0.0/build-<derived-hash>/eval/<holdout-and-core
   - 변경 범위: YEJI 명식을 `lunar-python==1.4.8` 고정 sdist에서 결정론적 유효 달력 명식으로 생성하고 오호둔·오서둔을 이중 검증한다. AI Hub turn projection provenance, 겹침 가능한 정책 필터 집계, Nemotron 나이 `19~99` fail-closed 검증과 승인 hash chain을 추가했다.
   - 검증: Ruff·Python compile·전처리 단위 테스트 12건과 YEJI 1,200건 생성 검사를 통과했다. 생성 명식은 고유 1,200건·역법 관계 유효 1,200건이고 최대 탐색 65회, 평균 3.374167회다.
   - 남은 이슈·후속 작업: 구현 commit을 고정한 뒤 새 24K build를 생성·자동 검증하고 사용자 지시에 따른 위험 수용을 별도 기록한다. 그 결과를 부모로 Phase 4A~E를 다시 실행하기 전까지 기존 승격 상태는 바꾸지 않는다.
+- 2026-08-28
+  - 작업 요약: 새 staging `v0.2.0/build-847088ee804d` 24,000행을 생성·재검증하고, 사용자 지시에 따라 자동 검증 기반 위험 수용을 기록했다.
+  - 변경 범위: 기존 `v0.1.0`은 불변으로 보존했다. 새 공개 aggregate·Gate·승인 hash chain과 registry 포인터를 추가했으며 비공개 원문·달력 anchor·판정 원장은 Git에서 제외했다.
+  - 검증: 고유 ID/message 24,000, 축별 수량, AI Hub 축 교집합 0, BaZi 완전 group 1,500개, 역법 관계 Nemotron 13,200/13,200·BaZi 6,000/6,000·YEJI 1,200/1,200을 통과했다. Nemotron 나이 오류 0건, 영문 일치 49,248건, AI Hub 2쌍 10,891건·3쌍 47,377건을 기록했다.
+  - 남은 이슈·후속 작업: 항목별 전문 검수와 품질 인증은 수행하지 않았고 `training_promotion_allowed=false`다. 새 부모로 Phase 4A~E를 다시 실행해 기술 Gate를 별도로 판정한다.

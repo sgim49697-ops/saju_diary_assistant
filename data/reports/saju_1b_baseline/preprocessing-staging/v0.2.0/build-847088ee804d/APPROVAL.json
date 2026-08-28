@@ -1,0 +1,19 @@
+{
+  "accepted_at": "2026-08-28T09:12:50+00:00",
+  "accepted_review_units": 300,
+  "approval_basis": "explicit_owner_blanket_risk_acceptance",
+  "approved_for": "phase4_preflight_only",
+  "automated_validation_passed": true,
+  "build_id": "build-847088ee804d",
+  "build_sha256": "847088ee804d8bc8933c0d83767a2251fc820ae3cb4235965a9a27a3f0f34801",
+  "dataset_name": "saju_1b_baseline",
+  "decision_counts": {
+    "accept": 300
+  },
+  "domain_item_review_performed": false,
+  "implementation_commit": "21705fe72fefe5bd9933a9ac9cc2cf30aad08ce7",
+  "quality_certification_claimed": false,
+  "schema_version": "1.0.0",
+  "staging_version": "v0.2.0",
+  "training_promotion_allowed": false
+}

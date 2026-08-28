@@ -1,0 +1,13 @@
+{
+  "build_id": "build-847088ee804d",
+  "contains_samples": false,
+  "data_delivery": "loopback_api_from_gitignored_staging",
+  "dataset_name": "saju_1b_baseline",
+  "review_counts": {
+    "bazi_sft": 150,
+    "yeji_shensha_derived": 150
+  },
+  "reviewer_version": "reviewer-v1.0.0",
+  "schema_version": "1.0.0",
+  "staging_version": "v0.2.0"
+}
