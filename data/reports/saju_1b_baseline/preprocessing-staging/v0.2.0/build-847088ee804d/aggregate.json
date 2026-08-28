@@ -1,0 +1,280 @@
+{
+  "adapter_reports": {
+    "aihub_empathy": {
+      "adapter_version": "1.1.0",
+      "cross_axis_group_overlap": 0,
+      "eligible_rows_scanned": 53768,
+      "eligible_talk_groups": 48190,
+      "filter_counts": {
+        "eligible_rows_scanned": 53768,
+        "excluded_policy_union": 4500,
+        "excluded_primary_ascii_word": 0,
+        "excluded_primary_clinical": 2424,
+        "excluded_primary_financial": 21,
+        "excluded_primary_hate_or_violence": 227,
+        "excluded_primary_legal": 0,
+        "excluded_primary_medical": 1393,
+        "excluded_primary_pii": 0,
+        "excluded_primary_self_harm": 435,
+        "matched_ascii_word": 0,
+        "matched_clinical": 2487,
+        "matched_financial": 28,
+        "matched_hate_or_violence": 235,
+        "matched_legal": 0,
+        "matched_medical": 1708,
+        "matched_pii": 0,
+        "matched_self_harm": 435,
+        "source_pair_count_2": 10891,
+        "source_pair_count_3": 47377,
+        "source_rows_scanned": 58268
+      },
+      "selected_groups": {
+        "aihub_empathy_multiturn": 1200,
+        "aihub_empathy_single": 2400
+      },
+      "selected_rows": 3600,
+      "selected_source_pair_count_distribution": {
+        "aihub_empathy_multiturn": {
+          "2": 226,
+          "3": 974
+        },
+        "aihub_empathy_single": {
+          "2": 444,
+          "3": 1956
+        }
+      },
+      "source_rows_scanned": 58268
+    },
+    "bazi_sft": {
+      "adapter_version": "1.1.0",
+      "eligible_groups_scanned": 25000,
+      "filter_counts": {
+        "eligible_groups_scanned": 25000,
+        "excluded_duplicate_chart": 5,
+        "source_groups_scanned": 25000,
+        "source_rows_scanned": 100000
+      },
+      "full_rule_validation": true,
+      "question_type_counts": {
+        "career": 1500,
+        "element_balance": 1500,
+        "general_natal": 1500,
+        "relationships": 1500
+      },
+      "selected_groups": 1500,
+      "selected_rows": 6000,
+      "source_groups_scanned": 25000,
+      "source_rows_scanned": 100000
+    },
+    "nemotron_saju": {
+      "adapter_version": "1.1.0",
+      "eligible_rows_scanned": 761985,
+      "filter_counts": {
+        "eligible_scanned": 761985,
+        "excluded_duplicate_chart": 360,
+        "excluded_invalid_age": 0,
+        "excluded_policy_union": 238015,
+        "excluded_primary_ascii_word": 40806,
+        "excluded_primary_certainty": 3270,
+        "excluded_primary_death_accident": 4167,
+        "excluded_primary_financial_guarantee": 5,
+        "excluded_primary_health": 189764,
+        "excluded_primary_replacement_character": 3,
+        "matched_ascii_word": 49248,
+        "matched_certainty": 3830,
+        "matched_death_accident": 5029,
+        "matched_financial_guarantee": 7,
+        "matched_health": 189765,
+        "matched_replacement_character": 3,
+        "rows_scanned": 1000000
+      },
+      "selected_rows": 13200,
+      "selected_variants": {
+        "v6": 2640,
+        "v7": 10560
+      },
+      "source_rows_scanned": 1000000
+    },
+    "yeji_shensha_derived": {
+      "adapter_version": "1.1.0",
+      "applied_correction_ids": [
+        "YEJI_CIGUAN_GOLD_PILLAR",
+        "YEJI_DEXIU_MAPPING",
+        "YEJI_DEXIU_RULE_DESCRIPTION",
+        "YEJI_TONGZI_COMPLEX_RULE",
+        "YEJI_WUGUI_CATEGORY"
+      ],
+      "calendar_backend": {
+        "algorithm": "sha256-counter-v1",
+        "anchor_end": "2050-12-31",
+        "anchor_hours": [
+          0,
+          2,
+          4,
+          6,
+          8,
+          10,
+          12,
+          14,
+          16,
+          18,
+          20,
+          22
+        ],
+        "anchor_start": "1950-01-01",
+        "artifact_sha256": "3aa11cc73c25e70ddf0ba5bdac7398c03acc9491a3aa512a91c9642973b669d6",
+        "distribution": "lunar-python",
+        "version": "1.4.8"
+      },
+      "calendar_relation_valid_rows": 1200,
+      "case_type_counts": {
+        "correction": 383,
+        "definition": 51,
+        "negative": 383,
+        "positive": 383
+      },
+      "evaluator_status_counts": {
+        "corrected_overlay": 97,
+        "verified_exact": 1103
+      },
+      "evaluator_version": "v1.0.0",
+      "generation_attempts": {
+        "max": 65,
+        "mean": 3.374167
+      },
+      "rule_coverage": 51,
+      "selected_rows": 1200,
+      "source_rule_count": 51,
+      "unique_chart_count": 1200,
+      "unsupported_rule_ids": []
+    }
+  },
+  "approval_status": "staging_unapproved",
+  "build_id": "build-847088ee804d",
+  "contains_raw_samples": false,
+  "dataset_name": "saju_1b_baseline",
+  "schema_version": "1.0.0",
+  "scope": {
+    "baseline": "MIX20K",
+    "final_train_rows": 20000,
+    "full_source_conversion": false,
+    "reserve_ratio": 0.2,
+    "staging_rows": 24000
+  },
+  "staging_version": "v0.2.0",
+  "validation": {
+    "aihub_cross_axis_group_overlap": 0,
+    "bazi_complete_group_count": 1500,
+    "calendar_relation_valid_rows": {
+      "bazi_sft": 6000,
+      "nemotron_saju": 13200,
+      "yeji_shensha_derived": 1200
+    },
+    "length_stats": {
+      "aihub_empathy_multiturn": {
+        "assistant_chars": {
+          "count": 1200,
+          "max": 132,
+          "mean": 57.890833,
+          "p50": 57,
+          "p90": 79,
+          "p95": 85
+        },
+        "input_chars": {
+          "count": 1200,
+          "max": 222,
+          "mean": 116.2975,
+          "p50": 116,
+          "p90": 140,
+          "p95": 146
+        }
+      },
+      "aihub_empathy_single": {
+        "assistant_chars": {
+          "count": 2400,
+          "max": 81,
+          "mean": 27.585417,
+          "p50": 26,
+          "p90": 40,
+          "p95": 45
+        },
+        "input_chars": {
+          "count": 2400,
+          "max": 152,
+          "mean": 87.32,
+          "p50": 88,
+          "p90": 101,
+          "p95": 105
+        }
+      },
+      "bazi_sft": {
+        "assistant_chars": {
+          "count": 6000,
+          "max": 547,
+          "mean": 413.351333,
+          "p50": 404,
+          "p90": 533,
+          "p95": 538
+        },
+        "input_chars": {
+          "count": 6000,
+          "max": 242,
+          "mean": 237.75,
+          "p50": 239,
+          "p90": 242,
+          "p95": 242
+        }
+      },
+      "nemotron_saju": {
+        "assistant_chars": {
+          "count": 13200,
+          "max": 1081,
+          "mean": 580.280758,
+          "p50": 565,
+          "p90": 692,
+          "p95": 739
+        },
+        "input_chars": {
+          "count": 13200,
+          "max": 703,
+          "mean": 569.437727,
+          "p50": 571,
+          "p90": 614,
+          "p95": 626
+        }
+      },
+      "yeji_shensha_derived": {
+        "assistant_chars": {
+          "count": 1200,
+          "max": 185,
+          "mean": 149.761667,
+          "p50": 160,
+          "p90": 174,
+          "p95": 176
+        },
+        "input_chars": {
+          "count": 1200,
+          "max": 161,
+          "mean": 151.918333,
+          "p50": 149,
+          "p90": 159,
+          "p95": 159
+        }
+      }
+    },
+    "role_patterns": {
+      "system,user,assistant": 22800,
+      "system,user,assistant,user,assistant": 1200
+    },
+    "row_counts": {
+      "aihub_empathy_multiturn": 1200,
+      "aihub_empathy_single": 2400,
+      "bazi_sft": 6000,
+      "nemotron_saju": 13200,
+      "yeji_shensha_derived": 1200
+    },
+    "total_rows": 24000,
+    "unique_message_hashes": 24000,
+    "unique_record_ids": 24000
+  }
+}

@@ -187,6 +187,10 @@ def _implementation_paths(config: dict[str, Any]) -> list[str]:
         "scripts/preflight/phase4_common.py",
         "scripts/preflight/phase4_data.py",
         "scripts/preflight/phase4_k0.py",
+        "scripts/preflight/phase4_triage.py",
+        "scripts/preflight/phase4_smoke.py",
+        "scripts/preflight/phase4_finalize.py",
+        "scripts/preflight/phase4_verify_history.py",
         "scripts/preflight/phase4_review.py",
         "scripts/preflight/phase4_preflight.py",
         "scripts/preflight/review_assets/START_HERE.html",
@@ -199,20 +203,20 @@ def _implementation_paths(config: dict[str, Any]) -> list[str]:
 def validate_contract(config: dict[str, Any], repo_root: Path) -> dict[str, Any]:
     if config.get("schema_version") != "1.0.0":
         raise Phase4Error("Phase 4 설정 schema_version은 1.0.0이어야 합니다.")
-    if config.get("canonical_plan_version") != "2.5.0":
-        raise Phase4Error("Phase 4 정본 버전은 2.5.0이어야 합니다.")
+    if config.get("canonical_plan_version") != "2.6.0":
+        raise Phase4Error("Phase 4 정본 버전은 2.6.0이어야 합니다.")
     if config.get("dataset_name") != "saju_1b_baseline":
         raise Phase4Error("Phase 4 dataset_name이 다릅니다.")
-    if config.get("preflight_version") != "v1.0.0" or config.get("seed") != 42:
+    if config.get("preflight_version") != "v1.1.0" or config.get("seed") != 42:
         raise Phase4Error("Phase 4 version 또는 seed가 다릅니다.")
 
     parent = config.get("parent_staging")
     if not isinstance(parent, dict) or parent != {
-        "version": "v0.1.0",
-        "build_id": "build-109815ee6879",
-        "build_sha256": "109815ee687980e417c5831abd5a558e3790c8197051561844ef64417f0d4b41",
-        "implementation_commit": "88818017f37a998e4469345d2d6392be16d0ace3",
-        "approval_sha256": "15b7a34257071bbe9d6c4cdaedeaa288c56bfcb409dc498bd759f0b4a5966d29",
+        "version": "v0.2.0",
+        "build_id": "build-847088ee804d",
+        "build_sha256": "847088ee804d8bc8933c0d83767a2251fc820ae3cb4235965a9a27a3f0f34801",
+        "implementation_commit": "21705fe72fefe5bd9933a9ac9cc2cf30aad08ce7",
+        "approval_sha256": "3be8fa8c2d9948bcbe3c8a8367026ac814ad86e2087e6c2d32701a88e4de7c52",
     }:
         raise Phase4Error("승인된 24K staging 부모 계약이 다릅니다.")
 
@@ -269,8 +273,12 @@ def validate_contract(config: dict[str, Any], repo_root: Path) -> dict[str, Any]
         raise Phase4Error("Phase 4 split 수량 계약이 다릅니다.")
     if split.get("token_share_policy") != "report_only_no_threshold":
         raise Phase4Error("출처별 token share는 report-only여야 합니다.")
-    if split.get("promotable_max_lengths") != [1024, 768]:
-        raise Phase4Error("정식 학습 후보 길이는 1024와 768이어야 합니다.")
+    if (
+        split.get("formal_max_length") != 768
+        or split.get("diagnostic_max_length") != 1024
+        or split.get("smoke_only_max_length") != 512
+    ):
+        raise Phase4Error("Phase 4 길이별 기술 검증 계약이 다릅니다.")
 
     core_eval = split.get("core_eval")
     expected_core_eval = {
@@ -297,11 +305,114 @@ def validate_contract(config: dict[str, Any], repo_root: Path) -> dict[str, Any]
     }:
         raise Phase4Error("K0 generation 계약이 다릅니다.")
 
+    reuse = config.get("k0_reuse")
+    if (
+        not isinstance(reuse, dict)
+        or reuse.get("source_build_id") != "build-9cf4fdb83bbd"
+        or reuse.get("source_run_manifest_sha256")
+        != "d06b44548d76b311e2f8b2decf64dc253a147e8d581907101bf2cfea44f7c65f"
+        or reuse.get("source_run_config_sha256")
+        != "63bf2dd5053037e4c4d273f2107267dbe7e551ac20a2038033a119f16e926243"
+        or reuse.get("reuse_key")
+        != "model-template-generation-prompt-sha256"
+        or reuse.get("recompute_metrics") is not True
+    ):
+        raise Phase4Error("K0 교차 build 재사용 계약이 다릅니다.")
+    resolve_repo_path(repo_root, str(reuse.get("source_root", "")))
+
+    triage = config.get("triage")
+    if not isinstance(triage, dict) or triage != {
+        "evaluation_items": 700,
+        "generation_cases": 720,
+        "priority_limit": 40,
+        "severity_order": ["critical", "high", "medium", "low"],
+        "human_domain_review_performed": False,
+    }:
+        raise Phase4Error("K0 자동 위험 분류 계약이 다릅니다.")
+
+    smoke = config.get("training_smoke")
+    expected_smoke = {
+        "full_parameter_count": 1_291_478_272,
+        "dtype": "bfloat16",
+        "attention_backend": "sdpa",
+        "per_device_train_batch_size": 1,
+        "gradient_accumulation_steps": 8,
+        "gradient_checkpointing": True,
+        "use_cache": False,
+        "optimizer": "paged_adamw_8bit",
+        "assistant_only_loss": True,
+        "packing": False,
+        "loss_type": "chunked_nll",
+        "learning_rate": 8.0e-6,
+        "warmup_ratio": 0.03,
+        "lr_scheduler_type": "cosine",
+        "weight_decay": 0.01,
+        "max_grad_norm": 1.0,
+        "seed": 42,
+        "data_seed": 42,
+        "minimum_vram_headroom_bytes": 1_073_741_824,
+    }
+    if not isinstance(smoke, dict) or any(
+        smoke.get(key) != value for key, value in expected_smoke.items()
+    ):
+        raise Phase4Error("Phase 4D/E 학습 smoke 계약이 다릅니다.")
+    stages = smoke.get("stages")
+    expected_stages = {
+        "gate_d_512_1": {
+            "max_length": 512,
+            "optimizer_steps": 1,
+            "manifest": "mix1k_smoke_512_v1.jsonl",
+        },
+        "smoke_512_20": {
+            "max_length": 512,
+            "optimizer_steps": 20,
+            "manifest": "mix1k_smoke_512_v1.jsonl",
+        },
+        "diagnostic_1024_1": {
+            "max_length": 1024,
+            "optimizer_steps": 1,
+            "manifest": "mix1k_candidate_v1.jsonl",
+        },
+        "main_768_100": {
+            "max_length": 768,
+            "optimizer_steps": 100,
+            "total_optimizer_steps": 200,
+            "checkpoint_step": 100,
+            "manifest": "mix1k_candidate_v1.jsonl",
+        },
+        "resume_768_200": {
+            "max_length": 768,
+            "optimizer_steps": 200,
+            "resume_step": 100,
+            "checkpoint_step": 200,
+            "manifest": "mix1k_candidate_v1.jsonl",
+        },
+        "reload_768_generate5": {
+            "max_length": 768,
+            "checkpoint_step": 200,
+            "task_count": 5,
+            "max_new_tokens": 64,
+        },
+    }
+    if not isinstance(stages, dict) or stages != expected_stages:
+        raise Phase4Error("Phase 4D/E stage 구성이 다릅니다.")
+    if smoke.get("forbidden_automatic_changes") != [
+        "cpu_offload",
+        "deepspeed",
+        "lora",
+        "packing",
+        "torch_compile",
+        "flash_attention",
+    ]:
+        raise Phase4Error("Phase 4D/E 자동 변경 금지 계약이 다릅니다.")
+
     outputs = config.get("outputs")
     if not isinstance(outputs, dict):
         raise Phase4Error("Phase 4 출력 경로 계약이 없습니다.")
-    for key in ("private_root", "public_root", "k0_root"):
+    for key in ("private_root", "public_root", "k0_root", "smoke_root"):
         resolve_repo_path(repo_root, str(outputs.get(key, "")).format(build_id="build-000000000000"))
+    for key in ("canonical_root", "canonical_public_root"):
+        resolve_repo_path(repo_root, str(outputs.get(key, "")))
 
     ignore = (repo_root / ".gitignore").read_text(encoding="utf-8")
     for fragment in ("/data/derived/", "/data/eval/", "/runs/", "/.venv/"):
@@ -319,6 +430,7 @@ def validate_contract(config: dict[str, Any], repo_root: Path) -> dict[str, Any]
         "model_revision": model["revision"],
         "core_eval_rows": 200,
         "source_holdout_rows": 500,
+        "formal_max_length": 768,
         "training_promotion_allowed": False,
     }
 
@@ -390,6 +502,10 @@ def prepare_context(
         },
         "seed": config["seed"],
         "split_contract_sha256": sha256_json(config["split"]),
+        "generation_contract_sha256": sha256_json(config["generation"]),
+        "k0_reuse_contract_sha256": sha256_json(config["k0_reuse"]),
+        "triage_contract_sha256": sha256_json(config["triage"]),
+        "training_smoke_contract_sha256": sha256_json(config["training_smoke"]),
     }
     build_sha256 = sha256_json(build_inputs)
     build_id = f"build-{build_sha256[:12]}"
@@ -401,6 +517,9 @@ def prepare_context(
         repo_root, outputs["public_root"].format(build_id=build_id)
     )
     k0_root = resolve_repo_path(repo_root, outputs["k0_root"].format(build_id=build_id))
+    smoke_root = resolve_repo_path(
+        repo_root, outputs["smoke_root"].format(build_id=build_id)
+    )
     return {
         "build_id": build_id,
         "build_inputs": build_inputs,
@@ -408,6 +527,11 @@ def prepare_context(
         "config": config,
         "config_path": config_path,
         "k0_root": k0_root,
+        "smoke_root": smoke_root,
+        "canonical_root": resolve_repo_path(repo_root, outputs["canonical_root"]),
+        "canonical_public_root": resolve_repo_path(
+            repo_root, outputs["canonical_public_root"]
+        ),
         "parent_verification": parent_result,
         "phase3_verification": phase3_result,
         "private_root": private_root,

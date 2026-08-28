@@ -1,0 +1,161 @@
+{
+  "backward_performed": false,
+  "build_id": "build-9cf4fdb83bbd",
+  "build_sha256": "9cf4fdb83bbdf44393640475b9a86964c7639b0fde5a159943324009999ca7b5",
+  "categories": {
+    "contradiction_hallucination": {
+      "automated_contract_evaluated": 35,
+      "automated_contract_passed": 0,
+      "cases": 35,
+      "eos_finished": 6,
+      "mean_generated_tokens": 503.6857,
+      "mean_reference_char_bigram_f1": 0.135946,
+      "nonempty": 35
+    },
+    "empathy": {
+      "automated_contract_evaluated": 0,
+      "automated_contract_passed": 0,
+      "cases": 20,
+      "eos_finished": 20,
+      "mean_generated_tokens": 67.25,
+      "mean_reference_char_bigram_f1": 0.072963,
+      "nonempty": 20
+    },
+    "general_korean_instruction": {
+      "automated_contract_evaluated": 5,
+      "automated_contract_passed": 4,
+      "cases": 5,
+      "eos_finished": 5,
+      "mean_generated_tokens": 12.4,
+      "mean_reference_char_bigram_f1": null,
+      "nonempty": 5
+    },
+    "grounded_rule_reading": {
+      "automated_contract_evaluated": 0,
+      "automated_contract_passed": 0,
+      "cases": 35,
+      "eos_finished": 2,
+      "mean_generated_tokens": 506.5143,
+      "mean_reference_char_bigram_f1": 0.147466,
+      "nonempty": 35
+    },
+    "missing_chart_handoff": {
+      "automated_contract_evaluated": 5,
+      "automated_contract_passed": 5,
+      "cases": 5,
+      "eos_finished": 4,
+      "mean_generated_tokens": 213.4,
+      "mean_reference_char_bigram_f1": null,
+      "nonempty": 5
+    },
+    "multiturn": {
+      "automated_contract_evaluated": 0,
+      "automated_contract_passed": 0,
+      "cases": 15,
+      "eos_finished": 15,
+      "mean_generated_tokens": 86.8,
+      "mean_reference_char_bigram_f1": 0.053537,
+      "nonempty": 15
+    },
+    "same_chart_consistency": {
+      "automated_contract_evaluated": 0,
+      "automated_contract_passed": 0,
+      "cases": 40,
+      "eos_finished": 9,
+      "mean_generated_tokens": 483.475,
+      "mean_reference_char_bigram_f1": 0.133176,
+      "nonempty": 40
+    },
+    "shensha_rule_qa": {
+      "automated_contract_evaluated": 20,
+      "automated_contract_passed": 8,
+      "cases": 20,
+      "eos_finished": 8,
+      "mean_generated_tokens": 469.15,
+      "mean_reference_char_bigram_f1": 0.077171,
+      "nonempty": 20
+    },
+    "source_holdout": {
+      "automated_contract_evaluated": 0,
+      "automated_contract_passed": 0,
+      "cases": 500,
+      "eos_finished": 262,
+      "mean_generated_tokens": 324.664,
+      "mean_reference_char_bigram_f1": 0.110482,
+      "nonempty": 500
+    },
+    "structured_natal_reading": {
+      "automated_contract_evaluated": 0,
+      "automated_contract_passed": 0,
+      "cases": 45,
+      "eos_finished": 16,
+      "mean_generated_tokens": 466.7556,
+      "mean_reference_char_bigram_f1": 0.207971,
+      "nonempty": 45
+    }
+  },
+  "control_character_outputs": 0,
+  "cross_build_reused_cases": 413,
+  "determinism_replay_passed": true,
+  "elapsed_seconds": 4500.551,
+  "empty_outputs": 0,
+  "evaluation_items": 700,
+  "gate_c_passed": true,
+  "generated_at": "2026-08-28T10:58:06+00:00",
+  "generation_cases": 720,
+  "locally_generated_cases": 307,
+  "max_new_tokens": 512,
+  "new_generation_cases": 307,
+  "optimizer_created": false,
+  "peak_vram_bytes": 2752092672,
+  "phase4_training_smoke_allowed": true,
+  "quality_threshold_policy": "report_only_except_pipeline_integrity_and_missing_chart_safety",
+  "raw_samples_in_summary": false,
+  "report_type": "k0_instruct_summary",
+  "reuse_contract": {
+    "recompute_metrics": true,
+    "reuse_key": "model-template-generation-prompt-sha256",
+    "source_build_id": "build-a6813ba3b778",
+    "source_root": "runs/K0-INSTRUCT/v1.0.0/build-a6813ba3b778",
+    "source_run_config_sha256": "7d3811241801a41a317208f1a34459d7f20820f79059fbec3eaa6be0e7f22b42",
+    "source_run_manifest_sha256": "67d6ca3b80dea0b43d0dab033ca24add166bd170ed7143b103827475f1602ab1"
+  },
+  "runtime": {
+    "attention_backend": "sdpa",
+    "device": "cuda:0",
+    "gpu_capability": [
+      12,
+      0
+    ],
+    "gpu_name": "NVIDIA GeForce RTX 5070 Ti",
+    "parameter_count": 1291478272,
+    "parameter_dtype": "torch.bfloat16",
+    "torch": "2.13.0+cu130",
+    "torch_cuda": "13.0",
+    "transformers": "4.57.6"
+  },
+  "runtime_headers": {
+    "file_count": 164,
+    "manifest_sha256": "ff556bf9337745ad84f012d575158511b7f7306a5ced0a1a1a96ef9df6e7b466",
+    "root": ".venv/phase4-runtime/libpython3.10-dev-3.10.12-1~22.04.16",
+    "status": "verified"
+  },
+  "safety_violation_result_ids": [],
+  "safety_violations": 0,
+  "schema_version": "1.0.0",
+  "special_token_text_outputs": 0,
+  "status": "passed",
+  "system_ram": {
+    "available_bytes_at_finish": 13733289984,
+    "total_bytes": 16769019904
+  },
+  "training_performed": false,
+  "training_promotion_allowed": false,
+  "vram_free_bytes_at_finish": 12760121344,
+  "vram_total_bytes": 17094475776,
+  "yarn_warning": {
+    "configuration_modified": false,
+    "implicit_original_context_ratio": 8.0,
+    "upstream_factor": 40.0
+  }
+}

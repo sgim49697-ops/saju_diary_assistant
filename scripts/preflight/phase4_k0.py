@@ -385,6 +385,69 @@ def _load_existing_result(path: Path, expected: dict[str, Any]) -> dict[str, Any
     return value
 
 
+def _reuse_contract(run_config: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "model": run_config.get("model"),
+        "chat_template_sha256": run_config.get("chat_template_sha256"),
+        "generation": run_config.get("generation"),
+        "seed": run_config.get("seed"),
+        "runtime_header_manifest_sha256": run_config.get(
+            "runtime_header_manifest_sha256"
+        ),
+        "evaluation": run_config.get("evaluation"),
+        "execution_contract": run_config.get("execution_contract"),
+        "training_promotion_allowed": run_config.get("training_promotion_allowed"),
+    }
+
+
+def _load_cross_build_reuse(
+    context: dict[str, Any], repo_root: Path, current_run_config: dict[str, Any]
+) -> dict[str, dict[str, Any]]:
+    reuse = context["config"]["k0_reuse"]
+    source_root = repo_root / reuse["source_root"]
+    manifest_path = source_root / "run_manifest.json"
+    config_path = source_root / "run_config.json"
+    if (
+        source_root.is_symlink()
+        or not source_root.is_dir()
+        or sha256_file(manifest_path) != reuse["source_run_manifest_sha256"]
+        or sha256_file(config_path) != reuse["source_run_config_sha256"]
+    ):
+        raise Phase4Error("K0 재사용 원본 경로 또는 고정 hash가 다릅니다.")
+    manifest = load_json(manifest_path, "K0 재사용 원본 manifest")
+    source_config = load_json(config_path, "K0 재사용 원본 config")
+    if (
+        manifest.get("build_id") != reuse["source_build_id"]
+        or manifest.get("status") != "passed"
+        or manifest.get("training_promotion_allowed") is not False
+        or _reuse_contract(source_config) != _reuse_contract(current_run_config)
+    ):
+        raise Phase4Error("K0 재사용 원본의 모델·template·generation 계약이 다릅니다.")
+    verify_hash_map(source_root, manifest.get("artifact_sha256"), "K0 재사용 원본")
+    rows = read_jsonl(source_root / "results.jsonl", "K0 재사용 results")
+    reuse_by_prompt: dict[str, dict[str, Any]] = {}
+    for row in rows:
+        relative = row.get("item_path")
+        if not isinstance(relative, str):
+            raise Phase4Error("K0 재사용 result item 경로가 없습니다.")
+        item = load_json(source_root / relative, "K0 재사용 item")
+        prompt_sha256 = item.get("prompt_sha256")
+        if not isinstance(prompt_sha256, str):
+            raise Phase4Error("K0 재사용 item prompt hash가 없습니다.")
+        existing = reuse_by_prompt.get(prompt_sha256)
+        if existing is not None and (
+            existing.get("prompt_messages") != item.get("prompt_messages")
+            or existing.get("generated_ids") != item.get("generated_ids")
+            or existing.get("output") != item.get("output")
+        ):
+            raise Phase4Error("같은 K0 prompt의 재사용 출력이 서로 다릅니다.")
+        item["source_item_sha256"] = sha256_file(source_root / relative)
+        reuse_by_prompt[prompt_sha256] = item
+    if len(rows) != 720:
+        raise Phase4Error("K0 재사용 원본은 정확히 720case여야 합니다.")
+    return reuse_by_prompt
+
+
 def _result_projection(value: dict[str, Any], relative: str) -> dict[str, Any]:
     return {
         "schema_version": "1.0.0",
@@ -434,10 +497,12 @@ def run_k0(context: dict[str, Any], repo_root: Path) -> dict[str, Any]:
     if (root / "run_manifest.json").exists():
         return {**verify_k0_run(context, repo_root), "mode": "reused", "writes_performed": False}
 
+    reuse_by_prompt = _load_cross_build_reuse(context, repo_root, run_config)
     started = time.monotonic()
     torch, tokenizer, model, runtime = _load_model(context, repo_root)
     completed_values: list[dict[str, Any]] = []
     new_count = 0
+    cross_build_reused = 0
     first_generation_ids: list[int] | None = None
     try:
         for index, case in enumerate(cases, 1):
@@ -445,12 +510,27 @@ def run_k0(context: dict[str, Any], repo_root: Path) -> dict[str, Any]:
             path = root / relative
             existing = _load_existing_result(path, case)
             if existing is None:
-                generated = _generate(
-                    torch,
-                    tokenizer,
-                    model,
-                    case["prompt_messages"],
-                    context["config"]["generation"],
+                reused = reuse_by_prompt.get(case["prompt_sha256"])
+                if reused is not None and reused.get("prompt_messages") != case[
+                    "prompt_messages"
+                ]:
+                    raise Phase4Error("K0 재사용 prompt hash와 messages가 다릅니다.")
+                generated = (
+                    {
+                        "text": reused["output"],
+                        "generated_ids": reused["generated_ids"],
+                        "input_tokens": reused["input_tokens"],
+                        "generated_tokens": reused["generated_tokens"],
+                        "finished_with_eos": reused["finished_with_eos"],
+                    }
+                    if reused is not None
+                    else _generate(
+                        torch,
+                        tokenizer,
+                        model,
+                        case["prompt_messages"],
+                        context["config"]["generation"],
+                    )
                 )
                 metrics = _score_output(
                     case["category"],
@@ -478,15 +558,26 @@ def run_k0(context: dict[str, Any], repo_root: Path) -> dict[str, Any]:
                     "finished_with_eos": generated["finished_with_eos"],
                     "metrics": metrics,
                 }
+                if reused is not None:
+                    existing["reuse_provenance"] = {
+                        "source_build_id": context["config"]["k0_reuse"][
+                            "source_build_id"
+                        ],
+                        "source_result_id": reused["result_id"],
+                        "source_item_sha256": reused["source_item_sha256"],
+                        "metrics_recomputed": True,
+                    }
+                    cross_build_reused += 1
+                else:
+                    new_count += 1
                 write_json_once(path, existing, mode=PRIVATE_FILE_MODE)
-                new_count += 1
             existing["absolute_path"] = str(path)
             completed_values.append(existing)
             if index == 1:
                 first_generation_ids = existing["generated_ids"]
             if index % 10 == 0 or index == len(cases):
                 print(
-                    f"k0_progress={index}/{len(cases)} new={new_count}",
+                    f"k0_progress={index}/{len(cases)} new={new_count} reused={cross_build_reused}",
                     file=sys.stderr,
                     flush=True,
                 )
@@ -509,6 +600,10 @@ def run_k0(context: dict[str, Any], repo_root: Path) -> dict[str, Any]:
         _result_projection(value, f"items/{value['result_id']}.json")
         for value in completed_values
     ]
+    cross_build_reused = sum(
+        "reuse_provenance" in value for value in completed_values
+    )
+    locally_generated = len(completed_values) - cross_build_reused
     by_category: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for value in projections:
         by_category[value["category"]].append(value)
@@ -565,6 +660,9 @@ def run_k0(context: dict[str, Any], repo_root: Path) -> dict[str, Any]:
         "evaluation_items": 700,
         "generation_cases": len(projections),
         "new_generation_cases": new_count,
+        "cross_build_reused_cases": cross_build_reused,
+        "locally_generated_cases": locally_generated,
+        "reuse_contract": context["config"]["k0_reuse"],
         "empty_outputs": empty_count,
         "control_character_outputs": control_count,
         "special_token_text_outputs": special_count,
@@ -629,6 +727,10 @@ def verify_k0_run(context: dict[str, Any], repo_root: Path) -> dict[str, Any]:
         or summary.get("optimizer_created") is not False
         or summary.get("backward_performed") is not False
         or summary.get("training_promotion_allowed") is not False
+        or summary.get("cross_build_reused_cases", 0)
+        + summary.get("locally_generated_cases", 0)
+        != 720
+        or summary.get("reuse_contract") != context["config"]["k0_reuse"]
     ):
         raise Phase4Error("K0 run identity 또는 비학습 계약이 다릅니다.")
     verify_hash_map(root, manifest.get("artifact_sha256"), "K0")

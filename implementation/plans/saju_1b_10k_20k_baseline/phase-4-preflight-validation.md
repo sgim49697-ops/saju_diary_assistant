@@ -2,10 +2,10 @@
 
 | 항목 | 값 |
 |---|---|
-| 실행 상태 | 부분 진행 |
+| 실행 상태 | 완료 |
 | 선행 Phase | Phase 2·3 완료 |
-| 입력 | unified v1·후보 순서·혼합 계약, 고정 Instruct 환경, eval set |
-| 출력 | A~C candidate manifest·eval·K0 보고서, D~E의 선택된 `max_length`·smoke checkpoint |
+| 입력 | 승인 staging `v0.2.0/build-847088ee804d`, 고정 Instruct 환경, eval set |
+| 출력 | `v1.1.0/build-a1a34616dd72` canonical manifest·eval, A~E 공개 보고서 |
 | 완료 Gate | 데이터 Gate와 모델·메모리 Gate 동시 통과 |
 | 웹 확인일 | 2026-08-28 |
 
@@ -15,12 +15,14 @@
 
 ## Phase 4A~C 비학습 실행 경계
 
-정본 v2.5에서 A~C와 D~E를 분리한다. A~C는 승인된 24K staging의 불변 부모를 검증하고, holdout·Core Eval과 학습 후보 manifest를 고정하며, 원본 모델 K0를 inference-only로 평가한다. 이 구간에서는 optimizer·gradient·backward·checkpoint를 만들지 않는다. A~C 통과는 D/E 학습 smoke를 시작할 수 있다는 뜻일 뿐 `training_promotion_allowed=true`나 canonical 학습 manifest 승격을 뜻하지 않는다.
+정본 v2.6에서 A~C와 D~E를 분리한다. A~C는 승인된 24K staging의 불변 부모를 검증하고, holdout·Core Eval과 학습 후보 manifest를 고정하며, 원본 모델 K0를 inference-only로 평가한다. 이 구간에서는 optimizer·gradient·backward·checkpoint를 만들지 않는다. A~C 통과는 D/E 학습 smoke를 시작할 수 있다는 뜻일 뿐 `training_promotion_allowed=true`나 canonical 학습 manifest 승격을 뜻하지 않는다.
 
 - source holdout은 축별 100건씩 500건, Core Eval은 9범주 200항목으로 고정한다. 동일 명식 consistency 20항목은 두 case씩이어서 K0 총 생성 수는 720case다.
 - Core Eval과 source holdout의 모든 전역 leakage group을 정식 후보에서 먼저 제외한다. 36개 cross-axis 동일 명식 중 20개는 consistency 평가에 함께 고정한다.
 - K0는 BF16·SDPA·batch 1·greedy·`max_new_tokens=512`로 실행하고, 임의 네 기둥 생성·빈 출력·제어문자/special-token 노출·결정성 재생 실패만 Gate C 차단 조건으로 삼는다. reference overlap과 범주별 자동 계약 점수는 기준선 진단값이며 임의 합격 임계값을 만들지 않는다.
 - 700항목 오프라인 검수 ZIP은 제한 원문이 있을 수 있으므로 저장소 밖에만 만들고 내부 ID·원천 locator를 제거한다. 이 패키지의 생성은 전문 사람 검수를 수행했다는 뜻이 아니며 `human_domain_review_performed=false`를 유지한다.
+- K0 700항목은 안전·무결성, hard 계약 실패, 생성 상한, 반복, 한국어 비율 순서로 자동 위험 분류한다. 전체 결과는 Git 제외 경로에 두고 공개 보고서에는 심각도·신호 집계만, 검토용으로는 상위 40항목만 별도 고정한다. 이는 사람 전문 판독이나 품질 인증을 대신하지 않는다.
+- 이전 고정 K0는 모델·template·generation·runtime·prompt SHA-256이 모두 같은 case만 재사용하고, 새 eval 계약으로 지표를 다시 계산한다. 하나라도 다르면 새로 생성한다.
 
 ## Gate A. 데이터 검증
 
@@ -120,11 +122,12 @@ NaN/Inf, zero assistant token, CUDA kernel 오류, remote code 오류가 있으�
 ### 순서
 
 1. 512에서 20 optimizer step 기능 smoke
-2. 1024에서 200 optimizer step memory smoke
-3. 1024가 OOM 또는 headroom 부족이면 768에서 새 process로 200 step
-4. 768도 실패하면 512에서 새 process로 200 step
+2. 실제 후보 상한 밖인 1024에서 1 optimizer step 진단
+3. 정식 후보 전체를 수용하는 768에서 100 optimizer step 후 checkpoint 저장
+4. 새 process에서 optimizer·scheduler를 포함해 step 100부터 resume하고 총 200 step 완료
+5. 새 process에서 step 200 checkpoint를 다시 로드해 서로 다른 다섯 task 생성
 
-각 시험은 동일 source 비율의 길이별 MIX1K manifest, micro batch 1, gradient accumulation 8을 사용한다. 이전 OOM process를 재사용하지 않는다.
+각 시험은 동일 source 비율의 길이별 MIX1K manifest, micro batch 1, gradient accumulation 8을 사용한다. 1024는 실데이터를 더 수용하지 않는 padding-only 진단이므로 실패해도 768 정식 Gate를 대신 차단하지 않는다. 각 단계는 새 process에서 실행하고 이전 OOM process를 재사용하지 않는다.
 
 ### 통과 조건
 
@@ -135,23 +138,23 @@ NaN/Inf, zero assistant token, CUDA kernel 오류, remote code 오류가 있으�
 - checkpoint 저장 후 새 process에서 optimizer·scheduler 포함 resume 성공
 - checkpoint 모델로 다섯 task가 빈 문자열 없이 생성
 
-가장 긴 통과 길이를 formal `max_length`로 선택한다. 512도 실패하면 Phase 4 상태를 `차단`으로 기록한다. CPU offload, DeepSpeed, LoRA, packing, `torch.compile`, FlashAttention 교체는 자동 적용하지 않는다.
+전체 정식 후보를 무손실 수용하는 768을 formal `max_length`로 선택하되, 768의 200-step·resume·1GiB headroom 조건이 실패하면 Phase 4 상태를 `차단`으로 기록한다. CPU offload, DeepSpeed, LoRA, packing, `torch.compile`, FlashAttention 교체는 자동 적용하지 않는다.
 
 ## 선택된 길이와 최종 manifest
 
 Phase 4A~C는 768/1024 공용 candidate와 512 기능-smoke 부분집합을 만들 뿐 canonical 이름으로 승격하지 않는다. Gate D/E가 가장 긴 통과 길이를 선택한 뒤 해당 candidate만 다음 canonical 이름으로 승격한다.
 
 ```text
-data/derived/saju_1b_baseline/v1.0.0/build-<derived-hash>/manifests/mix1k_smoke_v1.jsonl
-data/derived/saju_1b_baseline/v1.0.0/build-<derived-hash>/manifests/mix10k_v1.jsonl
-data/derived/saju_1b_baseline/v1.0.0/build-<derived-hash>/manifests/mix20k_v1.jsonl
+data/derived/saju_1b_baseline/v1.1.0/build-<derived-hash>/manifests/mix1k_smoke_v1.jsonl
+data/derived/saju_1b_baseline/v1.1.0/build-<derived-hash>/manifests/mix10k_v1.jsonl
+data/derived/saju_1b_baseline/v1.1.0/build-<derived-hash>/manifests/mix20k_v1.jsonl
 ```
 
 선택되지 않은 길이 manifest는 audit용으로 보존하되 Phase 5가 읽지 못하도록 별도 후보 경로에 둔다.
 
 ## Preflight 설정 계약
 
-A~C의 실행 계약은 `configs/data_versions/saju_1b_baseline/preflight-v1.0.0.json`에 고정한다. 아래 학습 설정은 D/E에서만 사용한다.
+A~E 재검증 계약은 `configs/data_versions/saju_1b_baseline/preflight-v1.1.0.json`에 고정한다. 아래 학습 설정은 D/E에서만 사용한다.
 
 ```yaml
 model_revision: bf4786aa2a1908adce942d53976270132732f720
@@ -169,35 +172,54 @@ seed: 42
 data_seed: 42
 ```
 
-`max_length`는 Gate E 결과만 기록하며 미리 확정하지 않는다.
+정식 `max_length=768`, 진단 `max_length=1024`, 기능 검사 `max_length=512`를 서로 다른 역할로 고정한다.
+
+## 최종 실행 결과
+
+| 항목 | 결과 |
+|---|---|
+| 실행 구현 checkpoint | `31fe13b08e04d4015d30ac670d92dd6427e6427d` |
+| A~C 부모 | `v1.1.0/build-7d59833b8d59`, SHA-256 `7d59833b8d59f3c7c730d60707377c15ee6d876c42966c64edc61f9deef63dae` |
+| canonical child | `v1.1.0/build-a1a34616dd72`, SHA-256 `a1a34616dd72ab510fe783037ed70edc693d48220b344210599f9fe2c932c1ef` |
+| K0·자동 분류 | 700항목·720case, 안전 위반 0, high 48·medium 329·low 323, exact reuse 720 |
+| Gate D | BF16 1,291,478,272 trainable parameter, finite·nonzero gradient, uint8 optimizer state, peak VRAM 6,729,681,920 bytes |
+| Gate E | 768에서 100→200-step resume, 첫 20/마지막 20 loss 중앙값 2.3489→0.9452, peak VRAM 10,498,061,312 bytes, 종료 여유 3,005,186,048 bytes |
+| checkpoint 재로드 | 별도 process에서 5개 서로 다른 task 모두 비어 있지 않은 출력 생성 |
+| 승인 경계 | `training_promotion_allowed=true`, `human_domain_review_performed=false`, `quality_certification_claimed=false`, `phase5_training_performed=false` |
+
+실제 후보 최대 길이는 716이므로 1024 진단이 통과했어도 padding-only 길이를 정식 계약으로 올리지 않고 24K를 무손실 수용하는 768을 선택했다. TRL의 end-of-turn 휴리스틱 경고와 달리 Gate B는 전체 24K에서 supervised EOS를 직접 확인했다. Transformers 4.57.6이 저장된 비-Mistral `model_type=kanana` checkpoint에 낸 Mistral 정규식 경고는 원본·checkpoint `tokenizer.json` SHA-256 `1c4be9ecf77c926456fb82d4cf07ff1218a91907f3408f44895d2b01e0f2b5ab` 및 고정 표본 token ID 일치로 오탐임을 확인했다. `fix_mistral_regex=True`는 원본 Kanana 숫자 tokenization을 바꾸므로 적용하지 않았다.
 
 ## 완료 Gate
 
-- [x] Gate A의 스키마·후보·누수·언어 검사가 전부 통과했다.
+- [x] 교정 staging 기반 Gate A의 스키마·후보·누수·언어 검사가 전부 통과했다.
 - [x] 모든 source/task의 assistant loss mask assertion이 통과했다.
 - [x] 길이별 token 감사와 MIX1K⊂MIX10⊂MIX20 candidate manifest 검사가 통과했다.
-- [x] K0-INSTRUCT 결과·설정·revision을 저장했다.
-- [ ] BF16 full-parameter forward/backward와 8-bit optimizer step이 성공했다.
-- [ ] 선택한 길이에서 200-step smoke와 resume가 성공했다.
-- [ ] canonical MIX1K·10K·20K가 선택 길이 manifest를 가리킨다.
-- [ ] `preflight_report.json`에 장비, peak VRAM/RAM, 버전, 실패 이력을 기록했다.
+- [x] K0-INSTRUCT 결과·설정·revision과 자동 위험 분류를 저장했다.
+- [x] BF16 full-parameter forward/backward와 8-bit optimizer step이 성공했다.
+- [x] 선택한 길이에서 200-step smoke와 resume가 성공했다.
+- [x] canonical MIX1K·10K·20K가 선택 길이 manifest를 가리킨다.
+- [x] `preflight_report.json`에 장비, peak VRAM/RAM, 버전, 실패 이력을 기록했다.
 
 ## 산출물
 
 ```text
-data/derived/saju_1b_baseline/v1.0.0/build-<fingerprint>/
-data/reports/saju_1b_baseline/preflight/v1.0.0/build-<fingerprint>/
-runs/K0-INSTRUCT/v1.0.0/build-<fingerprint>/
-runs/KI1K-SMOKE-v1/  # Gate D/E에서만 생성
-<저장소 밖>/saju-phase4-k0-review-<build>.zip
+data/derived/saju_1b_baseline/v1.1.0/build-7d59833b8d59/    # A~C 부모·후보
+data/derived/saju_1b_baseline/v1.1.0/build-a1a34616dd72/    # canonical
+data/reports/saju_1b_baseline/preflight/v1.1.0/build-7d59833b8d59/
+data/reports/saju_1b_baseline/preflight/v1.1.0/build-a1a34616dd72/
+runs/K0-INSTRUCT/v1.1.0/build-7d59833b8d59/
+runs/KI1K-SMOKE-v1/v1.1.0/build-7d59833b8d59/
+/home/user/Downloads/saju-phase4-k0-review-build-7d59833b8d59.zip
 ```
 
 ## 공식 자료
 
-- [TRL 1.12.0 SFTTrainer](https://huggingface.co/docs/trl/v1.12.0/en/sft_trainer)
+- [TRL SFTTrainer 최신 문서](https://huggingface.co/docs/trl/main/sft_trainer)
 - [Transformers 4.57.1 chat template](https://huggingface.co/docs/transformers/v4.57.1/en/chat_templating)
 - [Transformers 4.57.6 optimizer enum](https://github.com/huggingface/transformers/blob/v4.57.6/src/transformers/training_args.py)
-- [bitsandbytes 0.50.2 8-bit optimizer](https://huggingface.co/docs/bitsandbytes/v0.50.2/en/optimizers)
+- [bitsandbytes AdamW optimizer 최신 문서](https://huggingface.co/docs/bitsandbytes/reference/optim/adamw)
+- [Transformers checkpoint resume](https://huggingface.co/docs/transformers/trainer_recipes)
+- [PyTorch activation checkpoint](https://docs.pytorch.org/docs/stable/checkpoint)
 - [PyTorch 2.13 release](https://pytorch.org/blog/pytorch-2-13-release-blog/)
 - [PEFT LoRA](https://huggingface.co/docs/peft/main/package_reference/lora)
 - [PEFT quantization](https://huggingface.co/docs/peft/developer_guides/quantization)
@@ -214,8 +236,35 @@ runs/KI1K-SMOKE-v1/  # Gate D/E에서만 생성
 | 2026-08-28 | PyTorch 2.13 release | CUDA 13.0 기본 build와 Triton 3.7.1 pin을 확인하고 RTX 5070 Ti 실장비 cu130 환경을 유지 |
 | 2026-08-28 | TRL 1.12.0 및 설치본 1.12.0 | conversational template generation mask와 assistant-only label 경로를 전체 24K에 직접 검증 |
 | 2026-08-28 | PEFT LoRA·quantization | LoRA는 원 가중치 동결, QLoRA는 quantized base 위 adapter라는 별도 계약이므로 Full FT를 자동 변경하지 않기로 결정 |
+| 2026-08-28 | TRL·Transformers·bitsandbytes·PyTorch 최신 공식 문서와 설치본 | `assistant_only_loss`, `chunked_nll`, `paged_adamw_8bit`, Trainer optimizer/scheduler resume, non-reentrant activation checkpoint 경로를 비교하고 Full FT 768 계약을 유지 |
 
 ## 진행 기록
+
+- 2026-08-28
+  - 작업 요약: 구현 checkpoint `31fe13b08e04d4015d30ac670d92dd6427e6427d`의 최종 부모 `build-7d59833b8d59`에서 Gate A~E를 모두 통과하고 선택 길이 768의 canonical child `build-a1a34616dd72`를 승인했다.
+  - 변경 범위: K0 720case exact 재사용·지표 재계산과 700항목 자동 위험 분류, BF16 Full FT forward/backward·8-bit optimizer, 512 20-step, 1024 진단, 768 100→200-step resume, checkpoint 독립 재로드·5-task 생성을 완료했다. registry의 `approved_derived`와 정본 상태를 갱신했다.
+  - 검증: `verify`, 각 smoke stage verifier, canonical `verify-final`과 manifest hash chain을 통과했다. canonical private/public manifest SHA-256은 각각 `a2816a30…7a8ba0`, `ffe3def5…e309e4`, 저장소 밖 검수 ZIP은 `faadba72…f8a76`이다.
+  - 남은 이슈·후속 작업: 자동 분류는 전문 판독이나 품질 인증이 아니므로 관련 flag는 false로 유지한다. 모델 원본의 YaRN 경고와 Transformers의 비-Mistral 정규식 오탐을 기록했으며, Phase 5 실제 학습은 수행하지 않았다.
+- 2026-08-28
+  - 작업 요약: `build-72e29f885bf9`의 768-token 100-step 및 별도 process 100→200-step resume는 통과했으나, 최종 checkpoint 재로드가 모델 로드 전 CUDA peak-memory counter 초기화 순서 때문에 중단됐다.
+  - 변경 범위: 재로드 단계가 단일 `cuda:0`을 확인하고 `current_device()`로 CUDA context를 만든 다음 메모리 계측을 초기화하도록 수정했으며 호출 순서 회귀 테스트를 추가했다. 실패는 generation·Phase 5 진입 전에 fail-closed 처리됐다.
+  - 검증: 독립 process에서 초기 context 없이 `reset_peak_memory_stats(0)`가 `Invalid device argument`를 내는 것과 `current_device()` 이후 정상화되는 것을 재현했다.
+  - 남은 이슈·후속 작업: 구현 hash가 바뀌므로 새 checkpoint commit과 새 Phase 4 fingerprint에서 A~E를 다시 실행한다. 기존 200-step 결과를 최종 승격 근거로 재사용하지 않는다.
+- 2026-08-28
+  - 작업 요약: 교정 staging을 부모로 하는 Phase 4 `v1.1.0` 계약, K0 exact-match 재사용·700항목 자동 위험 분류, 단계별 Full FT smoke/resume와 canonical 승격 실행기를 구현했다.
+  - 변경 범위: A~C는 계속 비학습으로 격리하고, D/E만 BF16 전체 파라미터·SDPA·assistant-only `chunked_nll`·실제 `paged_adamw_8bit` state를 검사하도록 했다. 1024는 진단, 768은 100→200-step 정식 resume로 역할을 분리했다.
+  - 검증: Ruff, Python compile, Phase 4 단위 테스트, `validate-contract`, dry-run, 과거 v1.0 artifact hash chain 재검증을 통과했다.
+  - 남은 이슈·후속 작업: 이 항목은 실행 전 구현 체크포인트다. 새 build A~C/K0·triage와 D/E GPU 단계, canonical 승격을 순서대로 실행하며 그 전까지 `training_promotion_allowed=false`다.
+- 2026-08-28
+  - 작업 요약: 첫 v1.1 Gate A/B 실행에서 YEJI 포함 cross-axis group이 42개로 늘자 기존 선택식이 정확히 20개로 상한 처리하지 못하는 회귀를 발견해 수정했다.
+  - 변경 범위: YEJI 포함 그룹을 결정론적으로 최대 20개까지만 우선 선택하고 부족분만 다른 교차 축 그룹으로 채우도록 했으며 42개 입력 회귀 테스트를 추가했다. 실패한 임시 build는 최종 경로로 승격되지 않았다.
+  - 검증: 새 staging의 cross-axis 76개를 `YEJI 포함 42`, `그 외 34`로 직접 집계했고 targeted test·Ruff·`git diff --check`를 통과했다.
+  - 남은 이슈·후속 작업: 수정 구현을 새 Git checkpoint로 고정한 뒤 새 fingerprint에서 A~E를 다시 시작한다.
+- 2026-08-28
+  - 작업 요약: `build-9cf4fdb83bbd`에서 Gate A/B, K0 720case와 자동 위험 분류를 완료했으나 첫 Gate D가 Trainer 학습 진입 전 gradient-checkpointing flag를 검사해 안전하게 차단됐다.
+  - 변경 범위: flag 검사를 `trainer.train()` 이후로 옮겼다. 실패 시점에는 backward·optimizer step·checkpoint가 0회였고, 완결된 K0 manifest `d06b4454…c65f`를 다음 fingerprint의 exact 재사용 부모로 고정했다.
+  - 검증: K0는 새 생성 307·exact 재사용 413, 안전 위반 0, 결정성 통과였다. 자동 분류는 high 48·medium 329·low 323·critical 0이며 high는 모순 계약 35, 신살 12, 일반 지시 1건이다.
+  - 남은 이슈·후속 작업: 새 구현 checkpoint에서 A/B를 재생성하고 K0 720case를 전부 exact 재사용·지표 재계산한 뒤 Gate D를 다시 실행한다.
 
 - 2026-08-28
   - 작업 요약: 승인된 24K staging과 Phase 3 모델을 부모로 Phase 4A~C 비학습 preflight `v1.0.0/build-a6813ba3b778`을 구현·실행했다. Gate A/B/C는 통과했고 Phase 4는 `부분 진행`으로 판정했다.

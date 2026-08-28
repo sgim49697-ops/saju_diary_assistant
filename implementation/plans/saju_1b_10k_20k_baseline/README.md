@@ -4,7 +4,7 @@
 
 | 항목 | 값 |
 |---|---|
-| 문서 버전 | `2.5.0` |
+| 문서 버전 | `2.6.0` |
 | 정본화 기준일 | 2026-08-28 |
 | 주 장비 | NVIDIA GeForce RTX 5070 Ti 16GiB, WSL2 |
 | 주 모델 | `kakaocorp/kanana-2-1.3b-instruct@bf4786aa2a1908adce942d53976270132732f720` |
@@ -33,7 +33,7 @@
 | 1 | [데이터 수집](phase-1-data-collection.md) | 완료 | 네 원천의 revision·해시·이용조건과 #86 구조 Gate 통과 |
 | 2 | [데이터 전처리](phase-2-data-preprocessing.md) | 완료 | 승인 audit 부모의 MIX20K용 24K staging 완결, 학습 승격은 Phase 4 Gate로 분리 |
 | 3 | [학습 모델·환경 준비](phase-3-model-preparation.md) | 완료 | 고정 PyTorch cu130 환경에서 모델·tokenizer·template 전체 BF16 오프라인 로드 성공 |
-| 4 | [학습 전 데이터·모델 검증](phase-4-preflight-validation.md) | 부분 진행 | A~C 비학습 preflight 통과, D~E 학습 smoke 미실행 |
+| 4 | [학습 전 데이터·모델 검증](phase-4-preflight-validation.md) | 완료 | 교정 staging 기반 A~E·자동 위험 분류·Full FT 200-step resume 통과, 768 canonical 승인 |
 | 5 | [Baseline 학습](phase-5-baseline-training.md) | 미시작 | KI10·KI20 독립 Run과 산출물 완결 |
 | 6 | [평가·검수·v2 결정](phase-6-evaluation-v2-decision.md) | 미시작 | 고정 평가 후 50K 또는 v2 Lite 경로 결정 |
 
@@ -52,8 +52,8 @@ Phase 0 → Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5 → Phase 6
 data/
 ├── raw/<source>/<revision>/
 ├── audit/saju_1b_baseline/v1.2.0/build-ca756f3eb89f/  # 비공개 locator·결정·seal
-├── staging/saju_1b_baseline/v0.1.0/build-109815ee6879/ # Git 제외·24K 후보
-├── derived/saju_1b_baseline/v1.0.0/build-<derived-hash>/
+├── staging/saju_1b_baseline/v0.2.0/build-847088ee804d/ # Git 제외·현재 24K 후보
+├── derived/saju_1b_baseline/v1.1.0/build-a1a34616dd72/
 │   ├── unified/
 │   ├── manifests/
 │   └── eval/
@@ -61,9 +61,11 @@ data/
     └── saju_1b_baseline/
         ├── audit/v1.2.0/build-ca756f3eb89f/
         ├── audit-review/v1.2.0/build-ca756f3eb89f/reviewer-v1.1.0/
-        ├── preprocessing-staging/v0.1.0/build-109815ee6879/
+        ├── preprocessing-staging/v0.2.0/build-847088ee804d/
         ├── model-preparation/v1.0.0/build-32e2c84af3d3/
-        ├── preflight/v1.0.0/build-a6813ba3b778/
+        ├── preflight/v1.0.0/build-a6813ba3b778/       # 과거 A~C build
+        ├── preflight/v1.1.0/build-7d59833b8d59/      # 현재 A~C 부모 build
+        ├── preflight/v1.1.0/build-a1a34616dd72/      # 현재 A~E 완료 build
         └── phase-verification/v1.0.0/review-20260828/
 
 configs/data_versions/saju_1b_baseline/
@@ -72,9 +74,11 @@ configs/data_versions/saju_1b_baseline/
 ├── audit-policy-v1.2.0.json                 # 승인된 전체 원천 감사
 ├── yeji-rule-corrections-v1.2.0.json
 ├── preprocessing-staging-v0.1.0.json
+├── preprocessing-staging-v0.2.0.json
 ├── language-bank-v1.0.0.json
 ├── license-review-v1.0.0.json
 ├── preflight-v1.0.0.json
+├── preflight-v1.1.0.json
 └── registry.json
 
 configs/model_versions/saju_1b_baseline/model-preparation-v1.0.0.json
@@ -174,7 +178,7 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
 - 명식 계산을 모델 학습에서 분리하고, 구조화 명식에 근거한 해석·규칙 적용만 학습한다.
 - TRL 1.12.0 기준으로 `max_seq_length`를 `max_length`, `micro_batch_size`를 `per_device_train_batch_size`, 개념형 `precision`을 `bf16=True`로 교정했다.
 - RTX 5070 Ti Blackwell 환경은 최신 안정 PyTorch 2.13.0·torchvision 0.28.0·TorchAudio 2.11.0의 cu130 wheel로 고정하고 native `sm_120`·BF16·bitsandbytes CUDA backend를 실제 검증했다.
-- 16GiB GPU에서 Full FT가 된다고 가정하지 않고, 512 기능 검사와 1024→768→512 memory smoke를 통과 조건으로 바꿨다.
+- 16GiB GPU에서 Full FT가 된다고 가정하지 않는다. 512 기능 검사, 후보 상한 밖 1024 진단, 후보 전체를 수용하는 768의 100→200-step checkpoint resume를 통과 조건으로 둔다.
 - 20행 블록은 정확한 소스 수량 산출에만 쓰고, 실제 학습 manifest는 seed 42로 최종 shuffle해 주기적 순서 편향을 막는다.
 - 512 smoke 실패 시 DeepSpeed·CPU offload·LoRA로 자동 우회하지 않고 Phase 4를 `차단`한다.
 
@@ -184,6 +188,17 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
 - 원본 SHA-256: `11dde66505aa3ca90834488a877a0f4db42512d9cb377880d935f71bc71d3724`
 
 ## 진행 기록
+
+- 2026-08-28
+  - 작업 요약: 구현 checkpoint `31fe13b08e04d4015d30ac670d92dd6427e6427d`에서 교정 staging 기반 Phase 4A~E를 완료하고 768 canonical `v1.1.0/build-a1a34616dd72`를 `approved_derived`로 승인했다. Phase 5 실제 10K·20K 학습은 실행하지 않았다.
+  - 변경 범위: 부모 preflight `build-7d59833b8d59`에서 24K 전수 token/loss-mask, Core Eval 200·source holdout 500, K0 700항목/720case와 자동 위험 분류를 재검증했다. BF16 Full FT 512 1/20-step, 1024 1-step 진단, 768 100→200-step 별도 process resume와 checkpoint 재로드 5-task 생성을 수행했다.
+  - 검증: A~E, canonical hash chain과 `verify-final`이 통과했다. K0 안전 위반 0, 위험도 high 48·medium 329·low 323, 200-step 손실 중앙값 2.3489→0.9452, peak VRAM 10,498,061,312 bytes, 종료 여유 3,005,186,048 bytes였다.
+  - 남은 이슈·후속 작업: 사람 전문 판독과 품질 인증은 수행하지 않았으며 `quality_certification_claimed=false`다. Transformers의 checkpoint tokenizer 정규식 경고는 원본·저장본 `tokenizer.json` SHA-256 `1c4be9ec…f2b5ab` 일치와 표본 token ID 일치로 비-Mistral 오탐임을 확인했으므로 일반 Mistral 교정값을 적용하지 않는다. 다음 작업은 별도 승격된 Phase 5다.
+- 2026-08-28
+  - 작업 요약: 정본을 v2.6으로 올리고 교정 staging 기반 Phase 4 `v1.1.0` 재실행 계약과 K0 자동 위험 분류·Full FT smoke/resume·canonical 승격 실행기를 구현했다.
+  - 변경 범위: K0는 고정 모델·template·prompt hash가 같은 과거 출력만 재사용하고 지표를 재계산한다. D/E는 512 단일/20-step, 1024 진단, 768 100-step 저장·새 process 200-step resume·5-task reload로 고정했다.
+  - 검증: Ruff, compile, 단위 테스트, 계약·dry-run, 과거 v1.0 산출물 hash chain 재검증을 통과했다. v1.0의 11개 구현 hash 중 2개가 최종 커밋에서 같은 바이트로 도달 불가한 추적성 한계도 별도 고정했다.
+  - 남은 이슈·후속 작업: 이 기록은 실행 전 구현 체크포인트다. A~C/K0·triage와 GPU D/E를 실행해 결과를 추가하기 전까지 Phase 4는 `진행 중`, `training_promotion_allowed=false`다.
 
 - 2026-08-27
   - 작업 요약: 원본 0~17절을 인덱스와 7개 Phase로 정본화하고, 모델·데이터 revision, Kanana/AI Hub 라이선스, PyTorch cu128, TRL assistant loss, bitsandbytes GPU 지원을 공식 웹 자료로 재확인했다.
@@ -240,3 +255,8 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
   - 변경 범위: 재현 가능한 preflight CLI·테스트·공개 집계 보고서와 저장소 밖 제한 데이터 오프라인 검수 ZIP을 추가했다. 전역 Codex·Claude 규칙에는 native Triton용 Python header 검증과 정식 실행의 JIT 우회 금지를 동기화했다. 실제 학습·optimizer·backward·checkpoint·canonical manifest 승격은 하지 않았다.
   - 검증: Gate A/B/C, BF16 SDPA native-JIT probe, K0 빈 출력·제어문자·special-token·missing-chart 안전 위반 0건, 결정성 재생, 700항목/720case ZIP checksum과 Windows Chrome 오프라인 렌더링을 통과했다.
   - 남은 이슈·후속 작업: K0 371/720case가 512-token 상한에 도달했고 일부 hard 자동 계약 점수가 낮다. 사람 전문 검수와 Phase 4D/E 200-step 학습 smoke가 남았으므로 Phase 4는 `부분 진행`, `approved_derived=null`, `training_promotion_allowed=false`이며 Phase 5를 시작하지 않는다.
+- 2026-08-28
+  - 작업 요약: 생성기 검수 6건을 원천·기존 staging과 대조하고, 유효 달력 명식을 사용하는 새 24K staging `v0.2.0/build-847088ee804d`를 승인된 Phase 4 입력으로 고정했다.
+  - 변경 범위: 기존 `v0.1.0`은 불변 보존했다. YEJI 달력 backend·역법 관계 Gate, 필터 겹침 카운터, AI Hub projection provenance, Nemotron 나이 검증, 새 공개 보고서와 registry hash chain을 추가했다.
+  - 검증: 24,000행 전수 schema·중복·수량 검사, Nemotron/BaZi/YEJI 역법 관계 20,400/20,400, AI Hub 원천 58,268건의 turn 수·정책 사유, YEJI 고유 명식 1,200건을 통과했다. 기존 YEJI는 1,151/1,200건이 역법 불일치이고 단순 천간 교정 시 evaluator 56건이 바뀜을 별도 확인했다.
+  - 남은 이슈·후속 작업: 승인 방식은 자동 검증 기반 사용자 위험 수용이며 전문 항목 검수·품질 인증은 아니다. 새 staging 부모로 Phase 4A~E를 재실행하기 전까지 `training_promotion_allowed=false`를 유지한다.

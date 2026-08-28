@@ -1,3 +1,4 @@
 # requirements-data.txt - Phase 1 원천 수집과 Parquet inventory용 고정 의존성
 duckdb==1.5.5
 huggingface-hub==1.11.0
+lunar-python @ https://files.pythonhosted.org/packages/59/45/5154c95ae7feaab7ca508e71c3288692c09952dfe33b03b7c2f18a32e2cd/lunar_python-1.4.8.tar.gz#sha256=3aa11cc73c25e70ddf0ba5bdac7398c03acc9491a3aa512a91c9642973b669d6

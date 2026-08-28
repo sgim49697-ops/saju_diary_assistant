@@ -10,10 +10,14 @@ from scripts.data.audit_tools import apply_yeji_corrections
 from scripts.data.phase2b_review_web import ReviewState
 from scripts.data.phase2b_verify_history import verify_historical_staging
 from scripts.data.preprocess_adapters import (
+    _calendar_unique_chart,
+    _record_policy_exclusion,
+    calendar_relations_valid,
     evaluate_yeji_rule,
     expected_bazi_rules,
 )
 from scripts.data.preprocess_tools import (
+    CALENDAR_BACKEND_CONTRACT,
     _validate_language_bank,
     load_staging_config,
     staging_plan,
@@ -21,7 +25,7 @@ from scripts.data.preprocess_tools import (
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 VERSION_ROOT = REPO_ROOT / "configs/data_versions/saju_1b_baseline"
-CONFIG_PATH = VERSION_ROOT / "preprocessing-staging-v0.1.0.json"
+CONFIG_PATH = VERSION_ROOT / "preprocessing-staging-v0.2.0.json"
 BUILD_ID = "build-109815ee6879"
 
 
@@ -48,6 +52,8 @@ class StagingContractTests(unittest.TestCase):
             config["axes"]["nemotron_saju"]["variants"],
             {"v6": 2_640, "v7": 10_560},
         )
+        self.assertEqual(config["calendar_backend"], CALENDAR_BACKEND_CONTRACT)
+        self.assertEqual(config["contracts"]["nemotron_age_range"], [19, 99])
 
     def test_plan_tracks_current_inputs_without_reusing_historical_build_id(self) -> None:
         plan = staging_plan(REPO_ROOT, CONFIG_PATH)
@@ -202,6 +208,45 @@ class YejiEvaluatorTests(unittest.TestCase):
                 rule, ("甲子", "丙寅", "庚申", "壬申"), sex="남성"
             )
         )
+
+    def test_calendar_generator_is_deterministic_and_relation_valid(self) -> None:
+        calendar_backend = load_staging_config(CONFIG_PATH)["calendar_backend"]
+        generated = _calendar_unique_chart(
+            seed=42,
+            sequence=0,
+            used=set(),
+            rule=self.rules[0],
+            case_type="definition",
+            desired=None,
+            calendar_backend=calendar_backend,
+        )
+        self.assertEqual(
+            generated,
+            (
+                ("癸酉", "壬戌", "庚寅", "乙酉"),
+                "여성",
+                {"date": "1993-11-05", "hour": 18, "minute": 0, "second": 0},
+                1,
+            ),
+        )
+        self.assertTrue(calendar_relations_valid(generated[0]))
+
+    def test_calendar_relation_rejects_independent_month_and_hour_stems(self) -> None:
+        self.assertTrue(calendar_relations_valid(("癸酉", "壬戌", "庚寅", "乙酉")))
+        self.assertFalse(calendar_relations_valid(("癸酉", "甲戌", "庚寅", "丙酉")))
+
+
+class FilterObservabilityTests(unittest.TestCase):
+    def test_policy_union_and_overlapping_reasons_are_separate(self) -> None:
+        from collections import Counter
+
+        counters: Counter[str] = Counter()
+        _record_policy_exclusion(counters, ["clinical", "medical", "ascii_word"])
+        self.assertEqual(counters["excluded_policy_union"], 1)
+        self.assertEqual(counters["excluded_primary_clinical"], 1)
+        self.assertEqual(counters["matched_clinical"], 1)
+        self.assertEqual(counters["matched_medical"], 1)
+        self.assertEqual(counters["matched_ascii_word"], 1)
 
 
 if __name__ == "__main__":

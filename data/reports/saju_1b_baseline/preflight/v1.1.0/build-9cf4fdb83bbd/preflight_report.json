@@ -1,0 +1,133 @@
+{
+  "automated_risk_triage": {
+    "automated_second_pass_performed": true,
+    "critical_or_high_items": 48,
+    "evaluation_items": 700,
+    "generation_cases": 720,
+    "human_domain_review_performed": false,
+    "priority_items": 40,
+    "priority_limit": 40,
+    "severity_counts": {
+      "high": 48,
+      "low": 323,
+      "medium": 329
+    },
+    "signal_counts": {
+      "generation_limit_reached": 361,
+      "hard_contract_failed": 48,
+      "high_repetition": 16
+    }
+  },
+  "backward_performed": false,
+  "build_id": "build-9cf4fdb83bbd",
+  "build_sha256": "9cf4fdb83bbdf44393640475b9a86964c7639b0fde5a159943324009999ca7b5",
+  "canonical_promotion_performed": false,
+  "completed_gates": [
+    "A",
+    "B",
+    "C"
+  ],
+  "evaluated_gates": [
+    "A",
+    "B",
+    "C"
+  ],
+  "generated_at": "2026-08-28T10:58:52+00:00",
+  "generation_contract": {
+    "batch_size": 1,
+    "do_sample": false,
+    "max_new_tokens": 512,
+    "num_beams": 1,
+    "use_cache": true
+  },
+  "human_domain_review_performed": false,
+  "k0": {
+    "control_character_outputs": 0,
+    "cross_build_reused_cases": 413,
+    "determinism_replay_passed": true,
+    "elapsed_seconds": 4500.551,
+    "empty_outputs": 0,
+    "evaluation_items": 700,
+    "gate_c_passed": true,
+    "generation_cases": 720,
+    "locally_generated_cases": 307,
+    "peak_vram_bytes": 2752092672,
+    "safety_violations": 0,
+    "special_token_text_outputs": 0,
+    "vram_total_bytes": 17094475776
+  },
+  "model": {
+    "attention_backend": "sdpa",
+    "dtype": "bfloat16",
+    "phase3_build_id": "build-32e2c84af3d3",
+    "repo_id": "kakaocorp/kanana-2-1.3b-instruct",
+    "revision": "bf4786aa2a1908adce942d53976270132732f720"
+  },
+  "notes": [
+    "출처별 assistant token share는 임계값 없이 보고만 하며 가중치를 자동 변경하지 않았다.",
+    "512 manifest는 기능 smoke 전용이고, 1024는 진단, 768은 정식 Gate E 후보로 검증한다.",
+    "K0 품질 지표는 missing-chart 안전 Gate와 파이프라인 무결성 외에는 진단값이며 학습 승격 판정이 아니다.",
+    "Upstream YaRN factor 40 설정과 implicit ratio 8 경고를 수정하지 않았다."
+  ],
+  "official_sources": [
+    "https://huggingface.co/kakaocorp/kanana-2-1.3b-instruct/tree/bf4786aa2a1908adce942d53976270132732f720",
+    "https://huggingface.co/docs/trl/main/sft_trainer",
+    "https://huggingface.co/docs/transformers/main/en/trainer",
+    "https://huggingface.co/docs/transformers/trainer_recipes",
+    "https://huggingface.co/docs/bitsandbytes/reference/optim/adamw",
+    "https://docs.pytorch.org/docs/stable/checkpoint",
+    "https://pytorch.org/blog/pytorch-2-13-release-blog/",
+    "https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/tuning/supervised-tuning/prepare-data",
+    "https://docs.nvidia.com/nemo-platform/documentation/customizer-reference/tutorials/format-training-dataset"
+  ],
+  "optimizer_created": false,
+  "parent_staging": {
+    "approval_sha256": "3be8fa8c2d9948bcbe3c8a8367026ac814ad86e2087e6c2d32701a88e4de7c52",
+    "build_id": "build-847088ee804d",
+    "build_sha256": "847088ee804d8bc8933c0d83767a2251fc820ae3cb4235965a9a27a3f0f34801",
+    "implementation_commit": "21705fe72fefe5bd9933a9ac9cc2cf30aad08ce7",
+    "version": "v0.2.0"
+  },
+  "phase4_training_smoke_allowed": true,
+  "phase_status": "부분 진행",
+  "remaining_gates": [
+    "D",
+    "E"
+  ],
+  "report_type": "phase4_abc_non_training_preflight",
+  "review_package": {
+    "archive_bytes": 475197,
+    "archive_name": "saju-phase4-k0-review-build-9cf4fdb83bbd.zip",
+    "archive_sha256": "c9f0bbb764cfe8cb2293e331f039fbc2ee4bf8571a2a201361bf0f1b4fa16269",
+    "case_count": 720,
+    "contains_restricted_source_text": true,
+    "item_count": 700,
+    "package_id": "review-261099eb4e15d2f3",
+    "stored_outside_repository": true,
+    "verified_at_export": true
+  },
+  "runtime": {
+    "attention_backend": "sdpa",
+    "device": "cuda:0",
+    "gpu_capability": [
+      12,
+      0
+    ],
+    "gpu_name": "NVIDIA GeForce RTX 5070 Ti",
+    "parameter_count": 1291478272,
+    "parameter_dtype": "torch.bfloat16",
+    "torch": "2.13.0+cu130",
+    "torch_cuda": "13.0",
+    "transformers": "4.57.6"
+  },
+  "runtime_headers": {
+    "file_count": 164,
+    "manifest_sha256": "ff556bf9337745ad84f012d575158511b7f7306a5ced0a1a1a96ef9df6e7b466",
+    "root": ".venv/phase4-runtime/libpython3.10-dev-3.10.12-1~22.04.16",
+    "status": "verified"
+  },
+  "schema_version": "1.0.0",
+  "status": "gates_a_b_c_passed",
+  "training_performed": false,
+  "training_promotion_allowed": false
+}

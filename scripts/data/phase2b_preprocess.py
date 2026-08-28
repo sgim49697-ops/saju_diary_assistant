@@ -23,7 +23,7 @@ from scripts.data.preprocess_tools import (
 
 DEFAULT_CONFIG = (
     REPO_ROOT
-    / "configs/data_versions/saju_1b_baseline/preprocessing-staging-v0.1.0.json"
+    / "configs/data_versions/saju_1b_baseline/preprocessing-staging-v0.2.0.json"
 )
 
 

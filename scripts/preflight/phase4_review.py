@@ -31,6 +31,7 @@ from scripts.preflight.phase4_common import (
 )
 from scripts.preflight.phase4_data import verify_private_build
 from scripts.preflight.phase4_k0 import verify_k0_run
+from scripts.preflight.phase4_triage import verify_triage
 
 PUBLIC_FILE_MODE = 0o644
 ZIP_TIMESTAMP = (2026, 8, 28, 0, 0, 0)
@@ -50,6 +51,7 @@ PUBLIC_ARTIFACTS = (
     "tokenization_report.json",
     "manifest_report.json",
     "k0_summary.json",
+    "triage_summary.json",
     "preflight_report.json",
 )
 SHA_LINE_PATTERN = re.compile(r"^([0-9a-f]{64})  ([^\r\n]+)$")
@@ -298,7 +300,10 @@ def verify_review_archive(archive_path: Path) -> dict[str, Any]:
 
 
 def _public_report(
-    context: dict[str, Any], review: dict[str, Any], k0_summary: dict[str, Any]
+    context: dict[str, Any],
+    review: dict[str, Any],
+    k0_summary: dict[str, Any],
+    triage_summary: dict[str, Any],
 ) -> dict[str, Any]:
     gate_c_passed = k0_summary.get("gate_c_passed") is True
     return {
@@ -329,6 +334,8 @@ def _public_report(
                 "gate_c_passed",
                 "evaluation_items",
                 "generation_cases",
+                "cross_build_reused_cases",
+                "locally_generated_cases",
                 "empty_outputs",
                 "control_character_outputs",
                 "special_token_text_outputs",
@@ -338,6 +345,17 @@ def _public_report(
                 "vram_total_bytes",
                 "elapsed_seconds",
             )
+        },
+        "automated_risk_triage": {
+            "evaluation_items": triage_summary["evaluation_items"],
+            "generation_cases": triage_summary["generation_cases"],
+            "severity_counts": triage_summary["severity_counts"],
+            "signal_counts": triage_summary["signal_counts"],
+            "priority_limit": triage_summary["priority_limit"],
+            "priority_items": triage_summary["priority_items"],
+            "critical_or_high_items": triage_summary["critical_or_high_items"],
+            "automated_second_pass_performed": True,
+            "human_domain_review_performed": False,
         },
         "review_package": {
             "archive_name": review["archive"],
@@ -360,7 +378,7 @@ def _public_report(
         "official_sources": context["config"]["official_sources"],
         "notes": [
             "출처별 assistant token share는 임계값 없이 보고만 하며 가중치를 자동 변경하지 않았다.",
-            "512 manifest는 기능 smoke 전용이고, 768/1024 정식 길이 선택은 Gate D/E 이후에만 한다.",
+            "512 manifest는 기능 smoke 전용이고, 1024는 진단, 768은 정식 Gate E 후보로 검증한다.",
             "K0 품질 지표는 missing-chart 안전 Gate와 파이프라인 무결성 외에는 진단값이며 학습 승격 판정이 아니다.",
             "Upstream YaRN factor 40 설정과 implicit ratio 8 경고를 수정하지 않았다.",
         ],
@@ -373,6 +391,7 @@ def _finalize_public_report(
     private_root: Path = context["private_root"]
     k0_root: Path = context["k0_root"]
     public_root: Path = context["public_root"]
+    verify_triage(context, repo_root)
     if public_root.exists():
         result = _verify_public(context)
         report = load_json(public_root / "preflight_report.json", "preflight report")
@@ -398,7 +417,15 @@ def _finalize_public_report(
         if k0_summary.get("raw_samples_in_summary") is not False:
             raise Phase4Error("K0 공개 summary에 raw sample이 포함됐습니다.")
         write_json_once(temporary / "k0_summary.json", k0_summary, mode=PUBLIC_FILE_MODE)
-        report = _public_report(context, review, k0_summary)
+        triage_summary = load_json(k0_root / "triage_summary.json", "K0 triage summary")
+        if triage_summary.get("raw_samples_in_summary") is not False:
+            raise Phase4Error("K0 triage 공개 summary에 raw sample이 포함됐습니다.")
+        write_json_once(
+            temporary / "triage_summary.json",
+            triage_summary,
+            mode=PUBLIC_FILE_MODE,
+        )
+        report = _public_report(context, review, k0_summary, triage_summary)
         write_json_once(temporary / "preflight_report.json", report, mode=PUBLIC_FILE_MODE)
         artifacts = artifact_hash_map(temporary, list(PUBLIC_ARTIFACTS))
         manifest = {
@@ -470,6 +497,7 @@ def export_review_package(
         raise Phase4Error("검수 ZIP은 저장소 밖의 명시적 .zip 경로에만 만들 수 있습니다.")
     verify_private_build(context, repo_root)
     verify_k0_run(context, repo_root)
+    verify_triage(context, repo_root)
     if output.exists():
         review = verify_review_archive(output)
         if review["package_id"] != f"review-{sha256_json(_review_identity(context))[:16]}":
@@ -496,6 +524,7 @@ def export_review_package(
 def verify_preflight(context: dict[str, Any], repo_root: Path) -> dict[str, Any]:
     private = verify_private_build(context, repo_root)
     k0 = verify_k0_run(context, repo_root)
+    triage = verify_triage(context, repo_root)
     public = _verify_public(context)
     if (k0["gate_c_passed"] is True) != (public["status"] == "gates_a_b_c_passed"):
         raise Phase4Error("K0와 공개 Phase 4 Gate C 판정이 다릅니다.")
@@ -505,6 +534,7 @@ def verify_preflight(context: dict[str, Any], repo_root: Path) -> dict[str, Any]
         "build_sha256": context["build_sha256"],
         "private": private,
         "k0": k0,
+        "triage": triage,
         "public": public,
         "training_promotion_allowed": False,
         "human_domain_review_performed": False,

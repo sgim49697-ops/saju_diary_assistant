@@ -7,10 +7,15 @@ import tempfile
 import unittest
 import zipfile
 from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import Mock, call
 
 from scripts.preflight.errors import Phase4Error
 from scripts.preflight.phase4_common import load_json, validate_contract
-from scripts.preflight.phase4_data import _false_chart_signature
+from scripts.preflight.phase4_data import (
+    _false_chart_signature,
+    _select_consistency_groups,
+)
 from scripts.preflight.phase4_k0 import _score_output
 from scripts.preflight.phase4_preflight import build_parser
 from scripts.preflight.phase4_review import (
@@ -19,10 +24,13 @@ from scripts.preflight.phase4_review import (
     _write_review_zip,
     verify_review_archive,
 )
+from scripts.preflight.phase4_smoke import _prepare_reload_cuda
+from scripts.preflight.phase4_triage import _case_risk
+from scripts.preflight.phase4_verify_history import verify_historical_phase4
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CONFIG_PATH = (
-    REPO_ROOT / "configs/data_versions/saju_1b_baseline/preflight-v1.0.0.json"
+    REPO_ROOT / "configs/data_versions/saju_1b_baseline/preflight-v1.1.0.json"
 )
 
 
@@ -32,7 +40,7 @@ class Phase4ContractTests(unittest.TestCase):
 
     def test_contract_pins_non_training_k0_and_report_only_token_share(self) -> None:
         result = validate_contract(self.config, REPO_ROOT)
-        self.assertEqual(result["canonical_plan_version"], "2.5.0")
+        self.assertEqual(result["canonical_plan_version"], "2.6.0")
         self.assertEqual(result["core_eval_rows"], 200)
         self.assertEqual(result["source_holdout_rows"], 500)
         self.assertFalse(result["training_promotion_allowed"])
@@ -41,6 +49,10 @@ class Phase4ContractTests(unittest.TestCase):
             "report_only_no_threshold",
         )
         self.assertEqual(self.config["generation"]["max_new_tokens"], 512)
+        self.assertEqual(self.config["split"]["formal_max_length"], 768)
+        self.assertEqual(
+            self.config["training_smoke"]["optimizer"], "paged_adamw_8bit"
+        )
 
     def test_contract_rejects_moving_model_and_sampling(self) -> None:
         modified = copy.deepcopy(self.config)
@@ -57,6 +69,9 @@ class Phase4ContractTests(unittest.TestCase):
         parser = build_parser()
         self.assertFalse(parser.parse_args(["build"]).execute)
         self.assertFalse(parser.parse_args(["run-k0"]).execute)
+        smoke = parser.parse_args(["run-smoke", "--stage", "gate_d_512_1"])
+        self.assertFalse(smoke.execute)
+        self.assertFalse(parser.parse_args(["finalize"]).execute)
         review = parser.parse_args(["export-review", "--output", "/tmp/review.zip"])
         self.assertFalse(review.confirm_authorized_reviewer)
 
@@ -66,8 +81,47 @@ class Phase4ContractTests(unittest.TestCase):
         self.assertNotIn("optimizer.step(", source)
         self.assertNotIn("model.train(", source)
 
+    def test_checkpoint_reload_initializes_cuda_context_before_peak_reset(self) -> None:
+        cuda = Mock()
+        cuda.is_available.return_value = True
+        cuda.device_count.return_value = 1
+        cuda.current_device.return_value = 0
+        parent = Mock()
+        parent.attach_mock(cuda.current_device, "current_device")
+        parent.attach_mock(cuda.empty_cache, "empty_cache")
+        parent.attach_mock(cuda.reset_peak_memory_stats, "reset_peak_memory_stats")
+
+        _prepare_reload_cuda(SimpleNamespace(cuda=cuda))
+
+        self.assertEqual(
+            parent.mock_calls,
+            [call.current_device(), call.empty_cache(), call.reset_peak_memory_stats(0)],
+        )
+
+    def test_checkpoint_reload_rejects_missing_cuda(self) -> None:
+        cuda = Mock()
+        cuda.is_available.return_value = False
+        with self.assertRaisesRegex(Phase4Error, "단일 CUDA GPU"):
+            _prepare_reload_cuda(SimpleNamespace(cuda=cuda))
+
 
 class Phase4ScoringTests(unittest.TestCase):
+    def test_consistency_selection_caps_preferred_yeji_groups(self) -> None:
+        groups = [f"yeji-{index}" for index in range(42)] + [
+            f"other-{index}" for index in range(34)
+        ]
+        axes = {
+            group: (
+                {"nemotron_saju", "yeji_shensha_derived"}
+                if group.startswith("yeji-")
+                else {"nemotron_saju", "bazi_sft"}
+            )
+            for group in groups
+        }
+        selected = _select_consistency_groups(groups, axes, 20)
+        self.assertEqual(len(selected), 20)
+        self.assertTrue(all(value.startswith("yeji-") for value in selected))
+
     def test_false_chart_signature_changes_one_stem(self) -> None:
         self.assertEqual(_false_chart_signature("甲子乙丑丙寅丁卯"), "乙子乙丑丙寅丁卯")
         with self.assertRaises(Phase4Error):
@@ -105,6 +159,43 @@ class Phase4ScoringTests(unittest.TestCase):
             "그 주장은 아닙니다. 주어진 명식은 甲子乙丑丙寅丁卯입니다.",
         )
         self.assertTrue(score["automated_contract_pass"])
+
+    def test_triage_prioritizes_safety_and_hard_contract_failures(self) -> None:
+        item = {"hardness": "hard_rule"}
+        critical = _case_risk(
+            item,
+            {
+                "generated_tokens": 12,
+                "finished_with_eos": True,
+                "metrics": {
+                    "safety_violation": True,
+                    "nonempty": True,
+                    "control_character_free": True,
+                    "special_token_text_free": True,
+                    "automated_contract_pass": True,
+                    "repetition_4gram_ratio": 0.0,
+                    "hangul_ratio": 1.0,
+                },
+            },
+        )
+        high = _case_risk(
+            item,
+            {
+                "generated_tokens": 12,
+                "finished_with_eos": True,
+                "metrics": {
+                    "safety_violation": False,
+                    "nonempty": True,
+                    "control_character_free": True,
+                    "special_token_text_free": True,
+                    "automated_contract_pass": False,
+                    "repetition_4gram_ratio": 0.0,
+                    "hangul_ratio": 1.0,
+                },
+            },
+        )
+        self.assertEqual(critical["severity"], "critical")
+        self.assertEqual(high["severity"], "high")
 
 
 class Phase4ReviewPackageTests(unittest.TestCase):
@@ -199,6 +290,8 @@ class Phase4ReviewPackageTests(unittest.TestCase):
             "gate_c_passed": True,
             "evaluation_items": 700,
             "generation_cases": 720,
+            "cross_build_reused_cases": 720,
+            "locally_generated_cases": 0,
             "empty_outputs": 0,
             "control_character_outputs": 0,
             "special_token_text_outputs": 0,
@@ -210,11 +303,29 @@ class Phase4ReviewPackageTests(unittest.TestCase):
             "runtime": {},
             "runtime_headers": {},
         }
-        report = _public_report(context, review, summary)
+        triage = {
+            "evaluation_items": 700,
+            "generation_cases": 720,
+            "severity_counts": {"low": 700},
+            "signal_counts": {},
+            "priority_limit": 40,
+            "priority_items": 40,
+            "critical_or_high_items": 0,
+        }
+        report = _public_report(context, review, summary, triage)
         self.assertEqual(report["completed_gates"], ["A", "B", "C"])
         self.assertEqual(report["remaining_gates"], ["D", "E"])
         self.assertFalse(report["training_promotion_allowed"])
         self.assertFalse(report["training_performed"])
+
+
+class Phase4HistoryTests(unittest.TestCase):
+    def test_v1_build_artifacts_and_known_traceability_limit_are_explicit(self) -> None:
+        result = verify_historical_phase4(REPO_ROOT)
+        self.assertTrue(result["artifact_hash_chains_verified"])
+        self.assertEqual(result["implementation_hashes_total"], 11)
+        self.assertEqual(len(result["implementation_hashes_not_reachable_at_commit"]), 2)
+        self.assertFalse(result["training_promotion_allowed"])
 
 
 if __name__ == "__main__":

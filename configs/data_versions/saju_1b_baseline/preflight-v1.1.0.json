@@ -1,0 +1,156 @@
+{
+  "schema_version": "1.0.0",
+  "canonical_plan_version": "2.6.0",
+  "dataset_name": "saju_1b_baseline",
+  "preflight_version": "v1.1.0",
+  "seed": 42,
+  "parent_staging": {
+    "version": "v0.2.0",
+    "build_id": "build-847088ee804d",
+    "build_sha256": "847088ee804d8bc8933c0d83767a2251fc820ae3cb4235965a9a27a3f0f34801",
+    "implementation_commit": "21705fe72fefe5bd9933a9ac9cc2cf30aad08ce7",
+    "approval_sha256": "3be8fa8c2d9948bcbe3c8a8367026ac814ad86e2087e6c2d32701a88e4de7c52"
+  },
+  "model": {
+    "repo_id": "kakaocorp/kanana-2-1.3b-instruct",
+    "revision": "bf4786aa2a1908adce942d53976270132732f720",
+    "local_subdir": "models/saju_1b_baseline/kanana-2-1.3b-instruct/bf4786aa2a1908adce942d53976270132732f720",
+    "phase3_config": "configs/model_versions/saju_1b_baseline/model-preparation-v1.0.0.json",
+    "phase3_report": "data/reports/saju_1b_baseline/model-preparation/v1.0.0/build-32e2c84af3d3/verification_report.json",
+    "phase3_build_id": "build-32e2c84af3d3",
+    "snapshot_manifest_sha256": "5786d04831c93192d234651df0894a1912b974cfab96011ce0676563185cc93d",
+    "dtype": "bfloat16",
+    "attention_backend": "sdpa",
+    "trust_remote_code": true,
+    "local_files_only": true,
+    "expected_parameter_count": 1291478272
+  },
+  "chat_template": {
+    "path": "configs/chat_templates/kanana2_sft.jinja",
+    "bytes": 10725,
+    "sha256": "b8ee6b31575eada17ebbe73d3f1ac65d3efde64f0a25ff922031dec7e1cae3e3",
+    "bos_token_id": 128000,
+    "eos_token_id": 128010,
+    "pad_token_id": 128001
+  },
+  "runtime_headers": {
+    "package": "libpython3.10-dev",
+    "version": "3.10.12-1~22.04.16",
+    "url": "https://security.ubuntu.com/ubuntu/pool/main/p/python3.10/libpython3.10-dev_3.10.12-1~22.04.16_amd64.deb",
+    "bytes": 4765572,
+    "sha256": "7ec59ebb7ecea34f416f37f74797712a7d477cc344f1bca1755528b154eaa04a",
+    "local_root": ".venv/phase4-runtime/libpython3.10-dev-3.10.12-1~22.04.16",
+    "include_roots": ["usr/include/python3.10", "usr/include"],
+    "required_headers": [
+      "usr/include/python3.10/Python.h",
+      "usr/include/x86_64-linux-gnu/python3.10/pyconfig.h"
+    ]
+  },
+  "split": {
+    "token_share_policy": "report_only_no_threshold",
+    "formal_max_length": 768,
+    "diagnostic_max_length": 1024,
+    "smoke_only_max_length": 512,
+    "axes": {
+      "nemotron_saju": {"mix1k": 550, "mix10k": 5500, "mix20k": 11000, "holdout": 100},
+      "bazi_sft": {"mix1k": 250, "mix10k": 2500, "mix20k": 5000, "holdout": 100},
+      "aihub_empathy_single": {"mix1k": 100, "mix10k": 1000, "mix20k": 2000, "holdout": 100},
+      "aihub_empathy_multiturn": {"mix1k": 50, "mix10k": 500, "mix20k": 1000, "holdout": 100},
+      "yeji_shensha_derived": {"mix1k": 50, "mix10k": 500, "mix20k": 1000, "holdout": 100}
+    },
+    "nemotron_variants": {
+      "mix1k": {"v6": 110, "v7": 440},
+      "mix10k": {"v6": 1100, "v7": 4400},
+      "mix20k": {"v6": 2200, "v7": 8800}
+    },
+    "core_eval": {
+      "structured_natal_reading": 45,
+      "grounded_rule_reading": 35,
+      "contradiction_hallucination": 35,
+      "shensha_rule_qa": 20,
+      "same_chart_consistency": 20,
+      "empathy": 20,
+      "multiturn": 15,
+      "missing_chart_handoff": 5,
+      "general_korean_instruction": 5
+    }
+  },
+  "generation": {
+    "do_sample": false,
+    "max_new_tokens": 512,
+    "num_beams": 1,
+    "use_cache": true,
+    "batch_size": 1
+  },
+  "k0_reuse": {
+    "source_root": "runs/K0-INSTRUCT/v1.1.0/build-9cf4fdb83bbd",
+    "source_build_id": "build-9cf4fdb83bbd",
+    "source_run_manifest_sha256": "d06b44548d76b311e2f8b2decf64dc253a147e8d581907101bf2cfea44f7c65f",
+    "source_run_config_sha256": "63bf2dd5053037e4c4d273f2107267dbe7e551ac20a2038033a119f16e926243",
+    "reuse_key": "model-template-generation-prompt-sha256",
+    "recompute_metrics": true
+  },
+  "triage": {
+    "evaluation_items": 700,
+    "generation_cases": 720,
+    "priority_limit": 40,
+    "severity_order": ["critical", "high", "medium", "low"],
+    "human_domain_review_performed": false
+  },
+  "training_smoke": {
+    "full_parameter_count": 1291478272,
+    "dtype": "bfloat16",
+    "attention_backend": "sdpa",
+    "per_device_train_batch_size": 1,
+    "gradient_accumulation_steps": 8,
+    "gradient_checkpointing": true,
+    "use_cache": false,
+    "optimizer": "paged_adamw_8bit",
+    "assistant_only_loss": true,
+    "packing": false,
+    "loss_type": "chunked_nll",
+    "learning_rate": 0.000008,
+    "warmup_ratio": 0.03,
+    "lr_scheduler_type": "cosine",
+    "weight_decay": 0.01,
+    "max_grad_norm": 1.0,
+    "seed": 42,
+    "data_seed": 42,
+    "minimum_vram_headroom_bytes": 1073741824,
+    "stages": {
+      "gate_d_512_1": {"max_length": 512, "optimizer_steps": 1, "manifest": "mix1k_smoke_512_v1.jsonl"},
+      "smoke_512_20": {"max_length": 512, "optimizer_steps": 20, "manifest": "mix1k_smoke_512_v1.jsonl"},
+      "diagnostic_1024_1": {"max_length": 1024, "optimizer_steps": 1, "manifest": "mix1k_candidate_v1.jsonl"},
+      "main_768_100": {"max_length": 768, "optimizer_steps": 100, "total_optimizer_steps": 200, "checkpoint_step": 100, "manifest": "mix1k_candidate_v1.jsonl"},
+      "resume_768_200": {"max_length": 768, "optimizer_steps": 200, "resume_step": 100, "checkpoint_step": 200, "manifest": "mix1k_candidate_v1.jsonl"},
+      "reload_768_generate5": {"max_length": 768, "checkpoint_step": 200, "task_count": 5, "max_new_tokens": 64}
+    },
+    "forbidden_automatic_changes": [
+      "cpu_offload",
+      "deepspeed",
+      "lora",
+      "packing",
+      "torch_compile",
+      "flash_attention"
+    ]
+  },
+  "outputs": {
+    "private_root": "data/derived/saju_1b_baseline/v1.1.0/{build_id}",
+    "public_root": "data/reports/saju_1b_baseline/preflight/v1.1.0/{build_id}",
+    "k0_root": "runs/K0-INSTRUCT/v1.1.0/{build_id}",
+    "smoke_root": "runs/KI1K-SMOKE-v1/v1.1.0/{build_id}",
+    "canonical_root": "data/derived/saju_1b_baseline/v1.1.0",
+    "canonical_public_root": "data/reports/saju_1b_baseline/preflight/v1.1.0"
+  },
+  "official_sources": [
+    "https://huggingface.co/kakaocorp/kanana-2-1.3b-instruct/tree/bf4786aa2a1908adce942d53976270132732f720",
+    "https://huggingface.co/docs/trl/main/sft_trainer",
+    "https://huggingface.co/docs/transformers/main/en/trainer",
+    "https://huggingface.co/docs/transformers/trainer_recipes",
+    "https://huggingface.co/docs/bitsandbytes/reference/optim/adamw",
+    "https://docs.pytorch.org/docs/stable/checkpoint",
+    "https://pytorch.org/blog/pytorch-2-13-release-blog/",
+    "https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/tuning/supervised-tuning/prepare-data",
+    "https://docs.nvidia.com/nemo-platform/documentation/customizer-reference/tutorials/format-training-dataset"
+  ]
+}

@@ -1,4 +1,4 @@
-# phase4_preflight.py - Phase 4A~C 비학습 preflight 명령을 제공한다.
+# phase4_preflight.py - Phase 4A~E preflight·smoke·canonical 승격 명령을 제공한다.
 
 from __future__ import annotations
 
@@ -22,7 +22,15 @@ from scripts.preflight.phase4_common import (
 )
 
 DEFAULT_CONFIG = (
-    REPO_ROOT / "configs/data_versions/saju_1b_baseline/preflight-v1.0.0.json"
+    REPO_ROOT / "configs/data_versions/saju_1b_baseline/preflight-v1.1.0.json"
+)
+SMOKE_STAGES = (
+    "gate_d_512_1",
+    "smoke_512_20",
+    "diagnostic_1024_1",
+    "main_768_100",
+    "resume_768_200",
+    "reload_768_generate5",
 )
 
 
@@ -32,7 +40,7 @@ def _print_json(value: Any) -> None:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="사주 1.3B baseline Phase 4A~C 비학습 preflight 도구"
+        description="사주 1.3B baseline Phase 4A~E preflight 도구"
     )
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
     parser.add_argument("--build", help="현재 fingerprint의 build ID와 일치해야 한다.")
@@ -48,19 +56,42 @@ def build_parser() -> argparse.ArgumentParser:
     k0.add_argument("--execute", action="store_true")
     resume = commands.add_parser("resume-k0")
     resume.add_argument("--execute", action="store_true")
+    triage = commands.add_parser("triage-k0")
+    triage.add_argument("--execute", action="store_true")
     review = commands.add_parser("export-review")
     review.add_argument("--output", type=Path, required=True)
     review.add_argument("--confirm-authorized-reviewer", action="store_true")
     verify_review = commands.add_parser("verify-review")
     verify_review.add_argument("--archive", type=Path, required=True)
     commands.add_parser("verify")
+    smoke = commands.add_parser("run-smoke")
+    smoke.add_argument("--stage", choices=SMOKE_STAGES, required=True)
+    smoke.add_argument("--execute", action="store_true")
+    finalize = commands.add_parser("finalize")
+    finalize.add_argument("--execute", action="store_true")
+    commands.add_parser("verify-final")
+    commands.add_parser("verify-history")
     return parser
 
 
-def _load_lazy_modules() -> tuple[Any, Any, Any]:
-    from scripts.preflight import phase4_data, phase4_k0, phase4_review
+def _load_lazy_modules() -> tuple[Any, Any, Any, Any, Any, Any]:
+    from scripts.preflight import (
+        phase4_data,
+        phase4_finalize,
+        phase4_k0,
+        phase4_review,
+        phase4_smoke,
+        phase4_triage,
+    )
 
-    return phase4_data, phase4_k0, phase4_review
+    return (
+        phase4_data,
+        phase4_k0,
+        phase4_review,
+        phase4_triage,
+        phase4_smoke,
+        phase4_finalize,
+    )
 
 
 def run(arguments: argparse.Namespace) -> dict[str, Any]:
@@ -68,6 +99,10 @@ def run(arguments: argparse.Namespace) -> dict[str, Any]:
     config = load_json(config_path, "Phase 4 설정")
     if arguments.command == "validate-contract":
         return validate_contract(config, REPO_ROOT)
+    if arguments.command == "verify-history":
+        from scripts.preflight.phase4_verify_history import verify_historical_phase4
+
+        return verify_historical_phase4(REPO_ROOT)
     context = prepare_context(REPO_ROOT, config_path)
     if arguments.build and arguments.build != context["build_id"]:
         raise Phase4Error(
@@ -80,9 +115,18 @@ def run(arguments: argparse.Namespace) -> dict[str, Any]:
             "mode": "plan",
             "private_root": context["private_root"].relative_to(REPO_ROOT).as_posix(),
             "public_root": context["public_root"].relative_to(REPO_ROOT).as_posix(),
+            "k0_root": context["k0_root"].relative_to(REPO_ROOT).as_posix(),
+            "smoke_root": context["smoke_root"].relative_to(REPO_ROOT).as_posix(),
             "training_promotion_allowed": False,
         }
-    phase4_data, phase4_k0, phase4_review = _load_lazy_modules()
+    (
+        phase4_data,
+        phase4_k0,
+        phase4_review,
+        phase4_triage,
+        phase4_smoke,
+        phase4_finalize,
+    ) = _load_lazy_modules()
     if arguments.command == "prepare-runtime":
         result = prepare_runtime_headers(config, REPO_ROOT, execute=arguments.execute)
         if arguments.probe:
@@ -98,6 +142,10 @@ def run(arguments: argparse.Namespace) -> dict[str, Any]:
         if not arguments.execute:
             return {"build_id": context["build_id"], "mode": "k0_dry_run"}
         return phase4_k0.run_k0(context, REPO_ROOT)
+    if arguments.command == "triage-k0":
+        if not arguments.execute:
+            return {"build_id": context["build_id"], "mode": "triage_dry_run"}
+        return phase4_triage.run_triage(context, REPO_ROOT)
     if arguments.command == "export-review":
         return phase4_review.export_review_package(
             context,
@@ -109,6 +157,27 @@ def run(arguments: argparse.Namespace) -> dict[str, Any]:
         return phase4_review.verify_review_archive(arguments.archive.expanduser().resolve())
     if arguments.command == "verify":
         return phase4_review.verify_preflight(context, REPO_ROOT)
+    if arguments.command == "run-smoke":
+        if not arguments.execute:
+            return {
+                "build_id": context["build_id"],
+                "stage": arguments.stage,
+                "mode": "smoke_dry_run",
+                "phase5_training_performed": False,
+            }
+        return phase4_smoke.run_smoke_stage(
+            context, REPO_ROOT, arguments.stage
+        )
+    if arguments.command == "finalize":
+        if not arguments.execute:
+            return {
+                "build_id": context["build_id"],
+                "mode": "finalize_dry_run",
+                "phase5_training_performed": False,
+            }
+        return phase4_finalize.finalize_phase4(context, REPO_ROOT)
+    if arguments.command == "verify-final":
+        return phase4_finalize.verify_finalized_phase4(context, REPO_ROOT)
     raise Phase4Error(f"지원하지 않는 명령입니다: {arguments.command}")
 
 

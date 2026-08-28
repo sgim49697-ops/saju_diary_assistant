@@ -11,6 +11,7 @@ import subprocess
 import sys
 from collections import Counter, defaultdict
 from collections.abc import Sequence
+from datetime import date
 from pathlib import Path
 from typing import Any
 
@@ -26,6 +27,9 @@ DATASET_NAME = "saju_1b_baseline"
 COMMIT_PATTERN = re.compile(r"[0-9a-f]{7,40}")
 SHA256_PATTERN = re.compile(r"[0-9a-f]{64}")
 ASCII_WORD_PATTERN = re.compile(r"[A-Za-z]{2,}")
+STEMS = "甲乙丙丁戊己庚辛壬癸"
+BRANCHES = "子丑寅卯辰巳午未申酉戌亥"
+JIAZI = tuple(STEMS[index % 10] + BRANCHES[index % 12] for index in range(60))
 EXPECTED_AXES = (
     "nemotron_saju",
     "bazi_sft",
@@ -74,6 +78,42 @@ def _canonical_json_bytes(value: Any) -> bytes:
 
 def _sha256_json(value: Any) -> str:
     return hashlib.sha256(_canonical_json_bytes(value)).hexdigest()
+
+
+def _calendar_relations_valid(chart: Sequence[str]) -> bool:
+    if len(chart) != 4 or any(pillar not in JIAZI for pillar in chart):
+        return False
+    year, month, day_pillar, hour = chart
+    month_offset = (BRANCHES.index(month[1]) - BRANCHES.index("寅")) % 12
+    month_stem = (
+        (STEMS.index(year[0]) % 5) * 2 + STEMS.index("丙") + month_offset
+    ) % 10
+    hour_stem = (
+        (STEMS.index(day_pillar[0]) % 5) * 2 + BRANCHES.index(hour[1])
+    ) % 10
+    return STEMS.index(month[0]) == month_stem and STEMS.index(hour[0]) == hour_stem
+
+
+def _calendar_anchor_valid(anchor: Any, backend: dict[str, Any]) -> bool:
+    if not isinstance(anchor, dict) or set(anchor) != {
+        "date",
+        "hour",
+        "minute",
+        "second",
+    }:
+        return False
+    try:
+        anchor_date = date.fromisoformat(anchor["date"])
+        start = date.fromisoformat(backend["anchor_start"])
+        end = date.fromisoformat(backend["anchor_end"])
+    except (KeyError, TypeError, ValueError):
+        return False
+    return (
+        start <= anchor_date <= end
+        and anchor.get("hour") in backend.get("anchor_hours", [])
+        and anchor.get("minute") == 0
+        and anchor.get("second") == 0
+    )
 
 
 def _load_json(path: Path, label: str) -> dict[str, Any]:
@@ -242,6 +282,11 @@ def _verify_records(
     bazi_groups: Counter[str] = Counter()
     ranks_by_axis: dict[str, Counter[str]] = defaultdict(Counter)
     roles: Counter[str] = Counter()
+    calendar_rows: Counter[str] = Counter()
+    require_calendar = config.get("contracts", {}).get(
+        "chart_calendar_relations_required"
+    ) is True
+    calendar_backend = config.get("calendar_backend")
     for axis, records in records_by_axis.items():
         for record in records:
             record_id = record.get("id")
@@ -316,6 +361,43 @@ def _verify_records(
             }:
                 raise Phase2AuditError(f"과거 staging role 순서가 잘못됐습니다: {role_pattern}")
             roles[role_pattern] += 1
+            if require_calendar and axis in {
+                "nemotron_saju",
+                "bazi_sft",
+                "yeji_shensha_derived",
+            }:
+                signature = meta.get("chart_signature")
+                if not isinstance(signature, str) or len(signature) != 8:
+                    raise Phase2AuditError("과거 staging 명식 signature가 없습니다.")
+                chart = tuple(signature[index : index + 2] for index in range(0, 8, 2))
+                if not _calendar_relations_valid(chart):
+                    raise Phase2AuditError("과거 staging 명식의 역법 관계가 다릅니다.")
+                calendar_rows[axis] += 1
+            if require_calendar and axis == "yeji_shensha_derived" and (
+                not isinstance(calendar_backend, dict)
+                or meta.get("calendar_backend")
+                != calendar_backend.get("distribution")
+                or meta.get("calendar_backend_version")
+                != calendar_backend.get("version")
+                or not _calendar_anchor_valid(
+                    meta.get("calendar_anchor"), calendar_backend
+                )
+            ):
+                raise Phase2AuditError("과거 YEJI 달력 provenance가 다릅니다.")
+            if require_calendar and axis.startswith("aihub_empathy_"):
+                expected_projection = (
+                    "first_pair"
+                    if axis == "aihub_empathy_single"
+                    else "first_two_pairs"
+                )
+                pair_count = meta.get("source_pair_count")
+                if (
+                    not isinstance(pair_count, int)
+                    or isinstance(pair_count, bool)
+                    or pair_count < 2
+                    or meta.get("turn_projection") != expected_projection
+                ):
+                    raise Phase2AuditError("과거 AI Hub turn projection이 다릅니다.")
             for message in messages:
                 content = message.get("content")
                 if not isinstance(content, str) or not content:
@@ -345,6 +427,7 @@ def _verify_records(
         ),
         "aihub_cross_axis_group_overlap": 0,
         "bazi_complete_group_count": len(bazi_groups),
+        "calendar_relation_valid_rows": dict(sorted(calendar_rows.items())),
     }
 
 
@@ -423,6 +506,10 @@ def verify_historical_staging(
         "language_bank_sha256": private_manifest.get("language_bank_sha256"),
         "code_sha256": code_sha256,
     }
+    if isinstance(config.get("calendar_backend"), dict):
+        identity["calendar_backend_sha256"] = _sha256_json(
+            config["calendar_backend"]
+        )
     expected_build_sha256 = _sha256_json(identity)
     if (
         expected_build_sha256 != private_manifest.get("build_sha256")
@@ -528,6 +615,10 @@ def verify_historical_staging(
         or approval.get("domain_item_review_performed") is not False
         or approval.get("quality_certification_claimed") is not False
         or approval.get("training_promotion_allowed") is not False
+        or (
+            staging_version != "v0.1.0"
+            and approval.get("implementation_commit") != commit
+        )
         or accepted_gate.get("promotion_allowed") is not False
     ):
         raise Phase2AuditError("과거 staging approval·Gate 계약이 다릅니다.")
@@ -544,8 +635,20 @@ def verify_historical_staging(
         if path.is_symlink() or not path.is_file() or entry.get(key) != sha256_file(path):
             raise Phase2AuditError(f"registry staging {key}가 다릅니다.")
     approved_staging = registry.get("approved_staging")
-    if not isinstance(approved_staging, dict) or any(
-        approved_staging.get(key) != entry.get(key)
+    approved_entry = next(
+        (
+            item
+            for item in registry.get("staging_builds", [])
+            if isinstance(approved_staging, dict)
+            and item.get("version") == approved_staging.get("version")
+            and item.get("build_id") == approved_staging.get("build_id")
+        ),
+        None,
+    )
+    if not isinstance(approved_staging, dict) or not isinstance(
+        approved_entry, dict
+    ) or any(
+        approved_staging.get(key) != approved_entry.get(key)
         for key in (
             "version",
             "build_id",

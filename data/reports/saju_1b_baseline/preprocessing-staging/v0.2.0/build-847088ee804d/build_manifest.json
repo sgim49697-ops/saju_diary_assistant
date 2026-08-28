@@ -1,0 +1,38 @@
+{
+  "approval_status": "staging_unapproved",
+  "artifact_sha256": {
+    "aggregate.json": "ed3f0b6dbfa6cec12586aec461624efe082caa1e7a825df246cac53707bb7ae5",
+    "gate.staging.json": "838e24a6692dc8de55958f4de06ca762b9c9dcc9ba9175ab7ded406d69eb3b27",
+    "review_manifest.json": "a2d0309cbfe13243ffb868abc2774a6d7dee66de3ef7bfc8582ed679652f63cf",
+    "reviewer-v1.0.0/index.html": "21b01d3a4690c0efbdec494ca3afd4ad8e6aed8e1d613cb7feafe68d0df673cb",
+    "reviewer-v1.0.0/review.css": "637bda1cf5b4382ec8d82c1eaba0f0cc4642c292f6f0d0d6e79ebce2ceb57800",
+    "reviewer-v1.0.0/review.js": "b17fe1ff24850cdfab9ae2898d21a14d0fe1b1009a014596a3652badd89ea77b"
+  },
+  "audit_build_sha256": "ca756f3eb89fa404c08dc49215b540b3294ed195c39c597303ec14777bb9c4f1",
+  "audit_policy_sha256": "8195d4c971747a52f56ae1d1b963ab499681ec4d8f0030bf446928cf7749d1a4",
+  "build_id": "build-847088ee804d",
+  "build_sha256": "847088ee804d8bc8933c0d83767a2251fc820ae3cb4235965a9a27a3f0f34801",
+  "calendar_backend_sha256": "5500ada10775c532cf8573b01134cfd5eb64b71073026ab918235a477eb03e08",
+  "code_sha256": "3e5e67db29dd634e6afe7292ca52a077e752288601ac04c526fc0a90f6996d17",
+  "config_sha256": "45d8e682b580cb65f69a3467c4f4baa7e8abfefa9a5ec54d6b93a84d38928ef1",
+  "contains_raw_samples": false,
+  "correction_manifest_sha256": "b355a37112bdb6bac94a16b4d341a5a7f034403a39d66f9830526ee53d926f81",
+  "dataset_name": "saju_1b_baseline",
+  "generated_at": "2026-08-28T09:12:39+00:00",
+  "language_bank_sha256": "ceae1af37f80d43c845af45f267118db7e55d729aaa0146578bae2f5bfeb82b2",
+  "private_manifest_sha256": "1cd6733681748e4ed60b5eb293067ed08211562a09ed49b9dd8f1e5f9f527f1c",
+  "promotion_allowed": false,
+  "row_counts": {
+    "aihub_empathy_multiturn": 1200,
+    "aihub_empathy_single": 2400,
+    "bazi_sft": 6000,
+    "nemotron_saju": 13200,
+    "yeji_shensha_derived": 1200
+  },
+  "schema_version": "1.0.0",
+  "seed": 42,
+  "source_build_sha256": "9462ec148dcd93328b3b68522ad6c6f0d2c3694161d32a2d54332e8069d82f0a",
+  "source_config_sha256": "6e3654580e21b9aa6532126a7b44a316b5bcc6b108d2727fa81cc0f70b24de4e",
+  "staging_version": "v0.2.0",
+  "total_rows": 24000
+}

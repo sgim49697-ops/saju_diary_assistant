@@ -1,0 +1,74 @@
+{
+  "artifact_sha256": {
+    "k0_summary.json": "8e334775dcaa9889e6868e8317bbeb8d46be9312f239e140914d736f1d6598b1",
+    "manifest_report.json": "038940143e1cd0d6f6629db9c4fef8e55dd2507e4067bf866a68e4839f800bbf",
+    "preflight_report.json": "493127f5e531b9403833a03edbc1b4faaaa08fd3c11c37c44d7f97a03bbb9c5e",
+    "schema_validation.json": "5cf58913a916f41f53c3b052125e326425d58b2c7743d8cdf4b7378dcad2fc12",
+    "split_leakage_report.json": "195d43e974457fe3ee6ce4a720d25de5eab2351a7b96f629555d411172d5461c",
+    "tokenization_report.json": "ccc0d417bff4bd83b67bf63fa695ecc10f16e52fcc1b30e238f9c33ec168ad90",
+    "triage_summary.json": "f3a1f384ffb7d76b2ad5f8cfcec4cdeca812e730bd30dc6634cadeefd1b36f31"
+  },
+  "build_id": "build-7d59833b8d59",
+  "build_inputs": {
+    "canonical_plan_version": "2.6.0",
+    "generation_contract_sha256": "f8b35629a642b552243b50b9ae6a0b932141ace9fe6ef1500565d9d0701eef9b",
+    "implementation_hashes": {
+      "configs/chat_templates/kanana2_sft.jinja": "b8ee6b31575eada17ebbe73d3f1ac65d3efde64f0a25ff922031dec7e1cae3e3",
+      "configs/data_versions/saju_1b_baseline/preflight-v1.1.0.json": "354e084ce27db5abd13c75da875f13af45535159f06d47b287c461410468f31e",
+      "scripts/preflight/errors.py": "a6e6e295a9ad96eaeb6d3080c8c8ffad99edecc61bb66793ad7312a8fe2a4352",
+      "scripts/preflight/phase4_common.py": "243100194c42a20d0087335d7cf364c532d969a74ab96a0c5c62e6eab8057e82",
+      "scripts/preflight/phase4_data.py": "a9a6cb2244ed8f79ff98d61cea2e76061d878a8c9d9230ef0c3f53d1f5c42757",
+      "scripts/preflight/phase4_finalize.py": "01a2123d3f62cc3ba2d8e5428c51c2524764efe54bbec55b44c5fe44fde90393",
+      "scripts/preflight/phase4_k0.py": "365d0b30d44de88d23a461537e3ffbd1797a9fcc766b012fd714114c27fc1cb0",
+      "scripts/preflight/phase4_preflight.py": "dc25d1bd7031e507251752574ae8e13e0d7b67ca14b1405b41d561e391d85d6f",
+      "scripts/preflight/phase4_review.py": "af72d8cc478a706ab7a0905cd70e90a16565777df1db7768944130df66714d29",
+      "scripts/preflight/phase4_smoke.py": "d9c18b4dec889de03f0f4bc6ee1a3962f1affaabd47c6fe56999854b7c346dbe",
+      "scripts/preflight/phase4_triage.py": "5aa489418383c07d7a09d98f84c488a4d1a35daf72a417d9c972e6b8cae3a124",
+      "scripts/preflight/phase4_verify_history.py": "e442c140b7b3fabe77f0313a75357f7c6532652527388597de6297f2827d7dc4",
+      "scripts/preflight/review_assets/START_HERE.html": "f1c4bcc7c350eac38d1a03a10ad8990293d8985ee91fbbec262d12f33d203c4f",
+      "scripts/preflight/review_assets/review.css": "60253e31d08358f90a9966999d66e6865e550bedae5eb13d536654c46466f47b",
+      "scripts/preflight/review_assets/review.js": "f182cbcfa7d5dca1152499a5b0db635bebb82fdf2e2a1a75436faaf217caa33f"
+    },
+    "k0_reuse_contract_sha256": "d443b23a6b6ebdafc07da2218206928c9d646887bb55d19d86fc74d8945b8ff6",
+    "model": {
+      "phase3_build_id": "build-32e2c84af3d3",
+      "revision": "bf4786aa2a1908adce942d53976270132732f720",
+      "snapshot_manifest_sha256": "5786d04831c93192d234651df0894a1912b974cfab96011ce0676563185cc93d"
+    },
+    "parent_staging": {
+      "approval_sha256": "3be8fa8c2d9948bcbe3c8a8367026ac814ad86e2087e6c2d32701a88e4de7c52",
+      "build_id": "build-847088ee804d",
+      "build_sha256": "847088ee804d8bc8933c0d83767a2251fc820ae3cb4235965a9a27a3f0f34801",
+      "implementation_commit": "21705fe72fefe5bd9933a9ac9cc2cf30aad08ce7",
+      "version": "v0.2.0"
+    },
+    "preflight_version": "v1.1.0",
+    "runtime_headers": {
+      "bytes": 4765572,
+      "package": "libpython3.10-dev",
+      "sha256": "7ec59ebb7ecea34f416f37f74797712a7d477cc344f1bca1755528b154eaa04a",
+      "url": "https://security.ubuntu.com/ubuntu/pool/main/p/python3.10/libpython3.10-dev_3.10.12-1~22.04.16_amd64.deb",
+      "version": "3.10.12-1~22.04.16"
+    },
+    "seed": 42,
+    "split_contract_sha256": "37e2d7bb53aabc714717c21a03acd2f15925c727f9c3db4e60b853405164e104",
+    "training_smoke_contract_sha256": "b3bdbcb910df97747ce23236596f626c593c8c1d5871c9278fdbac05ad4e0f3b",
+    "triage_contract_sha256": "898d9b2e9fe6c69abc2c40f883f06f6857497ca8f7671798f298f7a417a594e1"
+  },
+  "build_sha256": "7d59833b8d59f3c7c730d60707377c15ee6d876c42966c64edc61f9deef63dae",
+  "completed_gates": [
+    "A",
+    "B",
+    "C"
+  ],
+  "evaluated_gates": [
+    "A",
+    "B",
+    "C"
+  ],
+  "human_domain_review_performed": false,
+  "report_type": "phase4_abc_public_manifest",
+  "schema_version": "1.0.0",
+  "status": "gates_a_b_c_passed",
+  "training_promotion_allowed": false
+}

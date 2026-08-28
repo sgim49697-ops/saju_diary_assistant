@@ -5,12 +5,12 @@ from __future__ import annotations
 import hashlib
 import heapq
 import json
-import random
 import re
 import unicodedata
 import zipfile
 from collections import Counter, defaultdict
 from collections.abc import Iterable, Iterator, Sequence
+from datetime import date, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -29,7 +29,7 @@ from scripts.data.audit_tools import (
 from scripts.data.errors import Phase2AuditError
 from scripts.data.source_tools import source_root
 
-ADAPTER_SCHEMA_VERSION = "1.0.0"
+ADAPTER_SCHEMA_VERSION = "1.1.0"
 ELEMENT_KO = {
     "Wood": "목",
     "Fire": "화",
@@ -125,6 +125,36 @@ def _compile_patterns(values: Iterable[str]) -> tuple[re.Pattern[str], ...]:
 
 def _contains_any(patterns: Iterable[re.Pattern[str]], text: str) -> bool:
     return any(pattern.search(text) is not None for pattern in patterns)
+
+
+def _record_policy_exclusion(
+    counters: Counter[str], matches: Sequence[str]
+) -> None:
+    """겹칠 수 있는 정책 일치와 상호배타적인 주 제외 사유를 함께 기록한다."""
+    if not matches:
+        return
+    counters["excluded_policy_union"] += 1
+    counters[f"excluded_primary_{matches[0]}"] += 1
+    for reason in matches:
+        counters[f"matched_{reason}"] += 1
+
+
+def calendar_relations_valid(chart: Sequence[str]) -> bool:
+    """연-월 오호둔과 일-시 오서둔의 필수 천간 관계를 검사한다."""
+    if len(chart) != 4 or any(pillar not in JIAZI for pillar in chart):
+        return False
+    year, month, day_pillar, hour = chart
+    month_offset = (BRANCHES.index(month[1]) - BRANCHES.index("寅")) % 12
+    expected_month_stem = (
+        (STEMS.index(year[0]) % 5) * 2 + STEMS.index("丙") + month_offset
+    ) % 10
+    expected_hour_stem = (
+        (STEMS.index(day_pillar[0]) % 5) * 2 + BRANCHES.index(hour[1])
+    ) % 10
+    return (
+        STEMS.index(month[0]) == expected_month_stem
+        and STEMS.index(hour[0]) == expected_hour_stem
+    )
 
 
 def _push_smallest(
@@ -253,20 +283,38 @@ def build_nemotron_records(
     seed: int,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     source = source_config["sources"]["nemotron_saju"]
-    patterns = tuple(
-        pattern
+    pattern_groups = {
+        key.removeprefix("nemotron_"): _compile_patterns(
+            audit_policy["safety_patterns"][key]
+        )
         for key in (
             "nemotron_health",
             "nemotron_death_accident",
             "nemotron_certainty",
             "nemotron_financial_guarantee",
         )
-        for pattern in _compile_patterns(audit_policy["safety_patterns"][key])
-    )
+    }
     heaps: dict[str, list[tuple[int, str, dict[str, Any]]]] = {
         variant: [] for variant in target_by_variant
     }
-    counters: Counter[str] = Counter()
+    counters: Counter[str] = Counter(
+        {
+            "excluded_invalid_age": 0,
+            "excluded_policy_union": 0,
+            "excluded_primary_replacement_character": 0,
+            "excluded_primary_health": 0,
+            "excluded_primary_death_accident": 0,
+            "excluded_primary_certainty": 0,
+            "excluded_primary_financial_guarantee": 0,
+            "excluded_primary_ascii_word": 0,
+            "matched_replacement_character": 0,
+            "matched_health": 0,
+            "matched_death_accident": 0,
+            "matched_certainty": 0,
+            "matched_financial_guarantee": 0,
+            "matched_ascii_word": 0,
+        }
+    )
     connection = _duckdb_module().connect(database=":memory:")
     try:
         for path, manifest_item in _source_parquets(
@@ -324,8 +372,8 @@ def build_nemotron_records(
                 narrative_text = "\n".join(
                     normalize_text(narrative[key]) for key, _ in NARRATIVE_ORDER
                 )
-                if "\ufffd" in str(narrative_raw) or _contains_any(patterns, narrative_text):
-                    counters["excluded_safety"] += 1
+                if isinstance(age, bool) or not isinstance(age, int) or not 19 <= age <= 99:
+                    counters["excluded_invalid_age"] += 1
                     continue
                 persona_text = _sanitize_persona(persona, district, province)
                 professional_text = _sanitize_persona(professional, district, province)
@@ -333,7 +381,7 @@ def build_nemotron_records(
                     "persona": persona_text,
                     "professional": professional_text,
                     "occupation": normalize_text(occupation),
-                    "age_band": f"{max(0, int(age or 0) // 10) * 10}대",
+                    "age_band": f"{age // 10 * 10}대",
                     "education": normalize_text(education),
                     "marital": normalize_text(marital),
                     "pillars": pillars,
@@ -360,12 +408,19 @@ def build_nemotron_records(
                         ),
                     )
                 )
-                if (
-                    _contains_any(patterns, rendered_input_values)
-                    or ASCII_WORD_PATTERN.search(rendered_input_values)
-                    or ASCII_WORD_PATTERN.search(narrative_text)
-                ):
-                    counters["excluded_safety"] += 1
+                policy_text = f"{rendered_input_values}\n{narrative_text}"
+                matches: list[str] = []
+                if "\ufffd" in str(narrative_raw):
+                    matches.append("replacement_character")
+                matches.extend(
+                    reason
+                    for reason, patterns in pattern_groups.items()
+                    if _contains_any(patterns, policy_text)
+                )
+                if ASCII_WORD_PATTERN.search(policy_text):
+                    matches.append("ascii_word")
+                if matches:
+                    _record_policy_exclusion(counters, matches)
                     continue
                 raw_projection = {
                     "uuid": uuid,
@@ -832,15 +887,34 @@ def build_aihub_records(
     seed: int,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     source = source_config["sources"]["aihub_empathy"]
-    unsafe_patterns = (
-        *_compile_patterns(audit_policy["safety_patterns"]["aihub_self_harm"]),
-        *_compile_patterns(audit_policy["safety_patterns"]["aihub_clinical"]),
-        *PII_PATTERNS,
-        *ADDITIONAL_UNSAFE_PATTERNS,
-    )
+    pattern_groups = {
+        "self_harm": _compile_patterns(
+            audit_policy["safety_patterns"]["aihub_self_harm"]
+        ),
+        "clinical": _compile_patterns(
+            audit_policy["safety_patterns"]["aihub_clinical"]
+        ),
+        "pii": PII_PATTERNS,
+        "financial": (ADDITIONAL_UNSAFE_PATTERNS[0],),
+        "legal": (ADDITIONAL_UNSAFE_PATTERNS[1],),
+        "hate_or_violence": (ADDITIONAL_UNSAFE_PATTERNS[2],),
+        "medical": (ADDITIONAL_UNSAFE_PATTERNS[3],),
+    }
     best_by_group: dict[str, dict[str, Any]] = {}
     group_splits: dict[str, set[str]] = defaultdict(set)
-    counters: Counter[str] = Counter()
+    counters: Counter[str] = Counter(
+        {
+            "excluded_policy_union": 0,
+            **{
+                f"excluded_primary_{reason}": 0
+                for reason in (*pattern_groups, "ascii_word")
+            },
+            **{
+                f"matched_{reason}": 0
+                for reason in (*pattern_groups, "ascii_word")
+            },
+        }
+    )
     for path in _aihub_label_zips(source_config, repo_root):
         split = "validation" if "validation" in path.as_posix().lower() else "train"
         try:
@@ -874,13 +948,19 @@ def build_aihub_records(
                 if pair_count < 2:
                     counters["excluded_structure"] += 1
                     continue
+                counters[f"source_pair_count_{pair_count}"] += 1
                 human = human[:pair_count]
                 system = system[:pair_count]
                 combined = "\n".join([*human, *system])
-                if _contains_any(unsafe_patterns, combined) or ASCII_WORD_PATTERN.search(
-                    combined
-                ):
-                    counters["excluded_safety"] += 1
+                matches = [
+                    reason
+                    for reason, patterns in pattern_groups.items()
+                    if _contains_any(patterns, combined)
+                ]
+                if ASCII_WORD_PATTERN.search(combined):
+                    matches.append("ascii_word")
+                if matches:
+                    _record_policy_exclusion(counters, matches)
                     continue
                 if KOREAN_PATTERN.search(combined) is None:
                     counters["excluded_language"] += 1
@@ -901,6 +981,7 @@ def build_aihub_records(
                     ),
                     "raw_hash": sha256_json(record),
                     "record_rank": record_rank,
+                    "source_pair_count": pair_count,
                 }
                 existing = best_by_group.get(group_id)
                 if existing is None or record_rank < existing["record_rank"]:
@@ -989,6 +1070,12 @@ def build_aihub_records(
                     extra_meta={
                         "candidate_rank": rank,
                         "emotion_type": candidate["emotion"],
+                        "source_pair_count": candidate["source_pair_count"],
+                        "turn_projection": (
+                            "first_pair"
+                            if axis == "aihub_empathy_single"
+                            else "first_two_pairs"
+                        ),
                         "upstream_splits": sorted(group_splits[candidate["group_id"]]),
                     },
                 )
@@ -1005,6 +1092,18 @@ def build_aihub_records(
             "aihub_empathy_multiturn": len(multi_groups),
         },
         "cross_axis_group_overlap": 0,
+        "selected_source_pair_count_distribution": {
+            axis: dict(
+                sorted(
+                    Counter(
+                        item["meta"]["source_pair_count"]
+                        for item in records
+                        if item["mix_axis"] == axis
+                    ).items()
+                )
+            )
+            for axis in ("aihub_empathy_single", "aihub_empathy_multiturn")
+        },
         "filter_counts": dict(sorted(counters.items())),
     }
 
@@ -1175,21 +1274,75 @@ def _condition_summary(rule: dict[str, Any]) -> str:
     return "원천의 구조화 매핑에서 기준 천간·지지와 대상 간지의 일치 여부를 대조합니다."
 
 
-def _random_unique_chart(
-    rng: random.Random,
+def _calendar_unique_chart(
+    *,
+    seed: int,
+    sequence: int,
     used: set[str],
     rule: dict[str, Any],
+    case_type: str,
     desired: bool | None,
-) -> tuple[tuple[str, str, str, str], str]:
-    for _ in range(200_000):
-        chart = tuple(rng.choice(JIAZI) for _ in range(4))
+    calendar_backend: dict[str, Any],
+) -> tuple[tuple[str, str, str, str], str, dict[str, Any], int]:
+    try:
+        from lunar_python import Solar
+    except ImportError as exc:
+        raise Phase2AuditError(
+            "lunar-python이 없습니다. uv pip으로 requirements-data.txt를 설치하세요."
+        ) from exc
+    start = date.fromisoformat(calendar_backend["anchor_start"])
+    end = date.fromisoformat(calendar_backend["anchor_end"])
+    day_count = (end - start).days + 1
+    hours = tuple(int(value) for value in calendar_backend["anchor_hours"])
+    max_attempts = int(calendar_backend["max_attempts_per_case"])
+    for attempt in range(1, max_attempts + 1):
+        digest = hashlib.sha256(
+            (
+                f"{seed}|{calendar_backend['algorithm']}|{sequence}|"
+                f"{rule['id']}|{case_type}|{attempt}"
+            ).encode()
+        ).digest()
+        anchor_date = start + timedelta(
+            days=int.from_bytes(digest[:8], "big") % day_count
+        )
+        anchor_hour = hours[digest[8] % len(hours)]
+        sex = ("남성", "여성")[digest[9] & 1]
+        eight_char = (
+            Solar.fromYmdHms(
+                anchor_date.year,
+                anchor_date.month,
+                anchor_date.day,
+                anchor_hour,
+                0,
+                0,
+            )
+            .getLunar()
+            .getEightChar()
+        )
+        chart = (
+            eight_char.getYear(),
+            eight_char.getMonth(),
+            eight_char.getDay(),
+            eight_char.getTime(),
+        )
+        if not calendar_relations_valid(chart):
+            raise Phase2AuditError("달력 backend가 내부 정합성이 없는 명식을 반환했습니다.")
         signature = "".join(chart)
         if signature in used:
             continue
-        sex = rng.choice(("남성", "여성"))
         if desired is None or evaluate_yeji_rule(rule, chart, sex=sex) is desired:
             used.add(signature)
-            return chart, sex
+            return (
+                chart,
+                sex,
+                {
+                    "date": anchor_date.isoformat(),
+                    "hour": anchor_hour,
+                    "minute": 0,
+                    "second": 0,
+                },
+                attempt,
+            )
     raise Phase2AuditError(f"YEJI rule {rule['id']} 검증 사례 생성에 실패했습니다.")
 
 
@@ -1251,6 +1404,7 @@ def build_yeji_records(
     language_bank: Sequence[dict[str, Any]],
     target_rows: int,
     seed: int,
+    calendar_backend: dict[str, Any],
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     source = source_config["sources"]["yeji_bazi_rules"]
     root = source_root(source_config, repo_root, "yeji_bazi_rules")
@@ -1288,13 +1442,22 @@ def build_yeji_records(
             desired = True if case_type == "positive" else False if case_type == "negative" else index % 2 == 0
             specs.append((index % 51 + 1, case_type, desired))
 
-    rng = random.Random(seed)
     used_charts: set[str] = set()
     records: list[dict[str, Any]] = []
     evaluator_checks: Counter[str] = Counter()
+    generation_attempts: list[int] = []
     for sequence, (rule_id, case_type, desired) in enumerate(specs):
         rule = rules[rule_id - 1]
-        chart, sex = _random_unique_chart(rng, used_charts, rule, desired)
+        chart, sex, calendar_anchor, attempts = _calendar_unique_chart(
+            seed=seed,
+            sequence=sequence,
+            used=used_charts,
+            rule=rule,
+            case_type=case_type,
+            desired=desired,
+            calendar_backend=calendar_backend,
+        )
+        generation_attempts.append(attempts)
         outcome = evaluate_yeji_rule(rule, chart, sex=sex)
         if desired is not None and outcome is not desired:
             raise Phase2AuditError("YEJI 생성 사례가 evaluator 목표와 다릅니다.")
@@ -1314,7 +1477,7 @@ def build_yeji_records(
                 record_id=f"yeji_shensha_derived:{hashlib.sha256(f'{rule_id}|{case_type}|{signature}|{sequence}'.encode()).hexdigest()}",
                 source="yeji_bazi_rules",
                 mix_axis="yeji_shensha_derived",
-                source_variant="evaluator-v1.0.0",
+                source_variant="evaluator-calendar-v1.1.0",
                 source_revision=source["revision"],
                 license_expression=source["license_expression"],
                 usage_class=source["usage_class"],
@@ -1322,6 +1485,7 @@ def build_yeji_records(
                 transformation_chain=(
                     "source_rule_loaded",
                     *(f"correction:{item}" for item in corrections_by_rule[rule_id]),
+                    "deterministic_calendar_anchor_generation",
                     "deterministic_rule_evaluation",
                     "fixed_korean_template",
                 ),
@@ -1336,6 +1500,9 @@ def build_yeji_records(
                         "chart": chart,
                         "sex": sex,
                         "case_type": case_type,
+                        "calendar_anchor": calendar_anchor,
+                        "calendar_backend": calendar_backend["distribution"],
+                        "calendar_backend_version": calendar_backend["version"],
                     }
                 ),
                 source_group_id=leakage_group_id(
@@ -1351,6 +1518,10 @@ def build_yeji_records(
                     "evaluator_outcome": outcome,
                     "evaluator_status": status,
                     "correction_ids": sorted(corrections_by_rule[rule_id]),
+                    "calendar_anchor": calendar_anchor,
+                    "calendar_backend": calendar_backend["distribution"],
+                    "calendar_backend_version": calendar_backend["version"],
+                    "calendar_generation_attempts": attempts,
                 },
             )
         )
@@ -1362,6 +1533,31 @@ def build_yeji_records(
         "source_rule_count": len(rules),
         "selected_rows": len(records),
         "unique_chart_count": len(used_charts),
+        "calendar_relation_valid_rows": sum(
+            calendar_relations_valid(
+                tuple(
+                    item["meta"]["chart_signature"][index : index + 2]
+                    for index in range(0, 8, 2)
+                )
+            )
+            for item in records
+        ),
+        "calendar_backend": {
+            key: calendar_backend[key]
+            for key in (
+                "distribution",
+                "version",
+                "artifact_sha256",
+                "algorithm",
+                "anchor_start",
+                "anchor_end",
+                "anchor_hours",
+            )
+        },
+        "generation_attempts": {
+            "max": max(generation_attempts),
+            "mean": round(sum(generation_attempts) / len(generation_attempts), 6),
+        },
         "case_type_counts": dict(sorted(Counter(item["meta"]["case_type"] for item in records).items())),
         "rule_coverage": len({item["meta"]["rule_id"] for item in records}),
         "evaluator_status_counts": dict(sorted(evaluator_checks.items())),

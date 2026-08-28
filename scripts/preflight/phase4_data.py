@@ -596,6 +596,19 @@ def _false_chart_signature(signature: str) -> str:
     return replacement + signature[1:]
 
 
+def _select_consistency_groups(
+    cross_groups: list[str], group_axes: dict[str, set[str]], count: int
+) -> list[str]:
+    yeji_cross = [
+        group
+        for group in cross_groups
+        if "yeji_shensha_derived" in group_axes[group]
+    ]
+    other_cross = [group for group in cross_groups if group not in yeji_cross]
+    preferred = yeji_cross[:count]
+    return [*preferred, *other_cross[: count - len(preferred)]]
+
+
 def _build_eval_splits(
     records_by_id: dict[str, dict[str, Any]],
     ordered_ids: list[str],
@@ -608,9 +621,7 @@ def _build_eval_splits(
 
     cross_groups = [group for group, axes in group_axes.items() if len(axes) > 1]
     cross_groups.sort(key=lambda group: min(positions[value] for value in groups[group]))
-    yeji_cross = [group for group in cross_groups if "yeji_shensha_derived" in group_axes[group]]
-    other_cross = [group for group in cross_groups if group not in yeji_cross]
-    consistency_groups = [*yeji_cross, *other_cross[: 20 - len(yeji_cross)]]
+    consistency_groups = _select_consistency_groups(cross_groups, group_axes, 20)
     if len(consistency_groups) != 20:
         raise Phase4Error("동일 명식 cross-axis consistency group이 20개 미만입니다.")
     for group in consistency_groups:
@@ -990,6 +1001,7 @@ def _manifest_rows(
     ids: list[str],
     records_by_id: dict[str, dict[str, Any]],
     token_meta: dict[str, dict[str, Any]],
+    parent_staging_build_id: str,
 ) -> list[dict[str, Any]]:
     return [
         {
@@ -1000,7 +1012,7 @@ def _manifest_rows(
             "candidate_rank": records_by_id[record_id]["meta"]["candidate_rank"],
             "total_tokens": token_meta[record_id]["total_tokens"],
             "assistant_tokens": token_meta[record_id]["assistant_tokens"],
-            "parent_staging_build_id": "build-109815ee6879",
+            "parent_staging_build_id": parent_staging_build_id,
         }
         for record_id in ids
     ]
@@ -1016,6 +1028,7 @@ def _build_manifests(
     config = context["config"]
     axes_contract = config["split"]["axes"]
     variants = config["split"]["nemotron_variants"]
+    formal_max_length = int(config["split"]["formal_max_length"])
     eligible_by_axis: dict[str, list[str]] = {}
     for axis in AXES:
         eligible_by_axis[axis] = [
@@ -1023,7 +1036,7 @@ def _build_manifests(
             for record_id in ordered_ids
             if records_by_id[record_id]["mix_axis"] == axis
             and records_by_id[record_id]["meta"]["leakage_group_id"] not in blocked_groups
-            and token_meta[record_id]["total_tokens"] <= 768
+            and token_meta[record_id]["total_tokens"] <= formal_max_length
         ]
     selected20: dict[str, list[str]] = {}
     for axis in AXES:
@@ -1076,10 +1089,30 @@ def _build_manifests(
         raise Phase4Error("512 smoke manifest가 MIX20K의 1,000행 부분집합이 아닙니다.")
 
     manifests = {
-        "mix1k_candidate_v1.jsonl": _manifest_rows(mix1_ids, records_by_id, token_meta),
-        "mix10k_candidate_v1.jsonl": _manifest_rows(mix10_ids, records_by_id, token_meta),
-        "mix20k_candidate_v1.jsonl": _manifest_rows(mix20_ids, records_by_id, token_meta),
-        "mix1k_smoke_512_v1.jsonl": _manifest_rows(smoke_ids, records_by_id, token_meta),
+        "mix1k_candidate_v1.jsonl": _manifest_rows(
+            mix1_ids,
+            records_by_id,
+            token_meta,
+            config["parent_staging"]["build_id"],
+        ),
+        "mix10k_candidate_v1.jsonl": _manifest_rows(
+            mix10_ids,
+            records_by_id,
+            token_meta,
+            config["parent_staging"]["build_id"],
+        ),
+        "mix20k_candidate_v1.jsonl": _manifest_rows(
+            mix20_ids,
+            records_by_id,
+            token_meta,
+            config["parent_staging"]["build_id"],
+        ),
+        "mix1k_smoke_512_v1.jsonl": _manifest_rows(
+            smoke_ids,
+            records_by_id,
+            token_meta,
+            config["parent_staging"]["build_id"],
+        ),
     }
 
     assistant_by_axis: Counter[str] = Counter()
@@ -1104,7 +1137,8 @@ def _build_manifests(
         "canonical_promotion_performed": False,
         "training_promotion_allowed": False,
         "token_share_policy": "report_only_no_threshold",
-        "promotable_max_lengths": [1024, 768],
+        "formal_max_length": formal_max_length,
+        "diagnostic_max_length": config["split"]["diagnostic_max_length"],
         "smoke_only_max_length": 512,
         "full_512_manifest_feasible": False,
         "manifest_counts": {name: len(rows) for name, rows in manifests.items()},
@@ -1156,8 +1190,12 @@ def execute_build(context: dict[str, Any], repo_root: Path) -> dict[str, Any]:
     root: Path = context["private_root"]
     if root.exists():
         return {**verify_private_build(context, repo_root), "mode": "reused", "writes_performed": False}
-    if context["public_root"].exists() or context["k0_root"].exists():
-        raise Phase4Error("private build 전에 public/K0 경로가 존재합니다.")
+    if (
+        context["public_root"].exists()
+        or context["k0_root"].exists()
+        or context["smoke_root"].exists()
+    ):
+        raise Phase4Error("private build 전에 public/K0/smoke 경로가 존재합니다.")
     root.parent.mkdir(parents=True, exist_ok=True, mode=PRIVATE_DIR_MODE)
     temporary = Path(tempfile.mkdtemp(prefix=f".{root.name}-", dir=root.parent))
     promoted = False
