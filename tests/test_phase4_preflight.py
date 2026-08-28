@@ -130,6 +130,15 @@ class Phase4V2ContractTests(unittest.TestCase):
             sum(axis["mix10k"] for axis in self.config["split"]["axes"].values()),
             10_000,
         )
+        self.assertEqual(self.config["split"]["axes"]["nemotron_saju"]["mix20k"], 6_800)
+        self.assertEqual(
+            self.config["split"]["axes"]["saju_diary_bridge"]["mix20k"],
+            3_200,
+        )
+        self.assertEqual(
+            self.config["split"]["nemotron_variants"]["mix20k"],
+            {"v6": 1_360, "v7": 5_440},
+        )
         self.assertEqual(
             self.config["split"][
                 "aihub_and_bridge_minimum_assistant_loss_token_percent"

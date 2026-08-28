@@ -16,7 +16,7 @@
 - 모델 학습 방식은 BF16 전체 파라미터 Full Fine-tuning이다. LoRA/QLoRA로 자동 전환하지 않는다.
 - 10K와 20K는 같은 Instruct revision에서 각각 독립적으로 1 epoch 학습한다.
 - `MIX1K-v2 ⊂ MIX10-v2 ⊂ MIX20-v2`이어야 한다.
-- 데이터 행 비율은 Nemotron 35%, 검산·한국어화한 `bazi-sft` 20%, AI Hub #86 단일턴 7.5%, 멀티턴 7.5%, 검증된 YEJI 신살 규칙 5%, deterministic 사주 QA 10%, 사주-일기 앱 브리지 15%로 고정한다.
+- 데이터 행 비율은 Nemotron 34%, 검산·한국어화한 `bazi-sft` 20%, AI Hub #86 단일턴 7.5%, 멀티턴 7.5%, 검증된 YEJI 신살 규칙 5%, deterministic 사주 QA 10%, 사주-일기 앱 브리지 16%로 고정한다.
 - Nemotron 내부는 v6 20%·v7 80%로 고정한다.
 - 평가셋과 group holdout은 학습 manifest보다 먼저 고정한다.
 - 모든 데이터 산출물은 `vMAJOR.MINOR.PATCH/build-<fingerprint>` 경로에 보관하고 기존 build를 덮어쓰지 않는다.

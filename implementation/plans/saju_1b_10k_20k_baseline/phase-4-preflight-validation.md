@@ -248,7 +248,8 @@ runs/KI1K-SMOKE-v1/v1.1.0/build-7d59833b8d59/
   - 작업 요약: 품질 보정 7축 staging `v1.0.0/build-a5a9e76d6a8c`을 부모로 하는 Phase 4 `v2.0.0` 실행 계약과 새 평가·manifest 생성기를 구현했다. 현재 구현 fingerprint의 dry-run build는 `build-4409ac656ba5`이며 실제 A~E 실행 전 상태다.
   - 변경 범위: 전역 `leakage_group_ids`의 전이 폐쇄, 7축 중첩 MIX1K/10K/20K, Core Eval 300·source holdout 700·K0 1,020case, deterministic hard-fact·지지 십신 정책 모순·앱 브리지 평가, AI Hub+브리지 assistant loss token 10% 최소 Gate를 고정했다. v1 산출물 검증은 하위 호환으로 유지했다.
   - 검증: GPU `.venv`에서 부모 private/public manifest·24K 레코드·구현 fingerprint와 Phase 3 모델 보고서를 재검증하고 `validate-contract`·dry-run을 통과했다. Ruff와 전체 단위 테스트 139건, Python compile, `git diff --check`가 통과했다.
-  - 남은 이슈·후속 작업: 구현 checkpoint를 먼저 커밋한 뒤 새 fingerprint에서 build, K0·자동 위험 분류, Gate D/E 1/20/1/100→200-step resume·checkpoint 재로드를 순서대로 실행한다. 완료 전까지 `training_promotion_allowed=false`, `phase5_training_performed=false`다.
+  - 추가 실측: 첫 24K tokenization에서 기존 35% Nemotron·15% 앱 브리지 배분은 AI Hub+브리지 assistant loss token 비중이 9.576272%여서 10% Gate에 미달했다. 임계값을 낮추지 않고 Nemotron 200행을 앱 브리지 200행으로 옮겨 34%·16%로 최소 조정했으며, 같은 전수 계산에서 10.220322%를 확인했다.
+  - 남은 이슈·후속 작업: 변경된 구현 checkpoint를 커밋한 뒤 새 fingerprint에서 build, K0·자동 위험 분류, Gate D/E 1/20/1/100→200-step resume·checkpoint 재로드를 순서대로 실행한다. 완료 전까지 `training_promotion_allowed=false`, `phase5_training_performed=false`다.
 - 2026-08-29
   - 작업 요약: 외부 참고 구현 `golbin/ssaju`의 2026-08-29 `main` HEAD `07b608a778be6dac8669e04b9ab794c441959208`을 프로젝트 밖 임시 checkout에서 read-only 검토하고, canonical MIX20K의 구조화 계산 정책을 전수 비교한 `review-c1e129b1e602`를 생성했다. 결론은 dependency·submodule·source copy 없는 `일부 모듈만 참고 구현`이다.
   - 변경 범위: field별 `deterministic_fact`·`policy_bound_deterministic`·`heuristic_only`·`generated_interpretation` flag와 runtime/validator Gate를 가진 draft 정책, fail-closed 비교기·runtime probe·회귀 테스트, 공개 가능한 충돌 표본 100건과 MIT `THIRD_PARTY_NOTICES` 후보를 추가했다. 기존 canonical/staging/eval·Phase 4 승인 상태와 학습데이터는 수정하지 않았고 실제 학습도 실행하지 않았다.

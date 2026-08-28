@@ -57,13 +57,13 @@
     "diagnostic_max_length": 1024,
     "smoke_only_max_length": 512,
     "axes": {
-      "nemotron_saju": {"mix1k": 350, "mix10k": 3500, "mix20k": 7000, "holdout": 100},
+      "nemotron_saju": {"mix1k": 340, "mix10k": 3400, "mix20k": 6800, "holdout": 100},
       "bazi_sft": {"mix1k": 200, "mix10k": 2000, "mix20k": 4000, "holdout": 100},
       "aihub_empathy_single": {"mix1k": 75, "mix10k": 750, "mix20k": 1500, "holdout": 100},
       "aihub_empathy_multiturn": {"mix1k": 75, "mix10k": 750, "mix20k": 1500, "holdout": 100},
       "yeji_shensha_derived": {"mix1k": 50, "mix10k": 500, "mix20k": 1000, "holdout": 100},
       "deterministic_saju_qa": {"mix1k": 100, "mix10k": 1000, "mix20k": 2000, "holdout": 100},
-      "saju_diary_bridge": {"mix1k": 150, "mix10k": 1500, "mix20k": 3000, "holdout": 100}
+      "saju_diary_bridge": {"mix1k": 160, "mix10k": 1600, "mix20k": 3200, "holdout": 100}
     },
     "staging_rows": {
       "nemotron_saju": 8400,
@@ -90,9 +90,9 @@
       "saju_diary_bridge": ["saju_diary_empathy_bridge"]
     },
     "nemotron_variants": {
-      "mix1k": {"v6": 70, "v7": 280},
-      "mix10k": {"v6": 700, "v7": 2800},
-      "mix20k": {"v6": 1400, "v7": 5600}
+      "mix1k": {"v6": 68, "v7": 272},
+      "mix10k": {"v6": 680, "v7": 2720},
+      "mix20k": {"v6": 1360, "v7": 5440}
     },
     "core_eval": {
       "structured_natal_reading": 40,

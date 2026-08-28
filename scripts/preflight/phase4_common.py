@@ -552,7 +552,7 @@ def _validate_contract_v2(config: dict[str, Any], repo_root: Path) -> dict[str, 
     resolve_repo_path(repo_root, str(runtime.get("local_root", "")))
 
     expected_axes = {
-        "nemotron_saju": {"mix1k": 350, "mix10k": 3500, "mix20k": 7000, "holdout": 100},
+        "nemotron_saju": {"mix1k": 340, "mix10k": 3400, "mix20k": 6800, "holdout": 100},
         "bazi_sft": {"mix1k": 200, "mix10k": 2000, "mix20k": 4000, "holdout": 100},
         "aihub_empathy_single": {
             "mix1k": 75,
@@ -579,9 +579,9 @@ def _validate_contract_v2(config: dict[str, Any], repo_root: Path) -> dict[str, 
             "holdout": 100,
         },
         "saju_diary_bridge": {
-            "mix1k": 150,
-            "mix10k": 1500,
-            "mix20k": 3000,
+            "mix1k": 160,
+            "mix10k": 1600,
+            "mix20k": 3200,
             "holdout": 100,
         },
     }
@@ -625,6 +625,12 @@ def _validate_contract_v2(config: dict[str, Any], repo_root: Path) -> dict[str, 
     for key, total in (("mix1k", 1_000), ("mix10k", 10_000), ("mix20k", 20_000)):
         if sum(values[key] for values in expected_axes.values()) != total:
             raise Phase4Error(f"Phase 4 v2 {key} 합계가 다릅니다.")
+    if split.get("nemotron_variants") != {
+        "mix1k": {"v6": 68, "v7": 272},
+        "mix10k": {"v6": 680, "v7": 2_720},
+        "mix20k": {"v6": 1_360, "v7": 5_440},
+    }:
+        raise Phase4Error("Phase 4 v2 Nemotron v6:v7 20:80 계약이 다릅니다.")
 
     artifacts = config.get("artifacts")
     expected_artifacts = {
