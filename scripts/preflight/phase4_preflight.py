@@ -22,7 +22,7 @@ from scripts.preflight.phase4_common import (
 )
 
 DEFAULT_CONFIG = (
-    REPO_ROOT / "configs/data_versions/saju_1b_baseline/preflight-v1.1.0.json"
+    REPO_ROOT / "configs/data_versions/saju_1b_baseline/preflight-v2.0.0.json"
 )
 SMOKE_STAGES = (
     "gate_d_512_1",
@@ -74,15 +74,19 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _load_lazy_modules() -> tuple[Any, Any, Any, Any, Any, Any]:
+def _load_lazy_modules(preflight_version: str) -> tuple[Any, Any, Any, Any, Any, Any]:
     from scripts.preflight import (
-        phase4_data,
         phase4_finalize,
         phase4_k0,
         phase4_review,
         phase4_smoke,
         phase4_triage,
     )
+
+    if preflight_version == "v2.0.0":
+        from scripts.preflight import phase4_data_v2 as phase4_data
+    else:
+        from scripts.preflight import phase4_data
 
     return (
         phase4_data,
@@ -126,12 +130,14 @@ def run(arguments: argparse.Namespace) -> dict[str, Any]:
         phase4_triage,
         phase4_smoke,
         phase4_finalize,
-    ) = _load_lazy_modules()
+    ) = _load_lazy_modules(config["preflight_version"])
     if arguments.command == "prepare-runtime":
         result = prepare_runtime_headers(config, REPO_ROOT, execute=arguments.execute)
         if arguments.probe:
             if not arguments.execute and result.get("mode") == "dry_run":
-                raise Phase4Error("--probe에는 준비된 sysroot 또는 --execute가 필요합니다.")
+                raise Phase4Error(
+                    "--probe에는 준비된 sysroot 또는 --execute가 필요합니다."
+                )
             result["probe"] = phase4_k0.probe_runtime(context, REPO_ROOT)
         return result
     if arguments.command == "build":
@@ -154,7 +160,9 @@ def run(arguments: argparse.Namespace) -> dict[str, Any]:
             confirm_authorized_reviewer=arguments.confirm_authorized_reviewer,
         )
     if arguments.command == "verify-review":
-        return phase4_review.verify_review_archive(arguments.archive.expanduser().resolve())
+        return phase4_review.verify_review_archive(
+            arguments.archive.expanduser().resolve()
+        )
     if arguments.command == "verify":
         return phase4_review.verify_preflight(context, REPO_ROOT)
     if arguments.command == "run-smoke":
@@ -165,9 +173,7 @@ def run(arguments: argparse.Namespace) -> dict[str, Any]:
                 "mode": "smoke_dry_run",
                 "phase5_training_performed": False,
             }
-        return phase4_smoke.run_smoke_stage(
-            context, REPO_ROOT, arguments.stage
-        )
+        return phase4_smoke.run_smoke_stage(context, REPO_ROOT, arguments.stage)
     if arguments.command == "finalize":
         if not arguments.execute:
             return {

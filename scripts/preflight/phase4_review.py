@@ -25,11 +25,11 @@ from scripts.preflight.phase4_common import (
     sha256_file,
     sha256_json,
     utc_now,
+    verify_candidate_build,
     verify_hash_map,
     write_bytes_once,
     write_json_once,
 )
-from scripts.preflight.phase4_data import verify_private_build
 from scripts.preflight.phase4_k0 import verify_k0_run
 from scripts.preflight.phase4_triage import verify_triage
 
@@ -62,24 +62,38 @@ def _asset_root(repo_root: Path) -> Path:
 
 
 def _review_identity(context: dict[str, Any]) -> dict[str, Any]:
+    config = context["config"]
+    split = config.get("split", {})
+    core_contract = split.get("core_eval")
+    axes = split.get("axes")
+    core_items = sum(core_contract.values()) if isinstance(core_contract, dict) else 200
+    holdout_items = (
+        sum(value["holdout"] for value in axes.values())
+        if isinstance(axes, dict)
+        else 500
+    )
+    triage = config.get("triage", {})
     return {
         "schema_version": "1.0.0",
         "package_type": "phase4_k0_offline_review",
         "build_id": context["build_id"],
         "build_sha256": context["build_sha256"],
         "model_revision": context["config"]["model"]["revision"],
-        "core_eval_items": 200,
-        "source_holdout_items": 500,
-        "generation_cases": 720,
+        "core_eval_items": core_items,
+        "source_holdout_items": holdout_items,
+        "generation_cases": triage.get("generation_cases", 720),
     }
 
 
 def _load_review_items(context: dict[str, Any]) -> list[dict[str, Any]]:
     private_root: Path = context["private_root"]
     k0_root: Path = context["k0_root"]
+    artifacts = context["config"].get("artifacts", {})
+    core_name = artifacts.get("core_eval", "core_eval_200.jsonl")
+    holdout_name = artifacts.get("source_holdout", "source_holdout_500.jsonl")
     eval_items = [
-        *read_jsonl(private_root / "eval/core_eval_200.jsonl", "Core Eval"),
-        *read_jsonl(private_root / "eval/source_holdout_500.jsonl", "source holdout"),
+        *read_jsonl(private_root / f"eval/{core_name}", "Core Eval"),
+        *read_jsonl(private_root / f"eval/{holdout_name}", "source holdout"),
     ]
     results = read_jsonl(k0_root / "results.jsonl", "K0 results")
     result_by_case: dict[tuple[str, str], dict[str, Any]] = {}
@@ -116,7 +130,9 @@ def _load_review_items(context: dict[str, Any]) -> list[dict[str, Any]]:
         projected.append(
             {
                 "review_id": f"R{index:04d}-{sha256_json({'package_id': package_id, 'eval_id': item['eval_id']})[:10]}",
-                "split": "source_holdout" if item["category"] == "source_holdout" else "core_eval",
+                "split": "source_holdout"
+                if item["category"] == "source_holdout"
+                else "core_eval",
                 "category": item["category"],
                 "hardness": item["hardness"],
                 "source_axis": item.get("source_axis"),
@@ -124,8 +140,14 @@ def _load_review_items(context: dict[str, Any]) -> list[dict[str, Any]]:
                 "cases": review_cases,
             }
         )
-    if len(projected) != 700 or len(seen_case_keys) != 720 or len(result_by_case) != 720:
-        raise Phase4Error("검수 패키지 투영 수량이 700항목/720case가 아닙니다.")
+    expected_items = int(context["config"]["triage"]["evaluation_items"])
+    expected_cases = int(context["config"]["triage"]["generation_cases"])
+    if (
+        len(projected) != expected_items
+        or len(seen_case_keys) != expected_cases
+        or len(result_by_case) != expected_cases
+    ):
+        raise Phase4Error("검수 패키지 투영 수량이 고정 계약과 다릅니다.")
     return projected
 
 
@@ -172,13 +194,17 @@ def _build_review_payloads(
         "승인된 검수자만 로컬에서 사용하고, 원문·출력·검수 파일을 공개 저장소나 미승인 제3자에게 제공하지 마세요. "
         "Git에 추가하거나 외부 웹 서비스에 업로드하지 말고, 검수가 끝나면 조직의 보존·삭제 정책을 따르세요.\n"
     ).encode()
-    content_hashes = {name: sha256_bytes(payload) for name, payload in sorted(payloads.items())}
+    content_hashes = {
+        name: sha256_bytes(payload) for name, payload in sorted(payloads.items())
+    }
     manifest = {
         **identity,
         "package_id": package_id,
         "item_count": len(items),
         "case_count": sum(len(item["cases"]) for item in items),
-        "category_counts": dict(sorted(Counter(item["category"] for item in items).items())),
+        "category_counts": dict(
+            sorted(Counter(item["category"] for item in items).items())
+        ),
         "content_sha256": content_hashes,
         "contains_restricted_source_text": True,
         "authorized_local_review_only": True,
@@ -186,7 +212,10 @@ def _build_review_payloads(
         "human_domain_review_performed": False,
     }
     payloads["PACKAGE_MANIFEST.json"] = (
-        json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True).encode("utf-8") + b"\n"
+        json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True).encode(
+            "utf-8"
+        )
+        + b"\n"
     )
     checksums = "".join(
         f"{sha256_bytes(payloads[name])}  {name}\n" for name in sorted(payloads)
@@ -201,10 +230,14 @@ def _write_review_zip(output: Path, payloads: dict[str, bytes]) -> None:
     output.parent.mkdir(parents=True, exist_ok=True, mode=PRIVATE_DIR_MODE)
     temporary: Path | None = None
     try:
-        descriptor, name = tempfile.mkstemp(prefix=f".{output.name}.", dir=output.parent)
+        descriptor, name = tempfile.mkstemp(
+            prefix=f".{output.name}.", dir=output.parent
+        )
         os.close(descriptor)
         temporary = Path(name)
-        with zipfile.ZipFile(temporary, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
+        with zipfile.ZipFile(
+            temporary, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9
+        ) as archive:
             for member in sorted(payloads):
                 archive.writestr(_zip_info(member), payloads[member])
         temporary.chmod(PRIVATE_FILE_MODE)
@@ -266,23 +299,33 @@ def verify_review_archive(archive_path: Path) -> dict[str, Any]:
     try:
         manifest = json.loads(payloads["PACKAGE_MANIFEST.json"])
         prefix = b"window.PHASE4_REVIEW_DATA = "
-        if not payloads["review-data.js"].startswith(prefix) or not payloads["review-data.js"].endswith(b";\n"):
+        if not payloads["review-data.js"].startswith(prefix) or not payloads[
+            "review-data.js"
+        ].endswith(b";\n"):
             raise Phase4Error("review-data.js wrapper가 올바르지 않습니다.")
         data = json.loads(payloads["review-data.js"][len(prefix) : -2])
     except (UnicodeError, json.JSONDecodeError, TypeError) as exc:
         raise Phase4Error("검수 ZIP manifest/data JSON이 올바르지 않습니다.") from exc
+    item_count = manifest.get("item_count") if isinstance(manifest, dict) else None
+    case_count = manifest.get("case_count") if isinstance(manifest, dict) else None
     if (
         not isinstance(manifest, dict)
         or not isinstance(data, dict)
         or manifest.get("package_id") != data.get("package_id")
-        or manifest.get("item_count") != 700
-        or manifest.get("case_count") != 720
-        or len(data.get("items", [])) != 700
+        or (item_count, case_count) not in {(700, 720), (1_000, 1_020)}
+        or len(data.get("items", [])) != item_count
         or data.get("human_domain_review_performed") is not False
         or manifest.get("authorized_local_review_only") is not True
     ):
         raise Phase4Error("검수 ZIP identity 또는 수량 계약이 다릅니다.")
-    forbidden = ("eval_id", "case_id", "parent_record", "raw_hash", "source_group_id", "leakage_group_id")
+    forbidden = (
+        "eval_id",
+        "case_id",
+        "parent_record",
+        "raw_hash",
+        "source_group_id",
+        "leakage_group_id",
+    )
     serialized = canonical_json_bytes(data)
     if any(f'"{key}"'.encode() in serialized for key in forbidden):
         raise Phase4Error("검수 투영에 내부 ID/locator 필드가 남았습니다.")
@@ -377,7 +420,11 @@ def _public_report(
         "phase4_training_smoke_allowed": gate_c_passed,
         "official_sources": context["config"]["official_sources"],
         "notes": [
-            "출처별 assistant token share는 임계값 없이 보고만 하며 가중치를 자동 변경하지 않았다.",
+            (
+                "AI Hub 단일·멀티턴과 앱 브리지의 합산 assistant loss token share 10% 최소 Gate를 적용했다."
+                if context["config"].get("preflight_version") == "v2.0.0"
+                else "출처별 assistant token share는 임계값 없이 보고만 하며 가중치를 자동 변경하지 않았다."
+            ),
             "512 manifest는 기능 smoke 전용이고, 1024는 진단, 768은 정식 Gate E 후보로 검증한다.",
             "K0 품질 지표는 missing-chart 안전 Gate와 파이프라인 무결성 외에는 진단값이며 학습 승격 판정이 아니다.",
             "Upstream YaRN factor 40 설정과 implicit ratio 8 경고를 수정하지 않았다.",
@@ -395,17 +442,24 @@ def _finalize_public_report(
     if public_root.exists():
         result = _verify_public(context)
         report = load_json(public_root / "preflight_report.json", "preflight report")
-        if report.get("review_package", {}).get("archive_sha256") != review["archive_sha256"]:
+        if (
+            report.get("review_package", {}).get("archive_sha256")
+            != review["archive_sha256"]
+        ):
             raise Phase4Error("기존 공개 보고서와 검수 ZIP SHA-256이 다릅니다.")
         return {**result, "mode": "reused", "writes_performed": False}
     public_root.parent.mkdir(parents=True, exist_ok=True)
-    temporary = Path(tempfile.mkdtemp(prefix=f".{public_root.name}-", dir=public_root.parent))
+    temporary = Path(
+        tempfile.mkdtemp(prefix=f".{public_root.name}-", dir=public_root.parent)
+    )
     promoted = False
     try:
         source_reports = {
             "schema_validation.json": private_root / "reports/schema_validation.json",
-            "split_leakage_report.json": private_root / "reports/split_leakage_report.json",
-            "tokenization_report.json": private_root / "reports/tokenization_report.json",
+            "split_leakage_report.json": private_root
+            / "reports/split_leakage_report.json",
+            "tokenization_report.json": private_root
+            / "reports/tokenization_report.json",
             "manifest_report.json": private_root / "reports/manifest_report.json",
         }
         for name, source in source_reports.items():
@@ -416,7 +470,9 @@ def _finalize_public_report(
         k0_summary = load_json(k0_root / "summary.json", "K0 summary")
         if k0_summary.get("raw_samples_in_summary") is not False:
             raise Phase4Error("K0 공개 summary에 raw sample이 포함됐습니다.")
-        write_json_once(temporary / "k0_summary.json", k0_summary, mode=PUBLIC_FILE_MODE)
+        write_json_once(
+            temporary / "k0_summary.json", k0_summary, mode=PUBLIC_FILE_MODE
+        )
         triage_summary = load_json(k0_root / "triage_summary.json", "K0 triage summary")
         if triage_summary.get("raw_samples_in_summary") is not False:
             raise Phase4Error("K0 triage 공개 summary에 raw sample이 포함됐습니다.")
@@ -426,7 +482,9 @@ def _finalize_public_report(
             mode=PUBLIC_FILE_MODE,
         )
         report = _public_report(context, review, k0_summary, triage_summary)
-        write_json_once(temporary / "preflight_report.json", report, mode=PUBLIC_FILE_MODE)
+        write_json_once(
+            temporary / "preflight_report.json", report, mode=PUBLIC_FILE_MODE
+        )
         artifacts = artifact_hash_map(temporary, list(PUBLIC_ARTIFACTS))
         manifest = {
             "schema_version": "1.0.0",
@@ -441,7 +499,9 @@ def _finalize_public_report(
             "human_domain_review_performed": False,
             "training_promotion_allowed": False,
         }
-        write_json_once(temporary / "build_manifest.json", manifest, mode=PUBLIC_FILE_MODE)
+        write_json_once(
+            temporary / "build_manifest.json", manifest, mode=PUBLIC_FILE_MODE
+        )
         if public_root.exists():
             raise Phase4Error("공개 보고서 생성 중 최종 경로가 생겼습니다.")
         os.replace(temporary, public_root)
@@ -494,16 +554,26 @@ def export_review_package(
     repo = repo_root.resolve()
     output = output.resolve(strict=False)
     if output.is_relative_to(repo) or output.suffix.lower() != ".zip":
-        raise Phase4Error("검수 ZIP은 저장소 밖의 명시적 .zip 경로에만 만들 수 있습니다.")
-    verify_private_build(context, repo_root)
+        raise Phase4Error(
+            "검수 ZIP은 저장소 밖의 명시적 .zip 경로에만 만들 수 있습니다."
+        )
+    verify_candidate_build(context, repo_root)
     verify_k0_run(context, repo_root)
     verify_triage(context, repo_root)
     if output.exists():
         review = verify_review_archive(output)
-        if review["package_id"] != f"review-{sha256_json(_review_identity(context))[:16]}":
+        if (
+            review["package_id"]
+            != f"review-{sha256_json(_review_identity(context))[:16]}"
+        ):
             raise Phase4Error("기존 검수 ZIP은 현재 build의 패키지가 아닙니다.")
         public = _finalize_public_report(context, repo_root, review)
-        return {**review, "mode": "reused", "public_report": public, "writes_performed": False}
+        return {
+            **review,
+            "mode": "reused",
+            "public_report": public,
+            "writes_performed": False,
+        }
     items = _load_review_items(context)
     payloads, _ = _build_review_payloads(context, repo_root, items)
     _write_review_zip(output, payloads)
@@ -522,7 +592,7 @@ def export_review_package(
 
 
 def verify_preflight(context: dict[str, Any], repo_root: Path) -> dict[str, Any]:
-    private = verify_private_build(context, repo_root)
+    private = verify_candidate_build(context, repo_root)
     k0 = verify_k0_run(context, repo_root)
     triage = verify_triage(context, repo_root)
     public = _verify_public(context)

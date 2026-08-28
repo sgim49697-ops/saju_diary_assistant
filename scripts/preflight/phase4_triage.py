@@ -13,19 +13,23 @@ from scripts.preflight.phase4_common import (
     artifact_hash_map,
     load_json,
     read_jsonl,
+    verify_candidate_build,
     verify_hash_map,
     write_json_once,
     write_jsonl_once,
 )
-from scripts.preflight.phase4_data import verify_private_build
 from scripts.preflight.phase4_k0 import verify_k0_run
 
-TRIAGE_ARTIFACTS = (
-    "triage_items.jsonl",
-    "triage_priority_40.jsonl",
-    "triage_summary.json",
-)
 SEVERITY_RANK = {"low": 0, "medium": 1, "high": 2, "critical": 3}
+
+
+def _priority_filename(context: dict[str, Any]) -> str:
+    limit = int(context["config"]["triage"]["priority_limit"])
+    return f"triage_priority_{limit}.jsonl"
+
+
+def _triage_artifacts(context: dict[str, Any]) -> tuple[str, str, str]:
+    return ("triage_items.jsonl", _priority_filename(context), "triage_summary.json")
 
 
 def _case_risk(item: dict[str, Any], result: dict[str, Any]) -> dict[str, Any]:
@@ -76,12 +80,17 @@ def _case_risk(item: dict[str, Any], result: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _build_triage(context: dict[str, Any]) -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict[str, Any]]:
+def _build_triage(
+    context: dict[str, Any],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict[str, Any]]:
     private_root: Path = context["private_root"]
     k0_root: Path = context["k0_root"]
+    artifacts = context["config"].get("artifacts", {})
+    core_name = artifacts.get("core_eval", "core_eval_200.jsonl")
+    holdout_name = artifacts.get("source_holdout", "source_holdout_500.jsonl")
     eval_items = [
-        *read_jsonl(private_root / "eval/core_eval_200.jsonl", "Core Eval"),
-        *read_jsonl(private_root / "eval/source_holdout_500.jsonl", "source holdout"),
+        *read_jsonl(private_root / f"eval/{core_name}", "Core Eval"),
+        *read_jsonl(private_root / f"eval/{holdout_name}", "source holdout"),
     ]
     result_rows = read_jsonl(k0_root / "results.jsonl", "K0 results")
     result_by_case: dict[tuple[str, str], dict[str, Any]] = {}
@@ -139,8 +148,14 @@ def _build_triage(context: dict[str, Any]) -> tuple[list[dict[str, Any]], list[d
                 "human_domain_review_performed": False,
             }
         )
-    if len(triage_items) != 700 or len(seen_cases) != 720:
-        raise Phase4Error("K0 triage 수량이 700항목·720case와 다릅니다.")
+    expected_items = int(context["config"]["triage"]["evaluation_items"])
+    expected_cases = int(context["config"]["triage"]["generation_cases"])
+    if len(triage_items) != expected_items or len(seen_cases) != expected_cases:
+        raise Phase4Error(
+            "K0 triage 수량이 다릅니다: "
+            f"{len(triage_items)}/{expected_items}항목, "
+            f"{len(seen_cases)}/{expected_cases}case"
+        )
 
     severity_order = context["config"]["triage"]["severity_order"]
     priority_limit = int(context["config"]["triage"]["priority_limit"])
@@ -189,55 +204,64 @@ def _build_triage(context: dict[str, Any]) -> tuple[list[dict[str, Any]], list[d
 
 
 def run_triage(context: dict[str, Any], repo_root: Path) -> dict[str, Any]:
-    verify_private_build(context, repo_root)
+    verify_candidate_build(context, repo_root)
     verify_k0_run(context, repo_root)
     root: Path = context["k0_root"]
     manifest_path = root / "triage_manifest.json"
     if manifest_path.exists():
-        return {**verify_triage(context, repo_root), "mode": "reused", "writes_performed": False}
+        return {
+            **verify_triage(context, repo_root),
+            "mode": "reused",
+            "writes_performed": False,
+        }
     items, priority, summary = _build_triage(context)
     write_jsonl_once(root / "triage_items.jsonl", items)
-    write_jsonl_once(root / "triage_priority_40.jsonl", priority)
-    write_json_once(
-        root / "triage_summary.json", summary, mode=PRIVATE_FILE_MODE
-    )
+    write_jsonl_once(root / _priority_filename(context), priority)
+    write_json_once(root / "triage_summary.json", summary, mode=PRIVATE_FILE_MODE)
     manifest = {
         "schema_version": "1.0.0",
         "report_type": "phase4_k0_triage_manifest",
         "build_id": context["build_id"],
         "build_sha256": context["build_sha256"],
-        "artifact_sha256": artifact_hash_map(root, list(TRIAGE_ARTIFACTS)),
+        "artifact_sha256": artifact_hash_map(root, list(_triage_artifacts(context))),
         "status": "completed",
         "training_promotion_allowed": False,
     }
     write_json_once(manifest_path, manifest, mode=PRIVATE_FILE_MODE)
-    return {**verify_triage(context, repo_root), "mode": "built", "writes_performed": True}
+    return {
+        **verify_triage(context, repo_root),
+        "mode": "built",
+        "writes_performed": True,
+    }
 
 
 def verify_triage(context: dict[str, Any], repo_root: Path) -> dict[str, Any]:
-    verify_private_build(context, repo_root)
+    verify_candidate_build(context, repo_root)
     verify_k0_run(context, repo_root)
     root: Path = context["k0_root"]
     manifest = load_json(root / "triage_manifest.json", "K0 triage manifest")
     summary = load_json(root / "triage_summary.json", "K0 triage summary")
+    expected_items = int(context["config"]["triage"]["evaluation_items"])
+    expected_cases = int(context["config"]["triage"]["generation_cases"])
+    priority_limit = int(context["config"]["triage"]["priority_limit"])
     if (
         manifest.get("build_id") != context["build_id"]
         or manifest.get("build_sha256") != context["build_sha256"]
         or manifest.get("training_promotion_allowed") is not False
-        or summary.get("evaluation_items") != 700
-        or summary.get("generation_cases") != 720
+        or summary.get("evaluation_items") != expected_items
+        or summary.get("generation_cases") != expected_cases
         or summary.get("human_domain_review_performed") is not False
         or summary.get("raw_samples_in_summary") is not False
     ):
         raise Phase4Error("K0 triage identity·수량·공개 경계가 다릅니다.")
-    for relative in (*TRIAGE_ARTIFACTS, "triage_manifest.json"):
+    for relative in (*_triage_artifacts(context), "triage_manifest.json"):
         path = root / relative
         if stat.S_IMODE(path.stat().st_mode) != PRIVATE_FILE_MODE:
             raise Phase4Error(f"K0 triage 파일 권한이 0600이 아닙니다: {relative}")
     verify_hash_map(root, manifest.get("artifact_sha256"), "K0 triage")
     items = read_jsonl(root / "triage_items.jsonl", "K0 triage items")
-    priority = read_jsonl(root / "triage_priority_40.jsonl", "K0 triage priority")
-    if len(items) != 700 or len(priority) != 40:
+    priority = read_jsonl(root / _priority_filename(context), "K0 triage priority")
+    if len(items) != expected_items or len(priority) != priority_limit:
         raise Phase4Error("K0 triage item/priority 수량이 다릅니다.")
     return {
         "build_id": context["build_id"],

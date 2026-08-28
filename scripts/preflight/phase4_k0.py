@@ -24,12 +24,12 @@ from scripts.preflight.phase4_common import (
     sha256_file,
     sha256_json,
     utc_now,
+    verify_candidate_build,
     verify_hash_map,
     verify_runtime_headers,
     write_json_once,
     write_jsonl_once,
 )
-from scripts.preflight.phase4_data import verify_private_build
 
 CONTROL_PATTERN = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
 SPECIAL_TOKEN_PATTERN = re.compile(r"<\|[^|\r\n]{1,80}\|>")
@@ -41,21 +41,32 @@ K0_ARTIFACTS = ("run_config.json", "results.jsonl", "summary.json")
 def _prepare_runtime(config: dict[str, Any], repo_root: Path) -> dict[str, Any]:
     verification = verify_runtime_headers(config, repo_root)
     environment = runtime_environment(config, repo_root)
-    for key in ("CPATH", "HF_HUB_OFFLINE", "TRANSFORMERS_OFFLINE", "HF_DATASETS_OFFLINE"):
+    for key in (
+        "CPATH",
+        "HF_HUB_OFFLINE",
+        "TRANSFORMERS_OFFLINE",
+        "HF_DATASETS_OFFLINE",
+    ):
         os.environ[key] = environment[key]
     if os.environ.get("TORCH_DISABLE_NATIVE_JIT"):
-        raise Phase4Error("정식 K0에서는 TORCH_DISABLE_NATIVE_JIT를 사용할 수 없습니다.")
+        raise Phase4Error(
+            "정식 K0에서는 TORCH_DISABLE_NATIVE_JIT를 사용할 수 없습니다."
+        )
     return verification
 
 
-def _load_model(context: dict[str, Any], repo_root: Path) -> tuple[Any, Any, Any, dict[str, Any]]:
+def _load_model(
+    context: dict[str, Any], repo_root: Path
+) -> tuple[Any, Any, Any, dict[str, Any]]:
     _prepare_runtime(context["config"], repo_root)
     try:
         import torch
         import transformers
         from transformers import AutoModelForCausalLM, AutoTokenizer
     except Exception as exc:
-        raise Phase4Error("고정 PyTorch/Transformers 모델 경로를 import하지 못했습니다.") from exc
+        raise Phase4Error(
+            "고정 PyTorch/Transformers 모델 경로를 import하지 못했습니다."
+        ) from exc
 
     if not torch.cuda.is_available():
         raise Phase4Error("K0에는 CUDA GPU가 필요합니다.")
@@ -85,7 +96,9 @@ def _load_model(context: dict[str, Any], repo_root: Path) -> tuple[Any, Any, Any
             low_cpu_mem_usage=True,
         ).to("cuda:0")
     except Exception as exc:
-        raise Phase4Error("고정 Kanana 모델을 BF16 SDPA CUDA 경로로 로드하지 못했습니다.") from exc
+        raise Phase4Error(
+            "고정 Kanana 모델을 BF16 SDPA CUDA 경로로 로드하지 못했습니다."
+        ) from exc
     model.eval()
     template = config["chat_template"]
     if (
@@ -116,7 +129,9 @@ def _load_model(context: dict[str, Any], repo_root: Path) -> tuple[Any, Any, Any
         "device": "cuda:0",
     }
     if runtime["attention_backend"] != "sdpa":
-        raise Phase4Error(f"K0 attention backend가 SDPA가 아닙니다: {runtime['attention_backend']}")
+        raise Phase4Error(
+            f"K0 attention backend가 SDPA가 아닙니다: {runtime['attention_backend']}"
+        )
     return torch, tokenizer, model, runtime
 
 
@@ -177,7 +192,9 @@ def _normalized_text(value: str) -> str:
 
 def _char_bigrams(value: str) -> Counter[str]:
     normalized = re.sub(r"\s+", "", value)
-    return Counter(normalized[index : index + 2] for index in range(max(0, len(normalized) - 1)))
+    return Counter(
+        normalized[index : index + 2] for index in range(max(0, len(normalized) - 1))
+    )
 
 
 def _bigram_f1(reference: str | None, output: str) -> float | None:
@@ -210,13 +227,18 @@ def _instruction_contract(output: str, contract: dict[str, Any]) -> bool:
     if "exact_text" in contract:
         return normalized == contract["exact_text"]
     if "sentence_count" in contract:
-        sentences = [value for value in re.split(r"(?<=[.!?다요])\s+", normalized) if value]
+        sentences = [
+            value for value in re.split(r"(?<=[.!?다요])\s+", normalized) if value
+        ]
         return len(sentences) == contract["sentence_count"]
     if "numbered_items" in contract:
         matches = re.findall(r"(?m)^\s*\d+[.)]\s+", output)
         return len(matches) == contract["numbered_items"]
     if "comma_items" in contract:
-        return len([value for value in re.split(r"[,，]", normalized) if value.strip()]) == contract["comma_items"]
+        return (
+            len([value for value in re.split(r"[,，]", normalized) if value.strip()])
+            == contract["comma_items"]
+        )
     if "must_include" in contract:
         return all(value in output for value in contract["must_include"])
     return False
@@ -231,8 +253,12 @@ def _score_output(
     nonempty = bool(output.strip())
     hangul_count = len(HANGUL_PATTERN.findall(output))
     visible_letters = len(re.findall(r"[A-Za-z가-힣]", output))
-    fabricated_pairs = GANJI_PATTERN.findall(output) if category == "missing_chart_handoff" else []
-    safety_violation = category == "missing_chart_handoff" and len(fabricated_pairs) >= 4
+    fabricated_pairs = (
+        GANJI_PATTERN.findall(output) if category == "missing_chart_handoff" else []
+    )
+    safety_violation = (
+        category == "missing_chart_handoff" and len(fabricated_pairs) >= 4
+    )
     contract_pass: bool | None = None
     if category == "missing_chart_handoff":
         contract_pass = not safety_violation and any(
@@ -248,14 +274,31 @@ def _score_output(
             and false not in output
             and any(term in output for term in contract.get("denial_terms", []))
         )
-    elif category == "shensha_rule_qa" and isinstance(contract.get("expected_outcome"), bool):
-        positive = "성립" in output and not any(term in output for term in ("성립하지", "불성립"))
+    elif category == "shensha_rule_qa" and isinstance(
+        contract.get("expected_outcome"), bool
+    ):
+        positive = "성립" in output and not any(
+            term in output for term in ("성립하지", "불성립")
+        )
         contract_pass = positive is contract["expected_outcome"]
+    elif category in {
+        "deterministic_hard_fact",
+        "branch_policy_contradiction",
+        "saju_diary_bridge",
+    }:
+        required = contract.get("required_terms", [])
+        contract_pass = bool(required) and all(term in output for term in required)
+        if category == "branch_policy_contradiction":
+            contract_pass = contract_pass and any(
+                term in output for term in contract.get("denial_terms", [])
+            )
     return {
         "nonempty": nonempty,
         "control_character_free": CONTROL_PATTERN.search(output) is None,
         "special_token_text_free": SPECIAL_TOKEN_PATTERN.search(output) is None,
-        "hangul_ratio": round(hangul_count / visible_letters, 6) if visible_letters else 0.0,
+        "hangul_ratio": round(hangul_count / visible_letters, 6)
+        if visible_letters
+        else 0.0,
         "repetition_4gram_ratio": _repetition_ratio(output),
         "reference_char_bigram_f1": _bigram_f1(reference, output),
         "automated_contract_pass": contract_pass,
@@ -264,16 +307,24 @@ def _score_output(
     }
 
 
-def _load_eval_cases(context: dict[str, Any]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+def _load_eval_cases(
+    context: dict[str, Any],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     root: Path = context["private_root"]
-    core = read_jsonl(root / "eval/core_eval_200.jsonl", "Core Eval")
-    holdout = read_jsonl(root / "eval/source_holdout_500.jsonl", "source holdout")
+    config = context["config"]
+    artifacts = config.get("artifacts", {})
+    core_name = artifacts.get("core_eval", "core_eval_200.jsonl")
+    holdout_name = artifacts.get("source_holdout", "source_holdout_500.jsonl")
+    core = read_jsonl(root / f"eval/{core_name}", "Core Eval")
+    holdout = read_jsonl(root / f"eval/{holdout_name}", "source holdout")
     flattened: list[dict[str, Any]] = []
     for split, items in (("core_eval", core), ("source_holdout", holdout)):
         for item_index, item in enumerate(items):
             cases = item.get("cases")
             if not isinstance(cases, list) or not cases:
-                raise Phase4Error(f"K0 eval item의 cases가 비었습니다: {item.get('eval_id')}")
+                raise Phase4Error(
+                    f"K0 eval item의 cases가 비었습니다: {item.get('eval_id')}"
+                )
             for case_index, case in enumerate(cases):
                 identity = {
                     "build_id": context["build_id"],
@@ -296,7 +347,18 @@ def _load_eval_cases(context: dict[str, Any]) -> tuple[list[dict[str, Any]], lis
                         "prompt_sha256": case["prompt_sha256"],
                     }
                 )
-    if len(core) != 200 or len(holdout) != 500 or len(flattened) != 720:
+    expected_items = config["triage"]["evaluation_items"]
+    expected_cases = config["triage"]["generation_cases"]
+    expected_core = sum(config["split"]["core_eval"].values())
+    expected_holdout = sum(
+        value["holdout"] for value in config["split"]["axes"].values()
+    )
+    if (
+        len(core) != expected_core
+        or len(holdout) != expected_holdout
+        or len(core) + len(holdout) != expected_items
+        or len(flattened) != expected_cases
+    ):
         raise Phase4Error(
             f"K0 평가 수량이 다릅니다: core={len(core)}, holdout={len(holdout)}, cases={len(flattened)}"
         )
@@ -305,8 +367,12 @@ def _load_eval_cases(context: dict[str, Any]) -> tuple[list[dict[str, Any]], lis
     return [*core, *holdout], flattened
 
 
-def _run_config(context: dict[str, Any], runtime_manifest: dict[str, Any]) -> dict[str, Any]:
+def _run_config(
+    context: dict[str, Any], runtime_manifest: dict[str, Any]
+) -> dict[str, Any]:
     config = context["config"]
+    core_items = sum(config["split"]["core_eval"].values())
+    holdout_items = sum(value["holdout"] for value in config["split"]["axes"].values())
     return {
         "schema_version": "1.0.0",
         "report_type": "k0_instruct_non_training_baseline",
@@ -328,7 +394,11 @@ def _run_config(context: dict[str, Any], runtime_manifest: dict[str, Any]) -> di
         "generation": config["generation"],
         "seed": config["seed"],
         "runtime_header_manifest_sha256": runtime_manifest["manifest_sha256"],
-        "evaluation": {"core_items": 200, "source_holdout_items": 500, "generation_cases": 720},
+        "evaluation": {
+            "core_items": core_items,
+            "source_holdout_items": holdout_items,
+            "generation_cases": config["triage"]["generation_cases"],
+        },
         "execution_contract": {
             "training": False,
             "optimizer": False,
@@ -371,14 +441,18 @@ def probe_runtime(context: dict[str, Any], repo_root: Path) -> dict[str, Any]:
         _release_model(torch, model)
 
 
-def _load_existing_result(path: Path, expected: dict[str, Any]) -> dict[str, Any] | None:
+def _load_existing_result(
+    path: Path, expected: dict[str, Any]
+) -> dict[str, Any] | None:
     if not path.exists():
         return None
     value = load_json(path, "K0 case result")
     for key in ("result_id", "eval_id", "case_id", "prompt_sha256"):
         if value.get(key) != expected.get(key):
             raise Phase4Error(f"기존 K0 case identity가 다릅니다: {path.name}:{key}")
-    if not isinstance(value.get("generated_ids"), list) or not isinstance(value.get("output"), str):
+    if not isinstance(value.get("generated_ids"), list) or not isinstance(
+        value.get("output"), str
+    ):
         raise Phase4Error(f"기존 K0 case output이 올바르지 않습니다: {path.name}")
     if stat.S_IMODE(path.stat().st_mode) != PRIVATE_FILE_MODE:
         raise Phase4Error(f"기존 K0 case 파일 권한이 0600이 아닙니다: {path.name}")
@@ -394,7 +468,6 @@ def _reuse_contract(run_config: dict[str, Any]) -> dict[str, Any]:
         "runtime_header_manifest_sha256": run_config.get(
             "runtime_header_manifest_sha256"
         ),
-        "evaluation": run_config.get("evaluation"),
         "execution_contract": run_config.get("execution_contract"),
         "training_promotion_allowed": run_config.get("training_promotion_allowed"),
     }
@@ -443,8 +516,11 @@ def _load_cross_build_reuse(
             raise Phase4Error("같은 K0 prompt의 재사용 출력이 서로 다릅니다.")
         item["source_item_sha256"] = sha256_file(source_root / relative)
         reuse_by_prompt[prompt_sha256] = item
-    if len(rows) != 720:
-        raise Phase4Error("K0 재사용 원본은 정확히 720case여야 합니다.")
+    expected_source_cases = int(reuse.get("source_generation_cases", 720))
+    if len(rows) != expected_source_cases:
+        raise Phase4Error(
+            f"K0 재사용 원본 수량이 다릅니다: {len(rows)}/{expected_source_cases}"
+        )
     return reuse_by_prompt
 
 
@@ -483,7 +559,7 @@ def _system_ram() -> dict[str, int | None]:
 
 
 def run_k0(context: dict[str, Any], repo_root: Path) -> dict[str, Any]:
-    verify_private_build(context, repo_root)
+    verify_candidate_build(context, repo_root)
     runtime_manifest = _prepare_runtime(context["config"], repo_root)
     _, cases = _load_eval_cases(context)
     root: Path = context["k0_root"]
@@ -495,7 +571,11 @@ def run_k0(context: dict[str, Any], repo_root: Path) -> dict[str, Any]:
     run_config = _run_config(context, runtime_manifest)
     write_json_once(root / "run_config.json", run_config, mode=PRIVATE_FILE_MODE)
     if (root / "run_manifest.json").exists():
-        return {**verify_k0_run(context, repo_root), "mode": "reused", "writes_performed": False}
+        return {
+            **verify_k0_run(context, repo_root),
+            "mode": "reused",
+            "writes_performed": False,
+        }
 
     reuse_by_prompt = _load_cross_build_reuse(context, repo_root, run_config)
     started = time.monotonic()
@@ -511,9 +591,10 @@ def run_k0(context: dict[str, Any], repo_root: Path) -> dict[str, Any]:
             existing = _load_existing_result(path, case)
             if existing is None:
                 reused = reuse_by_prompt.get(case["prompt_sha256"])
-                if reused is not None and reused.get("prompt_messages") != case[
-                    "prompt_messages"
-                ]:
+                if (
+                    reused is not None
+                    and reused.get("prompt_messages") != case["prompt_messages"]
+                ):
                     raise Phase4Error("K0 재사용 prompt hash와 messages가 다릅니다.")
                 generated = (
                     {
@@ -600,15 +681,15 @@ def run_k0(context: dict[str, Any], repo_root: Path) -> dict[str, Any]:
         _result_projection(value, f"items/{value['result_id']}.json")
         for value in completed_values
     ]
-    cross_build_reused = sum(
-        "reuse_provenance" in value for value in completed_values
-    )
+    cross_build_reused = sum("reuse_provenance" in value for value in completed_values)
     locally_generated = len(completed_values) - cross_build_reused
     by_category: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for value in projections:
         by_category[value["category"]].append(value)
     safety_violations = [
-        value for value in projections if value["metrics"].get("safety_violation") is True
+        value
+        for value in projections
+        if value["metrics"].get("safety_violation") is True
     ]
     empty_count = sum(not value["metrics"]["nonempty"] for value in projections)
     control_count = sum(
@@ -657,7 +738,7 @@ def run_k0(context: dict[str, Any], repo_root: Path) -> dict[str, Any]:
         "generated_at": utc_now(),
         "status": "passed" if gate_passed else "blocked",
         "gate_c_passed": gate_passed,
-        "evaluation_items": 700,
+        "evaluation_items": context["config"]["triage"]["evaluation_items"],
         "generation_cases": len(projections),
         "new_generation_cases": new_count,
         "cross_build_reused_cases": cross_build_reused,
@@ -667,7 +748,9 @@ def run_k0(context: dict[str, Any], repo_root: Path) -> dict[str, Any]:
         "control_character_outputs": control_count,
         "special_token_text_outputs": special_count,
         "safety_violations": len(safety_violations),
-        "safety_violation_result_ids": [value["result_id"] for value in safety_violations],
+        "safety_violation_result_ids": [
+            value["result_id"] for value in safety_violations
+        ],
         "determinism_replay_passed": deterministic,
         "max_new_tokens": context["config"]["generation"]["max_new_tokens"],
         "runtime": runtime,
@@ -693,7 +776,9 @@ def run_k0(context: dict[str, Any], repo_root: Path) -> dict[str, Any]:
     }
     write_jsonl_once(root / "results.jsonl", projections)
     write_json_once(root / "summary.json", summary, mode=PRIVATE_FILE_MODE)
-    artifacts = artifact_hash_map(root, [*K0_ARTIFACTS, *[value["item_path"] for value in projections]])
+    artifacts = artifact_hash_map(
+        root, [*K0_ARTIFACTS, *[value["item_path"] for value in projections]]
+    )
     run_manifest = {
         "schema_version": "1.0.0",
         "report_type": "k0_instruct_run_manifest",
@@ -706,40 +791,56 @@ def run_k0(context: dict[str, Any], repo_root: Path) -> dict[str, Any]:
         "training_promotion_allowed": False,
     }
     write_json_once(root / "run_manifest.json", run_manifest, mode=PRIVATE_FILE_MODE)
-    return {**verify_k0_run(context, repo_root), "mode": "completed", "writes_performed": True}
+    return {
+        **verify_k0_run(context, repo_root),
+        "mode": "completed",
+        "writes_performed": True,
+    }
 
 
 def verify_k0_run(context: dict[str, Any], repo_root: Path) -> dict[str, Any]:
-    verify_private_build(context, repo_root)
+    verify_candidate_build(context, repo_root)
     root: Path = context["k0_root"]
-    if root.is_symlink() or not root.is_dir() or stat.S_IMODE(root.stat().st_mode) & 0o077:
+    if (
+        root.is_symlink()
+        or not root.is_dir()
+        or stat.S_IMODE(root.stat().st_mode) & 0o077
+    ):
         raise Phase4Error("K0 run 경로가 없거나 권한이 너무 넓습니다.")
     manifest = load_json(root / "run_manifest.json", "K0 run manifest")
     run_config = load_json(root / "run_config.json", "K0 run config")
     summary = load_json(root / "summary.json", "K0 summary")
+    expected_cases = int(context["config"]["triage"]["generation_cases"])
     if (
         manifest.get("build_id") != context["build_id"]
         or manifest.get("build_sha256") != context["build_sha256"]
-        or run_config != _run_config(context, verify_runtime_headers(context["config"], repo_root))
+        or run_config
+        != _run_config(context, verify_runtime_headers(context["config"], repo_root))
         or summary.get("build_id") != context["build_id"]
-        or summary.get("generation_cases") != 720
+        or summary.get("generation_cases") != expected_cases
         or summary.get("training_performed") is not False
         or summary.get("optimizer_created") is not False
         or summary.get("backward_performed") is not False
         or summary.get("training_promotion_allowed") is not False
         or summary.get("cross_build_reused_cases", 0)
         + summary.get("locally_generated_cases", 0)
-        != 720
+        != expected_cases
         or summary.get("reuse_contract") != context["config"]["k0_reuse"]
     ):
         raise Phase4Error("K0 run identity 또는 비학습 계약이 다릅니다.")
     verify_hash_map(root, manifest.get("artifact_sha256"), "K0")
     results = read_jsonl(root / "results.jsonl", "K0 results")
-    if len(results) != 720 or len({value.get("result_id") for value in results}) != 720:
+    if (
+        len(results) != expected_cases
+        or len({value.get("result_id") for value in results}) != expected_cases
+    ):
         raise Phase4Error("K0 result 수량 또는 ID가 다릅니다.")
     for result in results:
         relative = result.get("item_path")
-        if not isinstance(relative, str) or relative != f"items/{result.get('result_id')}.json":
+        if (
+            not isinstance(relative, str)
+            or relative != f"items/{result.get('result_id')}.json"
+        ):
             raise Phase4Error("K0 result item 경로가 다릅니다.")
         item = load_json(root / relative, "K0 item")
         if (
@@ -749,7 +850,10 @@ def verify_k0_run(context: dict[str, Any], repo_root: Path) -> dict[str, Any]:
         ):
             raise Phase4Error(f"K0 item/result identity가 다릅니다: {relative}")
     expected_status = "passed" if summary.get("gate_c_passed") is True else "blocked"
-    if manifest.get("status") != expected_status or summary.get("status") != expected_status:
+    if (
+        manifest.get("status") != expected_status
+        or summary.get("status") != expected_status
+    ):
         raise Phase4Error("K0 Gate C status가 서로 다릅니다.")
     return {
         "build_id": context["build_id"],
