@@ -419,5 +419,5 @@ data/derived/saju_1b_baseline/v1.0.0/build-<derived-hash>/eval/<holdout-and-core
 - 2026-08-29
   - 작업 요약: 기존 staging을 덮어쓰지 않는 품질 보정 `v1.0.0` 계약과 생성기를 구현했다. Nemotron 개인정보성 문구·고정 면책문·지지 십신·오행 처방을 보정하고, AI Hub 로컬 전용 10K reservoir, deterministic 사주 QA, 앱 브리지 축을 추가했다.
   - 변경 범위: 공통 레코드 schema `2.0.0`, 7축 24K/20K/10K/1K 정확한 중첩 수량, 다중 leakage group, 자동 위험도 전수 분류, private 0600/public 비식별 hash chain, `saju-calculation-policy-v1.0.0`을 추가했다. 생년월일시→원국, 신강약·격국·용신·자동 해석·보완 처방은 Gold 생성에서 차단했다.
-  - 검증: `lunar-python==1.4.8`의 지장간 12개와 일간×지지 십신 120조합을 독립 비교했고, 계약·보정·QA·브리지·공개 경계 단위 테스트 12건, Ruff, Python compile, dry-run plan을 통과했다.
+  - 검증: `lunar-python==1.4.8`의 지장간 12개와 일간×지지 십신 120조합을 독립 비교했고, 계약·보정·QA·브리지·공개 경계 단위 테스트 12건, Ruff, Python compile, dry-run plan을 통과했다. 첫 실행에서 누락된 달력 탐색 한도를 정본 쓰기 전에 fail-closed로 발견해 설치 버전·sdist hash·최대 200,000회 계약을 보강했다.
   - 남은 이슈·후속 작업: 이 항목은 구현 체크포인트이며 실제 24K/AI Hub 10K 산출물은 아직 만들지 않았다. 구현 commit을 고정한 뒤 새 build를 생성·재검증하고, 그 fingerprint로 Phase 4 preflight를 다시 실행하기 전까지 `training_promotion_allowed=false`다.

@@ -68,6 +68,8 @@ class QualityContractTests(unittest.TestCase):
         self.assertFalse(config["scope"]["overwrite_existing_builds"])
         self.assertFalse(config["scope"]["phase5_training_performed"])
         self.assertEqual(config["quality_contract"]["critical_or_high_allowed"], 0)
+        self.assertEqual(config["calendar_backend"]["version"], "1.4.8")
+        self.assertEqual(config["calendar_backend"]["max_attempts_per_case"], 200_000)
 
     def test_calculation_policy_matches_independent_oracle(self) -> None:
         config = quality.load_quality_config(CONFIG_PATH, REPO_ROOT)

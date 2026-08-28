@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import copy
 import hashlib
+import importlib.metadata
 import json
 import os
 import re
@@ -352,6 +353,30 @@ def load_quality_config(path: Path, repo_root: Path) -> dict[str, Any]:
         or quality.get("quality_certification_claimed") is not False
     ):
         raise Phase2AuditError("자동 품질 Gate 계약이 fail-closed가 아닙니다.")
+    calendar = config.get("calendar_backend")
+    if (
+        not isinstance(calendar, dict)
+        or calendar.get("distribution") != "lunar-python"
+        or calendar.get("import_name") != "lunar_python"
+        or calendar.get("version") != "1.4.8"
+        or calendar.get("artifact_sha256")
+        != "3aa11cc73c25e70ddf0ba5bdac7398c03acc9491a3aa512a91c9642973b669d6"
+        or calendar.get("algorithm") != "sha256-counter-v2"
+        or calendar.get("timezone_assumption") != "Asia/Seoul"
+        or calendar.get("max_attempts_per_case") != 200_000
+    ):
+        raise Phase2AuditError("달력 backend 버전·artifact·탐색 계약이 다릅니다.")
+    try:
+        installed_calendar_version = importlib.metadata.version(
+            str(calendar["distribution"])
+        )
+    except importlib.metadata.PackageNotFoundError as exc:
+        raise Phase2AuditError("lunar-python 1.4.8이 데이터 환경에 없습니다.") from exc
+    if installed_calendar_version != calendar["version"]:
+        raise Phase2AuditError(
+            "설치된 lunar-python 버전이 고정 계약과 다릅니다: "
+            f"{installed_calendar_version}"
+        )
     return config
 
 
@@ -1019,7 +1044,8 @@ def _generated_chart(
     end = date.fromisoformat(calendar["anchor_end"])
     day_count = (end - start).days + 1
     hours = tuple(int(value) for value in calendar["anchor_hours"])
-    for attempt in range(1, 200_001):
+    max_attempts = int(calendar["max_attempts_per_case"])
+    for attempt in range(1, max_attempts + 1):
         digest = hashlib.sha256(
             f"{SEED}|{calendar['algorithm']}|{namespace}|{sequence}|{attempt}".encode()
         ).digest()

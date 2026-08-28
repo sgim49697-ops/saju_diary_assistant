@@ -46,14 +46,19 @@
   },
   "calendar_backend": {
     "distribution": "lunar-python",
+    "import_name": "lunar_python",
     "version": "1.4.8",
+    "artifact_filename": "lunar_python-1.4.8.tar.gz",
     "artifact_sha256": "3aa11cc73c25e70ddf0ba5bdac7398c03acc9491a3aa512a91c9642973b669d6",
+    "artifact_url": "https://files.pythonhosted.org/packages/59/45/5154c95ae7feaab7ca508e71c3288692c09952dfe33b03b7c2f18a32e2cd/lunar_python-1.4.8.tar.gz",
+    "license_expression": "MIT",
     "algorithm": "sha256-counter-v2",
     "anchor_start": "1950-01-01",
     "anchor_end": "2050-12-31",
     "anchor_hours": [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22],
     "anchor_semantics": "private_generator_provenance_only",
-    "timezone_assumption": "Asia/Seoul"
+    "timezone_assumption": "Asia/Seoul",
+    "max_attempts_per_case": 200000
   },
   "axes": {
     "nemotron_saju": {
