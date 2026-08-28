@@ -26,13 +26,6 @@ from scripts.preflight.phase4_review import verify_preflight
 from scripts.preflight.phase4_smoke import ALL_STAGES, verify_all_smoke
 
 PUBLIC_FILE_MODE = 0o644
-CANONICAL_FILES = (
-    "eval/core_eval_200.jsonl",
-    "eval/source_holdout_500.jsonl",
-    "manifests/mix1k_smoke_v1.jsonl",
-    "manifests/mix10k_v1.jsonl",
-    "manifests/mix20k_v1.jsonl",
-)
 PUBLIC_FILES = (
     "canonical_manifest_report.json",
     "phase4_completion_report.json",
@@ -40,17 +33,40 @@ PUBLIC_FILES = (
 )
 
 
-def _finalization_inputs(
-    context: dict[str, Any], repo_root: Path
-) -> dict[str, Any]:
+def _artifact_names(context: dict[str, Any]) -> dict[str, str]:
+    return {
+        "core_eval": "core_eval_200.jsonl",
+        "source_holdout": "source_holdout_500.jsonl",
+        "mix1k_candidate": "mix1k_candidate_v1.jsonl",
+        "mix10k_candidate": "mix10k_candidate_v1.jsonl",
+        "mix20k_candidate": "mix20k_candidate_v1.jsonl",
+        "canonical_mix1k": "mix1k_smoke_v1.jsonl",
+        "canonical_mix10k": "mix10k_v1.jsonl",
+        "canonical_mix20k": "mix20k_v1.jsonl",
+        **context["config"].get("artifacts", {}),
+    }
+
+
+def _canonical_files(context: dict[str, Any]) -> tuple[str, ...]:
+    names = _artifact_names(context)
+    return (
+        f"eval/{names['core_eval']}",
+        f"eval/{names['source_holdout']}",
+        f"manifests/{names['canonical_mix1k']}",
+        f"manifests/{names['canonical_mix10k']}",
+        f"manifests/{names['canonical_mix20k']}",
+    )
+
+
+def _finalization_inputs(context: dict[str, Any], repo_root: Path) -> dict[str, Any]:
     private_root: Path = context["private_root"]
     public_root: Path = context["public_root"]
     k0_root: Path = context["k0_root"]
     smoke_root: Path = context["smoke_root"]
-    candidate_names = (
-        "mix1k_candidate_v1.jsonl",
-        "mix10k_candidate_v1.jsonl",
-        "mix20k_candidate_v1.jsonl",
+    names = _artifact_names(context)
+    candidate_names = tuple(
+        names[key]
+        for key in ("mix1k_candidate", "mix10k_candidate", "mix20k_candidate")
     )
     return {
         "schema_version": "1.0.0",
@@ -82,9 +98,7 @@ def _finalization_inputs(
     }
 
 
-def canonical_identity(
-    context: dict[str, Any], repo_root: Path
-) -> dict[str, Any]:
+def canonical_identity(context: dict[str, Any], repo_root: Path) -> dict[str, Any]:
     inputs = _finalization_inputs(context, repo_root)
     build_sha256 = sha256_json(inputs)
     return {
@@ -111,11 +125,12 @@ def _copy_regular_file(source: Path, destination: Path, *, mode: int) -> None:
     destination.chmod(mode)
 
 
-def _canonical_manifest_report(root: Path) -> dict[str, Any]:
+def _canonical_manifest_report(root: Path, context: dict[str, Any]) -> dict[str, Any]:
+    artifacts = _artifact_names(context)
     names = {
-        "mix1k": "manifests/mix1k_smoke_v1.jsonl",
-        "mix10k": "manifests/mix10k_v1.jsonl",
-        "mix20k": "manifests/mix20k_v1.jsonl",
+        "mix1k": f"manifests/{artifacts['canonical_mix1k']}",
+        "mix10k": f"manifests/{artifacts['canonical_mix10k']}",
+        "mix20k": f"manifests/{artifacts['canonical_mix20k']}",
     }
     rows = {
         key: read_jsonl(root / relative, f"canonical {key}")
@@ -133,8 +148,12 @@ def _canonical_manifest_report(root: Path) -> dict[str, Any]:
         for key, values in rows.items()
     }
     for child, parent in (("mix1k", "mix10k"), ("mix10k", "mix20k")):
-        if any(by_id[parent].get(key) != digest for key, digest in by_id[child].items()):
-            raise Phase4Error("canonical subset의 record hash가 상위 manifest와 다릅니다.")
+        if any(
+            by_id[parent].get(key) != digest for key, digest in by_id[child].items()
+        ):
+            raise Phase4Error(
+                "canonical subset의 record hash가 상위 manifest와 다릅니다."
+            )
     return {
         "schema_version": "1.0.0",
         "status": "verified",
@@ -211,11 +230,19 @@ def _completion_report(
         "parent_staging": context["config"]["parent_staging"],
         "model": {
             key: context["config"]["model"][key]
-            for key in ("repo_id", "revision", "phase3_build_id", "dtype", "attention_backend")
+            for key in (
+                "repo_id",
+                "revision",
+                "phase3_build_id",
+                "dtype",
+                "attention_backend",
+            )
         },
         "selected_max_length": 768,
         "diagnostic_max_length": 1024,
-        "diagnostic_1024_status": smoke_summary["stages"]["diagnostic_1024_1"]["status"],
+        "diagnostic_1024_status": smoke_summary["stages"]["diagnostic_1024_1"][
+            "status"
+        ],
         "canonical_manifests": canonical_report,
         "k0": {
             "gate_c_passed": k0["gate_c_passed"],
@@ -282,12 +309,13 @@ def finalize_phase4(context: dict[str, Any], repo_root: Path) -> dict[str, Any]:
     canonical_promoted = False
     public_promoted = False
     try:
+        names = _artifact_names(context)
         copies = {
-            "eval/core_eval_200.jsonl": "eval/core_eval_200.jsonl",
-            "eval/source_holdout_500.jsonl": "eval/source_holdout_500.jsonl",
-            "manifests/mix1k_candidate_v1.jsonl": "manifests/mix1k_smoke_v1.jsonl",
-            "manifests/mix10k_candidate_v1.jsonl": "manifests/mix10k_v1.jsonl",
-            "manifests/mix20k_candidate_v1.jsonl": "manifests/mix20k_v1.jsonl",
+            f"eval/{names['core_eval']}": f"eval/{names['core_eval']}",
+            f"eval/{names['source_holdout']}": f"eval/{names['source_holdout']}",
+            f"manifests/{names['mix1k_candidate']}": f"manifests/{names['canonical_mix1k']}",
+            f"manifests/{names['mix10k_candidate']}": f"manifests/{names['canonical_mix10k']}",
+            f"manifests/{names['mix20k_candidate']}": f"manifests/{names['canonical_mix20k']}",
         }
         for source, destination in copies.items():
             _copy_regular_file(
@@ -300,13 +328,13 @@ def finalize_phase4(context: dict[str, Any], repo_root: Path) -> dict[str, Any]:
             *[path for path in canonical_temp.rglob("*") if path.is_dir()],
         ]:
             directory.chmod(PRIVATE_DIR_MODE)
-        canonical_report = _canonical_manifest_report(canonical_temp)
+        canonical_report = _canonical_manifest_report(canonical_temp, context)
         canonical_manifest = {
             "schema_version": "1.0.0",
             "report_type": "phase4_canonical_derived_manifest",
             **identity,
             "artifact_sha256": artifact_hash_map(
-                canonical_temp, list(CANONICAL_FILES)
+                canonical_temp, list(_canonical_files(context))
             ),
             "status": "approved_for_phase5_training",
             "selected_max_length": 768,
@@ -371,9 +399,7 @@ def finalize_phase4(context: dict[str, Any], repo_root: Path) -> dict[str, Any]:
     }
 
 
-def verify_finalized_phase4(
-    context: dict[str, Any], repo_root: Path
-) -> dict[str, Any]:
+def verify_finalized_phase4(context: dict[str, Any], repo_root: Path) -> dict[str, Any]:
     verify_preflight(context, repo_root)
     verify_all_smoke(context, repo_root)
     identity = canonical_identity(context, repo_root)
@@ -388,7 +414,9 @@ def verify_finalized_phase4(
     canonical = load_json(
         canonical_root / "build_manifest.json", "canonical build manifest"
     )
-    public = load_json(public_root / "build_manifest.json", "completion public manifest")
+    public = load_json(
+        public_root / "build_manifest.json", "completion public manifest"
+    )
     completion = load_json(
         public_root / "phase4_completion_report.json", "Phase 4 completion report"
     )
@@ -408,11 +436,13 @@ def verify_finalized_phase4(
         raise Phase4Error("Phase 4 canonical identity/Gate 계약이 다릅니다.")
     verify_hash_map(canonical_root, canonical.get("artifact_sha256"), "canonical")
     verify_hash_map(public_root, public.get("artifact_sha256"), "completion public")
-    report = _canonical_manifest_report(canonical_root)
-    for relative in (*CANONICAL_FILES, "build_manifest.json"):
+    report = _canonical_manifest_report(canonical_root, context)
+    for relative in (*_canonical_files(context), "build_manifest.json"):
         path = canonical_root / relative
         if stat.S_IMODE(path.stat().st_mode) != PRIVATE_FILE_MODE:
-            raise Phase4Error(f"canonical private 파일 권한이 0600이 아닙니다: {relative}")
+            raise Phase4Error(
+                f"canonical private 파일 권한이 0600이 아닙니다: {relative}"
+            )
     return {
         "status": "verified_phase4_complete",
         "build_id": identity["build_id"],

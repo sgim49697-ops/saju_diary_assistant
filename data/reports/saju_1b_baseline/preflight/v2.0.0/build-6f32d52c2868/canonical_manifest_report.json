@@ -1,0 +1,14 @@
+{
+  "manifest_counts": {
+    "mix10k": 10000,
+    "mix1k": 1000,
+    "mix20k": 20000
+  },
+  "mix10k_subset_mix20k": true,
+  "mix1k_subset_mix10k": true,
+  "phase5_training_performed": false,
+  "schema_version": "1.0.0",
+  "selected_max_length": 768,
+  "status": "verified",
+  "training_promotion_allowed": true
+}

@@ -6,35 +6,35 @@
     "version": "v1.2.0"
   },
   "approved_derived": {
-    "build_id": "build-a1a34616dd72",
-    "build_sha256": "a1a34616dd72ab510fe783037ed70edc693d48220b344210599f9fe2c932c1ef",
+    "build_id": "build-6f32d52c2868",
+    "build_sha256": "6f32d52c2868bb8b5e07724cbdc00a6bc0b2f1608fe53ac54c357a6ec0832ee9",
     "human_domain_review_performed": false,
-    "parent_preflight_build_id": "build-7d59833b8d59",
-    "parent_staging_build_id": "build-847088ee804d",
+    "parent_preflight_build_id": "build-2feaee353252",
+    "parent_staging_build_id": "build-a5a9e76d6a8c",
     "phase5_training_performed": false,
-    "private_manifest_sha256": "a2816a307644e57b0126c820410b1507767d08c2956a5e0e43874b71da7a8ba0",
-    "public_manifest_sha256": "ffe3def5a6b07bdbb077aef67f89c8b70976eba9afde2cab314a4a6edee309e4",
+    "private_manifest_sha256": "66b21f086aa836ee595826f5f8f6eeb3bd234b47a15ec210a2131f548c4bedbf",
+    "public_manifest_sha256": "c670c2ad6481221ec140f49fc79ef4d83bdd275342d7692c3134a9e133ff7fec",
     "quality_certification_claimed": false,
     "selected_max_length": 768,
     "status": "approved_for_phase5_training",
     "technical_full_ft_preflight_passed": true,
     "training_promotion_allowed": true,
-    "version": "v1.1.0"
+    "version": "v2.0.0"
   },
   "approved_staging": {
-    "accepted_gate_sha256": "b1f389d723795efd5eae89d27eb09d69e211774b1cb7fa839bf4496ba0f3cb6a",
-    "approval_basis": "explicit_owner_blanket_risk_acceptance",
-    "approval_manifest_sha256": "3be8fa8c2d9948bcbe3c8a8367026ac814ad86e2087e6c2d32701a88e4de7c52",
-    "build_id": "build-847088ee804d",
-    "build_sha256": "847088ee804d8bc8933c0d83767a2251fc820ae3cb4235965a9a27a3f0f34801",
-    "domain_item_review_performed": false,
-    "implementation_commit": "21705fe72fefe5bd9933a9ac9cc2cf30aad08ce7",
-    "private_manifest_sha256": "1cd6733681748e4ed60b5eb293067ed08211562a09ed49b9dd8f1e5f9f527f1c",
-    "public_manifest_sha256": "7f0418e4cdd2d8dbd44735186a80f4c9de3ca279ac19f1bd82ebf7363c8b3b46",
-    "review_acceptance_sha256": "3be8fa8c2d9948bcbe3c8a8367026ac814ad86e2087e6c2d32701a88e4de7c52",
-    "review_decisions_sha256": "8a5f79a7fe78cbc628249d76afd9e62880f13982add182c486d54e3bb5f97bfc",
-    "status": "owner_risk_accepted_for_phase4_preflight",
-    "version": "v0.2.0"
+    "approval_basis": "explicit_owner_automated_technical_acceptance",
+    "build_id": "build-a5a9e76d6a8c",
+    "build_sha256": "a5a9e76d6a8cd524314fbdb0d4ebf11f0b984c3748606eda56de2d7708d3cd23",
+    "critical_or_high_rows": 0,
+    "human_domain_review_performed": false,
+    "implementation_commit": "e23052007fc1858741b8eff96cc5e6dfff66895f",
+    "private_manifest_sha256": "1d0f06990a53824a1b75c121c504f54c3d778f7fd7551d9fbf768ce399b1f1da",
+    "public_manifest_sha256": "21dc23b5e610e60913ae73e10a2f85787fe63341b17a6dddb2b0c429e51a999f",
+    "quality_certification_claimed": false,
+    "status": "accepted_for_phase4_preflight",
+    "technical_acceptance_sha256": "ba1e74c7b0108fdcf52406d45570b9ec16db98e548b029efe41b205e3893a32d",
+    "training_promotion_allowed": false,
+    "version": "v1.0.0"
   },
   "audit_builds": [
     {
@@ -102,6 +102,22 @@
       "technical_full_ft_preflight_passed": true,
       "training_promotion_allowed": true,
       "version": "v1.1.0"
+    },
+    {
+      "build_id": "build-6f32d52c2868",
+      "build_sha256": "6f32d52c2868bb8b5e07724cbdc00a6bc0b2f1608fe53ac54c357a6ec0832ee9",
+      "human_domain_review_performed": false,
+      "parent_preflight_build_id": "build-2feaee353252",
+      "parent_staging_build_id": "build-a5a9e76d6a8c",
+      "phase5_training_performed": false,
+      "private_manifest_sha256": "66b21f086aa836ee595826f5f8f6eeb3bd234b47a15ec210a2131f548c4bedbf",
+      "public_manifest_sha256": "c670c2ad6481221ec140f49fc79ef4d83bdd275342d7692c3134a9e133ff7fec",
+      "quality_certification_claimed": false,
+      "selected_max_length": 768,
+      "status": "approved_for_phase5_training",
+      "technical_full_ft_preflight_passed": true,
+      "training_promotion_allowed": true,
+      "version": "v2.0.0"
     }
   ],
   "schema_version": "1.0.0",
@@ -151,6 +167,21 @@
       "review_decisions_sha256": "8a5f79a7fe78cbc628249d76afd9e62880f13982add182c486d54e3bb5f97bfc",
       "status": "owner_risk_accepted_for_phase4_preflight",
       "version": "v0.2.0"
+    },
+    {
+      "approval_basis": "explicit_owner_automated_technical_acceptance",
+      "build_id": "build-a5a9e76d6a8c",
+      "build_sha256": "a5a9e76d6a8cd524314fbdb0d4ebf11f0b984c3748606eda56de2d7708d3cd23",
+      "critical_or_high_rows": 0,
+      "human_domain_review_performed": false,
+      "implementation_commit": "e23052007fc1858741b8eff96cc5e6dfff66895f",
+      "private_manifest_sha256": "1d0f06990a53824a1b75c121c504f54c3d778f7fd7551d9fbf768ce399b1f1da",
+      "public_manifest_sha256": "21dc23b5e610e60913ae73e10a2f85787fe63341b17a6dddb2b0c429e51a999f",
+      "quality_certification_claimed": false,
+      "status": "accepted_for_phase4_preflight",
+      "technical_acceptance_sha256": "ba1e74c7b0108fdcf52406d45570b9ec16db98e548b029efe41b205e3893a32d",
+      "training_promotion_allowed": false,
+      "version": "v1.0.0"
     }
   ]
 }

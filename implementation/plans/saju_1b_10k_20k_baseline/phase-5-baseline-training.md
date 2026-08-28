@@ -7,7 +7,7 @@
 | 입력 | 선택 길이의 canonical MIX10·MIX20, Instruct snapshot, 승인 config |
 | 출력 | KI10·KI20 checkpoint, trainer state, 환경·학습 보고서 |
 | 완료 Gate | 두 독립 Run이 재현·재로딩 가능한 상태로 종료 |
-| 웹 확인일 | 2026-08-27 |
+| 웹 확인일 | 2026-08-29 |
 
 ## 목적
 
@@ -16,8 +16,8 @@
 ## 실행 순서
 
 ```text
-고정 Instruct ──> KI10-MIX-v1, 1 epoch ──> 중간 안정성 검사
-고정 Instruct ──> KI20-MIX-v1, 1 epoch ──> 공식 비교 대상
+고정 Instruct ──> KI10-MIX-v2, 1 epoch ──> 중간 안정성 검사
+고정 Instruct ──> KI20-MIX-v2, 1 epoch ──> 공식 비교 대상
 ```
 
 KI20은 KI10 checkpoint에서 시작하지 않는다. KI10 후 심각한 파이프라인 오류가 발견되면 KI20을 실행하지 않고 Phase 2~4로 돌아간다.
@@ -48,19 +48,26 @@ weight_decay: 0.01
 max_grad_norm: 1.0
 
 gradient_checkpointing: true
+gradient_checkpointing_kwargs:
+  use_reentrant: false
 use_cache: false
 assistant_only_loss: true
 packing: false
+padding_free: false
 loss_type: chunked_nll
+shuffle_dataset: true
 
 logging_strategy: steps
 logging_steps: 10
 logging_first_step: true
-eval_strategy: "no"
+eval_strategy: steps
+eval_steps: 250
 save_strategy: steps
 save_steps: 250
 save_total_limit: 2
 save_only_model: false
+save_safetensors: true
+dataloader_num_workers: 0
 
 torch_compile: false
 push_to_hub: false
@@ -70,6 +77,28 @@ data_seed: 42
 ```
 
 `peft_config`와 quantized model loading을 전달하지 않는다. 8-bit는 optimizer state에만 적용하며 모델 전체 파라미터는 BF16 학습 대상이다.
+
+## Phase 5 실행 전 readiness Gate
+
+실제 학습 명령을 만들기 전에 `phase5-readiness-v1.0.0`을 별도 실행한다. 이 Gate는 학습·optimizer·backward를 수행하지 않고 다음만 불변 산출물로 고정한다.
+
+- registry가 품질 보정 Phase 4 v2 canonical을 가리키고 A~E·768·`training_promotion_allowed=true` hash chain이 전부 재검증됨
+- `mix10k_v2.jsonl` 10,000행과 `mix20k_v2.jsonl` 20,000행이 7축 고정 수량·strict subset·동일 record hash를 만족함
+- source holdout 700에서 축별 10건씩 결정론적으로 선택한 eval70이 KI20 leakage component와 겹치지 않음
+- Python 3.10.12, uv 0.9.26, torch 2.13.0+cu130, Transformers 4.57.6, TRL 1.12.0, bitsandbytes 0.50.2와 `requirements-phase3.lock.txt` SHA-256이 일치함
+- 가용 disk가 최소 64GiB이고 KI10·KI20이 모두 고정 Instruct snapshot에서 독립 시작하며, checkpoint가 model·optimizer·scheduler·trainer state를 저장함
+- readiness 공개 보고서에는 제한 원문을 넣지 않고 `phase5_training_performed=false`를 유지함
+
+학습 중 loss-only eval은 이 eval70으로 250 optimizer step마다 수행한다. 생성 품질 평가는 Phase 6에서 별도 고정 계약으로 실행하며, eval 결과를 근거로 같은 Run의 hyperparameter나 데이터 비율을 중간 변경하지 않는다.
+
+```bash
+.venv/bin/python scripts/training/phase5_readiness.py validate-contract
+.venv/bin/python scripts/training/phase5_readiness.py plan
+.venv/bin/python scripts/training/phase5_readiness.py prepare --execute
+.venv/bin/python scripts/training/phase5_readiness.py verify
+```
+
+`prepare`는 기본 dry-run이고 `--execute`가 있어도 eval70·KI10/KI20 입력 계약과 공개 요약만 만든다. 학습 API, backward, optimizer step은 이 도구에 없으며 실제 Phase 5 실행은 별도 명시적 명령과 `PHASE5_TRAINING` 확인값을 요구하도록 설계한다.
 
 ## Run 시작 전 동등성 검사
 
@@ -141,7 +170,15 @@ KI10 종료 후 Phase 6 전체 평가 전에 core eval의 소규모 고정 subse
 ## 산출물
 
 ```text
-runs/KI10-MIX-v1/
+data/derived/saju_1b_baseline/phase5-readiness/v1.0.0/build-<fingerprint>/
+├── eval/phase5_eval70.jsonl
+└── run_inputs/
+
+data/reports/saju_1b_baseline/phase5-readiness/v1.0.0/build-<fingerprint>/
+├── build_manifest.json
+└── readiness_summary.json
+
+runs/KI10-MIX-v2/
 ├── run_manifest.json
 ├── config.resolved.yaml
 ├── trainer_state.json
@@ -150,7 +187,7 @@ runs/KI10-MIX-v1/
 ├── final/
 └── reload_fixtures.jsonl
 
-runs/KI20-MIX-v1/
+runs/KI20-MIX-v2/
 └── <동일 구조>
 ```
 
@@ -167,3 +204,17 @@ runs/KI20-MIX-v1/
 | 2026-08-27 | TRL SFT loss·logged metrics | masked token NLL과 loss/entropy/token accuracy/grad norm 기록 항목 확인 |
 | 2026-08-27 | TRL config 필드 | save/logging/seed/full FT 관련 현재 필드 확인 |
 | 2026-08-27 | bitsandbytes 8-bit optimizer | parameter state memory 절감과 activation memory 비절감 한계 확인 |
+
+## 진행 기록
+
+- 2026-08-29
+  - 작업 요약: 구현 checkpoint `89685ba82927a96c40654a47a4b0daa7f8b3a91f`에서 비학습 readiness `v1.0.0/build-f6c8171f454f`을 생성하고 독립 재검증했다. Phase 5 상태는 실제 KI10·KI20 학습을 시작하지 않았으므로 계속 `미시작`이다.
+  - 변경 범위: canonical KI10 10,000행·KI20 20,000행의 7축 수량과 strict subset, 축별 10건 eval70의 train component 교집합 0, 고정 Kanana revision·template·package lock, 단일 RTX 5070 Ti·CUDA 13.0·BF16 및 64GiB disk 최소값을 불변 입력 계약으로 고정했다.
+  - 검증: `prepare --execute`와 별도 `verify`가 통과했다. readiness SHA-256은 `f6c8171f…1135c3`, private/public manifest는 `6f72abe1…8c273`/`9b71d2d3…8a176`, eval70은 `aa61d2a7…bcb31`이며 생성 시 가용 disk는 754,540,773,376 bytes였다.
+  - 남은 이슈·후속 작업: `human_domain_review_performed=false`, `quality_certification_claimed=false`, `phase5_training_performed=false`다. 다음 작업은 사용자가 별도로 승인할 때 KI10부터 실행하는 것이며 KI20은 KI10 checkpoint를 재사용하지 않는다.
+- 2026-08-29
+  - 작업 요약: 실제 학습 전에 승인된 Phase 4 v2 canonical, 10K/20K manifest, eval70, 고정 모델·환경·학습 설정을 다시 묶는 `phase5-readiness-v1.0.0` 비학습 Gate를 구현했다.
+  - 변경 범위: registry·Phase 4 A~E hash chain, 7축 수량·중첩 manifest·record hash, eval70 leakage 분리, Python/uv/PyTorch CUDA/GPU·BF16, 64GiB disk, KI10/KI20 독립 초기화와 checkpoint state 보존 계약을 fail-closed로 검사한다. 학습 실행 코드는 포함하지 않는다.
+  - 검증: 계약·dry-run, readiness 단위 테스트와 Ruff를 통과했다. 실제 불변 readiness 산출물은 구현 checkpoint를 커밋해 working tree를 깨끗하게 만든 뒤 생성한다.
+  - 실행 전 수정: 첫 `prepare --execute`는 부모 Phase 4 검증 모듈을 import하기 전에 `ModuleNotFoundError`로 중단됐고 출력 파일은 생성되지 않았다. CLI가 현재 작업 디렉터리가 아니라 스크립트 위치에서 저장소 루트를 고정하도록 수정하고 `/tmp` 실행 회귀 테스트를 추가했다.
+  - 남은 이슈·후속 작업: readiness 실행·공개 보고서 고정 전까지 Phase 5는 `미시작`이다. 이후에도 KI10·KI20 실제 학습은 사용자의 별도 명시적 승인 없이는 시작하지 않는다.

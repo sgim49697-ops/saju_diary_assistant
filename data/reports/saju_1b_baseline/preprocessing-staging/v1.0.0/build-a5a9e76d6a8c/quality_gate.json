@@ -1,0 +1,45 @@
+{
+  "aihub_local_reservoir_rows": 10000,
+  "axis_severity_counts": {
+    "aihub_empathy_multiturn": {
+      "medium": 6800
+    },
+    "aihub_empathy_single": {
+      "medium": 6800
+    },
+    "bazi_sft": {
+      "low": 4800
+    },
+    "deterministic_saju_qa": {
+      "low": 2400
+    },
+    "nemotron_saju": {
+      "medium": 8400
+    },
+    "saju_diary_bridge": {
+      "medium": 3600
+    },
+    "yeji_shensha_derived": {
+      "low": 1200
+    }
+  },
+  "build_id": "build-a5a9e76d6a8c",
+  "critical_or_high_rows": 0,
+  "human_domain_review_performed": false,
+  "quality_certification_claimed": false,
+  "raw_samples_in_report": false,
+  "report_type": "quality_corrected_staging_automated_gate",
+  "scanned_rows": 34000,
+  "schema_version": "2.0.0",
+  "severity_counts": {
+    "low": 8400,
+    "medium": 25600
+  },
+  "signal_counts": {
+    "deterministic_or_rule_derived_label": 8400,
+    "reference_label_requires_runtime_grounding": 25600
+  },
+  "staging_rows": 24000,
+  "status": "passed",
+  "training_promotion_allowed": false
+}

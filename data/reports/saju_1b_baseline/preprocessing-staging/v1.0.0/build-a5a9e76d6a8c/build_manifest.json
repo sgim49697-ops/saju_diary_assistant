@@ -1,0 +1,22 @@
+{
+  "artifact_sha256": {
+    "TECHNICAL_ACCEPTANCE.json": "ba1e74c7b0108fdcf52406d45570b9ec16db98e548b029efe41b205e3893a32d",
+    "aggregate.json": "ec1a85dbda5ce68c10fb2b9e9706698e5b84269c46f764c2f0c9f6647fba5dfe",
+    "quality_gate.json": "0376f007ecf8ff1aaf4b1b1391eb6e730b07724bc30a3b2299cc2f6855b5878e"
+  },
+  "build_id": "build-a5a9e76d6a8c",
+  "build_sha256": "a5a9e76d6a8cd524314fbdb0d4ebf11f0b984c3748606eda56de2d7708d3cd23",
+  "contains_aihub_source_text": false,
+  "contains_individual_aihub_ids_or_hashes": false,
+  "dataset_name": "saju_1b_baseline",
+  "generated_on": "2026-08-29",
+  "human_domain_review_performed": false,
+  "phase5_training_performed": false,
+  "private_manifest_sha256": "1d0f06990a53824a1b75c121c504f54c3d778f7fd7551d9fbf768ce399b1f1da",
+  "quality_certification_claimed": false,
+  "report_type": "quality_corrected_staging_public_manifest",
+  "schema_version": "2.0.0",
+  "staging_version": "v1.0.0",
+  "status": "accepted_for_phase4_preflight",
+  "training_promotion_allowed": false
+}

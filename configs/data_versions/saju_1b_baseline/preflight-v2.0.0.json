@@ -1,0 +1,218 @@
+{
+  "schema_version": "2.0.0",
+  "canonical_plan_version": "3.0.0",
+  "dataset_name": "saju_1b_baseline",
+  "preflight_version": "v2.0.0",
+  "seed": 42,
+  "parent_staging": {
+    "version": "v1.0.0",
+    "build_id": "build-a5a9e76d6a8c",
+    "build_sha256": "a5a9e76d6a8cd524314fbdb0d4ebf11f0b984c3748606eda56de2d7708d3cd23",
+    "implementation_commit": "e23052007fc1858741b8eff96cc5e6dfff66895f",
+    "config": "configs/data_versions/saju_1b_baseline/preprocessing-staging-v1.0.0.json",
+    "private_manifest_sha256": "1d0f06990a53824a1b75c121c504f54c3d778f7fd7551d9fbf768ce399b1f1da",
+    "public_manifest_sha256": "21dc23b5e610e60913ae73e10a2f85787fe63341b17a6dddb2b0c429e51a999f",
+    "technical_acceptance_sha256": "ba1e74c7b0108fdcf52406d45570b9ec16db98e548b029efe41b205e3893a32d",
+    "status": "accepted_for_phase4_preflight"
+  },
+  "model": {
+    "repo_id": "kakaocorp/kanana-2-1.3b-instruct",
+    "revision": "bf4786aa2a1908adce942d53976270132732f720",
+    "local_subdir": "models/saju_1b_baseline/kanana-2-1.3b-instruct/bf4786aa2a1908adce942d53976270132732f720",
+    "phase3_config": "configs/model_versions/saju_1b_baseline/model-preparation-v1.0.0.json",
+    "phase3_report": "data/reports/saju_1b_baseline/model-preparation/v1.0.0/build-32e2c84af3d3/verification_report.json",
+    "phase3_build_id": "build-32e2c84af3d3",
+    "snapshot_manifest_sha256": "5786d04831c93192d234651df0894a1912b974cfab96011ce0676563185cc93d",
+    "dtype": "bfloat16",
+    "attention_backend": "sdpa",
+    "trust_remote_code": true,
+    "local_files_only": true,
+    "expected_parameter_count": 1291478272
+  },
+  "chat_template": {
+    "path": "configs/chat_templates/kanana2_sft.jinja",
+    "bytes": 10725,
+    "sha256": "b8ee6b31575eada17ebbe73d3f1ac65d3efde64f0a25ff922031dec7e1cae3e3",
+    "bos_token_id": 128000,
+    "eos_token_id": 128010,
+    "pad_token_id": 128001
+  },
+  "runtime_headers": {
+    "package": "libpython3.10-dev",
+    "version": "3.10.12-1~22.04.16",
+    "url": "https://security.ubuntu.com/ubuntu/pool/main/p/python3.10/libpython3.10-dev_3.10.12-1~22.04.16_amd64.deb",
+    "bytes": 4765572,
+    "sha256": "7ec59ebb7ecea34f416f37f74797712a7d477cc344f1bca1755528b154eaa04a",
+    "local_root": ".venv/phase4-runtime/libpython3.10-dev-3.10.12-1~22.04.16",
+    "include_roots": ["usr/include/python3.10", "usr/include"],
+    "required_headers": [
+      "usr/include/python3.10/Python.h",
+      "usr/include/x86_64-linux-gnu/python3.10/pyconfig.h"
+    ]
+  },
+  "split": {
+    "token_share_policy": "aihub_and_bridge_assistant_loss_minimum",
+    "aihub_and_bridge_minimum_assistant_loss_token_percent": 10.0,
+    "formal_max_length": 768,
+    "diagnostic_max_length": 1024,
+    "smoke_only_max_length": 512,
+    "axes": {
+      "nemotron_saju": {"mix1k": 340, "mix10k": 3400, "mix20k": 6800, "holdout": 100},
+      "bazi_sft": {"mix1k": 200, "mix10k": 2000, "mix20k": 4000, "holdout": 100},
+      "aihub_empathy_single": {"mix1k": 75, "mix10k": 750, "mix20k": 1500, "holdout": 100},
+      "aihub_empathy_multiturn": {"mix1k": 75, "mix10k": 750, "mix20k": 1500, "holdout": 100},
+      "yeji_shensha_derived": {"mix1k": 50, "mix10k": 500, "mix20k": 1000, "holdout": 100},
+      "deterministic_saju_qa": {"mix1k": 100, "mix10k": 1000, "mix20k": 2000, "holdout": 100},
+      "saju_diary_bridge": {"mix1k": 160, "mix10k": 1600, "mix20k": 3200, "holdout": 100}
+    },
+    "staging_rows": {
+      "nemotron_saju": 8400,
+      "bazi_sft": 4800,
+      "aihub_empathy_single": 1800,
+      "aihub_empathy_multiturn": 1800,
+      "yeji_shensha_derived": 1200,
+      "deterministic_saju_qa": 2400,
+      "saju_diary_bridge": 3600
+    },
+    "task_allowlists": {
+      "nemotron_saju": ["structured_saju_reading"],
+      "bazi_sft": ["grounded_rule_reading"],
+      "aihub_empathy_single": ["empathic_response"],
+      "aihub_empathy_multiturn": ["natural_multiturn_dialogue"],
+      "yeji_shensha_derived": ["shensha_rule_validation", "shensha_neutral_explanation"],
+      "deterministic_saju_qa": [
+        "deterministic_stem_branch_identity",
+        "deterministic_yin_yang_elements_and_surface_counts",
+        "deterministic_hidden_stems",
+        "deterministic_stem_ten_gods",
+        "deterministic_branch_ten_gods"
+      ],
+      "saju_diary_bridge": ["saju_diary_empathy_bridge"]
+    },
+    "nemotron_variants": {
+      "mix1k": {"v6": 68, "v7": 272},
+      "mix10k": {"v6": 680, "v7": 2720},
+      "mix20k": {"v6": 1360, "v7": 5440}
+    },
+    "core_eval": {
+      "structured_natal_reading": 40,
+      "grounded_rule_reading": 30,
+      "deterministic_hard_fact": 60,
+      "branch_policy_contradiction": 40,
+      "shensha_rule_qa": 25,
+      "saju_diary_bridge": 40,
+      "empathy": 20,
+      "multiturn": 15,
+      "same_chart_consistency": 20,
+      "missing_chart_handoff": 5,
+      "general_korean_instruction": 5
+    }
+  },
+  "artifacts": {
+    "core_eval": "core_eval_300.jsonl",
+    "source_holdout": "source_holdout_700.jsonl",
+    "mix1k_candidate": "mix1k_candidate_v2.jsonl",
+    "mix10k_candidate": "mix10k_candidate_v2.jsonl",
+    "mix20k_candidate": "mix20k_candidate_v2.jsonl",
+    "mix1k_smoke_512": "mix1k_smoke_512_v2.jsonl",
+    "canonical_mix1k": "mix1k_v2.jsonl",
+    "canonical_mix10k": "mix10k_v2.jsonl",
+    "canonical_mix20k": "mix20k_v2.jsonl"
+  },
+  "generation": {
+    "do_sample": false,
+    "max_new_tokens": 512,
+    "num_beams": 1,
+    "use_cache": true,
+    "batch_size": 1
+  },
+  "k0_reuse": {
+    "source_root": "runs/K0-INSTRUCT/v1.1.0/build-9cf4fdb83bbd",
+    "source_build_id": "build-9cf4fdb83bbd",
+    "source_run_manifest_sha256": "d06b44548d76b311e2f8b2decf64dc253a147e8d581907101bf2cfea44f7c65f",
+    "source_run_config_sha256": "63bf2dd5053037e4c4d273f2107267dbe7e551ac20a2038033a119f16e926243",
+    "source_generation_cases": 720,
+    "reuse_key": "model-template-generation-prompt-sha256",
+    "recompute_metrics": true
+  },
+  "triage": {
+    "evaluation_items": 1000,
+    "generation_cases": 1020,
+    "priority_limit": 50,
+    "severity_order": ["critical", "high", "medium", "low"],
+    "human_domain_review_performed": false
+  },
+  "training_smoke": {
+    "full_parameter_count": 1291478272,
+    "dtype": "bfloat16",
+    "attention_backend": "sdpa",
+    "per_device_train_batch_size": 1,
+    "gradient_accumulation_steps": 8,
+    "gradient_checkpointing": true,
+    "use_cache": false,
+    "optimizer": "paged_adamw_8bit",
+    "assistant_only_loss": true,
+    "packing": false,
+    "loss_type": "chunked_nll",
+    "learning_rate": 0.000008,
+    "warmup_ratio": 0.03,
+    "lr_scheduler_type": "cosine",
+    "weight_decay": 0.01,
+    "max_grad_norm": 1.0,
+    "seed": 42,
+    "data_seed": 42,
+    "minimum_vram_headroom_bytes": 1073741824,
+    "stages": {
+      "gate_d_512_1": {"max_length": 512, "optimizer_steps": 1, "manifest": "mix1k_smoke_512_v2.jsonl"},
+      "smoke_512_20": {"max_length": 512, "optimizer_steps": 20, "manifest": "mix1k_smoke_512_v2.jsonl"},
+      "diagnostic_1024_1": {"max_length": 1024, "optimizer_steps": 1, "manifest": "mix1k_candidate_v2.jsonl"},
+      "main_768_100": {"max_length": 768, "optimizer_steps": 100, "total_optimizer_steps": 200, "checkpoint_step": 100, "manifest": "mix1k_candidate_v2.jsonl"},
+      "resume_768_200": {"max_length": 768, "optimizer_steps": 200, "resume_step": 100, "checkpoint_step": 200, "manifest": "mix1k_candidate_v2.jsonl"},
+      "reload_768_generate5": {"max_length": 768, "checkpoint_step": 200, "task_count": 5, "max_new_tokens": 64}
+    },
+    "forbidden_automatic_changes": [
+      "cpu_offload",
+      "deepspeed",
+      "lora",
+      "packing",
+      "torch_compile",
+      "flash_attention"
+    ]
+  },
+  "outputs": {
+    "private_root": "data/derived/saju_1b_baseline/preflight/v2.0.0/{build_id}",
+    "public_root": "data/reports/saju_1b_baseline/preflight/v2.0.0/{build_id}",
+    "k0_root": "runs/K0-INSTRUCT/v2.0.0/{build_id}",
+    "smoke_root": "runs/KI1K-SMOKE-v2/v2.0.0/{build_id}",
+    "canonical_root": "data/derived/saju_1b_baseline/v2.0.0",
+    "canonical_public_root": "data/reports/saju_1b_baseline/preflight/v2.0.0"
+  },
+  "implementation_files": [
+    "scripts/preflight/errors.py",
+    "scripts/preflight/phase4_common.py",
+    "scripts/preflight/phase4_data_v2.py",
+    "scripts/preflight/phase4_k0.py",
+    "scripts/preflight/phase4_triage.py",
+    "scripts/preflight/phase4_smoke.py",
+    "scripts/preflight/phase4_finalize.py",
+    "scripts/preflight/phase4_review.py",
+    "scripts/preflight/phase4_preflight.py",
+    "scripts/preflight/review_assets/START_HERE.html",
+    "scripts/preflight/review_assets/review.css",
+    "scripts/preflight/review_assets/review.js",
+    "configs/chat_templates/kanana2_sft.jinja"
+  ],
+  "governance": {
+    "human_domain_review_performed": false,
+    "quality_certification_claimed": false,
+    "phase5_training_performed": false
+  },
+  "official_sources": [
+    "https://huggingface.co/kakaocorp/kanana-2-1.3b-instruct/tree/bf4786aa2a1908adce942d53976270132732f720",
+    "https://huggingface.co/docs/trl/v1.12.0/sft_trainer",
+    "https://huggingface.co/docs/transformers/v4.57.6/en/main_classes/trainer",
+    "https://huggingface.co/docs/bitsandbytes/v0.50.2/reference/optim/adamw",
+    "https://docs.pytorch.org/docs/2.13/checkpoint.html",
+    "https://pytorch.org/blog/pytorch-2-13-release-blog/"
+  ]
+}

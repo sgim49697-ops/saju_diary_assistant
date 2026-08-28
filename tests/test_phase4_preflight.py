@@ -16,6 +16,7 @@ from scripts.preflight.phase4_data import (
     _false_chart_signature,
     _select_consistency_groups,
 )
+from scripts.preflight.phase4_data_v2 import _UnionFind
 from scripts.preflight.phase4_k0 import _score_output
 from scripts.preflight.phase4_preflight import build_parser
 from scripts.preflight.phase4_review import (
@@ -29,8 +30,9 @@ from scripts.preflight.phase4_triage import _case_risk
 from scripts.preflight.phase4_verify_history import verify_historical_phase4
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-CONFIG_PATH = (
-    REPO_ROOT / "configs/data_versions/saju_1b_baseline/preflight-v1.1.0.json"
+CONFIG_PATH = REPO_ROOT / "configs/data_versions/saju_1b_baseline/preflight-v1.1.0.json"
+V2_CONFIG_PATH = (
+    REPO_ROOT / "configs/data_versions/saju_1b_baseline/preflight-v2.0.0.json"
 )
 
 
@@ -50,9 +52,7 @@ class Phase4ContractTests(unittest.TestCase):
         )
         self.assertEqual(self.config["generation"]["max_new_tokens"], 512)
         self.assertEqual(self.config["split"]["formal_max_length"], 768)
-        self.assertEqual(
-            self.config["training_smoke"]["optimizer"], "paged_adamw_8bit"
-        )
+        self.assertEqual(self.config["training_smoke"]["optimizer"], "paged_adamw_8bit")
 
     def test_contract_rejects_moving_model_and_sampling(self) -> None:
         modified = copy.deepcopy(self.config)
@@ -76,7 +76,9 @@ class Phase4ContractTests(unittest.TestCase):
         self.assertFalse(review.confirm_authorized_reviewer)
 
     def test_phase4_execution_source_has_no_backward_or_optimizer_step(self) -> None:
-        source = (REPO_ROOT / "scripts/preflight/phase4_k0.py").read_text(encoding="utf-8")
+        source = (REPO_ROOT / "scripts/preflight/phase4_k0.py").read_text(
+            encoding="utf-8"
+        )
         self.assertNotIn(".backward(", source)
         self.assertNotIn("optimizer.step(", source)
         self.assertNotIn("model.train(", source)
@@ -95,7 +97,11 @@ class Phase4ContractTests(unittest.TestCase):
 
         self.assertEqual(
             parent.mock_calls,
-            [call.current_device(), call.empty_cache(), call.reset_peak_memory_stats(0)],
+            [
+                call.current_device(),
+                call.empty_cache(),
+                call.reset_peak_memory_stats(0),
+            ],
         )
 
     def test_checkpoint_reload_rejects_missing_cuda(self) -> None:
@@ -103,6 +109,78 @@ class Phase4ContractTests(unittest.TestCase):
         cuda.is_available.return_value = False
         with self.assertRaisesRegex(Phase4Error, "단일 CUDA GPU"):
             _prepare_reload_cuda(SimpleNamespace(cuda=cuda))
+
+
+class Phase4V2ContractTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.config = load_json(V2_CONFIG_PATH, "Phase 4 v2 test config")
+
+    def test_contract_pins_quality_corrected_seven_axis_mix(self) -> None:
+        result = validate_contract(self.config, REPO_ROOT)
+        self.assertEqual(result["canonical_plan_version"], "3.0.0")
+        self.assertEqual(result["axes"], 7)
+        self.assertEqual(result["core_eval_rows"], 300)
+        self.assertEqual(result["source_holdout_rows"], 700)
+        self.assertEqual(result["generation_cases"], 1_020)
+        self.assertEqual(
+            sum(axis["mix20k"] for axis in self.config["split"]["axes"].values()),
+            20_000,
+        )
+        self.assertEqual(
+            sum(axis["mix10k"] for axis in self.config["split"]["axes"].values()),
+            10_000,
+        )
+        self.assertEqual(self.config["split"]["axes"]["nemotron_saju"]["mix20k"], 6_800)
+        self.assertEqual(
+            self.config["split"]["axes"]["saju_diary_bridge"]["mix20k"],
+            3_200,
+        )
+        self.assertEqual(
+            self.config["split"]["nemotron_variants"]["mix20k"],
+            {"v6": 1_360, "v7": 5_440},
+        )
+        self.assertEqual(
+            self.config["split"][
+                "aihub_and_bridge_minimum_assistant_loss_token_percent"
+            ],
+            10.0,
+        )
+        self.assertFalse(self.config["governance"]["human_domain_review_performed"])
+        self.assertFalse(self.config["governance"]["quality_certification_claimed"])
+        self.assertFalse(result["training_promotion_allowed"])
+        self.assertFalse(result["phase5_training_performed"])
+
+    def test_union_find_closes_all_leakage_aliases_transitively(self) -> None:
+        groups = _UnionFind()
+        for value in ("chart:a", "source:b", "bridge:c", "separate:d"):
+            groups.add(value)
+        groups.union("chart:a", "source:b")
+        groups.union("source:b", "bridge:c")
+        self.assertEqual(groups.find("chart:a"), groups.find("bridge:c"))
+        self.assertNotEqual(groups.find("chart:a"), groups.find("separate:d"))
+
+    def test_hard_fact_and_branch_policy_contracts_require_expected_terms(self) -> None:
+        hard = _score_output(
+            "deterministic_hard_fact",
+            {"required_terms": ["甲子", "정기"]},
+            None,
+            "甲子 지지 십신은 지장간 정기를 기준으로 계산합니다.",
+        )
+        branch = _score_output(
+            "branch_policy_contradiction",
+            {"required_terms": ["정기", "편인"], "denial_terms": ["아닙"]},
+            None,
+            "지지 표면 오행 기준이 아닙니다. 정기 기준 결과는 편인입니다.",
+        )
+        missing_denial = _score_output(
+            "branch_policy_contradiction",
+            {"required_terms": ["정기", "편인"], "denial_terms": ["아닙"]},
+            None,
+            "정기 기준 결과는 편인입니다.",
+        )
+        self.assertTrue(hard["automated_contract_pass"])
+        self.assertTrue(branch["automated_contract_pass"])
+        self.assertFalse(missing_denial["automated_contract_pass"])
 
 
 class Phase4ScoringTests(unittest.TestCase):
@@ -324,7 +402,9 @@ class Phase4HistoryTests(unittest.TestCase):
         result = verify_historical_phase4(REPO_ROOT)
         self.assertTrue(result["artifact_hash_chains_verified"])
         self.assertEqual(result["implementation_hashes_total"], 11)
-        self.assertEqual(len(result["implementation_hashes_not_reachable_at_commit"]), 2)
+        self.assertEqual(
+            len(result["implementation_hashes_not_reachable_at_commit"]), 2
+        )
         self.assertFalse(result["training_promotion_allowed"])
 
 

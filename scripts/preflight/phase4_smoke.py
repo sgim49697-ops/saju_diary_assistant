@@ -17,6 +17,7 @@ from scripts.preflight.phase4_common import (
     PRIVATE_DIR_MODE,
     PRIVATE_FILE_MODE,
     artifact_hash_map,
+    load_candidate_staging_records,
     load_json,
     read_jsonl,
     runtime_environment,
@@ -24,11 +25,11 @@ from scripts.preflight.phase4_common import (
     sha256_file,
     sha256_json,
     utc_now,
+    verify_candidate_build,
     verify_hash_map,
     write_json_once,
     write_jsonl_once,
 )
-from scripts.preflight.phase4_data import load_staging_records, verify_private_build
 from scripts.preflight.phase4_review import verify_preflight
 
 TRAINING_STAGES = (
@@ -53,7 +54,9 @@ class _SmokeProbeCallback:
         self.gradient_probe: dict[str, Any] | None = None
         self.log_history: list[dict[str, Any]] = []
 
-    def on_train_begin(self, args: Any, state: Any, control: Any, **kwargs: Any) -> None:
+    def on_train_begin(
+        self, args: Any, state: Any, control: Any, **kwargs: Any
+    ) -> None:
         del args, control, kwargs
         self.train_begin_global_step = int(state.global_step)
 
@@ -97,7 +100,10 @@ class _SmokeProbeCallback:
 
     def on_step_end(self, args: Any, state: Any, control: Any, **kwargs: Any) -> Any:
         del args, kwargs
-        if self.stop_at_step is not None and int(state.global_step) >= self.stop_at_step:
+        if (
+            self.stop_at_step is not None
+            and int(state.global_step) >= self.stop_at_step
+        ):
             control.should_save = True
             control.should_training_stop = True
         return control
@@ -181,7 +187,7 @@ def _validate_smoke_prerequisites(
 def _load_training_records(
     context: dict[str, Any], repo_root: Path, manifest_name: str
 ) -> tuple[list[dict[str, Any]], str]:
-    records_by_id, _, _, _ = load_staging_records(context, repo_root)
+    records_by_id, _, _, _ = load_candidate_staging_records(context, repo_root)
     manifest_path = context["private_root"] / "manifests" / manifest_name
     manifest = read_jsonl(manifest_path, f"smoke manifest {manifest_name}")
     rows: list[dict[str, Any]] = []
@@ -190,8 +196,13 @@ def _load_training_records(
         record = records_by_id.get(record_id)
         if record is None or value.get("record_sha256") is None:
             raise Phase4Error("smoke manifest record identity가 없습니다.")
-        if sha256_json(record) != value["record_sha256"]:
-            raise Phase4Error(f"smoke manifest/staging record hash가 다릅니다: {record_id}")
+        expected_record_hash = record.get("meta", {}).get(
+            "phase4_parent_record_sha256", sha256_json(record)
+        )
+        if expected_record_hash != value["record_sha256"]:
+            raise Phase4Error(
+                f"smoke manifest/staging record hash가 다릅니다: {record_id}"
+            )
         rows.append({"messages": record["messages"]})
     if len(rows) != 1_000:
         raise Phase4Error("Phase 4D/E는 정확히 MIX1K 1,000행을 사용해야 합니다.")
@@ -202,10 +213,17 @@ def _load_training_runtime(
     context: dict[str, Any], repo_root: Path
 ) -> tuple[Any, Any, Any, Any, Any, dict[str, Any]]:
     environment = runtime_environment(context["config"], repo_root)
-    for key in ("CPATH", "HF_HUB_OFFLINE", "TRANSFORMERS_OFFLINE", "HF_DATASETS_OFFLINE"):
+    for key in (
+        "CPATH",
+        "HF_HUB_OFFLINE",
+        "TRANSFORMERS_OFFLINE",
+        "HF_DATASETS_OFFLINE",
+    ):
         os.environ[key] = environment[key]
     if os.environ.get("TORCH_DISABLE_NATIVE_JIT"):
-        raise Phase4Error("정식 smoke에서는 TORCH_DISABLE_NATIVE_JIT를 사용할 수 없습니다.")
+        raise Phase4Error(
+            "정식 smoke에서는 TORCH_DISABLE_NATIVE_JIT를 사용할 수 없습니다."
+        )
     try:
         import bitsandbytes
         import datasets
@@ -216,7 +234,9 @@ def _load_training_runtime(
         from transformers import AutoModelForCausalLM, AutoTokenizer, TrainerCallback
         from trl import SFTConfig, SFTTrainer
     except Exception as exc:
-        raise Phase4Error("Phase 4D/E 고정 학습 runtime을 import하지 못했습니다.") from exc
+        raise Phase4Error(
+            "Phase 4D/E 고정 학습 runtime을 import하지 못했습니다."
+        ) from exc
     if not torch.cuda.is_available() or torch.cuda.device_count() != 1:
         raise Phase4Error("Phase 4D/E는 단일 CUDA GPU가 필요합니다.")
     if torch.cuda.current_device() != 0:
@@ -240,8 +260,7 @@ def _load_training_runtime(
         or tokenizer.eos_token_id != template["eos_token_id"]
         or tokenizer.pad_token_id != template["pad_token_id"]
         or not isinstance(tokenizer.chat_template, str)
-        or sha256_bytes(tokenizer.chat_template.encode("utf-8"))
-        != template["sha256"]
+        or sha256_bytes(tokenizer.chat_template.encode("utf-8")) != template["sha256"]
     ):
         raise Phase4Error("Full FT tokenizer/chat template 계약이 다릅니다.")
     model = AutoModelForCausalLM.from_pretrained(
@@ -284,11 +303,18 @@ def _load_training_runtime(
         "attention_backend": "sdpa",
         "device": "cuda:0",
     }
-    return torch, Dataset, TrainerCallback, SFTConfig, SFTTrainer, {
-        "tokenizer": tokenizer,
-        "model": model,
-        "runtime": runtime,
-    }
+    return (
+        torch,
+        Dataset,
+        TrainerCallback,
+        SFTConfig,
+        SFTTrainer,
+        {
+            "tokenizer": tokenizer,
+            "model": model,
+            "runtime": runtime,
+        },
+    )
 
 
 def _unwrap_optimizer(optimizer: Any) -> Any:
@@ -370,7 +396,9 @@ def _loss_report(log_history: list[dict[str, Any]]) -> dict[str, Any]:
         "first_window_size": window,
         "first_window_median_loss": round(first, 8) if first is not None else None,
         "last_window_median_loss": round(last, 8) if last is not None else None,
-        "loss_decrease_trend": bool(first is not None and last is not None and last <= first),
+        "loss_decrease_trend": bool(
+            first is not None and last is not None and last <= first
+        ),
         "minimum_loss": round(min(losses), 8) if losses else None,
         "maximum_loss": round(max(losses), 8) if losses else None,
     }
@@ -434,7 +462,9 @@ def _training_arguments(
     context: dict[str, Any], stage: str, stage_config: dict[str, Any], sft_config: Any
 ) -> Any:
     smoke = context["config"]["training_smoke"]
-    max_steps = int(stage_config.get("total_optimizer_steps", stage_config["optimizer_steps"]))
+    max_steps = int(
+        stage_config.get("total_optimizer_steps", stage_config["optimizer_steps"])
+    )
     output_dir = (
         _checkpoint_root(context)
         if stage in {"main_768_100", "resume_768_200"}
@@ -590,7 +620,11 @@ def _run_training_stage(
         if not math.isfinite(loss):
             raise Phase4Error("smoke training loss가 NaN/Inf입니다.")
         gradient = probe.gradient_probe
-        if not gradient or gradient["finite"] is not True or gradient["nonzero"] is not True:
+        if (
+            not gradient
+            or gradient["finite"] is not True
+            or gradient["nonzero"] is not True
+        ):
             raise Phase4Error("smoke gradient가 유한한 nonzero 값이 아닙니다.")
         optimizer = _optimizer_probe(torch, trainer.optimizer)
         if optimizer["uint8_state_present"] is not True:
@@ -606,10 +640,15 @@ def _run_training_stage(
             for log in trainer.state.log_history
         ]
         losses = _loss_report(all_logs)
-        if losses["losses_finite"] is not True or losses["grad_norms_finite"] is not True:
+        if (
+            losses["losses_finite"] is not True
+            or losses["grad_norms_finite"] is not True
+        ):
             raise Phase4Error("step별 loss/gradient norm이 유한하지 않습니다.")
         if stage == "resume_768_200" and losses["loss_decrease_trend"] is not True:
-            raise Phase4Error("200-step loss가 초기 구간 대비 감소 경향을 보이지 않습니다.")
+            raise Phase4Error(
+                "200-step loss가 초기 구간 대비 감소 경향을 보이지 않습니다."
+            )
         minimum_headroom = context["config"]["training_smoke"][
             "minimum_vram_headroom_bytes"
         ]
@@ -619,8 +658,12 @@ def _run_training_stage(
         checkpoint_step = stage_config.get("checkpoint_step")
         if checkpoint_step is not None:
             checkpoint = _checkpoint_path(context, int(checkpoint_step))
-            temporary_inventory = _stage_root(context, stage).with_suffix(".inventory.json")
-            checkpoint_inventory = _checkpoint_inventory(checkpoint, temporary_inventory)
+            temporary_inventory = _stage_root(context, stage).with_suffix(
+                ".inventory.json"
+            )
+            checkpoint_inventory = _checkpoint_inventory(
+                checkpoint, temporary_inventory
+            )
             temporary_inventory.unlink()
         summary = {
             "schema_version": "1.0.0",
@@ -674,7 +717,10 @@ def _run_training_stage(
 
 
 def _is_cuda_oom(exc: BaseException) -> bool:
-    return "out of memory" in str(exc).lower() or "cuda error: out of memory" in str(exc).lower()
+    return (
+        "out of memory" in str(exc).lower()
+        or "cuda error: out of memory" in str(exc).lower()
+    )
 
 
 def _prepare_reload_cuda(torch: Any) -> None:
@@ -720,7 +766,12 @@ def _reload_and_generate(
         _stage_root(context, "resume_768_200") / "checkpoint_inventory.json",
     )
     environment = runtime_environment(config, repo_root)
-    for key in ("CPATH", "HF_HUB_OFFLINE", "TRANSFORMERS_OFFLINE", "HF_DATASETS_OFFLINE"):
+    for key in (
+        "CPATH",
+        "HF_HUB_OFFLINE",
+        "TRANSFORMERS_OFFLINE",
+        "HF_DATASETS_OFFLINE",
+    ):
         os.environ[key] = environment[key]
     try:
         import torch
@@ -744,7 +795,10 @@ def _reload_and_generate(
         low_cpu_mem_usage=True,
     ).to("cuda:0")
     model.eval()
-    core = read_jsonl(context["private_root"] / "eval/core_eval_200.jsonl", "Core Eval")
+    core_name = (
+        context["config"].get("artifacts", {}).get("core_eval", "core_eval_200.jsonl")
+    )
+    core = read_jsonl(context["private_root"] / f"eval/{core_name}", "Core Eval")
     tasks: list[dict[str, Any]] = []
     seen_categories: set[str] = set()
     try:
@@ -847,7 +901,9 @@ def run_smoke_stage(
         raise
 
 
-def verify_checkpoint_inventory(checkpoint: Path, inventory_path: Path) -> dict[str, Any]:
+def verify_checkpoint_inventory(
+    checkpoint: Path, inventory_path: Path
+) -> dict[str, Any]:
     inventory = load_json(inventory_path, "checkpoint inventory")
     if checkpoint.name != inventory.get("checkpoint") or not isinstance(
         inventory.get("files"), list
@@ -921,7 +977,7 @@ def verify_smoke_stage(
 
 
 def verify_all_smoke(context: dict[str, Any], repo_root: Path) -> dict[str, Any]:
-    verify_private_build(context, repo_root)
+    verify_candidate_build(context, repo_root)
     results = {
         stage: verify_smoke_stage(context, repo_root, stage) for stage in ALL_STAGES
     }

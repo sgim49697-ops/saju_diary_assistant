@@ -1,0 +1,391 @@
+{
+  "automated_risk_triage": {
+    "automated_second_pass_performed": true,
+    "critical_or_high_items": 97,
+    "evaluation_items": 1000,
+    "priority_items": 50,
+    "severity_counts": {
+      "high": 97,
+      "low": 543,
+      "medium": 360
+    },
+    "signal_counts": {
+      "automated_contract_failed": 40,
+      "generation_limit_reached": 322,
+      "hard_contract_failed": 97,
+      "high_repetition": 70
+    }
+  },
+  "build_id": "build-6f32d52c2868",
+  "build_sha256": "6f32d52c2868bb8b5e07724cbdc00a6bc0b2f1608fe53ac54c357a6ec0832ee9",
+  "canonical_manifests": {
+    "manifest_counts": {
+      "mix10k": 10000,
+      "mix1k": 1000,
+      "mix20k": 20000
+    },
+    "mix10k_subset_mix20k": true,
+    "mix1k_subset_mix10k": true,
+    "phase5_training_performed": false,
+    "schema_version": "1.0.0",
+    "selected_max_length": 768,
+    "status": "verified",
+    "training_promotion_allowed": true
+  },
+  "canonical_promotion_performed": true,
+  "completed_gates": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E"
+  ],
+  "diagnostic_1024_status": "passed",
+  "diagnostic_max_length": 1024,
+  "gate_d": {
+    "elapsed_seconds": 12.516,
+    "first_pre_optimizer_global_step": 0,
+    "gradient_probe": {
+      "element_count": 1291478272,
+      "finite": true,
+      "nonzero": true,
+      "observed_after_gradient_clip": true,
+      "tensor_count": 354
+    },
+    "loss_report": {
+      "first_window_median_loss": 3.0762,
+      "first_window_size": 1,
+      "grad_norms_finite": true,
+      "last_window_median_loss": 3.0762,
+      "logged_optimizer_steps": 1,
+      "loss_decrease_trend": true,
+      "losses_finite": true,
+      "maximum_loss": 3.0762,
+      "minimum_loss": 3.0762
+    },
+    "max_length": 512,
+    "optimizer_probe": {
+      "optimizer_class": "AdamW",
+      "state_element_count": 2591877632,
+      "state_tensor_count": 1604,
+      "state_tensor_dtype_counts": {
+        "torch.float32": 1156,
+        "torch.uint8": 448
+      },
+      "uint8_state_present": true,
+      "wrapper_class": "AcceleratedOptimizer"
+    },
+    "optimizer_steps": 1,
+    "peak_vram_bytes": 6729681920,
+    "resumed_from_checkpoint": false,
+    "runtime": {
+      "attention_backend": "sdpa",
+      "bitsandbytes": "0.50.2",
+      "datasets": "4.7.0",
+      "device": "cuda:0",
+      "gpu_capability": [
+        12,
+        0
+      ],
+      "gpu_name": "NVIDIA GeForce RTX 5070 Ti",
+      "parameter_count": 1291478272,
+      "parameter_dtype": "torch.bfloat16",
+      "python": ".venv/bin/python",
+      "torch": "2.13.0+cu130",
+      "torch_cuda": "13.0",
+      "trainable_parameter_count": 1291478272,
+      "transformers": "4.57.6",
+      "trl": "1.12.0",
+      "vram_total_bytes": 17094475776
+    },
+    "status": "passed",
+    "system_ram": {
+      "available_bytes": 9589915648,
+      "swap_free_bytes": 8038985728,
+      "swap_total_bytes": 8589934592,
+      "total_bytes": 16769019904
+    },
+    "train_begin_global_step": 0,
+    "training_loss": 3.0762476921081543,
+    "vram_free_bytes_at_finish": 6944718848,
+    "vram_headroom_requirement_bytes": 1073741824,
+    "vram_total_bytes": 17094475776
+  },
+  "gate_e": {
+    "main_768_100": {
+      "elapsed_seconds": 261.399,
+      "first_pre_optimizer_global_step": 0,
+      "gradient_probe": {
+        "element_count": 1291478272,
+        "finite": true,
+        "nonzero": true,
+        "observed_after_gradient_clip": true,
+        "tensor_count": 354
+      },
+      "loss_report": {
+        "first_window_median_loss": 2.4387,
+        "first_window_size": 20,
+        "grad_norms_finite": true,
+        "last_window_median_loss": 1.0326,
+        "logged_optimizer_steps": 100,
+        "loss_decrease_trend": true,
+        "losses_finite": true,
+        "maximum_loss": 3.1481,
+        "minimum_loss": 0.5498
+      },
+      "max_length": 768,
+      "optimizer_probe": {
+        "optimizer_class": "AdamW",
+        "state_element_count": 2591877632,
+        "state_tensor_count": 1604,
+        "state_tensor_dtype_counts": {
+          "torch.float32": 1156,
+          "torch.uint8": 448
+        },
+        "uint8_state_present": true,
+        "wrapper_class": "AcceleratedOptimizer"
+      },
+      "optimizer_steps": 100,
+      "peak_vram_bytes": 6754364416,
+      "resumed_from_checkpoint": false,
+      "runtime": {
+        "attention_backend": "sdpa",
+        "bitsandbytes": "0.50.2",
+        "datasets": "4.7.0",
+        "device": "cuda:0",
+        "gpu_capability": [
+          12,
+          0
+        ],
+        "gpu_name": "NVIDIA GeForce RTX 5070 Ti",
+        "parameter_count": 1291478272,
+        "parameter_dtype": "torch.bfloat16",
+        "python": ".venv/bin/python",
+        "torch": "2.13.0+cu130",
+        "torch_cuda": "13.0",
+        "trainable_parameter_count": 1291478272,
+        "transformers": "4.57.6",
+        "trl": "1.12.0",
+        "vram_total_bytes": 17094475776
+      },
+      "status": "passed",
+      "system_ram": {
+        "available_bytes": 7335313408,
+        "swap_free_bytes": 8036610048,
+        "swap_total_bytes": 8589934592,
+        "total_bytes": 16769019904
+      },
+      "train_begin_global_step": 0,
+      "training_loss": 1.6090147125720977,
+      "vram_free_bytes_at_finish": 6858735616,
+      "vram_headroom_requirement_bytes": 1073741824,
+      "vram_total_bytes": 17094475776
+    },
+    "reload_768_generate5": {
+      "elapsed_seconds": 11.931,
+      "nonempty_outputs": 5,
+      "peak_vram_bytes": 2667877888,
+      "runtime": {
+        "gpu_name": "NVIDIA GeForce RTX 5070 Ti",
+        "torch": "2.13.0+cu130",
+        "torch_cuda": "13.0",
+        "transformers": "4.57.6"
+      },
+      "status": "passed",
+      "task_count": 5,
+      "vram_free_bytes_at_finish": 12774801408,
+      "vram_total_bytes": 17094475776
+    },
+    "resume_768_200": {
+      "elapsed_seconds": 230.364,
+      "first_pre_optimizer_global_step": 100,
+      "gradient_probe": {
+        "element_count": 1291478272,
+        "finite": true,
+        "nonzero": true,
+        "observed_after_gradient_clip": true,
+        "tensor_count": 354
+      },
+      "loss_report": {
+        "first_window_median_loss": 2.4387,
+        "first_window_size": 20,
+        "grad_norms_finite": true,
+        "last_window_median_loss": 1.0448,
+        "logged_optimizer_steps": 200,
+        "loss_decrease_trend": true,
+        "losses_finite": true,
+        "maximum_loss": 3.1481,
+        "minimum_loss": 0.3332
+      },
+      "max_length": 768,
+      "optimizer_probe": {
+        "optimizer_class": "AdamW",
+        "state_element_count": 2591877632,
+        "state_tensor_count": 1604,
+        "state_tensor_dtype_counts": {
+          "torch.float32": 1156,
+          "torch.uint8": 448
+        },
+        "uint8_state_present": true,
+        "wrapper_class": "AcceleratedOptimizer"
+      },
+      "optimizer_steps": 200,
+      "peak_vram_bytes": 10498061312,
+      "resumed_from_checkpoint": true,
+      "runtime": {
+        "attention_backend": "sdpa",
+        "bitsandbytes": "0.50.2",
+        "datasets": "4.7.0",
+        "device": "cuda:0",
+        "gpu_capability": [
+          12,
+          0
+        ],
+        "gpu_name": "NVIDIA GeForce RTX 5070 Ti",
+        "parameter_count": 1291478272,
+        "parameter_dtype": "torch.bfloat16",
+        "python": ".venv/bin/python",
+        "torch": "2.13.0+cu130",
+        "torch_cuda": "13.0",
+        "trainable_parameter_count": 1291478272,
+        "transformers": "4.57.6",
+        "trl": "1.12.0",
+        "vram_total_bytes": 17094475776
+      },
+      "status": "passed",
+      "system_ram": {
+        "available_bytes": 13064663040,
+        "swap_free_bytes": 7810506752,
+        "swap_total_bytes": 8589934592,
+        "total_bytes": 16769019904
+      },
+      "train_begin_global_step": 100,
+      "training_loss": 0.4786315180361271,
+      "vram_free_bytes_at_finish": 3154665472,
+      "vram_headroom_requirement_bytes": 1073741824,
+      "vram_total_bytes": 17094475776
+    },
+    "smoke_512_20": {
+      "elapsed_seconds": 50.733,
+      "first_pre_optimizer_global_step": 0,
+      "gradient_probe": {
+        "element_count": 1291478272,
+        "finite": true,
+        "nonzero": true,
+        "observed_after_gradient_clip": true,
+        "tensor_count": 354
+      },
+      "loss_report": {
+        "first_window_median_loss": 2.6575,
+        "first_window_size": 10,
+        "grad_norms_finite": true,
+        "last_window_median_loss": 2.27015,
+        "logged_optimizer_steps": 20,
+        "loss_decrease_trend": true,
+        "losses_finite": true,
+        "maximum_loss": 3.0762,
+        "minimum_loss": 2.1425
+      },
+      "max_length": 512,
+      "optimizer_probe": {
+        "optimizer_class": "AdamW",
+        "state_element_count": 2591877632,
+        "state_tensor_count": 1604,
+        "state_tensor_dtype_counts": {
+          "torch.float32": 1156,
+          "torch.uint8": 448
+        },
+        "uint8_state_present": true,
+        "wrapper_class": "AcceleratedOptimizer"
+      },
+      "optimizer_steps": 20,
+      "peak_vram_bytes": 6729681920,
+      "resumed_from_checkpoint": false,
+      "runtime": {
+        "attention_backend": "sdpa",
+        "bitsandbytes": "0.50.2",
+        "datasets": "4.7.0",
+        "device": "cuda:0",
+        "gpu_capability": [
+          12,
+          0
+        ],
+        "gpu_name": "NVIDIA GeForce RTX 5070 Ti",
+        "parameter_count": 1291478272,
+        "parameter_dtype": "torch.bfloat16",
+        "python": ".venv/bin/python",
+        "torch": "2.13.0+cu130",
+        "torch_cuda": "13.0",
+        "trainable_parameter_count": 1291478272,
+        "transformers": "4.57.6",
+        "trl": "1.12.0",
+        "vram_total_bytes": 17094475776
+      },
+      "status": "passed",
+      "system_ram": {
+        "available_bytes": 9569591296,
+        "swap_free_bytes": 8039247872,
+        "swap_total_bytes": 8589934592,
+        "total_bytes": 16769019904
+      },
+      "train_begin_global_step": 0,
+      "training_loss": 2.49044873714447,
+      "vram_free_bytes_at_finish": 6936330240,
+      "vram_headroom_requirement_bytes": 1073741824,
+      "vram_total_bytes": 17094475776
+    }
+  },
+  "generated_at": "2026-08-28T19:06:53+00:00",
+  "human_domain_review_performed": false,
+  "k0": {
+    "cross_build_reused_cases": 118,
+    "determinism_replay_passed": true,
+    "gate_c_passed": true,
+    "generation_cases": 1020,
+    "locally_generated_cases": 902,
+    "safety_violations": 0
+  },
+  "model": {
+    "attention_backend": "sdpa",
+    "dtype": "bfloat16",
+    "phase3_build_id": "build-32e2c84af3d3",
+    "repo_id": "kakaocorp/kanana-2-1.3b-instruct",
+    "revision": "bf4786aa2a1908adce942d53976270132732f720"
+  },
+  "notes": [
+    "자동 위험 분류는 사람 전문 판독이나 품질 인증을 뜻하지 않는다.",
+    "K0의 비안전 품질 지표는 진단값이며 Gate C 차단 임계값으로 소급 사용하지 않았다.",
+    "1024는 실제 후보 최대 길이보다 긴 패딩 진단이고, 정식 Full FT 길이는 768로 선택했다.",
+    "Phase 5의 10K·20K 실제 학습은 실행하지 않았다."
+  ],
+  "official_sources": [
+    "https://huggingface.co/kakaocorp/kanana-2-1.3b-instruct/tree/bf4786aa2a1908adce942d53976270132732f720",
+    "https://huggingface.co/docs/trl/v1.12.0/sft_trainer",
+    "https://huggingface.co/docs/transformers/v4.57.6/en/main_classes/trainer",
+    "https://huggingface.co/docs/bitsandbytes/v0.50.2/reference/optim/adamw",
+    "https://docs.pytorch.org/docs/2.13/checkpoint.html",
+    "https://pytorch.org/blog/pytorch-2-13-release-blog/"
+  ],
+  "parent_preflight_build_id": "build-2feaee353252",
+  "parent_staging": {
+    "build_id": "build-a5a9e76d6a8c",
+    "build_sha256": "a5a9e76d6a8cd524314fbdb0d4ebf11f0b984c3748606eda56de2d7708d3cd23",
+    "config": "configs/data_versions/saju_1b_baseline/preprocessing-staging-v1.0.0.json",
+    "implementation_commit": "e23052007fc1858741b8eff96cc5e6dfff66895f",
+    "private_manifest_sha256": "1d0f06990a53824a1b75c121c504f54c3d778f7fd7551d9fbf768ce399b1f1da",
+    "public_manifest_sha256": "21dc23b5e610e60913ae73e10a2f85787fe63341b17a6dddb2b0c429e51a999f",
+    "status": "accepted_for_phase4_preflight",
+    "technical_acceptance_sha256": "ba1e74c7b0108fdcf52406d45570b9ec16db98e548b029efe41b205e3893a32d",
+    "version": "v1.0.0"
+  },
+  "phase5_training_performed": false,
+  "phase_status": "완료",
+  "promotion_basis": "explicit_user_authorization_after_automated_risk_triage_and_phase4_de",
+  "quality_certification_claimed": false,
+  "report_type": "phase4_abcde_completion",
+  "schema_version": "1.0.0",
+  "selected_max_length": 768,
+  "status": "gates_a_b_c_d_e_passed",
+  "technical_full_ft_preflight_passed": true,
+  "training_promotion_allowed": true
+}

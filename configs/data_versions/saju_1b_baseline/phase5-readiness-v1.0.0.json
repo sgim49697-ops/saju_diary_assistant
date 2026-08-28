@@ -1,0 +1,195 @@
+{
+  "schema_version": "1.0.0",
+  "canonical_plan_version": "3.0.0",
+  "dataset_name": "saju_1b_baseline",
+  "readiness_version": "v1.0.0",
+  "seed": 42,
+  "parent_phase4": {
+    "version": "v2.0.0",
+    "preflight_config": "configs/data_versions/saju_1b_baseline/preflight-v2.0.0.json",
+    "preflight_build_id": "build-2feaee353252",
+    "preflight_build_sha256": "2feaee35325205809e342097b69dbefb6dbe1609e08f913b434ee6bb3ec8f399",
+    "canonical_build_id": "build-6f32d52c2868",
+    "canonical_build_sha256": "6f32d52c2868bb8b5e07724cbdc00a6bc0b2f1608fe53ac54c357a6ec0832ee9",
+    "private_manifest_sha256": "66b21f086aa836ee595826f5f8f6eeb3bd234b47a15ec210a2131f548c4bedbf",
+    "public_manifest_sha256": "c670c2ad6481221ec140f49fc79ef4d83bdd275342d7692c3134a9e133ff7fec",
+    "completion_report_sha256": "f4d576789b1774164fbb5a58758c96a9cc31da9a8827b3e5df9d9397e4fc7e5c",
+    "selected_max_length": 768,
+    "status": "approved_for_phase5_training",
+    "training_promotion_allowed": true,
+    "phase5_training_performed": false
+  },
+  "model": {
+    "repo_id": "kakaocorp/kanana-2-1.3b-instruct",
+    "revision": "bf4786aa2a1908adce942d53976270132732f720",
+    "local_subdir": "models/saju_1b_baseline/kanana-2-1.3b-instruct/bf4786aa2a1908adce942d53976270132732f720",
+    "phase3_build_id": "build-32e2c84af3d3",
+    "snapshot_manifest_sha256": "5786d04831c93192d234651df0894a1912b974cfab96011ce0676563185cc93d",
+    "dtype": "bfloat16",
+    "attention_backend": "sdpa",
+    "trust_remote_code": true,
+    "local_files_only": true,
+    "expected_parameter_count": 1291478272
+  },
+  "chat_template": {
+    "path": "configs/chat_templates/kanana2_sft.jinja",
+    "bytes": 10725,
+    "sha256": "b8ee6b31575eada17ebbe73d3f1ac65d3efde64f0a25ff922031dec7e1cae3e3"
+  },
+  "runtime": {
+    "python": "3.10.12",
+    "uv": "0.9.26",
+    "torch": "2.13.0",
+    "torch_build": "2.13.0+cu130",
+    "torch_cuda": "13.0",
+    "torchvision": "0.28.0",
+    "torchaudio": "2.11.0",
+    "transformers": "4.57.6",
+    "trl": "1.12.0",
+    "bitsandbytes": "0.50.2",
+    "datasets": "4.7.0",
+    "accelerate": "1.14.0",
+    "pytorch_index_url": "https://download.pytorch.org/whl/cu130",
+    "gpu_name": "NVIDIA GeForce RTX 5070 Ti",
+    "compute_capability": [
+      12,
+      0
+    ]
+  },
+  "environment_lock": {
+    "path": "requirements-phase3.lock.txt",
+    "bytes": 160907,
+    "sha256": "0301de92dea4a21eb8077abb01aae6eaf412590ac670e436bcd5d7b3717b8aed"
+  },
+  "data": {
+    "selected_max_length": 768,
+    "manifests": {
+      "ki10": {
+        "relative_path": "manifests/mix10k_v2.jsonl",
+        "rows": 10000,
+        "sha256": "7863270e5a16fe9f92b52e82d45ae0b60f0b68ee3f0003955d662eb0392472e9"
+      },
+      "ki20": {
+        "relative_path": "manifests/mix20k_v2.jsonl",
+        "rows": 20000,
+        "sha256": "731ace0ac5584fd97fc38f157a4ecdb1babedefd79e2ec5b2d755fa26e48a550"
+      }
+    },
+    "evaluation": {
+      "source_relative_path": "eval/source_holdout_700.jsonl",
+      "source_rows": 700,
+      "rows_per_axis": 10,
+      "total_rows": 70,
+      "selection_seed": 42,
+      "output_name": "phase5_eval70.jsonl"
+    },
+    "axis_counts": {
+      "ki10": {
+        "nemotron_saju": 3400,
+        "bazi_sft": 2000,
+        "aihub_empathy_single": 750,
+        "aihub_empathy_multiturn": 750,
+        "yeji_shensha_derived": 500,
+        "deterministic_saju_qa": 1000,
+        "saju_diary_bridge": 1600
+      },
+      "ki20": {
+        "nemotron_saju": 6800,
+        "bazi_sft": 4000,
+        "aihub_empathy_single": 1500,
+        "aihub_empathy_multiturn": 1500,
+        "yeji_shensha_derived": 1000,
+        "deterministic_saju_qa": 2000,
+        "saju_diary_bridge": 3200
+      }
+    }
+  },
+  "training": {
+    "num_train_epochs": 1,
+    "per_device_train_batch_size": 1,
+    "gradient_accumulation_steps": 8,
+    "bf16": true,
+    "fp16": false,
+    "tf32": false,
+    "optim": "paged_adamw_8bit",
+    "learning_rate": 0.000008,
+    "warmup_ratio": 0.03,
+    "lr_scheduler_type": "cosine",
+    "weight_decay": 0.01,
+    "max_grad_norm": 1.0,
+    "gradient_checkpointing": true,
+    "gradient_checkpointing_kwargs": {
+      "use_reentrant": false
+    },
+    "use_cache": false,
+    "assistant_only_loss": true,
+    "packing": false,
+    "padding_free": false,
+    "loss_type": "chunked_nll",
+    "shuffle_dataset": true,
+    "logging_strategy": "steps",
+    "logging_steps": 10,
+    "logging_first_step": true,
+    "eval_strategy": "steps",
+    "eval_steps": 250,
+    "save_strategy": "steps",
+    "save_steps": 250,
+    "save_total_limit": 2,
+    "save_only_model": false,
+    "save_safetensors": true,
+    "dataloader_num_workers": 0,
+    "torch_compile": false,
+    "push_to_hub": false,
+    "report_to": [],
+    "seed": 42,
+    "data_seed": 42
+  },
+  "runs": {
+    "independent_initialization_required": true,
+    "ki10": {
+      "run_name": "KI10-MIX-v2",
+      "manifest_key": "ki10",
+      "initial_checkpoint": "fixed_instruct_snapshot",
+      "expected_optimizer_steps": 1250
+    },
+    "ki20": {
+      "run_name": "KI20-MIX-v2",
+      "manifest_key": "ki20",
+      "initial_checkpoint": "fixed_instruct_snapshot",
+      "expected_optimizer_steps": 2500
+    },
+    "ki20_must_not_resume_from_ki10": true
+  },
+  "safety": {
+    "minimum_available_disk_bytes": 68719476736,
+    "require_clean_worktree": true,
+    "require_single_cuda_gpu": true,
+    "checkpoint_requires_optimizer_scheduler_state": true,
+    "model_or_checkpoint_git_tracking_allowed": false,
+    "hub_upload_allowed": false,
+    "phase5_execute_confirmation": "PHASE5_TRAINING"
+  },
+  "outputs": {
+    "private_root": "data/derived/saju_1b_baseline/phase5-readiness/v1.0.0/{build_id}",
+    "public_root": "data/reports/saju_1b_baseline/phase5-readiness/v1.0.0/{build_id}",
+    "ki10_run_root": "runs/KI10-MIX-v2",
+    "ki20_run_root": "runs/KI20-MIX-v2"
+  },
+  "governance": {
+    "human_domain_review_performed": false,
+    "quality_certification_claimed": false,
+    "phase5_training_performed": false
+  },
+  "implementation_files": [
+    "scripts/training/__init__.py",
+    "scripts/training/phase5_readiness.py"
+  ],
+  "official_sources": [
+    "https://huggingface.co/kakaocorp/kanana-2-1.3b-instruct/tree/bf4786aa2a1908adce942d53976270132732f720",
+    "https://huggingface.co/docs/trl/v1.12.0/sft_trainer",
+    "https://huggingface.co/docs/transformers/v4.57.6/en/main_classes/trainer",
+    "https://huggingface.co/docs/bitsandbytes/v0.50.2/reference/optim/adamw",
+    "https://docs.pytorch.org/docs/2.13/checkpoint.html",
+    "https://pytorch.org/blog/pytorch-2-13-release-blog/"
+  ]
+}

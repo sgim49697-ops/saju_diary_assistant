@@ -4,10 +4,10 @@
 |---|---|
 | 실행 상태 | 완료 |
 | 선행 Phase | Phase 2·3 완료 |
-| 입력 | 승인 staging `v0.2.0/build-847088ee804d`, 고정 Instruct 환경, eval set |
-| 출력 | `v1.1.0/build-a1a34616dd72` canonical manifest·eval, A~E 공개 보고서 |
-| 완료 Gate | 데이터 Gate와 모델·메모리 Gate 동시 통과 |
-| 웹 확인일 | 2026-08-28 |
+| 입력 | 품질 보정 staging `v1.0.0/build-a5a9e76d6a8c`, 고정 Instruct 환경 |
+| 출력 | `v2.0.0/build-<fingerprint>` canonical manifest·eval, A~E 공개 보고서 |
+| 완료 Gate | 새 fingerprint에서 데이터 Gate와 모델·메모리 Gate 동시 통과 |
+| 웹 확인일 | 2026-08-29 |
 
 ## 목적
 
@@ -15,13 +15,13 @@
 
 ## Phase 4A~C 비학습 실행 경계
 
-정본 v2.6에서 A~C와 D~E를 분리한다. A~C는 승인된 24K staging의 불변 부모를 검증하고, holdout·Core Eval과 학습 후보 manifest를 고정하며, 원본 모델 K0를 inference-only로 평가한다. 이 구간에서는 optimizer·gradient·backward·checkpoint를 만들지 않는다. A~C 통과는 D/E 학습 smoke를 시작할 수 있다는 뜻일 뿐 `training_promotion_allowed=true`나 canonical 학습 manifest 승격을 뜻하지 않는다.
+정본 v3.0에서 A~C와 D~E를 분리한다. A~C는 승인된 품질 보정 24K staging의 불변 부모를 검증하고, holdout·Core Eval과 학습 후보 manifest를 고정하며, 원본 모델 K0를 inference-only로 평가한다. 이 구간에서는 optimizer·gradient·backward·checkpoint를 만들지 않는다. A~C 통과는 D/E 학습 smoke를 시작할 수 있다는 뜻일 뿐 `training_promotion_allowed=true`나 canonical 학습 manifest 승격을 뜻하지 않는다.
 
-- source holdout은 축별 100건씩 500건, Core Eval은 9범주 200항목으로 고정한다. 동일 명식 consistency 20항목은 두 case씩이어서 K0 총 생성 수는 720case다.
-- Core Eval과 source holdout의 모든 전역 leakage group을 정식 후보에서 먼저 제외한다. 36개 cross-axis 동일 명식 중 20개는 consistency 평가에 함께 고정한다.
+- source holdout은 7축별 100건씩 700건, Core Eval은 11범주 300항목으로 고정한다. 동일 명식 consistency 20항목은 두 case씩이어서 K0 총 생성 수는 1,020case다.
+- Core Eval과 source holdout의 모든 `leakage_group_ids`를 전이적으로 합친 component를 정식 후보에서 먼저 제외한다. 동일 명식 consistency 20항목도 component 단위로 고정한다.
 - K0는 BF16·SDPA·batch 1·greedy·`max_new_tokens=512`로 실행하고, 임의 네 기둥 생성·빈 출력·제어문자/special-token 노출·결정성 재생 실패만 Gate C 차단 조건으로 삼는다. reference overlap과 범주별 자동 계약 점수는 기준선 진단값이며 임의 합격 임계값을 만들지 않는다.
-- 700항목 오프라인 검수 ZIP은 제한 원문이 있을 수 있으므로 저장소 밖에만 만들고 내부 ID·원천 locator를 제거한다. 이 패키지의 생성은 전문 사람 검수를 수행했다는 뜻이 아니며 `human_domain_review_performed=false`를 유지한다.
-- K0 700항목은 안전·무결성, hard 계약 실패, 생성 상한, 반복, 한국어 비율 순서로 자동 위험 분류한다. 전체 결과는 Git 제외 경로에 두고 공개 보고서에는 심각도·신호 집계만, 검토용으로는 상위 40항목만 별도 고정한다. 이는 사람 전문 판독이나 품질 인증을 대신하지 않는다.
+- 1,000항목 오프라인 검수 ZIP은 제한 원문이 있을 수 있으므로 저장소 밖에만 만들고 내부 ID·원천 locator를 제거한다. 이 패키지의 생성은 전문 사람 검수를 수행했다는 뜻이 아니며 `human_domain_review_performed=false`를 유지한다.
+- K0 1,000항목은 안전·무결성, deterministic hard-fact와 지지 십신 정책 모순 계약, 생성 상한, 반복, 한국어 비율 순서로 자동 위험 분류한다. 전체 결과는 Git 제외 경로에 두고 공개 보고서에는 심각도·신호 집계만, 검토용으로는 상위 50항목만 별도 고정한다. 이는 사람 전문 판독이나 품질 인증을 대신하지 않는다.
 - 이전 고정 K0는 모델·template·generation·runtime·prompt SHA-256이 모두 같은 case만 재사용하고, 새 eval 계약으로 지표를 다시 계산한다. 하나라도 다르면 새로 생성한다.
 
 ## Gate A. 데이터 검증
@@ -37,8 +37,8 @@
 
 ### 누수
 
-- train과 source holdout 500 사이 group 교집합 0
-- train과 core eval 200 사이 group·정규화 문장 hash 교집합 0
+- train과 source holdout 700 사이 component 교집합 0
+- train과 core eval 300 사이 component·정규화 문장 hash 교집합 0
 - AI Hub session, Nemotron chart signature, `bazi-sft` synthetic group, 신살 rule/chart group이 split을 넘지 않음
 
 ### 언어·품질
@@ -76,7 +76,7 @@ render된 텍스트, token ID, role boundary, label mask를 사람이 읽을 수
 - source별 assistant loss token 비율
 - special token 중복과 zero-assistant-mask 수
 
-후보 순서대로 MIX20을 채우고 source별 앞 절반으로 MIX10, MIX10의 앞 10%로 MIX1K를 만든다. 행 혼합비는 token 통계에 맞춰 바꾸지 않는다. source별 assistant loss token share와 `bazi-sft`·신살 파생본의 template 반복은 반드시 보고하되, A~C에는 임의 비율 임계값을 두거나 source를 재가중하지 않는다. 분포 영향은 K0와 후속 학습·평가 비교로 판정한다. 원문을 자르거나 제외 소스를 보충재로 넣지 않는다.
+후보 순서대로 MIX20을 채우고 축별 앞 절반으로 MIX10, MIX10의 앞 10%로 MIX1K를 만든다. 행 혼합비는 token 통계에 맞춰 바꾸지 않는다. AI Hub 단일·멀티턴과 앱 브리지의 합산 assistant loss token share는 최소 10%여야 하며, 그 밖의 축별 token share는 보고값으로 남긴다. 원문을 자르거나 제외 소스를 보충재로 넣지 않는다.
 
 전체 24K의 최대 길이가 768 이하이면 768 candidate는 1024에도 그대로 적격이므로 중복 manifest를 만들지 않는다. 512는 정식 MIX20을 채울 수 없는 경우 Gate D 기능 smoke용 1K 부분집합만 별도로 만든다. 512 smoke의 Nemotron v6:v7 분포는 보고값이며, 정식 MIX1K·10K·20K의 고정 20:80 계약만 승격 조건으로 강제한다.
 
@@ -99,7 +99,7 @@ max_new_tokens=512
 같은 prompt serialization과 EOS 정책
 ```
 
-평가 대상은 source holdout 500과 core eval 200이다. Instruct 결과는 학습 전 시작점이자 데이터·template·generation 파이프라인의 sanity reference로 고정한다. `명식 누락 시 계산기 handoff` 문항에서 모델이 임의의 네 기둥을 만들면 Gate 실패로 기록한다.
+평가 대상은 source holdout 700과 core eval 300이다. Instruct 결과는 학습 전 시작점이자 데이터·template·generation 파이프라인의 sanity reference로 고정한다. `명식 누락 시 계산기 handoff` 문항에서 모델이 임의의 네 기둥을 만들면 Gate 실패로 기록한다.
 
 case별 prompt·reference·출력은 Git 제외 `runs/K0-INSTRUCT/`에 0600 권한으로 보존하고, 공개 보고서에는 집계만 투영한다. 첫 case를 같은 process에서 한 번 더 생성해 token ID 결정성을 검증한다. K0가 통과해도 사람 전문 검수는 별도이며, 오프라인 ZIP의 final feedback을 다시 검증·승인하기 전에는 품질 인증을 주장하지 않는다.
 
@@ -145,16 +145,16 @@ NaN/Inf, zero assistant token, CUDA kernel 오류, remote code 오류가 있으�
 Phase 4A~C는 768/1024 공용 candidate와 512 기능-smoke 부분집합을 만들 뿐 canonical 이름으로 승격하지 않는다. Gate D/E가 가장 긴 통과 길이를 선택한 뒤 해당 candidate만 다음 canonical 이름으로 승격한다.
 
 ```text
-data/derived/saju_1b_baseline/v1.1.0/build-<derived-hash>/manifests/mix1k_smoke_v1.jsonl
-data/derived/saju_1b_baseline/v1.1.0/build-<derived-hash>/manifests/mix10k_v1.jsonl
-data/derived/saju_1b_baseline/v1.1.0/build-<derived-hash>/manifests/mix20k_v1.jsonl
+data/derived/saju_1b_baseline/v2.0.0/build-<derived-hash>/manifests/mix1k_v2.jsonl
+data/derived/saju_1b_baseline/v2.0.0/build-<derived-hash>/manifests/mix10k_v2.jsonl
+data/derived/saju_1b_baseline/v2.0.0/build-<derived-hash>/manifests/mix20k_v2.jsonl
 ```
 
 선택되지 않은 길이 manifest는 audit용으로 보존하되 Phase 5가 읽지 못하도록 별도 후보 경로에 둔다.
 
 ## Preflight 설정 계약
 
-A~E 재검증 계약은 `configs/data_versions/saju_1b_baseline/preflight-v1.1.0.json`에 고정한다. 아래 학습 설정은 D/E에서만 사용한다.
+A~E 재검증 계약은 `configs/data_versions/saju_1b_baseline/preflight-v2.0.0.json`에 고정한다. 아래 학습 설정은 D/E에서만 사용한다.
 
 ```yaml
 model_revision: bf4786aa2a1908adce942d53976270132732f720
@@ -178,12 +178,12 @@ data_seed: 42
 
 | 항목 | 결과 |
 |---|---|
-| 실행 구현 checkpoint | `31fe13b08e04d4015d30ac670d92dd6427e6427d` |
-| A~C 부모 | `v1.1.0/build-7d59833b8d59`, SHA-256 `7d59833b8d59f3c7c730d60707377c15ee6d876c42966c64edc61f9deef63dae` |
-| canonical child | `v1.1.0/build-a1a34616dd72`, SHA-256 `a1a34616dd72ab510fe783037ed70edc693d48220b344210599f9fe2c932c1ef` |
-| K0·자동 분류 | 700항목·720case, 안전 위반 0, high 48·medium 329·low 323, exact reuse 720 |
+| 실행 구현 checkpoint | `6f6a6c985eff2545f25a39ba3e2335676b199bed` |
+| A~C 부모 | `v2.0.0/build-2feaee353252`, SHA-256 `2feaee35325205809e342097b69dbefb6dbe1609e08f913b434ee6bb3ec8f399` |
+| canonical child | `v2.0.0/build-6f32d52c2868`, SHA-256 `6f32d52c2868bb8b5e07724cbdc00a6bc0b2f1608fe53ac54c357a6ec0832ee9` |
+| K0·자동 분류 | 1,000항목·1,020case, 안전 위반 0, critical 0·high 97·medium 360·low 543, 신규 902·exact reuse 118 |
 | Gate D | BF16 1,291,478,272 trainable parameter, finite·nonzero gradient, uint8 optimizer state, peak VRAM 6,729,681,920 bytes |
-| Gate E | 768에서 100→200-step resume, 첫 20/마지막 20 loss 중앙값 2.3489→0.9452, peak VRAM 10,498,061,312 bytes, 종료 여유 3,005,186,048 bytes |
+| Gate E | 768에서 100→200-step resume, 첫 20/마지막 20 loss 중앙값 2.4387→1.0448, peak VRAM 10,498,061,312 bytes, 종료 여유 3,154,665,472 bytes |
 | checkpoint 재로드 | 별도 process에서 5개 서로 다른 task 모두 비어 있지 않은 출력 생성 |
 | 승인 경계 | `training_promotion_allowed=true`, `human_domain_review_performed=false`, `quality_certification_claimed=false`, `phase5_training_performed=false` |
 
@@ -198,19 +198,18 @@ data_seed: 42
 - [x] BF16 full-parameter forward/backward와 8-bit optimizer step이 성공했다.
 - [x] 선택한 길이에서 200-step smoke와 resume가 성공했다.
 - [x] canonical MIX1K·10K·20K가 선택 길이 manifest를 가리킨다.
-- [x] `preflight_report.json`에 장비, peak VRAM/RAM, 버전, 실패 이력을 기록했다.
+- [x] `phase4_completion_report.json`과 `smoke_summary.json`에 장비, peak VRAM/RAM, 버전, 단계별 결과를 기록했다.
 
 ## 산출물
 
 ```text
-data/derived/saju_1b_baseline/v1.1.0/build-7d59833b8d59/    # A~C 부모·후보
-data/derived/saju_1b_baseline/v1.1.0/build-a1a34616dd72/    # canonical
-data/reports/saju_1b_baseline/preflight/v1.1.0/build-7d59833b8d59/
-data/reports/saju_1b_baseline/preflight/v1.1.0/build-a1a34616dd72/
-runs/K0-INSTRUCT/v1.1.0/build-7d59833b8d59/
-runs/KI1K-SMOKE-v1/v1.1.0/build-7d59833b8d59/
-/home/user/Downloads/saju-phase4-k0-review-build-7d59833b8d59.zip
-/home/user/Downloads/saju-mix20k-gpt-review-v1.0.0-build-a1a34616dd72.zip
+data/derived/saju_1b_baseline/preflight/v2.0.0/build-2feaee353252/  # A~C 부모·후보
+data/derived/saju_1b_baseline/v2.0.0/build-6f32d52c2868/            # canonical
+data/reports/saju_1b_baseline/preflight/v2.0.0/build-2feaee353252/
+data/reports/saju_1b_baseline/preflight/v2.0.0/build-6f32d52c2868/
+runs/K0-INSTRUCT/v2.0.0/build-2feaee353252/
+runs/KI1K-SMOKE-v2/v2.0.0/build-2feaee353252/
+/home/user/saju-phase4-v2-k0-review-build-2feaee353252.zip
 ```
 
 ## 공식 자료
@@ -244,6 +243,17 @@ runs/KI1K-SMOKE-v1/v1.1.0/build-7d59833b8d59/
 
 ## 진행 기록
 
+- 2026-08-29
+  - 작업 요약: 품질 보정 Phase 4 `v2.0.0/build-2feaee353252`에서 A~E를 모두 실행하고 선택 길이 768의 canonical child `build-6f32d52c2868`을 `approved_for_phase5_training`으로 승격했다. 실제 Phase 5 KI10·KI20 학습은 실행하지 않았다.
+  - 변경 범위: 24K 전수 계약, 7축 중첩 MIX1K/10K/20K, Core Eval 300·source holdout 700, K0 1,020case와 자동 위험 분류, BF16 Full FT 1/20/1/100→200-step resume 및 checkpoint 재로드 5건을 완료했다. registry는 v2 canonical을 가리키며 과거 v1 build는 이력으로 보존한다.
+  - 검증: `verify`, `verify-review`, 각 D/E smoke stage와 `verify-final`이 통과했다. canonical private/public manifest SHA-256은 각각 `66b21f08…bedbf`, `c670c2ad…f7fec`이고 K0 안전 위반은 0이다.
+  - 남은 이슈·후속 작업: 자동 분류 high 97건은 기준선 취약 영역이며 사람 전문 판독이나 품질 인증을 뜻하지 않는다. 상위 50건을 로컬 검토 우선순위로 고정했고 `human_domain_review_performed=false`, `quality_certification_claimed=false`를 유지한다. 다음 Gate는 별도 비학습 Phase 5 readiness다.
+- 2026-08-29
+  - 작업 요약: 품질 보정 7축 staging `v1.0.0/build-a5a9e76d6a8c`을 부모로 하는 Phase 4 `v2.0.0` 실행 계약과 새 평가·manifest 생성기를 구현했다. 현재 구현 fingerprint의 dry-run build는 `build-4409ac656ba5`이며 실제 A~E 실행 전 상태다.
+  - 변경 범위: 전역 `leakage_group_ids`의 전이 폐쇄, 7축 중첩 MIX1K/10K/20K, Core Eval 300·source holdout 700·K0 1,020case, deterministic hard-fact·지지 십신 정책 모순·앱 브리지 평가, AI Hub+브리지 assistant loss token 10% 최소 Gate를 고정했다. v1 산출물 검증은 하위 호환으로 유지했다.
+  - 검증: GPU `.venv`에서 부모 private/public manifest·24K 레코드·구현 fingerprint와 Phase 3 모델 보고서를 재검증하고 `validate-contract`·dry-run을 통과했다. Ruff와 전체 단위 테스트 139건, Python compile, `git diff --check`가 통과했다.
+  - 추가 실측: 첫 24K tokenization에서 기존 35% Nemotron·15% 앱 브리지 배분은 AI Hub+브리지 assistant loss token 비중이 9.576272%여서 10% Gate에 미달했다. 임계값을 낮추지 않고 Nemotron 200행을 앱 브리지 200행으로 옮겨 34%·16%로 최소 조정했으며, 같은 전수 계산에서 10.220322%를 확인했다.
+  - 남은 이슈·후속 작업: 변경된 구현 checkpoint를 커밋한 뒤 새 fingerprint에서 build, K0·자동 위험 분류, Gate D/E 1/20/1/100→200-step resume·checkpoint 재로드를 순서대로 실행한다. 완료 전까지 `training_promotion_allowed=false`, `phase5_training_performed=false`다.
 - 2026-08-29
   - 작업 요약: 외부 참고 구현 `golbin/ssaju`의 2026-08-29 `main` HEAD `07b608a778be6dac8669e04b9ab794c441959208`을 프로젝트 밖 임시 checkout에서 read-only 검토하고, canonical MIX20K의 구조화 계산 정책을 전수 비교한 `review-c1e129b1e602`를 생성했다. 결론은 dependency·submodule·source copy 없는 `일부 모듈만 참고 구현`이다.
   - 변경 범위: field별 `deterministic_fact`·`policy_bound_deterministic`·`heuristic_only`·`generated_interpretation` flag와 runtime/validator Gate를 가진 draft 정책, fail-closed 비교기·runtime probe·회귀 테스트, 공개 가능한 충돌 표본 100건과 MIT `THIRD_PARTY_NOTICES` 후보를 추가했다. 기존 canonical/staging/eval·Phase 4 승인 상태와 학습데이터는 수정하지 않았고 실제 학습도 실행하지 않았다.

@@ -1,0 +1,39 @@
+{
+  "connected_components": 20346,
+  "cross_axis_component_patterns": {
+    "bazi_sft+nemotron_saju": 18,
+    "bazi_sft+yeji_shensha_derived": 1,
+    "nemotron_saju+yeji_shensha_derived": 35
+  },
+  "cross_axis_connected_components": 54,
+  "human_domain_review_performed": false,
+  "multi_group_records": 3600,
+  "quality_certification_claimed": false,
+  "raw_hash_cross_source_group_duplicates": 0,
+  "raw_leakage_group_ids": 23946,
+  "raw_samples_in_report": false,
+  "row_counts": {
+    "aihub_empathy_multiturn": 1800,
+    "aihub_empathy_single": 1800,
+    "bazi_sft": 4800,
+    "deterministic_saju_qa": 2400,
+    "nemotron_saju": 8400,
+    "saju_diary_bridge": 3600,
+    "yeji_shensha_derived": 1200
+  },
+  "schema_version": "2.0.0",
+  "status": "passed",
+  "total_rows": 24000,
+  "unique_ids": 24000,
+  "unique_message_hashes": 24000,
+  "unique_raw_hashes": 20400,
+  "unique_source_groups": {
+    "aihub_empathy_multiturn": 1800,
+    "aihub_empathy_single": 1800,
+    "bazi_sft": 1200,
+    "deterministic_saju_qa": 2400,
+    "nemotron_saju": 8400,
+    "saju_diary_bridge": 3600,
+    "yeji_shensha_derived": 1200
+  }
+}

@@ -81,7 +81,9 @@ def read_jsonl(path: Path, label: str) -> list[dict[str, Any]]:
         with path.open(encoding="utf-8") as stream:
             for line_number, line in enumerate(stream, 1):
                 if not line.strip():
-                    raise Phase4Error(f"{label}에 빈 JSONL 행이 있습니다: {line_number}")
+                    raise Phase4Error(
+                        f"{label}에 빈 JSONL 행이 있습니다: {line_number}"
+                    )
                 value = json.loads(line)
                 if not isinstance(value, dict):
                     raise Phase4Error(
@@ -99,8 +101,10 @@ def validate_relative_path(value: str) -> Path:
     if not isinstance(value, str) or not value:
         raise Phase4Error("빈 상대경로는 허용하지 않습니다.")
     path = Path(value)
-    if path.is_absolute() or value != path.as_posix() or any(
-        part in {"", ".", ".."} for part in path.parts
+    if (
+        path.is_absolute()
+        or value != path.as_posix()
+        or any(part in {"", ".", ".."} for part in path.parts)
     ):
         raise Phase4Error(f"안전하지 않거나 정규화되지 않은 상대경로입니다: {value}")
     if any(any(ord(character) < 32 for character in part) for part in path.parts):
@@ -121,7 +125,9 @@ def _write_bytes_atomic(path: Path, payload: bytes, *, mode: int | None = None) 
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary: Path | None = None
     try:
-        descriptor, temporary_name = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
+        descriptor, temporary_name = tempfile.mkstemp(
+            prefix=f".{path.name}.", dir=path.parent
+        )
         temporary = Path(temporary_name)
         with os.fdopen(descriptor, "wb") as stream:
             stream.write(payload)
@@ -144,7 +150,11 @@ def write_bytes_once(path: Path, payload: bytes, *, mode: int | None = None) -> 
 
 
 def write_json_once(
-    path: Path, value: Any, *, mode: int | None = None, generated_at_key: str | None = None
+    path: Path,
+    value: Any,
+    *,
+    mode: int | None = None,
+    generated_at_key: str | None = None,
 ) -> dict[str, Any]:
     candidate = value
     if path.exists() and generated_at_key and isinstance(value, dict):
@@ -154,16 +164,21 @@ def write_json_once(
         if candidate != existing:
             raise Phase4Error(f"기존 불변 JSON과 내용이 다릅니다: {path}")
         return existing
-    payload = json.dumps(
-        candidate, ensure_ascii=False, indent=2, sort_keys=True
-    ).encode("utf-8") + b"\n"
+    payload = (
+        json.dumps(candidate, ensure_ascii=False, indent=2, sort_keys=True).encode(
+            "utf-8"
+        )
+        + b"\n"
+    )
     write_bytes_once(path, payload, mode=mode)
     if not isinstance(candidate, dict):
         raise Phase4Error("write_json_once 반환값은 object여야 합니다.")
     return candidate
 
 
-def write_jsonl_once(path: Path, values: list[dict[str, Any]], *, mode: int = PRIVATE_FILE_MODE) -> None:
+def write_jsonl_once(
+    path: Path, values: list[dict[str, Any]], *, mode: int = PRIVATE_FILE_MODE
+) -> None:
     payload = b"".join(canonical_json_bytes(value) + b"\n" for value in values)
     write_bytes_once(path, payload, mode=mode)
 
@@ -182,6 +197,16 @@ def git_head(repo_root: Path) -> str:
 
 
 def _implementation_paths(config: dict[str, Any]) -> list[str]:
+    configured = config.get("implementation_files")
+    if configured is not None:
+        if (
+            not isinstance(configured, list)
+            or not configured
+            or len(configured) != len(set(configured))
+            or any(not isinstance(value, str) for value in configured)
+        ):
+            raise Phase4Error("Phase 4 구현 파일 목록이 올바르지 않습니다.")
+        return configured
     return [
         "scripts/preflight/errors.py",
         "scripts/preflight/phase4_common.py",
@@ -200,7 +225,7 @@ def _implementation_paths(config: dict[str, Any]) -> list[str]:
     ]
 
 
-def validate_contract(config: dict[str, Any], repo_root: Path) -> dict[str, Any]:
+def _validate_contract_v1(config: dict[str, Any], repo_root: Path) -> dict[str, Any]:
     if config.get("schema_version") != "1.0.0":
         raise Phase4Error("Phase 4 설정 schema_version은 1.0.0이어야 합니다.")
     if config.get("canonical_plan_version") != "2.6.0":
@@ -263,11 +288,31 @@ def validate_contract(config: dict[str, Any], repo_root: Path) -> dict[str, Any]
 
     split = config.get("split")
     expected_axes = {
-        "nemotron_saju": {"mix1k": 550, "mix10k": 5500, "mix20k": 11000, "holdout": 100},
+        "nemotron_saju": {
+            "mix1k": 550,
+            "mix10k": 5500,
+            "mix20k": 11000,
+            "holdout": 100,
+        },
         "bazi_sft": {"mix1k": 250, "mix10k": 2500, "mix20k": 5000, "holdout": 100},
-        "aihub_empathy_single": {"mix1k": 100, "mix10k": 1000, "mix20k": 2000, "holdout": 100},
-        "aihub_empathy_multiturn": {"mix1k": 50, "mix10k": 500, "mix20k": 1000, "holdout": 100},
-        "yeji_shensha_derived": {"mix1k": 50, "mix10k": 500, "mix20k": 1000, "holdout": 100},
+        "aihub_empathy_single": {
+            "mix1k": 100,
+            "mix10k": 1000,
+            "mix20k": 2000,
+            "holdout": 100,
+        },
+        "aihub_empathy_multiturn": {
+            "mix1k": 50,
+            "mix10k": 500,
+            "mix20k": 1000,
+            "holdout": 100,
+        },
+        "yeji_shensha_derived": {
+            "mix1k": 50,
+            "mix10k": 500,
+            "mix20k": 1000,
+            "holdout": 100,
+        },
     }
     if not isinstance(split, dict) or split.get("axes") != expected_axes:
         raise Phase4Error("Phase 4 split 수량 계약이 다릅니다.")
@@ -313,8 +358,7 @@ def validate_contract(config: dict[str, Any], repo_root: Path) -> dict[str, Any]
         != "d06b44548d76b311e2f8b2decf64dc253a147e8d581907101bf2cfea44f7c65f"
         or reuse.get("source_run_config_sha256")
         != "63bf2dd5053037e4c4d273f2107267dbe7e551ac20a2038033a119f16e926243"
-        or reuse.get("reuse_key")
-        != "model-template-generation-prompt-sha256"
+        or reuse.get("reuse_key") != "model-template-generation-prompt-sha256"
         or reuse.get("recompute_metrics") is not True
     ):
         raise Phase4Error("K0 교차 build 재사용 계약이 다릅니다.")
@@ -410,7 +454,9 @@ def validate_contract(config: dict[str, Any], repo_root: Path) -> dict[str, Any]
     if not isinstance(outputs, dict):
         raise Phase4Error("Phase 4 출력 경로 계약이 없습니다.")
     for key in ("private_root", "public_root", "k0_root", "smoke_root"):
-        resolve_repo_path(repo_root, str(outputs.get(key, "")).format(build_id="build-000000000000"))
+        resolve_repo_path(
+            repo_root, str(outputs.get(key, "")).format(build_id="build-000000000000")
+        )
     for key in ("canonical_root", "canonical_public_root"):
         resolve_repo_path(repo_root, str(outputs.get(key, "")))
 
@@ -435,7 +481,319 @@ def validate_contract(config: dict[str, Any], repo_root: Path) -> dict[str, Any]
     }
 
 
-def _implementation_hashes(repo_root: Path, config_path: Path, config: dict[str, Any]) -> dict[str, str]:
+def _validate_contract_v2(config: dict[str, Any], repo_root: Path) -> dict[str, Any]:
+    if (
+        config.get("schema_version") != "2.0.0"
+        or config.get("canonical_plan_version") != "3.0.0"
+        or config.get("dataset_name") != "saju_1b_baseline"
+        or config.get("preflight_version") != "v2.0.0"
+        or config.get("seed") != 42
+    ):
+        raise Phase4Error("Phase 4 v2 schema·정본·버전·seed 계약이 다릅니다.")
+    parent = config.get("parent_staging")
+    expected_parent = {
+        "version": "v1.0.0",
+        "build_id": "build-a5a9e76d6a8c",
+        "build_sha256": "a5a9e76d6a8cd524314fbdb0d4ebf11f0b984c3748606eda56de2d7708d3cd23",
+        "implementation_commit": "e23052007fc1858741b8eff96cc5e6dfff66895f",
+        "config": "configs/data_versions/saju_1b_baseline/preprocessing-staging-v1.0.0.json",
+        "private_manifest_sha256": "1d0f06990a53824a1b75c121c504f54c3d778f7fd7551d9fbf768ce399b1f1da",
+        "public_manifest_sha256": "21dc23b5e610e60913ae73e10a2f85787fe63341b17a6dddb2b0c429e51a999f",
+        "technical_acceptance_sha256": "ba1e74c7b0108fdcf52406d45570b9ec16db98e548b029efe41b205e3893a32d",
+        "status": "accepted_for_phase4_preflight",
+    }
+    if parent != expected_parent:
+        raise Phase4Error("품질 보정 24K staging 부모 계약이 다릅니다.")
+
+    model = config.get("model")
+    if (
+        not isinstance(model, dict)
+        or model.get("repo_id") != "kakaocorp/kanana-2-1.3b-instruct"
+        or model.get("revision") != "bf4786aa2a1908adce942d53976270132732f720"
+        or FULL_REVISION_PATTERN.fullmatch(str(model.get("revision", ""))) is None
+        or model.get("phase3_build_id") != "build-32e2c84af3d3"
+        or model.get("dtype") != "bfloat16"
+        or model.get("attention_backend") != "sdpa"
+        or model.get("expected_parameter_count") != 1_291_478_272
+        or model.get("trust_remote_code") is not True
+        or model.get("local_files_only") is not True
+    ):
+        raise Phase4Error("Phase 4 v2 고정 Kanana 모델 계약이 다릅니다.")
+    snapshot = resolve_repo_path(repo_root, str(model.get("local_subdir", "")))
+    if snapshot.is_symlink() or not snapshot.is_dir():
+        raise Phase4Error("Phase 3 고정 모델 snapshot이 없습니다.")
+
+    template = config.get("chat_template")
+    if not isinstance(template, dict):
+        raise Phase4Error("Phase 4 v2 chat template 계약이 없습니다.")
+    template_path = resolve_repo_path(repo_root, str(template.get("path", "")))
+    if (
+        not template_path.is_file()
+        or template_path.stat().st_size != 10_725
+        or template.get("bytes") != 10_725
+        or sha256_file(template_path)
+        != "b8ee6b31575eada17ebbe73d3f1ac65d3efde64f0a25ff922031dec7e1cae3e3"
+        or template.get("sha256")
+        != "b8ee6b31575eada17ebbe73d3f1ac65d3efde64f0a25ff922031dec7e1cae3e3"
+    ):
+        raise Phase4Error("Phase 4 v2 chat template hash가 다릅니다.")
+
+    runtime = config.get("runtime_headers")
+    if (
+        not isinstance(runtime, dict)
+        or runtime.get("package") != "libpython3.10-dev"
+        or runtime.get("version") != "3.10.12-1~22.04.16"
+        or runtime.get("bytes") != 4_765_572
+        or runtime.get("sha256")
+        != "7ec59ebb7ecea34f416f37f74797712a7d477cc344f1bca1755528b154eaa04a"
+        or not str(runtime.get("url", "")).startswith("https://security.ubuntu.com/")
+    ):
+        raise Phase4Error("Phase 4 v2 Python header package 계약이 다릅니다.")
+    resolve_repo_path(repo_root, str(runtime.get("local_root", "")))
+
+    expected_axes = {
+        "nemotron_saju": {"mix1k": 340, "mix10k": 3400, "mix20k": 6800, "holdout": 100},
+        "bazi_sft": {"mix1k": 200, "mix10k": 2000, "mix20k": 4000, "holdout": 100},
+        "aihub_empathy_single": {
+            "mix1k": 75,
+            "mix10k": 750,
+            "mix20k": 1500,
+            "holdout": 100,
+        },
+        "aihub_empathy_multiturn": {
+            "mix1k": 75,
+            "mix10k": 750,
+            "mix20k": 1500,
+            "holdout": 100,
+        },
+        "yeji_shensha_derived": {
+            "mix1k": 50,
+            "mix10k": 500,
+            "mix20k": 1000,
+            "holdout": 100,
+        },
+        "deterministic_saju_qa": {
+            "mix1k": 100,
+            "mix10k": 1000,
+            "mix20k": 2000,
+            "holdout": 100,
+        },
+        "saju_diary_bridge": {
+            "mix1k": 160,
+            "mix10k": 1600,
+            "mix20k": 3200,
+            "holdout": 100,
+        },
+    }
+    expected_staging = {
+        "nemotron_saju": 8400,
+        "bazi_sft": 4800,
+        "aihub_empathy_single": 1800,
+        "aihub_empathy_multiturn": 1800,
+        "yeji_shensha_derived": 1200,
+        "deterministic_saju_qa": 2400,
+        "saju_diary_bridge": 3600,
+    }
+    expected_core = {
+        "structured_natal_reading": 40,
+        "grounded_rule_reading": 30,
+        "deterministic_hard_fact": 60,
+        "branch_policy_contradiction": 40,
+        "shensha_rule_qa": 25,
+        "saju_diary_bridge": 40,
+        "empathy": 20,
+        "multiturn": 15,
+        "same_chart_consistency": 20,
+        "missing_chart_handoff": 5,
+        "general_korean_instruction": 5,
+    }
+    split = config.get("split")
+    if (
+        not isinstance(split, dict)
+        or split.get("axes") != expected_axes
+        or split.get("staging_rows") != expected_staging
+        or split.get("core_eval") != expected_core
+        or sum(expected_core.values()) != 300
+        or split.get("token_share_policy") != "aihub_and_bridge_assistant_loss_minimum"
+        or split.get("aihub_and_bridge_minimum_assistant_loss_token_percent") != 10.0
+        or split.get("formal_max_length") != 768
+        or split.get("diagnostic_max_length") != 1024
+        or split.get("smoke_only_max_length") != 512
+        or not isinstance(split.get("task_allowlists"), dict)
+    ):
+        raise Phase4Error("Phase 4 v2 7축·평가·token share 계약이 다릅니다.")
+    for key, total in (("mix1k", 1_000), ("mix10k", 10_000), ("mix20k", 20_000)):
+        if sum(values[key] for values in expected_axes.values()) != total:
+            raise Phase4Error(f"Phase 4 v2 {key} 합계가 다릅니다.")
+    if split.get("nemotron_variants") != {
+        "mix1k": {"v6": 68, "v7": 272},
+        "mix10k": {"v6": 680, "v7": 2_720},
+        "mix20k": {"v6": 1_360, "v7": 5_440},
+    }:
+        raise Phase4Error("Phase 4 v2 Nemotron v6:v7 20:80 계약이 다릅니다.")
+
+    artifacts = config.get("artifacts")
+    expected_artifacts = {
+        "core_eval": "core_eval_300.jsonl",
+        "source_holdout": "source_holdout_700.jsonl",
+        "mix1k_candidate": "mix1k_candidate_v2.jsonl",
+        "mix10k_candidate": "mix10k_candidate_v2.jsonl",
+        "mix20k_candidate": "mix20k_candidate_v2.jsonl",
+        "mix1k_smoke_512": "mix1k_smoke_512_v2.jsonl",
+        "canonical_mix1k": "mix1k_v2.jsonl",
+        "canonical_mix10k": "mix10k_v2.jsonl",
+        "canonical_mix20k": "mix20k_v2.jsonl",
+    }
+    if artifacts != expected_artifacts:
+        raise Phase4Error("Phase 4 v2 artifact 이름 계약이 다릅니다.")
+
+    generation = config.get("generation")
+    if generation != {
+        "do_sample": False,
+        "max_new_tokens": 512,
+        "num_beams": 1,
+        "use_cache": True,
+        "batch_size": 1,
+    }:
+        raise Phase4Error("Phase 4 v2 greedy generation 계약이 다릅니다.")
+    reuse = config.get("k0_reuse")
+    if (
+        not isinstance(reuse, dict)
+        or reuse.get("source_build_id") != "build-9cf4fdb83bbd"
+        or reuse.get("source_generation_cases") != 720
+        or reuse.get("reuse_key") != "model-template-generation-prompt-sha256"
+        or reuse.get("recompute_metrics") is not True
+    ):
+        raise Phase4Error("Phase 4 v2 K0 재사용 계약이 다릅니다.")
+    resolve_repo_path(repo_root, str(reuse.get("source_root", "")))
+    triage = config.get("triage")
+    if triage != {
+        "evaluation_items": 1_000,
+        "generation_cases": 1_020,
+        "priority_limit": 50,
+        "severity_order": ["critical", "high", "medium", "low"],
+        "human_domain_review_performed": False,
+    }:
+        raise Phase4Error("Phase 4 v2 자동 위험 분류 계약이 다릅니다.")
+
+    smoke = config.get("training_smoke")
+    if not isinstance(smoke, dict):
+        raise Phase4Error("Phase 4 v2 학습 smoke 계약이 없습니다.")
+    expected_smoke = {
+        "full_parameter_count": 1_291_478_272,
+        "dtype": "bfloat16",
+        "attention_backend": "sdpa",
+        "per_device_train_batch_size": 1,
+        "gradient_accumulation_steps": 8,
+        "gradient_checkpointing": True,
+        "use_cache": False,
+        "optimizer": "paged_adamw_8bit",
+        "assistant_only_loss": True,
+        "packing": False,
+        "loss_type": "chunked_nll",
+        "learning_rate": 8.0e-6,
+        "warmup_ratio": 0.03,
+        "lr_scheduler_type": "cosine",
+        "weight_decay": 0.01,
+        "max_grad_norm": 1.0,
+        "seed": 42,
+        "data_seed": 42,
+        "minimum_vram_headroom_bytes": 1_073_741_824,
+    }
+    if any(smoke.get(key) != value for key, value in expected_smoke.items()):
+        raise Phase4Error("Phase 4 v2 Full FT smoke 하이퍼파라미터가 다릅니다.")
+    expected_stage_manifests = {
+        "gate_d_512_1": "mix1k_smoke_512_v2.jsonl",
+        "smoke_512_20": "mix1k_smoke_512_v2.jsonl",
+        "diagnostic_1024_1": "mix1k_candidate_v2.jsonl",
+        "main_768_100": "mix1k_candidate_v2.jsonl",
+        "resume_768_200": "mix1k_candidate_v2.jsonl",
+    }
+    stages = smoke.get("stages")
+    if (
+        not isinstance(stages, dict)
+        or set(stages)
+        != {
+            "gate_d_512_1",
+            "smoke_512_20",
+            "diagnostic_1024_1",
+            "main_768_100",
+            "resume_768_200",
+            "reload_768_generate5",
+        }
+        or any(
+            stages[name].get("manifest") != value
+            for name, value in expected_stage_manifests.items()
+        )
+        or stages["main_768_100"].get("optimizer_steps") != 100
+        or stages["resume_768_200"].get("optimizer_steps") != 200
+        or stages["resume_768_200"].get("resume_step") != 100
+    ):
+        raise Phase4Error("Phase 4 v2 D/E stage 계약이 다릅니다.")
+    if smoke.get("forbidden_automatic_changes") != [
+        "cpu_offload",
+        "deepspeed",
+        "lora",
+        "packing",
+        "torch_compile",
+        "flash_attention",
+    ]:
+        raise Phase4Error("Phase 4 v2 자동 우회 금지 계약이 다릅니다.")
+
+    governance = config.get("governance")
+    if governance != {
+        "human_domain_review_performed": False,
+        "quality_certification_claimed": False,
+        "phase5_training_performed": False,
+    }:
+        raise Phase4Error("Phase 4 v2 거버넌스 flag가 다릅니다.")
+    outputs = config.get("outputs")
+    if not isinstance(outputs, dict):
+        raise Phase4Error("Phase 4 v2 출력 경로 계약이 없습니다.")
+    for key in ("private_root", "public_root", "k0_root", "smoke_root"):
+        resolve_repo_path(
+            repo_root,
+            str(outputs.get(key, "")).format(build_id="build-000000000000"),
+        )
+    for key in ("canonical_root", "canonical_public_root"):
+        resolve_repo_path(repo_root, str(outputs.get(key, "")))
+    for relative in _implementation_paths(config):
+        if not resolve_repo_path(repo_root, relative).is_file():
+            raise Phase4Error(f"Phase 4 v2 구현 파일이 없습니다: {relative}")
+    ignore = (repo_root / ".gitignore").read_text(encoding="utf-8")
+    for fragment in ("/data/derived/", "/data/eval/", "/runs/", "/.venv/"):
+        if fragment not in ignore:
+            raise Phase4Error(f"필수 Git 제외 규칙이 없습니다: {fragment}")
+    official_sources = config.get("official_sources")
+    if not isinstance(official_sources, list) or any(
+        not isinstance(url, str) or not url.startswith("https://")
+        for url in official_sources
+    ):
+        raise Phase4Error("Phase 4 v2 공식 출처 URL 계약이 올바르지 않습니다.")
+    return {
+        "status": "valid",
+        "canonical_plan_version": "3.0.0",
+        "model_revision": model["revision"],
+        "axes": len(expected_axes),
+        "core_eval_rows": 300,
+        "source_holdout_rows": 700,
+        "generation_cases": 1_020,
+        "formal_max_length": 768,
+        "assistant_loss_token_minimum_percent": 10.0,
+        "training_promotion_allowed": False,
+        "phase5_training_performed": False,
+    }
+
+
+def validate_contract(config: dict[str, Any], repo_root: Path) -> dict[str, Any]:
+    if config.get("preflight_version") == "v2.0.0":
+        return _validate_contract_v2(config, repo_root)
+    return _validate_contract_v1(config, repo_root)
+
+
+def _implementation_hashes(
+    repo_root: Path, config_path: Path, config: dict[str, Any]
+) -> dict[str, str]:
     paths = [*_implementation_paths(config)]
     hashes: dict[str, str] = {}
     for relative in paths:
@@ -459,22 +817,118 @@ def prepare_context(
     parent_result: dict[str, Any] | None = None
     phase3_result: dict[str, Any] | None = None
     if verify_parents:
-        try:
-            parent_result = verify_historical_staging(
-                repo_root,
-                staging_version=config["parent_staging"]["version"],
-                build_id=config["parent_staging"]["build_id"],
-                implementation_commit=config["parent_staging"]["implementation_commit"],
-            )
-        except Exception as exc:
-            raise Phase4Error("승인된 과거 24K staging 재검증이 실패했습니다.") from exc
-        if (
-            parent_result.get("owner_risk_accepted") is not True
-            or parent_result.get("training_promotion_allowed") is not False
-            or parent_result.get("record_validation", {}).get("total_rows") != 24_000
-        ):
-            raise Phase4Error("24K staging은 Phase 4 입력 승인 상태여야 합니다.")
-        phase3_config_path = resolve_repo_path(repo_root, config["model"]["phase3_config"])
+        if config["preflight_version"] == "v2.0.0":
+            from scripts.data.quality_v2_tools import verify_quality_build
+
+            parent = config["parent_staging"]
+            try:
+                parent_config_path = resolve_repo_path(repo_root, parent["config"])
+                quality_config = load_json(parent_config_path, "품질 보정 설정")
+                private_root = (
+                    repo_root
+                    / "data/staging/saju_1b_baseline"
+                    / parent["version"]
+                    / parent["build_id"]
+                )
+                public_root = (
+                    repo_root
+                    / "data/reports/saju_1b_baseline/preprocessing-staging"
+                    / parent["version"]
+                    / parent["build_id"]
+                )
+                private_manifest_path = private_root / "build_manifest.json"
+                public_manifest_path = public_root / "build_manifest.json"
+                acceptance_path = public_root / "TECHNICAL_ACCEPTANCE.json"
+                if (
+                    sha256_file(private_manifest_path)
+                    != parent["private_manifest_sha256"]
+                    or sha256_file(public_manifest_path)
+                    != parent["public_manifest_sha256"]
+                    or sha256_file(acceptance_path)
+                    != parent["technical_acceptance_sha256"]
+                ):
+                    raise Phase4Error("품질 보정 부모 manifest hash가 다릅니다.")
+                private_manifest = load_json(
+                    private_manifest_path, "품질 보정 private manifest"
+                )
+                build_inputs = private_manifest.get("build_inputs")
+                if (
+                    private_manifest.get("build_id") != parent["build_id"]
+                    or private_manifest.get("build_sha256") != parent["build_sha256"]
+                    or not isinstance(build_inputs, dict)
+                    or sha256_json(build_inputs) != parent["build_sha256"]
+                ):
+                    raise Phase4Error("품질 보정 부모 build identity가 다릅니다.")
+                implementation_hashes = build_inputs.get("implementation_hashes")
+                if not isinstance(implementation_hashes, dict):
+                    raise Phase4Error("품질 보정 부모 구현 hash가 없습니다.")
+                for relative, expected_hash in implementation_hashes.items():
+                    implementation_path = resolve_repo_path(repo_root, relative)
+                    if (
+                        not implementation_path.is_file()
+                        or sha256_file(implementation_path) != expected_hash
+                    ):
+                        raise Phase4Error(
+                            f"품질 보정 부모 구현 fingerprint가 다릅니다: {relative}"
+                        )
+                quality_context = {
+                    "build_id": parent["build_id"],
+                    "build_sha256": parent["build_sha256"],
+                    "build_inputs": build_inputs,
+                    "config": quality_config,
+                    "policy_validation": {
+                        "policy_sha256": build_inputs["calculation_policy_sha256"]
+                    },
+                    "private_root": private_root,
+                    "public_root": public_root,
+                }
+                parent_result = verify_quality_build(quality_context, repo_root)
+            except Exception as exc:
+                raise Phase4Error(
+                    "품질 보정 24K staging 재검증이 실패했습니다."
+                ) from exc
+            if (
+                quality_context["build_id"] != parent["build_id"]
+                or quality_context["build_sha256"] != parent["build_sha256"]
+                or parent_result.get("status")
+                != "verified_accepted_for_phase4_preflight"
+                or parent_result.get("total_rows") != 24_000
+                or parent_result.get("critical_or_high_rows") != 0
+                or parent_result.get("training_promotion_allowed") is not False
+                or sha256_file(private_root / "build_manifest.json")
+                != parent["private_manifest_sha256"]
+                or sha256_file(public_root / "build_manifest.json")
+                != parent["public_manifest_sha256"]
+                or sha256_file(public_root / "TECHNICAL_ACCEPTANCE.json")
+                != parent["technical_acceptance_sha256"]
+            ):
+                raise Phase4Error(
+                    "품질 보정 24K staging은 Phase 4 입력 승인 상태여야 합니다."
+                )
+        else:
+            try:
+                parent_result = verify_historical_staging(
+                    repo_root,
+                    staging_version=config["parent_staging"]["version"],
+                    build_id=config["parent_staging"]["build_id"],
+                    implementation_commit=config["parent_staging"][
+                        "implementation_commit"
+                    ],
+                )
+            except Exception as exc:
+                raise Phase4Error(
+                    "승인된 과거 24K staging 재검증이 실패했습니다."
+                ) from exc
+            if (
+                parent_result.get("owner_risk_accepted") is not True
+                or parent_result.get("training_promotion_allowed") is not False
+                or parent_result.get("record_validation", {}).get("total_rows")
+                != 24_000
+            ):
+                raise Phase4Error("24K staging은 Phase 4 입력 승인 상태여야 합니다.")
+        phase3_config_path = resolve_repo_path(
+            repo_root, config["model"]["phase3_config"]
+        )
         phase3_config = load_phase3_config(phase3_config_path)
         try:
             phase3_result = verify_phase3_report(
@@ -483,7 +937,9 @@ def prepare_context(
                 resolve_repo_path(repo_root, config["model"]["phase3_report"]),
             )
         except Exception as exc:
-            raise Phase4Error("Phase 3 모델 준비 보고서 재검증이 실패했습니다.") from exc
+            raise Phase4Error(
+                "Phase 3 모델 준비 보고서 재검증이 실패했습니다."
+            ) from exc
 
     implementation_hashes = _implementation_hashes(repo_root, config_path, config)
     build_inputs = {
@@ -507,6 +963,9 @@ def prepare_context(
         "triage_contract_sha256": sha256_json(config["triage"]),
         "training_smoke_contract_sha256": sha256_json(config["training_smoke"]),
     }
+    if config["preflight_version"] == "v2.0.0":
+        build_inputs["artifact_contract_sha256"] = sha256_json(config["artifacts"])
+        build_inputs["governance_contract_sha256"] = sha256_json(config["governance"])
     build_sha256 = sha256_json(build_inputs)
     build_id = f"build-{build_sha256[:12]}"
     outputs = config["outputs"]
@@ -540,18 +999,44 @@ def prepare_context(
     }
 
 
+def verify_candidate_build(context: dict[str, Any], repo_root: Path) -> dict[str, Any]:
+    if context["config"]["preflight_version"] == "v2.0.0":
+        from scripts.preflight.phase4_data_v2 import verify_private_build
+    else:
+        from scripts.preflight.phase4_data import verify_private_build
+
+    return verify_private_build(context, repo_root)
+
+
+def load_candidate_staging_records(
+    context: dict[str, Any], repo_root: Path
+) -> tuple[dict[str, dict[str, Any]], list[str], dict[str, list[str]], dict[str, Any]]:
+    if context["config"]["preflight_version"] == "v2.0.0":
+        from scripts.preflight.phase4_data_v2 import load_staging_records
+    else:
+        from scripts.preflight.phase4_data import load_staging_records
+
+    return load_staging_records(context, repo_root)
+
+
 def _tree_manifest(root: Path) -> list[dict[str, Any]]:
     values: list[dict[str, Any]] = []
     for path in sorted(root.rglob("*")):
         relative = path.relative_to(root).as_posix()
         info = path.lstat()
         if stat.S_ISLNK(info.st_mode):
-            raise Phase4Error(f"runtime sysroot symlink는 허용하지 않습니다: {relative}")
+            raise Phase4Error(
+                f"runtime sysroot symlink는 허용하지 않습니다: {relative}"
+            )
         if stat.S_ISDIR(info.st_mode):
             continue
         if not stat.S_ISREG(info.st_mode):
-            raise Phase4Error(f"runtime sysroot special file은 허용하지 않습니다: {relative}")
-        values.append({"bytes": info.st_size, "path": relative, "sha256": sha256_file(path)})
+            raise Phase4Error(
+                f"runtime sysroot special file은 허용하지 않습니다: {relative}"
+            )
+        values.append(
+            {"bytes": info.st_size, "path": relative, "sha256": sha256_file(path)}
+        )
     return values
 
 
@@ -614,8 +1099,13 @@ def prepare_runtime_headers(
             with urllib.request.urlopen(runtime["url"], timeout=120) as response:
                 payload = response.read(runtime["bytes"] + 1)
         except (OSError, urllib.error.URLError) as exc:
-            raise Phase4Error("고정 Ubuntu Python header package 다운로드가 실패했습니다.") from exc
-        if len(payload) != runtime["bytes"] or sha256_bytes(payload) != runtime["sha256"]:
+            raise Phase4Error(
+                "고정 Ubuntu Python header package 다운로드가 실패했습니다."
+            ) from exc
+        if (
+            len(payload) != runtime["bytes"]
+            or sha256_bytes(payload) != runtime["sha256"]
+        ):
             raise Phase4Error("Python header package bytes 또는 SHA-256이 다릅니다.")
         _write_bytes_atomic(download_path, payload, mode=PRIVATE_FILE_MODE)
         extracted.mkdir(mode=PRIVATE_DIR_MODE)
@@ -629,10 +1119,15 @@ def prepare_runtime_headers(
             raise Phase4Error("고정 Python header package를 추출하지 못했습니다.")
         destination = temporary / "sysroot"
         destination.mkdir(mode=PRIVATE_DIR_MODE)
-        for relative in ("usr/include/python3.10", "usr/include/x86_64-linux-gnu/python3.10"):
+        for relative in (
+            "usr/include/python3.10",
+            "usr/include/x86_64-linux-gnu/python3.10",
+        ):
             source = extracted / relative
             if not source.is_dir() or source.is_symlink():
-                raise Phase4Error(f"Python header package 필수 디렉터리가 없습니다: {relative}")
+                raise Phase4Error(
+                    f"Python header package 필수 디렉터리가 없습니다: {relative}"
+                )
             target = destination / relative
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copytree(source, target, symlinks=False)
@@ -658,13 +1153,19 @@ def prepare_runtime_headers(
         shutil.rmtree(temporary, ignore_errors=True)
     if not promoted:
         raise Phase4Error("runtime sysroot를 승격하지 못했습니다.")
-    return {**verify_runtime_headers(config, repo_root), "mode": "prepared", "writes_performed": True}
+    return {
+        **verify_runtime_headers(config, repo_root),
+        "mode": "prepared",
+        "writes_performed": True,
+    }
 
 
 def runtime_environment(config: dict[str, Any], repo_root: Path) -> dict[str, str]:
     verify_runtime_headers(config, repo_root)
     root = resolve_repo_path(repo_root, config["runtime_headers"]["local_root"])
-    includes = [root / relative for relative in config["runtime_headers"]["include_roots"]]
+    includes = [
+        root / relative for relative in config["runtime_headers"]["include_roots"]
+    ]
     existing = os.environ.get("CPATH")
     cpath_values = [str(path) for path in includes]
     if existing:
@@ -691,7 +1192,10 @@ def verify_hash_map(root: Path, values: Any, label: str) -> None:
     if not isinstance(values, dict) or not values:
         raise Phase4Error(f"{label} artifact hash map이 비어 있습니다.")
     for relative, expected in values.items():
-        if not isinstance(relative, str) or SHA256_PATTERN.fullmatch(str(expected)) is None:
+        if (
+            not isinstance(relative, str)
+            or SHA256_PATTERN.fullmatch(str(expected)) is None
+        ):
             raise Phase4Error(f"{label} artifact hash metadata가 올바르지 않습니다.")
         path = root / validate_relative_path(relative)
         if path.is_symlink() or not path.is_file() or sha256_file(path) != expected:

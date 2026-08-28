@@ -1,0 +1,15 @@
+{
+  "acceptance_basis": "explicit_owner_automated_technical_acceptance",
+  "build_id": "build-a5a9e76d6a8c",
+  "build_sha256": "a5a9e76d6a8cd524314fbdb0d4ebf11f0b984c3748606eda56de2d7708d3cd23",
+  "critical_or_high_rows": 0,
+  "full_automated_scan_performed": true,
+  "human_domain_review_performed": false,
+  "phase5_training_performed": false,
+  "private_manifest_sha256": "1d0f06990a53824a1b75c121c504f54c3d778f7fd7551d9fbf768ce399b1f1da",
+  "quality_certification_claimed": false,
+  "report_type": "quality_corrected_staging_technical_acceptance",
+  "schema_version": "2.0.0",
+  "status": "accepted_for_phase4_preflight",
+  "training_promotion_allowed": false
+}

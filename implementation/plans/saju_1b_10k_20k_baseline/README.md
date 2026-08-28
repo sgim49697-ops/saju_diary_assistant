@@ -4,8 +4,8 @@
 
 | 항목 | 값 |
 |---|---|
-| 문서 버전 | `2.6.0` |
-| 정본화 기준일 | 2026-08-28 |
+| 문서 버전 | `3.0.0` |
+| 정본화 기준일 | 2026-08-29 |
 | 주 장비 | NVIDIA GeForce RTX 5070 Ti 16GiB, WSL2 |
 | 주 모델 | `kakaocorp/kanana-2-1.3b-instruct@bf4786aa2a1908adce942d53976270132732f720` |
 | 실험 범위 | 1K smoke, 독립 10K·20K Full FT, 사후 평가와 v2 Lite 결정 |
@@ -15,8 +15,8 @@
 
 - 모델 학습 방식은 BF16 전체 파라미터 Full Fine-tuning이다. LoRA/QLoRA로 자동 전환하지 않는다.
 - 10K와 20K는 같은 Instruct revision에서 각각 독립적으로 1 epoch 학습한다.
-- `MIX1K-v1 ⊂ MIX10-v1 ⊂ MIX20-v1`이어야 한다.
-- 데이터 행 비율은 Nemotron 55%, 검산·한국어화한 `bazi-sft` 25%, AI Hub #86 단일턴 10%, 같은 #86의 대화 그룹에서 파생한 멀티턴 5%, 검증된 YEJI 신살 규칙 파생본 5%로 고정한다.
+- `MIX1K-v2 ⊂ MIX10-v2 ⊂ MIX20-v2`이어야 한다.
+- 데이터 행 비율은 Nemotron 34%, 검산·한국어화한 `bazi-sft` 20%, AI Hub #86 단일턴 7.5%, 멀티턴 7.5%, 검증된 YEJI 신살 규칙 5%, deterministic 사주 QA 10%, 사주-일기 앱 브리지 16%로 고정한다.
 - Nemotron 내부는 v6 20%·v7 80%로 고정한다.
 - 평가셋과 group holdout은 학습 manifest보다 먼저 고정한다.
 - 모든 데이터 산출물은 `vMAJOR.MINOR.PATCH/build-<fingerprint>` 경로에 보관하고 기존 build를 덮어쓰지 않는다.
@@ -31,9 +31,9 @@
 |---:|---|---|---|
 | 0 | [거버넌스·실험 계약](phase-0-governance.md) | 완료 | 라이선스·범위·재현성 승인 |
 | 1 | [데이터 수집](phase-1-data-collection.md) | 완료 | 네 원천의 revision·해시·이용조건과 #86 구조 Gate 통과 |
-| 2 | [데이터 전처리](phase-2-data-preprocessing.md) | 완료 | 승인 audit 부모의 MIX20K용 24K staging 완결, 학습 승격은 Phase 4 Gate로 분리 |
+| 2 | [데이터 전처리](phase-2-data-preprocessing.md) | 완료 | 품질 보정 7축 24K와 로컬 전용 AI Hub 후보 10K 완결, 학습 승격은 Phase 4 Gate로 분리 |
 | 3 | [학습 모델·환경 준비](phase-3-model-preparation.md) | 완료 | 고정 PyTorch cu130 환경에서 모델·tokenizer·template 전체 BF16 오프라인 로드 성공 |
-| 4 | [학습 전 데이터·모델 검증](phase-4-preflight-validation.md) | 완료 | 교정 staging 기반 A~E·자동 위험 분류·Full FT 200-step resume 통과, 768 canonical 승인 |
+| 4 | [학습 전 데이터·모델 검증](phase-4-preflight-validation.md) | 완료 | 품질 보정 staging의 A~E·1,020case·Full FT 200-step resume와 768 canonical 승격 통과 |
 | 5 | [Baseline 학습](phase-5-baseline-training.md) | 미시작 | KI10·KI20 독립 Run과 산출물 완결 |
 | 6 | [평가·검수·v2 결정](phase-6-evaluation-v2-decision.md) | 미시작 | 고정 평가 후 50K 또는 v2 Lite 경로 결정 |
 
@@ -52,20 +52,22 @@ Phase 0 → Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5 → Phase 6
 data/
 ├── raw/<source>/<revision>/
 ├── audit/saju_1b_baseline/v1.2.0/build-ca756f3eb89f/  # 비공개 locator·결정·seal
-├── staging/saju_1b_baseline/v0.2.0/build-847088ee804d/ # Git 제외·현재 24K 후보
-├── derived/saju_1b_baseline/v1.1.0/build-a1a34616dd72/
+├── staging/saju_1b_baseline/v1.0.0/build-a5a9e76d6a8c/ # Git 제외·현재 품질 보정 24K
+├── derived/saju_1b_baseline/v2.0.0/build-6f32d52c2868/
 │   ├── unified/
 │   ├── manifests/
 │   └── eval/
+├── derived/saju_1b_baseline/phase5-readiness/v1.0.0/build-f6c8171f454f/
 └── reports/
     └── saju_1b_baseline/
         ├── audit/v1.2.0/build-ca756f3eb89f/
         ├── audit-review/v1.2.0/build-ca756f3eb89f/reviewer-v1.1.0/
-        ├── preprocessing-staging/v0.2.0/build-847088ee804d/
+        ├── preprocessing-staging/v1.0.0/build-a5a9e76d6a8c/
         ├── model-preparation/v1.0.0/build-32e2c84af3d3/
         ├── preflight/v1.0.0/build-a6813ba3b778/       # 과거 A~C build
-        ├── preflight/v1.1.0/build-7d59833b8d59/      # 현재 A~C 부모 build
-        ├── preflight/v1.1.0/build-a1a34616dd72/      # 현재 A~E 완료 build
+        ├── preflight/v1.1.0/build-a1a34616dd72/      # 과거 A~E 완료 build
+        ├── preflight/v2.0.0/build-6f32d52c2868/      # 현재 품질 보정 canonical
+        ├── phase5-readiness/v1.0.0/build-f6c8171f454f/ # 비학습 실행 계약
         └── phase-verification/v1.0.0/review-20260828/
 
 configs/data_versions/saju_1b_baseline/
@@ -79,6 +81,8 @@ configs/data_versions/saju_1b_baseline/
 ├── license-review-v1.0.0.json
 ├── preflight-v1.0.0.json
 ├── preflight-v1.1.0.json
+├── preflight-v2.0.0.json
+├── phase5-readiness-v1.0.0.json
 └── registry.json
 
 configs/model_versions/saju_1b_baseline/model-preparation-v1.0.0.json
@@ -87,10 +91,10 @@ requirements.txt
 requirements-phase3.lock.txt
 
 runs/
-├── K0-INSTRUCT/
-├── KI1K-SMOKE-v1/
-├── KI10-MIX-v1/
-├── KI20-MIX-v1/
+├── K0-INSTRUCT/v2.0.0/build-2feaee353252/
+├── KI1K-SMOKE-v2/v2.0.0/build-2feaee353252/
+├── KI10-MIX-v2/
+├── KI20-MIX-v2/
 └── KI20-MIX-v2-LITE/  # Phase 6 결정 시에만 생성
 ```
 
@@ -104,13 +108,15 @@ runs/
 
 | 소스 | 고정 revision/버전 | 라이선스·정책 | 10K | 20K | 사용 결정 |
 |---|---|---|---:|---:|---|
-| Nemotron Saju | `ffb934248746a2dea64ef771c0d86e1743d25702` | CC BY 4.0 | 5,500 | 11,000 | 출처·변경 표시 후 허용 |
-| `AmareshHebbar/bazi-sft` | `fad87063b317612e4164dfb0e0e08572c3831df4` | Apache 2.0 | 2,500 | 5,000 | 구조 검산·한국어 재렌더 후 허용 |
-| AI Hub 감성대화 #86 단일턴 축 | 승인 배포본 | AI Hub 일반정책 | 1,000 | 2,000 | 승인·비공개·출처 표시 조건부 허용 |
-| AI Hub 감성대화 #86 멀티턴 파생 축 | 위와 동일 | 위와 동일 | 500 | 1,000 | 동일 대화 그룹의 연속 발화만 사용, 단일턴 축과 group 분리 |
+| Nemotron Saju | `ffb934248746a2dea64ef771c0d86e1743d25702` | CC BY 4.0 | 3,400 | 6,800 | 출처·변경 표시 후 허용 |
+| `AmareshHebbar/bazi-sft` | `fad87063b317612e4164dfb0e0e08572c3831df4` | Apache 2.0 | 2,000 | 4,000 | 구조 검산·한국어 재렌더 후 허용 |
+| AI Hub 감성대화 #86 단일턴 축 | 승인 배포본 | AI Hub 일반정책 | 750 | 1,500 | 승인·비공개·출처 표시 조건부 허용 |
+| AI Hub 감성대화 #86 멀티턴 파생 축 | 위와 동일 | 위와 동일 | 750 | 1,500 | 동일 대화 그룹의 연속 발화만 사용, 단일턴 축과 group 분리 |
 | YEJI 신살 규칙 파생본 | `84583ca54e8fce257d3d5efd015bca1263a1cfe9` | MIT + 원천 MIT | 500 | 1,000 | 단일 파일 선별·교정·자체 QA 생성 후 허용 |
+| deterministic 사주 QA | [`configs/saju_calculation_policy.json`](../../../configs/saju_calculation_policy.json) | 자체 생성·원천별 고지 | 1,000 | 2,000 | deterministic fact와 policy-bound fact만 허용 |
+| 사주-일기 앱 브리지 | 품질 보정 staging `v1.0.0` | 자체 생성·부모 원천별 고지 | 1,600 | 3,200 | 구조화 명식을 입력으로 받은 공감·기록 연결만 허용 |
 
-Nemotron 1K 몫은 v6 110행·v7 440행, 10K 몫은 v6 1,100행·v7 4,400행, 20K 몫은 v6 2,200행·v7 8,800행이다. `bazi-sft`는 제공된 네 기둥을 입력 사실로 삼아 일간·오행·규칙 조건을 다시 계산하며, 원문의 날짜·지역에서 네 기둥을 학습시키지 않는다. AI Hub 데이터는 원문을 외부에 공개하지 않고 개인정보·자해·의료 진단·과도한 훈계 행을 제외한다.
+Nemotron 1K 몫은 v6 68행·v7 272행, 10K 몫은 v6 680행·v7 2,720행, 20K 몫은 v6 1,360행·v7 5,440행이다. `bazi-sft`는 제공된 네 기둥을 입력 사실로 삼아 일간·오행·규칙 조건을 다시 계산하며, 원문의 날짜·지역에서 네 기둥을 학습시키지 않는다. AI Hub 데이터는 원문을 외부에 공개하지 않고 개인정보·자해·의료 진단·과도한 훈계 행을 제외한다.
 
 AI Hub #86은 영리·비영리 연구개발이 허용되지만 AI 모델 학습 목적과 신청·승인 범위로 한정한다. 사업 결과물에 NIA·AI Hub 출처를 표시하고, 미승인 제3자에게 열람·제공·양도·대여·판매하지 않으며, 개인정보를 발견하면 AI Hub에 신고하고 다운로드한 해당 데이터를 삭제한다. 데이터셋 자체 판매는 사전 협의 없이 허용하지 않는다.
 
@@ -189,6 +195,21 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
 
 ## 진행 기록
 
+- 2026-08-29
+  - 작업 요약: Phase 4 v2 canonical을 부모로 실제 학습 없는 Phase 5 readiness `build-f6c8171f454f`을 완료했다. KI10·KI20 학습은 시작하지 않아 Phase 5 상태는 `미시작`이다.
+  - 변경 범위: KI10 10K·KI20 20K, 축별 10건 eval70, 고정 Kanana·CUDA 13.0·BF16·package lock, 독립 Run과 checkpoint state 계약을 고정했다. AI Hub 원문이 포함된 eval70은 Git 제외 private 경로에만 저장했다.
+  - 검증: readiness 생성·독립 verify, 7축 manifest strict subset과 eval/train 누수 0, 단일 RTX 5070 Ti와 754,540,773,376 bytes 가용 disk를 확인했다. public/private manifest SHA-256은 `9b71d2d3…8a176`/`6f72abe1…8c273`이다.
+  - 남은 이슈·후속 작업: 실제 Phase 5 실행은 별도 승인 대상이며 `phase5_training_performed=false`다. KI10과 KI20은 같은 Instruct snapshot에서 각각 독립 시작한다.
+- 2026-08-29
+  - 작업 요약: 품질 보정 Phase 4 v2의 A~E를 완료하고 768 canonical `v2.0.0/build-6f32d52c2868`을 registry의 `approved_derived`로 승격했다. Phase 5 실제 학습은 실행하지 않았다.
+  - 변경 범위: 7축 MIX1K/10K/20K와 1,000항목·1,020case K0, 자동 위험 분류, BF16 Full FT forward/backward·8-bit optimizer, 100→200-step resume와 새 process 재로드를 검증했다. 이전 v1 canonical은 이력으로 보존한다.
+  - 검증: Phase 4 `verify-final`과 private/public manifest hash chain이 통과했다. canonical build SHA-256은 `6f32d52c…32ee9`, private/public manifest는 `66b21f08…bedbf`/`c670c2ad…f7fec`이며 안전 위반 0, 선택 길이 768이다.
+  - 남은 이슈·후속 작업: 자동 위험도 high 97건은 사람이 판독해야 하는 승인 Gate로 넘기지 않고 상위 50건만 로컬 우선순위로 고정했다. 전문 품질 인증은 주장하지 않으며 다음 작업은 비학습 Phase 5 readiness다.
+- 2026-08-29
+  - 작업 요약: 정본을 v3.0으로 올리고 품질 보정 7축 24K를 부모로 하는 Phase 4 `v2.0.0` 계약을 구현했다. Core Eval 300·source holdout 700·K0 1,020case와 7축 MIX1K/10K/20K, deterministic QA·앱 브리지를 새 fingerprint에서 검증한다.
+  - 변경 범위: 과거 v1 canonical을 덮어쓰지 않고 `v2.0.0` 경로를 사용하며, AI Hub+브리지 assistant loss token share 10% 최소 Gate와 전역 leakage component 분리를 추가했다. 실제 Phase 5 학습은 수행하지 않았다.
+  - 검증: Ruff, Python compile, 전체 단위 테스트 139건, 품질 보정 부모 hash chain·Phase 3 보고서·Phase 4 v2 계약·dry-run을 통과했다.
+  - 남은 이슈·후속 작업: 구현 checkpoint 이후 새 build의 A~E와 canonical 승격, Phase 5 실행 전 계약 검증이 남아 있다. 그전까지 Phase 4는 `진행 중`이다.
 - 2026-08-28
   - 작업 요약: 구현 checkpoint `31fe13b08e04d4015d30ac670d92dd6427e6427d`에서 교정 staging 기반 Phase 4A~E를 완료하고 768 canonical `v1.1.0/build-a1a34616dd72`를 `approved_derived`로 승인했다. Phase 5 실제 10K·20K 학습은 실행하지 않았다.
   - 변경 범위: 부모 preflight `build-7d59833b8d59`에서 24K 전수 token/loss-mask, Core Eval 200·source holdout 500, K0 700항목/720case와 자동 위험 분류를 재검증했다. BF16 Full FT 512 1/20-step, 1024 1-step 진단, 768 100→200-step 별도 process resume와 checkpoint 재로드 5-task 생성을 수행했다.

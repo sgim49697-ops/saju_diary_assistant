@@ -1,0 +1,180 @@
+{
+  "backward_performed": false,
+  "build_id": "build-2feaee353252",
+  "build_sha256": "2feaee35325205809e342097b69dbefb6dbe1609e08f913b434ee6bb3ec8f399",
+  "categories": {
+    "branch_policy_contradiction": {
+      "automated_contract_evaluated": 40,
+      "automated_contract_passed": 1,
+      "cases": 40,
+      "eos_finished": 33,
+      "mean_generated_tokens": 288.175,
+      "mean_reference_char_bigram_f1": 0.065478,
+      "nonempty": 40
+    },
+    "deterministic_hard_fact": {
+      "automated_contract_evaluated": 60,
+      "automated_contract_passed": 17,
+      "cases": 60,
+      "eos_finished": 59,
+      "mean_generated_tokens": 140.2333,
+      "mean_reference_char_bigram_f1": 0.143582,
+      "nonempty": 60
+    },
+    "empathy": {
+      "automated_contract_evaluated": 0,
+      "automated_contract_passed": 0,
+      "cases": 20,
+      "eos_finished": 20,
+      "mean_generated_tokens": 66.35,
+      "mean_reference_char_bigram_f1": 0.068692,
+      "nonempty": 20
+    },
+    "general_korean_instruction": {
+      "automated_contract_evaluated": 5,
+      "automated_contract_passed": 4,
+      "cases": 5,
+      "eos_finished": 5,
+      "mean_generated_tokens": 12.4,
+      "mean_reference_char_bigram_f1": null,
+      "nonempty": 5
+    },
+    "grounded_rule_reading": {
+      "automated_contract_evaluated": 0,
+      "automated_contract_passed": 0,
+      "cases": 30,
+      "eos_finished": 1,
+      "mean_generated_tokens": 511.7,
+      "mean_reference_char_bigram_f1": 0.133586,
+      "nonempty": 30
+    },
+    "missing_chart_handoff": {
+      "automated_contract_evaluated": 5,
+      "automated_contract_passed": 5,
+      "cases": 5,
+      "eos_finished": 4,
+      "mean_generated_tokens": 213.4,
+      "mean_reference_char_bigram_f1": null,
+      "nonempty": 5
+    },
+    "multiturn": {
+      "automated_contract_evaluated": 0,
+      "automated_contract_passed": 0,
+      "cases": 15,
+      "eos_finished": 15,
+      "mean_generated_tokens": 94.0667,
+      "mean_reference_char_bigram_f1": 0.047798,
+      "nonempty": 15
+    },
+    "saju_diary_bridge": {
+      "automated_contract_evaluated": 40,
+      "automated_contract_passed": 0,
+      "cases": 40,
+      "eos_finished": 40,
+      "mean_generated_tokens": 33.625,
+      "mean_reference_char_bigram_f1": 0.078845,
+      "nonempty": 40
+    },
+    "same_chart_consistency": {
+      "automated_contract_evaluated": 0,
+      "automated_contract_passed": 0,
+      "cases": 40,
+      "eos_finished": 12,
+      "mean_generated_tokens": 480.575,
+      "mean_reference_char_bigram_f1": 0.145224,
+      "nonempty": 40
+    },
+    "shensha_rule_qa": {
+      "automated_contract_evaluated": 25,
+      "automated_contract_passed": 11,
+      "cases": 25,
+      "eos_finished": 5,
+      "mean_generated_tokens": 496.08,
+      "mean_reference_char_bigram_f1": 0.071088,
+      "nonempty": 25
+    },
+    "source_holdout": {
+      "automated_contract_evaluated": 0,
+      "automated_contract_passed": 0,
+      "cases": 700,
+      "eos_finished": 486,
+      "mean_generated_tokens": 252.4171,
+      "mean_reference_char_bigram_f1": 0.104845,
+      "nonempty": 700
+    },
+    "structured_natal_reading": {
+      "automated_contract_evaluated": 0,
+      "automated_contract_passed": 0,
+      "cases": 40,
+      "eos_finished": 9,
+      "mean_generated_tokens": 493.775,
+      "mean_reference_char_bigram_f1": 0.193557,
+      "nonempty": 40
+    }
+  },
+  "control_character_outputs": 0,
+  "cross_build_reused_cases": 118,
+  "determinism_replay_passed": true,
+  "elapsed_seconds": 6362.831,
+  "empty_outputs": 0,
+  "evaluation_items": 1000,
+  "gate_c_passed": true,
+  "generated_at": "2026-08-28T18:53:03+00:00",
+  "generation_cases": 1020,
+  "locally_generated_cases": 902,
+  "max_new_tokens": 512,
+  "new_generation_cases": 902,
+  "optimizer_created": false,
+  "peak_vram_bytes": 2752092672,
+  "phase4_training_smoke_allowed": true,
+  "quality_threshold_policy": "report_only_except_pipeline_integrity_and_missing_chart_safety",
+  "raw_samples_in_summary": false,
+  "report_type": "k0_instruct_summary",
+  "reuse_contract": {
+    "recompute_metrics": true,
+    "reuse_key": "model-template-generation-prompt-sha256",
+    "source_build_id": "build-9cf4fdb83bbd",
+    "source_generation_cases": 720,
+    "source_root": "runs/K0-INSTRUCT/v1.1.0/build-9cf4fdb83bbd",
+    "source_run_config_sha256": "63bf2dd5053037e4c4d273f2107267dbe7e551ac20a2038033a119f16e926243",
+    "source_run_manifest_sha256": "d06b44548d76b311e2f8b2decf64dc253a147e8d581907101bf2cfea44f7c65f"
+  },
+  "runtime": {
+    "attention_backend": "sdpa",
+    "device": "cuda:0",
+    "gpu_capability": [
+      12,
+      0
+    ],
+    "gpu_name": "NVIDIA GeForce RTX 5070 Ti",
+    "parameter_count": 1291478272,
+    "parameter_dtype": "torch.bfloat16",
+    "torch": "2.13.0+cu130",
+    "torch_cuda": "13.0",
+    "transformers": "4.57.6"
+  },
+  "runtime_headers": {
+    "file_count": 164,
+    "manifest_sha256": "ff556bf9337745ad84f012d575158511b7f7306a5ced0a1a1a96ef9df6e7b466",
+    "root": ".venv/phase4-runtime/libpython3.10-dev-3.10.12-1~22.04.16",
+    "status": "verified"
+  },
+  "safety_violation_result_ids": [],
+  "safety_violations": 0,
+  "schema_version": "1.0.0",
+  "special_token_text_outputs": 0,
+  "status": "passed",
+  "system_ram": {
+    "available_bytes_at_finish": 13954187264,
+    "total_bytes": 16769019904
+  },
+  "training_performed": false,
+  "training_promotion_allowed": false,
+  "vram_free_bytes_at_finish": 12766412800,
+  "vram_total_bytes": 17094475776,
+  "yarn_warning": {
+    "configuration_modified": false,
+    "implicit_original_context_ratio": 8.0,
+    "upstream_factor": 40.0
+  }
+}
