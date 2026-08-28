@@ -10,5 +10,5 @@
 - 세션 조정: 동일 저장소의 다른 Codex 세션이 Phase 0~2 재검수 작업을 수정·검증 중임을 process tree와 Git 변경 시각으로 확인했다. 해당 working tree와 index는 건드리지 않고 임시 worktree 및 전용 브랜치에서 이 변경을 작성했다.
 - 검증 명령/결과:
   - `git diff --check`: 공백 오류 없이 통과했다.
-  - `git diff --cached --name-status` 및 `git diff --cached --check`: 이 기록과 `AGENTS.md`만 포함하는지 커밋 전에 확인한다.
+  - `git diff --cached --name-status` 및 `git diff --cached --check`: 이 기록과 `AGENTS.md` 두 파일만 포함됨을 확인했고 공백 오류 없이 통과했다.
 - 남은 이슈/후속 작업: 코드 동작 변경은 없다. 실제 운영에서 새 충돌 유형이 확인되면 동일한 안전·소유권 원칙 안에서 규칙을 구체화한다.
