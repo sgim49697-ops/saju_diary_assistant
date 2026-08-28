@@ -79,6 +79,8 @@ configs/data_versions/saju_1b_baseline/
 ├── license-review-v1.0.0.json
 ├── preflight-v1.0.0.json
 ├── preflight-v1.1.0.json
+├── preflight-v2.0.0.json
+├── phase5-readiness-v1.0.0.json
 └── registry.json
 
 configs/model_versions/saju_1b_baseline/model-preparation-v1.0.0.json
@@ -87,10 +89,10 @@ requirements.txt
 requirements-phase3.lock.txt
 
 runs/
-├── K0-INSTRUCT/
-├── KI1K-SMOKE-v1/
-├── KI10-MIX-v1/
-├── KI20-MIX-v1/
+├── K0-INSTRUCT/v2.0.0/build-2feaee353252/
+├── KI1K-SMOKE-v2/v2.0.0/build-2feaee353252/
+├── KI10-MIX-v2/
+├── KI20-MIX-v2/
 └── KI20-MIX-v2-LITE/  # Phase 6 결정 시에만 생성
 ```
 
