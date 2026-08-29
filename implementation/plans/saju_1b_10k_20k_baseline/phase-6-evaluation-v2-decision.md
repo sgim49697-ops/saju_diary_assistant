@@ -189,6 +189,14 @@ runs/next_stage_decision.md
 - [Kanana Open License](https://huggingface.co/kakaocorp/kanana-2-1.3b-instruct/blob/bf4786aa2a1908adce942d53976270132732f720/LICENSE)
 - [AI Hub 데이터 이용정책](https://aihub.or.kr/intrcn/guid/usagepolicy.do)
 
+## 진행 기록
+
+- 2026-08-29
+  - 작업 요약: Phase 5 학습 전에 평가 역할 계약만 선행 고정했다. Phase 6 모델 평가는 실행하지 않았다.
+  - 변경 범위: 개발 monitor 70행·진단 930행·봉인 source blind 350 component/500행·외부 conformance 220행을 분리하고, blind는 K0·KI10·KI20 final checkpoint가 모두 고정된 뒤 한 번만 열도록 했다.
+  - 검증: `evaluation-split/v1.0.0/build-a5a04ab96594`의 train/development/blind component·record·content hash 누수 0과 public raw·ID 비노출을 확인했다.
+  - 남은 이슈·후속 작업: KI10·KI20 실제 학습과 checkpoint 동결 전에는 blind를 실행하지 않는다. 출력 확인 후 변경이 필요하면 split version을 새로 만든다.
+
 ## 웹 확인 기록
 
 | 날짜 | 확인 내용 | 결과 |
