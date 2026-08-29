@@ -31,7 +31,7 @@ if str(REPO_ROOT) not in sys.path:
 from scripts.training.phase5_quality import score_generations
 
 DEFAULT_CONFIG = Path(
-    "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.1.0.json"
+    "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.2.0.json"
 )
 ASSET_ROOT = Path(__file__).with_name("phase5_dashboard_assets")
 RUN_BUILD_PATTERN = re.compile(r"^run-[0-9a-f]{12}$")
@@ -42,6 +42,7 @@ SESSION_ID_PATTERN = re.compile(r"^[0-9a-f]{24}$")
 PRIVATE_FILE_MODE = 0o600
 PRIVATE_DIR_MODE = 0o700
 MAX_METRICS_BYTES = 32 * 1024 * 1024
+MAX_DATASET_BYTES = 64 * 1024 * 1024
 REQUIRED_CHECKPOINT_FILES = frozenset(
     {
         "config.json",
@@ -177,7 +178,7 @@ def validate_config(config: dict[str, Any]) -> None:
         raise Phase5DashboardError("대시보드 고정 probe 범주 계약이 다릅니다.")
     schema_version = config.get("schema_version")
     if (
-        schema_version not in {"1.0.0", "1.1.0"}
+        schema_version not in {"1.0.0", "1.1.0", "1.2.0"}
         or config.get("dashboard_id") != "KI20-MIX-v2-dashboard"
         or config.get("allowed_run_id") != "KI20-MIX-v2"
         or config.get("refresh_seconds") != 10
@@ -223,9 +224,96 @@ def validate_config(config: dict[str, Any]) -> None:
         or manual_session.get("title_max_chars") != 60
     ):
         raise Phase5DashboardError("Phase 5 dashboard v1.1 세션 계약이 다릅니다.")
+    dataset_browser = config.get("dataset_browser")
+    if schema_version in {"1.0.0", "1.1.0"}:
+        if dataset_browser is not None:
+            raise Phase5DashboardError("과거 dashboard config에 dataset browser가 있습니다.")
+    else:
+        _validate_dataset_browser(dataset_browser, governance)
     generation = model_check.get("generation")
     if generation != {"do_sample": False, "num_beams": 1, "max_new_tokens": 256}:
         raise Phase5DashboardError("대시보드 generation 계약이 다릅니다.")
+
+
+def _validate_dataset_browser(value: Any, governance: dict[str, Any]) -> None:
+    if not isinstance(value, dict):
+        raise Phase5DashboardError("Phase 5 dataset browser 계약이 없습니다.")
+    splits = value.get("splits")
+    labels = value.get("axis_labels")
+    restricted = value.get("restricted_axes")
+    blind = value.get("sealed_blind")
+    expected_splits = {
+        "ki10_train",
+        "ki20_train",
+        "dev_monitor",
+        "dev_diagnostic",
+        "persona_guard",
+        "external_conformance",
+    }
+    if (
+        value.get("selection_seed") != "phase5-dashboard-v1.2.0-dataset-samples"
+        or value.get("samples_per_axis") != 3
+        or value.get("all_axis_samples_per_axis") != 1
+        or value.get("preflight_config")
+        != "configs/data_versions/saju_1b_baseline/preflight-v2.0.0.json"
+        or restricted != ["aihub_empathy_single", "aihub_empathy_multiturn"]
+        or not isinstance(labels, dict)
+        or any(not isinstance(key, str) or not isinstance(label, str) for key, label in labels.items())
+        or not isinstance(splits, dict)
+        or set(splits) != expected_splits
+        or not isinstance(blind, dict)
+        or blind.get("rows") != 500
+        or blind.get("components") != 350
+        or blind.get("sample_access_allowed") is not False
+        or blind.get("inspected") is not False
+        or governance.get("dataset_samples_local_only") is not True
+        or governance.get("restricted_samples_visible") is not True
+        or governance.get("sealed_blind_access_allowed") is not False
+    ):
+        raise Phase5DashboardError("Phase 5 dataset browser 계약이 다릅니다.")
+    for split_id, split in splits.items():
+        axes = split.get("axes") if isinstance(split, dict) else None
+        if (
+            not isinstance(split, dict)
+            or split.get("kind") not in {"training", "evaluation", "external"}
+            or not isinstance(split.get("label"), str)
+            or not isinstance(split.get("role"), str)
+            or not isinstance(split.get("rows"), int)
+            or not isinstance(axes, dict)
+            or any(
+                axis not in labels
+                or isinstance(rows, bool)
+                or not isinstance(rows, int)
+                or rows < 1
+                for axis, rows in axes.items()
+            )
+            or sum(axes.values()) != split["rows"]
+        ):
+            raise Phase5DashboardError(f"dataset split 계약이 다릅니다: {split_id}")
+        if split["kind"] == "external":
+            fixtures = split.get("fixtures")
+            if not isinstance(fixtures, dict) or set(fixtures) != set(split["axes"]):
+                raise Phase5DashboardError("외부 정합성 fixture 계약이 다릅니다.")
+            sources = fixtures.values()
+        else:
+            sources = [split]
+        for source in sources:
+            if (
+                not isinstance(source, dict)
+                or not isinstance(source.get("path"), str)
+                or not isinstance(source.get("sha256"), str)
+                or re.fullmatch(r"[0-9a-f]{64}", source["sha256"]) is None
+            ):
+                raise Phase5DashboardError(f"dataset source 계약이 다릅니다: {split_id}")
+    blind_axes = blind.get("axes")
+    if not isinstance(blind_axes, dict) or any(
+        axis not in labels
+        or isinstance(rows, bool)
+        or not isinstance(rows, int)
+        or rows < 1
+        for axis, rows in blind_axes.items()
+    ) or sum(blind_axes.values()) != blind["rows"]:
+        raise Phase5DashboardError("봉인 split 축 계약이 다릅니다.")
 
 
 def prepare_context(
@@ -276,6 +364,371 @@ def prepare_context(
         "run_root": run_target,
         "manifest": manifest,
         "resolved": resolved,
+    }
+
+
+def _dataset_contract(context: dict[str, Any]) -> dict[str, Any]:
+    contract = context["config"].get("dataset_browser")
+    if not isinstance(contract, dict):
+        raise Phase5DashboardError("이 dashboard config는 dataset browser를 지원하지 않습니다.")
+    return contract
+
+
+def _dataset_path(context: dict[str, Any], relative: str, label: str) -> Path:
+    return _safe_under(context["repo_root"], relative, label)
+
+
+def _read_dataset_jsonl(
+    context: dict[str, Any], source: dict[str, Any], label: str
+) -> list[dict[str, Any]]:
+    path = _dataset_path(context, source["path"], label)
+    if path.is_symlink() or not path.is_file():
+        raise Phase5DashboardError(f"{label} 파일이 없거나 symlink입니다.")
+    if path.stat().st_size > MAX_DATASET_BYTES:
+        raise Phase5DashboardError(f"{label} 크기가 허용 범위를 넘습니다.")
+    if _sha256_file(path) != source["sha256"]:
+        raise Phase5DashboardError(f"{label} SHA-256이 다릅니다.")
+    values: list[dict[str, Any]] = []
+    try:
+        with path.open(encoding="utf-8") as stream:
+            for line_number, line in enumerate(stream, 1):
+                if not line.strip():
+                    raise Phase5DashboardError(f"{label} {line_number}행이 비었습니다.")
+                value = json.loads(line)
+                if not isinstance(value, dict):
+                    raise Phase5DashboardError(
+                        f"{label} {line_number}행이 JSON object가 아닙니다."
+                    )
+                values.append(value)
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        raise Phase5DashboardError(f"{label} JSONL을 읽을 수 없습니다.") from exc
+    expected_rows = source.get("rows")
+    if isinstance(expected_rows, int) and len(values) != expected_rows:
+        raise Phase5DashboardError(f"{label} 행 수가 계약과 다릅니다.")
+    return values
+
+
+def _safe_sample_messages(value: Any, label: str) -> list[dict[str, str]]:
+    if not isinstance(value, list) or not value:
+        raise Phase5DashboardError(f"{label} messages가 없습니다.")
+    messages: list[dict[str, str]] = []
+    for message in value:
+        if (
+            not isinstance(message, dict)
+            or message.get("role") not in {"system", "user", "assistant"}
+            or not isinstance(message.get("content"), str)
+            or not message["content"]
+        ):
+            raise Phase5DashboardError(f"{label} message 계약이 다릅니다.")
+        messages.append({"role": message["role"], "content": message["content"]})
+    return messages
+
+
+def _normalized_axis(value: Any) -> str:
+    return value if isinstance(value, str) and value else "general_instruction"
+
+
+def _verify_axis_counts(
+    rows: Sequence[dict[str, Any]], expected: dict[str, int], field: str, label: str
+) -> None:
+    counts: dict[str, int] = defaultdict(int)
+    for row in rows:
+        counts[_normalized_axis(row.get(field))] += 1
+    if dict(counts) != expected:
+        raise Phase5DashboardError(f"{label} 축별 수량이 계약과 다릅니다.")
+
+
+def _training_record_index(
+    context: dict[str, Any], cache: dict[str, Any]
+) -> dict[str, dict[str, Any]]:
+    cached = cache.get("training_record_index")
+    if isinstance(cached, dict):
+        return cached
+    try:
+        from scripts.preflight.phase4_common import load_candidate_staging_records
+        from scripts.preflight.phase4_common import (
+            prepare_context as prepare_phase4_context,
+        )
+
+        preflight_path = _dataset_path(
+            context,
+            _dataset_contract(context)["preflight_config"],
+            "dataset preflight config",
+        )
+        phase4_context = prepare_phase4_context(
+            context["repo_root"], preflight_path, verify_parents=False
+        )
+        records, _, _, _ = load_candidate_staging_records(
+            phase4_context, context["repo_root"]
+        )
+    except Exception as exc:
+        raise Phase5DashboardError("학습 샘플 원본 검증·해석이 실패했습니다.") from exc
+    cache["training_record_index"] = records
+    return records
+
+
+def _training_candidates(
+    context: dict[str, Any], split: dict[str, Any], cache: dict[str, Any]
+) -> list[dict[str, Any]]:
+    manifest = _read_dataset_jsonl(context, split, split["label"])
+    _verify_axis_counts(manifest, split["axes"], "mix_axis", split["label"])
+    records = _training_record_index(context, cache)
+    restricted_axes = set(_dataset_contract(context)["restricted_axes"])
+    candidates: list[dict[str, Any]] = []
+    for row in manifest:
+        record_id = row.get("id")
+        axis = row.get("mix_axis")
+        record = records.get(record_id) if isinstance(record_id, str) else None
+        if (
+            record is None
+            or axis not in split["axes"]
+            or record.get("mix_axis") != axis
+            or record.get("meta", {}).get("phase4_parent_record_sha256")
+            != row.get("record_sha256")
+        ):
+            raise Phase5DashboardError("학습 샘플 manifest 연결이 다릅니다.")
+        candidates.append(
+            {
+                "identity": record_id,
+                "axis": axis,
+                "task": record.get("task"),
+                "format": "messages",
+                "messages": _safe_sample_messages(record.get("messages"), "학습 샘플"),
+                "restricted_local_only": axis in restricted_axes,
+            }
+        )
+    return candidates
+
+
+def _evaluation_candidates(
+    context: dict[str, Any], split: dict[str, Any]
+) -> list[dict[str, Any]]:
+    rows = _read_dataset_jsonl(context, split, split["label"])
+    _verify_axis_counts(rows, split["axes"], "source_axis", split["label"])
+    restricted_axes = set(_dataset_contract(context)["restricted_axes"])
+    candidates: list[dict[str, Any]] = []
+    for row in rows:
+        axis = _normalized_axis(row.get("source_axis"))
+        cases = row.get("cases")
+        if not isinstance(cases, list) or not cases:
+            raise Phase5DashboardError("개발 진단 case 계약이 다릅니다.")
+        for case_index, case in enumerate(cases):
+            if not isinstance(case, dict):
+                raise Phase5DashboardError("개발 진단 case가 object가 아닙니다.")
+            messages = _safe_sample_messages(case.get("prompt_messages"), "개발 진단")
+            reference = case.get("reference_assistant")
+            if isinstance(reference, str) and reference:
+                messages.append({"role": "assistant", "content": reference})
+            identity = f"{row.get('eval_id')}|{case.get('case_id')}|{case_index}"
+            candidates.append(
+                {
+                    "identity": identity,
+                    "axis": axis,
+                    "task": row.get("category"),
+                    "format": "messages",
+                    "messages": messages,
+                    "reference_available": isinstance(reference, str) and bool(reference),
+                    "restricted_local_only": axis in restricted_axes,
+                }
+            )
+    return candidates
+
+
+def _external_candidates(
+    context: dict[str, Any], split: dict[str, Any], axis: str
+) -> list[dict[str, Any]]:
+    fixture = split["fixtures"][axis]
+    if axis == "policy_cases":
+        rows = _read_dataset_jsonl(
+            context, {**fixture, "rows": split["axes"][axis]}, "정책 경계 fixture"
+        )
+        return [
+            {
+                "identity": f"policy|{index}",
+                "axis": axis,
+                "task": row.get("case_type"),
+                "format": "structured",
+                "input": row.get("input"),
+                "expected": row.get("expected"),
+                "restricted_local_only": False,
+            }
+            for index, row in enumerate(rows)
+        ]
+    path = _dataset_path(context, fixture["path"], "KASI fixture")
+    if path.is_symlink() or not path.is_file() or path.stat().st_size > MAX_DATASET_BYTES:
+        raise Phase5DashboardError("KASI fixture가 없거나 안전하지 않습니다.")
+    if _sha256_file(path) != fixture["sha256"]:
+        raise Phase5DashboardError("KASI fixture SHA-256이 다릅니다.")
+    try:
+        rows = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        raise Phase5DashboardError("KASI fixture를 읽을 수 없습니다.") from exc
+    if (
+        not isinstance(rows, list)
+        or len(rows) != split["axes"][axis]
+        or any(not isinstance(row, dict) for row in rows)
+    ):
+        raise Phase5DashboardError("KASI fixture 행 수가 계약과 다릅니다.")
+    return [
+        {
+            "identity": f"kasi|{index}",
+            "axis": axis,
+            "task": "solar_lunar_conversion",
+            "format": "structured",
+            "input": {"solar": row.get("solar")},
+            "expected": {
+                key: row.get(key) for key in ("lunar", "leap", "ko", "cn")
+            },
+            "restricted_local_only": False,
+        }
+        for index, row in enumerate(rows)
+    ]
+
+
+def _dataset_candidates(
+    context: dict[str, Any], split_id: str, axis: str, cache: dict[str, Any]
+) -> list[dict[str, Any]]:
+    split = _dataset_contract(context)["splits"][split_id]
+    if split["kind"] == "training":
+        return _training_candidates(context, split, cache)
+    if split["kind"] == "evaluation":
+        return _evaluation_candidates(context, split)
+    axes = split["axes"] if axis == "all" else {axis: split["axes"][axis]}
+    return [
+        candidate
+        for axis_id in axes
+        for candidate in _external_candidates(context, split, axis_id)
+    ]
+
+
+def _sample_projection(
+    context: dict[str, Any], split_id: str, candidate: dict[str, Any]
+) -> dict[str, Any]:
+    contract = _dataset_contract(context)
+    digest = hashlib.sha256(
+        f"{contract['selection_seed']}|{split_id}|{candidate['identity']}".encode()
+    ).hexdigest()
+    projected = {
+        key: value
+        for key, value in candidate.items()
+        if key
+        in {
+            "axis",
+            "task",
+            "format",
+            "messages",
+            "input",
+            "expected",
+            "reference_available",
+            "restricted_local_only",
+        }
+    }
+    projected["sample_key"] = digest[:12]
+    projected["axis_label"] = contract["axis_labels"][candidate["axis"]]
+    return projected
+
+
+def dataset_samples_payload(
+    context: dict[str, Any],
+    split_id: str,
+    axis: str,
+    cache: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    contract = _dataset_contract(context)
+    split = contract["splits"].get(split_id)
+    if not isinstance(split, dict):
+        raise DashboardRequestError(HTTPStatus.NOT_FOUND, "허용되지 않은 dataset split입니다.")
+    if axis != "all" and axis not in split["axes"]:
+        raise DashboardRequestError(HTTPStatus.NOT_FOUND, "허용되지 않은 dataset 축입니다.")
+    active_cache = cache if cache is not None else {}
+    cache_key = f"sample_payload:{split_id}:{axis}"
+    cached = active_cache.get(cache_key)
+    if isinstance(cached, dict):
+        return cached
+    candidates = _dataset_candidates(context, split_id, axis, active_cache)
+    target_axes = list(split["axes"]) if axis == "all" else [axis]
+    per_axis = (
+        contract["all_axis_samples_per_axis"]
+        if axis == "all"
+        else contract["samples_per_axis"]
+    )
+    selected: list[dict[str, Any]] = []
+    for axis_id in target_axes:
+        matching = [candidate for candidate in candidates if candidate["axis"] == axis_id]
+        matching.sort(
+            key=lambda candidate: hashlib.sha256(
+                f"{contract['selection_seed']}|{split_id}|{axis_id}|{candidate['identity']}".encode()
+            ).hexdigest()
+        )
+        if not matching:
+            raise Phase5DashboardError(f"dataset sample 후보가 없습니다: {split_id}/{axis_id}")
+        selected.extend(matching[:per_axis])
+    items = [_sample_projection(context, split_id, candidate) for candidate in selected]
+    result = {
+        "split_id": split_id,
+        "split_label": split["label"],
+        "axis": axis,
+        "items": items,
+        "local_only": True,
+        "restricted_content_included": any(
+            item["restricted_local_only"] for item in items
+        ),
+        "sealed_blind_accessed": False,
+        "internal_identifiers_included": False,
+    }
+    active_cache[cache_key] = result
+    return result
+
+
+def dataset_splits_payload(context: dict[str, Any]) -> dict[str, Any]:
+    contract = _dataset_contract(context)
+    restricted = set(contract["restricted_axes"])
+
+    def split_projection(split_id: str, split: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "split_id": split_id,
+            "label": split["label"],
+            "role": split["role"],
+            "kind": split["kind"],
+            "rows": split["rows"],
+            "sample_access_allowed": True,
+            "axes": [
+                {
+                    "axis": axis,
+                    "label": contract["axis_labels"][axis],
+                    "rows": rows,
+                    "percent": round(rows * 100 / split["rows"], 2),
+                    "restricted_local_only": axis in restricted,
+                }
+                for axis, rows in split["axes"].items()
+            ],
+        }
+
+    blind = contract["sealed_blind"]
+    return {
+        "splits": [
+            split_projection(split_id, split)
+            for split_id, split in contract["splits"].items()
+        ],
+        "sealed_blind": {
+            "label": blind["label"],
+            "role": blind["role"],
+            "rows": blind["rows"],
+            "components": blind["components"],
+            "sample_access_allowed": False,
+            "inspected": False,
+            "axes": [
+                {
+                    "axis": axis,
+                    "label": contract["axis_labels"][axis],
+                    "rows": rows,
+                }
+                for axis, rows in blind["axes"].items()
+            ],
+        },
+        "local_only": True,
+        "training_data_modified": False,
+        "blind_source_test_inspected": False,
     }
 
 
@@ -1141,6 +1594,8 @@ class DashboardHTTPServer(ThreadingHTTPServer):
         self.asset_root = asset_root
         self.csrf_token = csrf_token
         self.generation_lock = threading.Lock()
+        self.dataset_cache: dict[str, Any] = {}
+        self.dataset_cache_lock = threading.Lock()
         super().__init__(address, DashboardRequestHandler)
         port = self.server_address[1]
         self.allowed_hosts = {f"127.0.0.1:{port}", f"localhost:{port}"}
@@ -1238,6 +1693,24 @@ class DashboardRequestHandler(BaseHTTPRequestHandler):
                     return
                 if path == "/api/model-checks":
                     self._send_json(HTTPStatus.OK, model_checks_payload(self.server.context))
+                    return
+                if path == "/api/dataset-splits":
+                    self._send_json(
+                        HTTPStatus.OK, dataset_splits_payload(self.server.context)
+                    )
+                    return
+                sample_match = re.fullmatch(
+                    r"/api/dataset-samples/([a-z0-9_]+)/([a-z0-9_]+)", path
+                )
+                if sample_match is not None:
+                    with self.server.dataset_cache_lock:
+                        result = dataset_samples_payload(
+                            self.server.context,
+                            sample_match.group(1),
+                            sample_match.group(2),
+                            self.server.dataset_cache,
+                        )
+                    self._send_json(HTTPStatus.OK, result)
                     return
                 if path == "/api/sessions":
                     self._send_json(

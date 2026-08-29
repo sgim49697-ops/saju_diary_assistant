@@ -8,6 +8,10 @@ let activeTab = "training";
 let activeSessionId = null;
 let loadedSessionUpdatedAt = null;
 let startingNewSession = false;
+let datasetCatalog = null;
+let selectedDatasetSplit = "ki20_train";
+let selectedDatasetAxis = "all";
+let loadedDatasetKey = null;
 
 const byId = (id) => document.getElementById(id);
 const number = (value, digits = 4) => Number.isFinite(value) ? value.toLocaleString("ko-KR", { maximumFractionDigits: digits }) : "—";
@@ -156,6 +160,7 @@ function renderModelChecks(payload) {
   byId("comparison-summary").innerHTML = `
     <div class="score-box"><span class="label">KI10</span><strong>${escapeHtml(metricHeadline(payload.summary.ki10_diagnostic))}</strong></div>
     <div class="score-box"><span class="label">KI20</span><strong>${escapeHtml(metricHeadline(payload.summary.ki20_diagnostic))}</strong></div>`;
+  byId("comparison-glance").textContent = `KI10 ${metricHeadline(payload.summary.ki10_diagnostic)} · KI20 ${metricHeadline(payload.summary.ki20_diagnostic)}`;
   byId("comparison-list").innerHTML = payload.rows.map((row, index) => `<details class="comparison-item">
     <summary>${index + 1}. ${escapeHtml(row.category)} · ${escapeHtml(row.eval_id)}</summary>
     <div class="comparison-body">
@@ -164,6 +169,110 @@ function renderModelChecks(payload) {
       <div class="comparison-column"><span class="label">KI20</span><p>${escapeHtml(row.ki20_output)}</p></div>
     </div>
   </details>`).join("");
+}
+
+function selectedSplit() {
+  return datasetCatalog?.splits.find((split) => split.split_id === selectedDatasetSplit) || null;
+}
+
+function renderSplitCards() {
+  const target = byId("split-cards");
+  const cards = datasetCatalog.splits.map((split) => `<button type="button" class="split-card ${split.split_id === selectedDatasetSplit ? "selected" : ""}" data-split-id="${escapeHtml(split.split_id)}">
+    <span class="split-kind">${escapeHtml(split.kind)}</span>
+    <strong>${escapeHtml(split.label)}</strong>
+    <b>${number(split.rows, 0)}행</b>
+    <small>${escapeHtml(split.role)}</small>
+  </button>`).join("");
+  const blind = datasetCatalog.sealed_blind;
+  target.innerHTML = cards + `<article class="split-card sealed-card">
+    <span class="split-kind">sealed</span>
+    <strong>${escapeHtml(blind.label)}</strong>
+    <b>${number(blind.rows, 0)}행 · ${number(blind.components, 0)} component</b>
+    <small>${escapeHtml(blind.role)} · 샘플 열람 불가</small>
+  </article>`;
+  target.querySelectorAll("button[data-split-id]").forEach((button) => button.addEventListener("click", () => {
+    selectDatasetSplit(button.dataset.splitId);
+  }));
+}
+
+function renderAxisDistribution() {
+  const split = selectedSplit();
+  if (!split) return;
+  byId("dataset-detail-title").textContent = `${split.label} 구성`;
+  byId("dataset-total").textContent = `${number(split.rows, 0)}행`;
+  byId("axis-distribution").innerHTML = split.axes.map((axis, index) => `<div class="axis-row">
+    <div class="axis-copy"><strong>${escapeHtml(axis.label)}</strong><span>${number(axis.rows, 0)}행 · ${number(axis.percent, 2)}%${axis.restricted_local_only ? " · 제한" : ""}</span></div>
+    <div class="axis-track"><div class="axis-fill axis-color-${index % 5}" style="width:${Math.max(1, axis.percent)}%"></div></div>
+  </div>`).join("");
+}
+
+function renderDatasetControls() {
+  const splitSelect = byId("dataset-split-select");
+  splitSelect.innerHTML = datasetCatalog.splits.map((split) => `<option value="${escapeHtml(split.split_id)}">${escapeHtml(split.label)} · ${number(split.rows, 0)}행</option>`).join("");
+  splitSelect.value = selectedDatasetSplit;
+  const split = selectedSplit();
+  const axisSelect = byId("dataset-axis-select");
+  axisSelect.innerHTML = '<option value="all">전체 축 · 축별 1건</option>' + split.axes.map((axis) => `<option value="${escapeHtml(axis.axis)}">${escapeHtml(axis.label)} · 3건</option>`).join("");
+  if (selectedDatasetAxis !== "all" && !split.axes.some((axis) => axis.axis === selectedDatasetAxis)) selectedDatasetAxis = "all";
+  axisSelect.value = selectedDatasetAxis;
+}
+
+function sampleMessages(messages) {
+  return (messages || []).map((message) => `<div class="sample-message ${escapeHtml(message.role)}">
+    <span>${escapeHtml(({ system: "SYSTEM", user: "USER", assistant: "ASSISTANT" })[message.role] || message.role)}</span>
+    <p>${escapeHtml(message.content)}</p>
+  </div>`).join("");
+}
+
+function renderDatasetSamples(payload) {
+  byId("dataset-restriction").classList.toggle("hidden", !payload.restricted_content_included);
+  byId("dataset-samples").innerHTML = payload.items.map((item, index) => {
+    const body = item.format === "messages"
+      ? sampleMessages(item.messages)
+      : `<div class="structured-sample"><div><span>INPUT</span><pre>${escapeHtml(JSON.stringify(item.input, null, 2))}</pre></div><div><span>EXPECTED</span><pre>${escapeHtml(JSON.stringify(item.expected, null, 2))}</pre></div></div>`;
+    return `<article class="dataset-sample-card">
+      <header><div><span class="sample-number">${index + 1}</span><strong>${escapeHtml(item.axis_label)}</strong></div><div class="sample-badges"><span>${escapeHtml(item.task || "sample")}</span>${item.restricted_local_only ? '<span class="restricted-badge">로컬 제한</span>' : ""}</div></header>
+      ${body}
+      <footer><code>${escapeHtml(item.sample_key)}</code>${item.reference_available === false ? " · reference 없음" : ""}</footer>
+    </article>`;
+  }).join("");
+}
+
+async function loadDatasetSamples() {
+  const key = `${selectedDatasetSplit}/${selectedDatasetAxis}`;
+  if (loadedDatasetKey === key) return;
+  loadedDatasetKey = key;
+  byId("dataset-samples").innerHTML = '<p class="empty-conversation">고정 hash와 샘플 연결을 확인하는 중입니다.</p>';
+  byId("dataset-restriction").classList.add("hidden");
+  try {
+    const payload = await api(`/api/dataset-samples/${selectedDatasetSplit}/${selectedDatasetAxis}`);
+    if (`${selectedDatasetSplit}/${selectedDatasetAxis}` !== key) return;
+    renderDatasetSamples(payload);
+  } catch (error) {
+    if (`${selectedDatasetSplit}/${selectedDatasetAxis}` !== key) return;
+    loadedDatasetKey = null;
+    byId("dataset-samples").innerHTML = `<p class="empty-conversation">샘플 로드 실패: ${escapeHtml(error.message)}</p>`;
+  }
+}
+
+function selectDatasetSplit(splitId) {
+  if (!datasetCatalog?.splits.some((split) => split.split_id === splitId)) return;
+  selectedDatasetSplit = splitId;
+  selectedDatasetAxis = "all";
+  loadedDatasetKey = null;
+  renderSplitCards();
+  renderAxisDistribution();
+  renderDatasetControls();
+  loadDatasetSamples();
+}
+
+function renderDatasetCatalog(payload) {
+  datasetCatalog = payload;
+  if (!payload.splits.some((split) => split.split_id === selectedDatasetSplit)) selectedDatasetSplit = payload.splits[0].split_id;
+  renderSplitCards();
+  renderAxisDistribution();
+  renderDatasetControls();
+  loadDatasetSamples();
 }
 
 function renderConversation(session, context = null) {
@@ -213,14 +322,15 @@ async function renderSessions(payload) {
 
 async function refresh() {
   try {
-    const [status, metrics, checkpoints, checks, sessions] = await Promise.all([
-      api("/api/status"), api("/api/metrics"), api("/api/checkpoints"), api("/api/model-checks"), api("/api/sessions"),
+    const [status, metrics, checkpoints, checks, sessions, datasets] = await Promise.all([
+      api("/api/status"), api("/api/metrics"), api("/api/checkpoints"), api("/api/model-checks"), api("/api/sessions"), api("/api/dataset-splits"),
     ]);
     renderStatus(status);
     renderMetrics(metrics);
     renderCheckpoints(checkpoints);
     renderModelChecks(checks);
     await renderSessions(sessions);
+    renderDatasetCatalog(datasets);
   } catch (error) {
     byId("live-dot").className = "live-dot error";
     byId("lifecycle").textContent = "대시보드 오류";
@@ -260,6 +370,16 @@ byId("session-select").addEventListener("change", async (event) => {
   } catch (error) {
     byId("session-meta").textContent = `세션 로드 실패: ${error.message}`;
   }
+});
+
+byId("dataset-split-select").addEventListener("change", (event) => {
+  selectDatasetSplit(event.target.value);
+});
+
+byId("dataset-axis-select").addEventListener("change", (event) => {
+  selectedDatasetAxis = event.target.value;
+  loadedDatasetKey = null;
+  loadDatasetSamples();
 });
 
 byId("manual-form").addEventListener("submit", async (event) => {

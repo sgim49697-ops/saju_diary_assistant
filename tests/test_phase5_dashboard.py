@@ -16,11 +16,14 @@ from scripts.training.phase5_dashboard import (
     ASSET_ROOT,
     DEFAULT_CONFIG,
     DashboardHTTPServer,
+    DashboardRequestError,
     Phase5DashboardError,
     _parser,
     _select_probes,
     _service_snapshot,
     checkpoints_payload,
+    dataset_samples_payload,
+    dataset_splits_payload,
     execute_manual_generation,
     manual_session_payload,
     manual_sessions_payload,
@@ -40,7 +43,7 @@ class DashboardFixture:
         self.config = json.loads((REPO_ROOT / DEFAULT_CONFIG).read_text(encoding="utf-8"))
         self.config_path = (
             root
-            / "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.1.0.json"
+            / "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.2.0.json"
         )
         self.config_path.parent.mkdir(parents=True)
         self.run_root = root / "runs/KI20-MIX-v2/v1.2.0/run-123456abcdef"
@@ -141,6 +144,12 @@ class Phase5DashboardTests(unittest.TestCase):
         invalid["model_check"]["category_counts"]["empathy"] = "1"
         with self.assertRaisesRegex(Phase5DashboardError, "probe 범주"):
             validate_config(invalid)
+        invalid_dataset = json.loads(json.dumps(config))
+        invalid_dataset["dataset_browser"]["sealed_blind"][
+            "sample_access_allowed"
+        ] = True
+        with self.assertRaisesRegex(Phase5DashboardError, "dataset browser"):
+            validate_config(invalid_dataset)
         self.assertTrue(DashboardHTTPServer.allow_reuse_address)
 
     def test_prepare_context_rejects_symlink_and_outside_run(self) -> None:
@@ -267,6 +276,63 @@ class Phase5DashboardTests(unittest.TestCase):
         self.assertEqual(len(first), 20)
         self.assertNotIn("blind", json.dumps(first))
 
+    def test_dataset_catalog_matches_current_splits_and_keeps_blind_sealed(self) -> None:
+        payload = dataset_splits_payload(self.fixture.context())
+        counts = {split["split_id"]: split["rows"] for split in payload["splits"]}
+        self.assertEqual(
+            counts,
+            {
+                "ki10_train": 10_000,
+                "ki20_train": 20_000,
+                "dev_monitor": 70,
+                "dev_diagnostic": 930,
+                "persona_guard": 50,
+                "external_conformance": 220,
+            },
+        )
+        ki20 = next(
+            split for split in payload["splits"] if split["split_id"] == "ki20_train"
+        )
+        self.assertEqual(sum(axis["rows"] for axis in ki20["axes"]), 20_000)
+        self.assertFalse(payload["sealed_blind"]["sample_access_allowed"])
+        self.assertFalse(payload["blind_source_test_inspected"])
+        with self.assertRaisesRegex(DashboardRequestError, "허용되지 않은"):
+            dataset_samples_payload(self.fixture.context(), "blind_source_test", "all")
+
+    @patch("scripts.training.phase5_dashboard._dataset_candidates")
+    def test_dataset_samples_are_deterministic_minimal_and_mark_restricted(
+        self, candidates: object
+    ) -> None:
+        candidates.return_value = [
+            {
+                "identity": f"private-record-{index}",
+                "axis": "aihub_empathy_single",
+                "task": "empathic_response",
+                "format": "messages",
+                "messages": [
+                    {"role": "user", "content": f"질문 {index}"},
+                    {"role": "assistant", "content": f"답변 {index}"},
+                ],
+                "restricted_local_only": True,
+            }
+            for index in range(5)
+        ]
+        first = dataset_samples_payload(
+            self.fixture.context(), "ki20_train", "aihub_empathy_single", {}
+        )
+        second = dataset_samples_payload(
+            self.fixture.context(), "ki20_train", "aihub_empathy_single", {}
+        )
+        self.assertEqual(first, second)
+        self.assertEqual(len(first["items"]), 3)
+        self.assertTrue(first["restricted_content_included"])
+        self.assertTrue(first["local_only"])
+        self.assertFalse(first["sealed_blind_accessed"])
+        encoded = json.dumps(first, ensure_ascii=False)
+        self.assertNotIn("private-record", encoded)
+        self.assertNotIn("record_sha256", encoded)
+        self.assertNotIn("leakage", encoded)
+
     @patch("scripts.training.phase5_dashboard._generate_conversation")
     @patch("scripts.training.phase5_dashboard._generation_gate")
     def test_manual_generation_persists_and_reuses_session_context(
@@ -315,11 +381,22 @@ class Phase5DashboardTests(unittest.TestCase):
     def test_static_assets_are_self_hosted_and_contain_no_training_controls(self) -> None:
         html = (ASSET_ROOT / "index.html").read_text(encoding="utf-8")
         script = (ASSET_ROOT / "dashboard.js").read_text(encoding="utf-8")
+        style = (ASSET_ROOT / "dashboard.css").read_text(encoding="utf-8")
         self.assertNotIn("https://", html)
         self.assertNotIn("http://", html)
         self.assertNotIn("stop-training", html + script)
         self.assertNotIn("resume-training", html + script)
         self.assertEqual(html.count("__CSRF_TOKEN__"), 1)
+        self.assertIn('data-tab="dataset"', html)
+        self.assertLess(html.index('id="manual-panel"'), html.index('id="comparison-panel"'))
+        self.assertIn('<details id="comparison-panel"', html)
+        self.assertNotIn('<details id="comparison-panel" open', html)
+        self.assertIn("/api/dataset-samples/", script)
+        self.assertIn("--bg: #f4efe4", style)
+        dashboard_source = (REPO_ROOT / "scripts/training/phase5_dashboard.py").read_text(
+            encoding="utf-8"
+        )
+        self.assertNotIn("blind_source_test_500.jsonl", dashboard_source)
 
 
 class Phase5DashboardHTTPTests(unittest.TestCase):
@@ -402,6 +479,44 @@ class Phase5DashboardHTTPTests(unittest.TestCase):
         self.assertEqual(status, 200)
         session = json.loads(payload)
         self.assertEqual(session["messages"][0]["content"], "저장 질문")
+
+    @patch("scripts.training.phase5_dashboard._dataset_candidates")
+    def test_dataset_api_is_csrf_protected_and_returns_minimal_samples(
+        self, candidates: object
+    ) -> None:
+        status, _, payload = self.request(
+            "GET", "/api/dataset-splits", token=True
+        )
+        self.assertEqual(status, 200)
+        catalog = json.loads(payload)
+        self.assertEqual(catalog["sealed_blind"]["rows"], 500)
+        candidates.return_value = [
+            {
+                "identity": f"hidden-{index}",
+                "axis": "nemotron_saju",
+                "task": "structured_saju_reading",
+                "format": "messages",
+                "messages": [
+                    {"role": "user", "content": "질문"},
+                    {"role": "assistant", "content": "답변"},
+                ],
+                "restricted_local_only": False,
+            }
+            for index in range(3)
+        ]
+        status, _, payload = self.request(
+            "GET",
+            "/api/dataset-samples/ki20_train/nemotron_saju",
+            token=True,
+        )
+        self.assertEqual(status, 200)
+        result = json.loads(payload)
+        self.assertEqual(len(result["items"]), 3)
+        self.assertNotIn("hidden-", payload.decode())
+        status, _, _ = self.request(
+            "GET", "/api/dataset-samples/blind_source_test/all", token=True
+        )
+        self.assertEqual(status, 404)
 
     @patch("scripts.training.phase5_dashboard._generation_gate")
     def test_generation_is_fail_closed_while_training(self, gate: object) -> None:

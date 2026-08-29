@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="color-scheme" content="dark">
+    <meta name="color-scheme" content="light">
     <meta name="csrf-token" content="__CSRF_TOKEN__">
     <title>KI20 학습 관제실</title>
     <link rel="stylesheet" href="/dashboard.css">
@@ -73,6 +73,7 @@
       <nav class="tabs" aria-label="대시보드 화면">
         <button class="tab active" type="button" data-tab="training">학습 곡선</button>
         <button class="tab" type="button" data-tab="checkpoints">체크포인트</button>
+        <button class="tab" type="button" data-tab="dataset">데이터 스플릿</button>
         <button class="tab" type="button" data-tab="model">모델 검사</button>
       </nav>
 
@@ -128,19 +129,44 @@
         </article>
       </section>
 
+      <section id="tab-dataset" class="tab-panel">
+        <article class="panel dataset-overview">
+          <div class="panel-heading dataset-heading">
+            <div><span class="label">DATA MAP · LOCAL ONLY</span><h2>학습·개발·봉인 데이터 구성</h2><p>현재 고정된 split의 역할과 실제 샘플을 함께 확인합니다.</p></div>
+            <span class="status-pill locked">Blind 500 · 봉인 유지</span>
+          </div>
+          <div id="split-cards" class="split-cards" aria-label="데이터 split 선택"></div>
+        </article>
+
+        <article class="panel dataset-detail">
+          <div class="panel-heading">
+            <div><span class="label">AXIS DISTRIBUTION</span><h2 id="dataset-detail-title">KI20 학습 구성</h2></div>
+            <strong id="dataset-total" class="dataset-total">20,000행</strong>
+          </div>
+          <div id="axis-distribution" class="axis-distribution"></div>
+        </article>
+
+        <article class="panel dataset-samples-panel">
+          <div class="panel-heading dataset-sample-heading">
+            <div><span class="label">DETERMINISTIC SAMPLES</span><h2>데이터 샘플</h2></div>
+            <div class="dataset-controls">
+              <label for="dataset-split-select">Split</label>
+              <select id="dataset-split-select"></select>
+              <label for="dataset-axis-select">축</label>
+              <select id="dataset-axis-select"></select>
+            </div>
+          </div>
+          <div id="dataset-restriction" class="dataset-restriction hidden" role="note">AI Hub 제한 데이터가 포함돼 있습니다. 이 화면 밖으로 복사·공유하지 마세요.</div>
+          <div id="dataset-samples" class="dataset-samples" aria-live="polite"><p class="empty-conversation">샘플을 불러오는 중입니다.</p></div>
+          <p class="footnote">샘플은 고정 seed로 선택하며 내부 ID·원천 locator·hash는 표시하지 않습니다. Blind 원문은 이 화면에서 읽지 않습니다.</p>
+        </article>
+      </section>
+
       <section id="tab-model" class="tab-panel">
         <div id="model-lock" class="panel model-lock">
           <span class="lock-icon" aria-hidden="true">◇</span>
           <div><span class="label">SAFE INFERENCE LOCK</span><h2>학습 중에는 모델을 추가로 로드하지 않습니다.</h2><p id="model-lock-copy">학습 종료와 final reload 검증 뒤 자동으로 열립니다.</p><button id="run-probe-button" class="secondary-button hidden" type="button">고정 20건 검사 실행</button></div>
         </div>
-        <article id="comparison-panel" class="panel hidden">
-          <div class="panel-heading">
-            <div><span class="label">FIXED 20 · DIAGNOSTIC ONLY</span><h2>KI10 ↔ KI20 응답 비교</h2></div>
-            <span id="comparison-status" class="cap-label">—</span>
-          </div>
-          <div id="comparison-summary" class="comparison-summary"></div>
-          <div id="comparison-list" class="comparison-list"></div>
-        </article>
         <article id="manual-panel" class="panel manual-panel hidden">
           <div class="panel-heading">
             <div><span class="label">LOCAL · SESSION HISTORY</span><h2>세션별 수동 질문</h2></div>
@@ -160,6 +186,16 @@
             <div class="form-actions"><small>질문·답변은 현재 run의 Git 제외 private 폴더에만 저장됩니다.</small><button id="generate-button" type="submit">답변 생성</button></div>
           </form>
         </article>
+        <details id="comparison-panel" class="panel diagnostic-disclosure hidden">
+          <summary class="diagnostic-summary">
+            <div><span class="label">FIXED 20 · DIAGNOSTIC ONLY</span><h2>고정 20건 진단 비교</h2><span id="comparison-glance" class="diagnostic-glance">KI10 ↔ KI20 결과 보기</span></div>
+            <span id="comparison-status" class="cap-label">정식 Gate 아님</span>
+          </summary>
+          <div class="diagnostic-content">
+            <div id="comparison-summary" class="comparison-summary"></div>
+            <div id="comparison-list" class="comparison-list"></div>
+          </div>
+        </details>
       </section>
 
       <footer>

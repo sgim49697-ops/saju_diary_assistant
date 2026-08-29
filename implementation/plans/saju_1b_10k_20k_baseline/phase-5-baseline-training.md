@@ -279,6 +279,11 @@ runs/KI20-MIX-v2/v1.2.0/run-1f5d732cae67/  # 1 epoch 본학습 실행 중
 ## 진행 기록
 
 - 2026-08-29
+  - 작업 요약: dashboard `v1.2.0`에 현재 KI10·KI20 학습, dev monitor·diagnostic, persona guard, 외부 정합성의 수량·축별 분포와 고정 샘플을 보는 `데이터 스플릿` 탭을 추가했다. 화면은 밝은 한지 바탕과 저채도 오행 색으로 바꾸고, 세션 챗봇을 먼저 배치한 뒤 고정 20건 진단 비교를 기본 닫힘 토글로 이동했다.
+  - 변경 범위: 샘플 API는 고정 SHA-256을 확인한 로컬 비봉인 데이터만 읽고 message 또는 구조화 input/expected 최소 투영만 반환한다. AI Hub 두 축은 `로컬 제한·외부 공유 금지`를 표시하며 내부 record·leakage·locator·hash는 반환하지 않는다. `blind_source_test_500`은 수량·봉인 상태만 표시하고 payload path를 구현에 포함하거나 읽지 않았다. 학습 데이터·split membership·checkpoint·기존 dashboard 세션과 fixed probe 결과는 수정하지 않았다.
+  - 검증: dashboard 단위·HTTP 보안·dataset 회귀 17건, Ruff, JavaScript syntax, JSON parse와 diff check가 통과했다. 실제 `run-1f5d732cae67`에서 split 10,000/20,000/70/930/50/220과 blind 500을 확인하고 KI20 전체 7축 샘플, 제한 표시, `sealed_blind_accessed=false`를 검증했다. Windows headless Chrome의 1440×1200·390×844 렌더링에서 한지 테마와 반응형 배치를 확인했고 렌더 DOM에서 고정 20건 외부 토글이 기본 닫힘이었다.
+  - 남은 이슈·후속 작업: 데이터 샘플은 loopback 진단 편의이며 정식 평가나 품질 주장에 사용하지 않는다. AI Hub 샘플은 사용자의 로컬 즉시 표시 선택에 따라 보이므로 화면 캡처·복사·외부 공유를 금지한다. Phase 6 blind 단회 평가는 이 변경으로 시작되지 않았다.
+- 2026-08-29
   - 작업 요약: 완료된 KI20 final을 수동 검사할 때 대화를 단발성으로 버리던 dashboard를 `v1.1.0` 세션 방식으로 확장했다. 새 세션·기존 세션 선택, turn별 질문/답변 조회와 이전 대화를 포함한 후속 생성을 지원한다.
   - 변경 범위: 대화 원문은 `runs/.../dashboard/v1.1.0/manual_sessions`의 Git 제외 private JSON에만 0600으로 원자 저장한다. 최대 100세션·세션당 50 turn을 보존하고 모델 입력은 오래된 완결 turn부터 제외해 3,584 token으로 제한한다. fixed probe `v1.0.0`, 학습 run·checkpoint, sealed blind와 품질 Gate는 수정하지 않았다.
   - 검증: dashboard 단위·HTTP 보안·세션 회귀 14건, Ruff, JavaScript syntax, JSON parse와 diff check가 통과했다. 실제 `run-1f5d732cae67` dashboard를 재기동해 `127.0.0.1:8765` active, CSRF 보호 `/api/sessions` 200, 빈 초기 세션 목록과 generation gate open을 확인했다. 재기동 중 확인한 TCP 재바인딩 지연은 loopback server의 안전한 address reuse로 보완했다.
