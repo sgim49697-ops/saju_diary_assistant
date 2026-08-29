@@ -72,11 +72,27 @@ class Phase5KI20TrainingTests(unittest.TestCase):
             )
 
     def test_training_commands_default_to_dry_run(self) -> None:
-        self.assertEqual(main(["train"]), 0)
-        self.assertEqual(
-            main(["resume", "--checkpoint", "runs/not-used/checkpoint-250"]), 0
-        )
-        self.assertFalse(self.context["run_root"].exists())
+        with tempfile.TemporaryDirectory() as temporary:
+            dry_context = {
+                **self.context,
+                "run_root": Path(temporary) / "dry-run",
+            }
+            with patch(
+                "scripts.training.phase5_ki20_train.prepare_context",
+                return_value=dry_context,
+            ):
+                self.assertEqual(main(["train"]), 0)
+                self.assertEqual(
+                    main(
+                        [
+                            "resume",
+                            "--checkpoint",
+                            "runs/not-used/checkpoint-250",
+                        ]
+                    ),
+                    0,
+                )
+            self.assertFalse(dry_context["run_root"].exists())
 
     def test_initial_manifest_does_not_claim_training_before_first_step(self) -> None:
         manifest = _initial_manifest(

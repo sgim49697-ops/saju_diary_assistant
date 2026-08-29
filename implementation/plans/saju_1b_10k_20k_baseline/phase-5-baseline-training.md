@@ -2,7 +2,7 @@
 
 | 항목 | 값 |
 |---|---|
-| 실행 상태 | 진행 중 — KI20 1 epoch 실행 계약 승인·시작 대기 |
+| 실행 상태 | 진행 중 — KI20 `run-1f5d732cae67` 1 epoch 본학습 실행 중 |
 | 선행 Phase | Phase 4 완료 |
 | 입력 | 선택 길이의 canonical MIX10·MIX20, Instruct snapshot, 승인 config |
 | 출력 | KI10·KI20 checkpoint, trainer state, 환경·학습 보고서 |
@@ -138,13 +138,13 @@ PHASE5_TRAINING=KI10-MIX-v2 .venv/bin/python scripts/training/phase5_train.py tr
 2026-08-29 사용자가 KI20 1 epoch 본학습을 별도로 명시 확인했다. readiness v1.3의 당시 상태는 소급 변경하지 않고 `phase5-training-v1.2.0.json`과 registry 실행 승인 포인터로 새 이력을 만든다. 실행은 기본 dry-run과 환경변수 이중 확인을 유지한다.
 
 ```bash
-.venv-data/bin/python scripts/training/phase5_ki20_train.py validate-contract
-.venv-data/bin/python scripts/training/phase5_ki20_train.py plan
-PHASE5_TRAINING=KI20-MIX-v2 .venv-data/bin/python scripts/training/phase5_ki20_train.py train --execute
-.venv-data/bin/python scripts/training/phase5_ki20_train.py verify-start
+.venv/bin/python scripts/training/phase5_ki20_train.py validate-contract
+.venv/bin/python scripts/training/phase5_ki20_train.py plan
+PHASE5_TRAINING=KI20-MIX-v2 .venv/bin/python scripts/training/phase5_ki20_train.py train --execute
+.venv/bin/python scripts/training/phase5_ki20_start_status.py
 ```
 
-`verify-start`는 정확히 첫 optimizer step에서 loss·grad norm·전체 gradient가 유한하고 gradient가 nonzero이며, 기록된 PID가 같은 runner와 CUDA compute process로 계속 실행 중일 때만 통과한다. 이 판정은 실험 시작 확인일 뿐 학습 완료·품질 인증·배포 승격이 아니다.
+시작 상태 검증은 정확히 첫 optimizer step에서 loss·grad norm·전체 gradient가 유한하고 gradient가 nonzero이며, 기록된 PID와 systemd service가 같은 runner로 계속 실행 중일 때만 통과한다. WSL2의 `nvidia-smi --query-compute-apps`가 빈 목록을 반환하는 환경에서는 WSL2 여부와 시작 전 대비 4,096MiB 이상의 GPU 메모리 증가를 함께 요구한다. 이 판정은 실험 시작 확인일 뿐 학습 완료·품질 인증·배포 승격이 아니다.
 
 ## Run 시작 전 동등성 검사
 
@@ -229,7 +229,7 @@ handoff 행동 7/50                      미달
 - [x] Gate v1 bytes를 보존하고 Gate v2 hard gate·품질 목표를 분리 판정했다.
 - [x] KI20의 forward/backward/optimizer·batch/worker/eval 비학습 preflight를 완료했다.
 - [x] 사용자의 별도 명시 확인을 v1.2 실행 계약과 registry 승인 포인터로 고정했다.
-- [ ] 별도 명시 확인 뒤에만 KI20을 같은 Instruct snapshot에서 독립 시작했다.
+- [x] 별도 명시 확인 뒤 KI20을 같은 Instruct snapshot에서 독립 시작하고 첫 정상 step을 확인했다.
 - [ ] 실행된 KI20은 KI10과 manifest·output 경로 외 설정이 같고 재로딩 가능하다.
 - [x] 모델·checkpoint를 공개 저장소나 Hub에 올리지 않았다.
 
@@ -253,7 +253,7 @@ runs/KI10-MIX-v2/v1.0.0/run-<fingerprint>/
 ├── reload_fixtures.jsonl
 └── ki10_diagnostic_generations.jsonl
 
-runs/KI20-MIX-v2/v1.2.0/run-<fingerprint>/  # 첫 정상 step 전에는 시작으로 판정하지 않음
+runs/KI20-MIX-v2/v1.2.0/run-1f5d732cae67/  # 1 epoch 본학습 실행 중
 └── <동일 구조>
 ```
 
@@ -278,6 +278,11 @@ runs/KI20-MIX-v2/v1.2.0/run-<fingerprint>/  # 첫 정상 step 전에는 시작�
 
 ## 진행 기록
 
+- 2026-08-29
+  - 작업 요약: 실행 계약 commit `9ad00a283ce64ff222a54c41f743ae378ce12fe4`에서 KI20 `run-1f5d732cae67`을 systemd user service로 시작하고 첫 정상 optimizer step을 검증했다.
+  - 변경 범위: Git 제외 private run 경로에 initializing manifest를 만든 뒤 step 1에서만 `phase5_training_performed=true`와 start marker를 원자적으로 기록했다. 모델·20K manifest·기존 KI10/v1.1 산출물은 수정하지 않았다.
+  - 검증: loss `2.9315`, grad norm `21.375`, gradient finite/nonzero, PID `826832`와 service active를 확인했다. WSL2 compute-app 목록 미노출은 고정 runner PID와 초기 대비 GPU `8,781MiB` 증가로 교차 검증했으며 총 사용량 `9,879MiB`는 16GiB 상한 미만이었다.
+  - 남은 이슈·후속 작업: 학습은 2,500 step까지 백그라운드에서 계속된다. 완료 후 checkpoint-1250·2500/final, 새 process reload, 공개 집계 보고서를 검증하고 그다음 Phase 6 평가를 별도 진행한다.
 - 2026-08-29
   - 작업 요약: 사용자의 KI20 1 epoch 실행 확인을 받았고, 첫 정상 optimizer step을 시작 완료 기준으로 하는 training `v1.2.0` 계약을 추가했다.
   - 변경 범위: 기존 v1.0 runner와 v1.1 preflight를 수정하지 않고 전용 runner·config·registry 승인 이력을 분리했다. 1 epoch 2,500 step, `4×2`, eval 8, assistant-only `chunked_nll`, BF16 Full FT를 유지하며 1,250·2,500 step checkpoint를 보존한다.

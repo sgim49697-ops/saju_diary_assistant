@@ -36,7 +36,7 @@
 | 2 | [데이터 전처리](phase-2-data-preprocessing.md) | 완료 | 품질 보정 7축 24K와 로컬 전용 AI Hub 후보 10K 완결, 학습 승격은 Phase 4 Gate로 분리 |
 | 3 | [학습 모델·환경 준비](phase-3-model-preparation.md) | 완료 | 고정 PyTorch cu130 환경에서 모델·tokenizer·template 전체 BF16 오프라인 로드 성공 |
 | 4 | [학습 전 데이터·모델 검증](phase-4-preflight-validation.md) | 완료 | 품질 보정 staging의 A~E·1,020case·Full FT 200-step resume와 768 canonical 승격 통과 |
-| 5 | [Baseline 학습](phase-5-baseline-training.md) | 진행 중 | KI10·Gate v2·KI20 비학습 preflight 완료, KI20 1 epoch 실행 계약 승인·시작 대기 |
+| 5 | [Baseline 학습](phase-5-baseline-training.md) | 진행 중 | KI10·Gate v2·KI20 preflight 완료, `run-1f5d732cae67` 1 epoch 본학습 실행 중 |
 | 6 | [평가·검수·v2 결정](phase-6-evaluation-v2-decision.md) | 미시작 | 고정 평가 후 50K 또는 v2 Lite 경로 결정 |
 
 Phase 상태 값은 `미시작`, `부분 진행`, `진행 중`, `차단`, `완료`만 사용한다. 앞 Phase가 `완료`가 아니면 뒤 Phase의 공식 산출물을 만들지 않는다.
@@ -124,7 +124,7 @@ runs/
 ├── K0-INSTRUCT/v2.0.0/build-2feaee353252/
 ├── KI1K-SMOKE-v2/v2.0.0/build-2feaee353252/
 ├── KI10-MIX-v2/
-├── KI20-MIX-v2/v1.2.0/run-<fingerprint>/
+├── KI20-MIX-v2/v1.2.0/run-1f5d732cae67/
 └── KI20-MIX-v2-LITE/  # Phase 6 결정 시에만 생성
 ```
 
@@ -229,6 +229,11 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
 
 ## 진행 기록
 
+- 2026-08-29
+  - 작업 요약: clean commit `9ad00a283ce64ff222a54c41f743ae378ce12fe4`에서 KI20 1 epoch run `run-1f5d732cae67`을 독립 시작했다. goal 완료 기준인 첫 유한 optimizer step과 활성 process를 확인했다.
+  - 변경 범위: model·data·과거 run은 수정하지 않고 Git 제외 `runs/KI20-MIX-v2/v1.2.0/run-1f5d732cae67`에 private 실행 상태를 생성했다. systemd user service가 학습을 계속 수행한다.
+  - 검증: step 1 loss `2.9315`, grad norm `21.375`, gradient finite/nonzero, PID `826832` active를 확인했다. WSL2가 compute-app PID를 노출하지 않아 고정 runner PID·active service·초기 대비 GPU `8,781MiB` 증가를 교차 검증했으며 총 GPU 사용량은 `9,879/16,303MiB`였다.
+  - 남은 이슈·후속 작업: 2,500 step 완료·milestone/final 저장·새 process reload·Phase 6 평가는 별도 후속 확인 대상이다. `production_promotion_allowed=false`와 blind 미열람을 유지한다.
 - 2026-08-29
   - 작업 요약: 사용자의 별도 명시 확인을 받아 KI20 1 epoch Full FT 실행 계약 `v1.2.0`을 승인했다. 실제 시작 판정은 첫 optimizer step의 유한 loss·gradient와 활성 process 확인으로 분리했다.
   - 변경 범위: 기존 training v1.0·preflight v1.1·readiness v1.3은 불변으로 보존하고 새 config, 전용 runner, registry 실행 승인 포인터를 추가했다. 품질 목표 미달과 `production_promotion_allowed=false`는 유지한다.

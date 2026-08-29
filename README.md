@@ -2,7 +2,7 @@
 
 # 사주 일기 도우미
 
-Kanana 2 1.3B 기반 한국어 사주·공감 대화 baseline 프로젝트다. `KI10-MIX-v2` 학습·재로딩과 Gate v2 기술·안전 hard gate, `KI20-MIX-v2` 비학습 preflight를 완료했다. 품질 목표 미달은 그대로 공개하고 배포 승격은 금지하되, 사용자의 별도 명시 확인에 따라 독립 KI20 1 epoch 실험 실행 계약을 승인했다.
+Kanana 2 1.3B 기반 한국어 사주·공감 대화 baseline 프로젝트다. `KI10-MIX-v2` 학습·재로딩과 Gate v2 기술·안전 hard gate, `KI20-MIX-v2` 비학습 preflight를 완료했다. 품질 목표 미달은 그대로 공개하고 배포 승격은 금지한 채, 사용자의 별도 명시 확인에 따라 독립 KI20 1 epoch 실험을 시작했다.
 
 - [프로젝트 현황판](PROJECT_STATUS.html)
 - [10K/20K 정본 계획](implementation/plans/saju_1b_10k_20k_baseline/README.md)
