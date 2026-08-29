@@ -84,7 +84,7 @@ data/
         ├── phase5-gate/v2.0.0/KI10-MIX-v2/gate-df26e962e145/ # 기술/안전·품질 목표 분리
         ├── phase5-preflight/v1.1.0/preflight-b47fe12f03a4/ # KI20 비학습 처리량 검증
         ├── phase5-readiness/v1.3.0/build-7eb4c34364cc/ # KI20 preflight readiness
-        ├── project-status/v1.0.0/build-d97639639b75/ # KI20 preflight 대기 현황
+        ├── project-status/v1.0.0/build-e23e3501a200/ # KI20 preflight 대기 현황
         └── phase-verification/v1.0.0/review-20260828/
 
 configs/data_versions/saju_1b_baseline/
@@ -229,9 +229,9 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
 ## 진행 기록
 
 - 2026-08-29
-  - 작업 요약: 정본을 `3.3.0`으로 올려 Gate v2와 KI20 비학습 preflight를 반영했다. readiness `v1.3.0/build-7eb4c34364cc`과 현황 `v1.0.0/build-d97639639b75`을 registry 최신 포인터로 고정했으며 KI20 본학습은 실행하지 않았다.
+  - 작업 요약: 정본을 `3.3.0`으로 올려 Gate v2와 KI20 비학습 preflight를 반영했다. readiness `v1.3.0/build-7eb4c34364cc`과 현황 `v1.0.0/build-e23e3501a200`을 registry 최신 포인터로 고정했으며 KI20 본학습은 실행하지 않았다.
   - 변경 범위: 평가 `v1.2.0/build-e885b47cae74`, Gate `v2.0.0/gate-df26e962e145`, preflight `v1.1.0/preflight-b47fe12f03a4`을 새 경로에 추가했다. 과거 Gate v1, canonical 10K/20K, KI10 checkpoint, blind bytes를 덮어쓰지 않았다.
-  - 검증: Gate v2 hard gate 10개 전부 통과, scorer reference/mutation 각 175건 전부 기대대로 판정했다. KI20 후보 중 train `4×2`·worker 0·eval 8을 선택했고 peak GPU `10,634MiB`로 16GiB 상한을 통과했다. 품질 목표는 8개 미달이라 배포 승격은 금지다.
+  - 검증: Gate v2 hard gate 10개 전부 통과, scorer reference/mutation 각 175건 전부 기대대로 판정했다. KI20 후보 중 train `4×2`·worker 0·eval 8을 선택했고 train peak `10,634MiB`, eval peak `11,802MiB`로 모두 16GiB 상한을 통과했다. 품질 목표는 8개 미달이라 배포 승격은 금지다.
   - 남은 이슈·후속 작업: `full_training_execution_enabled=false`, `production_promotion_allowed=false`, `blind_source_test_inspected=false`를 유지한다. 실제 KI20 1 epoch는 사용자의 새 명시 확인과 별도 실행 checkpoint 뒤에만 시작한다.
 - 2026-08-29
   - 작업 요약: 현황 렌더러 checkpoint `618ce4d9870e7a64681823f0cde3a38f9934fad1`에서 KI10 Gate 실패 snapshot `v1.0.0/build-a4014017c26c`를 생성하고 registry 승인 포인터와 root HTML을 연결했다.

@@ -268,8 +268,8 @@ runs/KI20-MIX-v2/v1.1.0/run-<fingerprint>/  # 아직 생성하지 않음
 
 - 2026-08-29
   - 작업 요약: Gate v2 계약 탐색부터 KI20 비학습 preflight까지 완료해 readiness `v1.3.0/build-7eb4c34364cc`으로 묶었다. 실제 KI20 1 epoch 학습은 실행하지 않았다.
-  - 변경 범위: 평가 계약 `v1.2.0/build-e885b47cae74`, Gate `v2.0.0/gate-df26e962e145`, preflight `v1.1.0/preflight-b47fe12f03a4`, 공개 현황 `build-d97639639b75`을 새 불변 경로에 추가했다. Gate v1 코드·보고서, 학습 데이터, 모델 checkpoint, sealed blind는 수정·열람하지 않았다.
-  - 검증: scorer reference/mutation `175/175`, Gate v2 hard gate `10/10`, train 후보 `1×8·2×4·4×2`, longest padded stress, worker `0/2`, eval batch `1/2/4/8`을 비교했다. `4×2`, worker 0, eval 8을 선택했고 최대 전체 GPU 사용량은 `10,634MiB < 16,384MiB`였다.
+  - 변경 범위: 평가 계약 `v1.2.0/build-e885b47cae74`, Gate `v2.0.0/gate-df26e962e145`, preflight `v1.1.0/preflight-b47fe12f03a4`, 공개 현황 `build-e23e3501a200`을 새 불변 경로에 추가했다. Gate v1 코드·보고서, 학습 데이터, 모델 checkpoint, sealed blind는 수정·열람하지 않았다.
+  - 검증: scorer reference/mutation `175/175`, Gate v2 hard gate `10/10`, train 후보 `1×8·2×4·4×2`, longest padded stress, worker `0/2`, eval batch `1/2/4/8`을 비교했다. `4×2`, worker 0, eval 8을 선택했고 train peak `10,634MiB`, eval peak `11,802MiB`로 모두 `16,384MiB` 미만이었다.
   - 남은 이슈·후속 작업: 품질 목표는 원국 글자 외 8개가 미달이며 `production_promotion_allowed=false`다. 본학습은 `full_training_execution_enabled=false`로 닫혀 있고 사용자 새 확인 뒤 별도 실행 계약으로만 시작한다. tokenizer regex·YaRN 경고는 현 fingerprint를 바꾸지 않고 후속 버전에서 검증한다.
 - 2026-08-29
   - 작업 요약: 구현 checkpoint `618ce4d9870e7a64681823f0cde3a38f9934fad1`에서 KI10 Gate 실패 현황판 `v1.0.0/build-a4014017c26c`를 발행하고 registry 최신 포인터를 갱신했다.

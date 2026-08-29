@@ -147,7 +147,7 @@
     {"name": "KI10 Gate v1", "status": "차단", "criterion": "과거 통합 승격 기준", "result": "원본 코드·보고서 bytes를 변경하지 않고 역사 기록으로 보존"},
     {"name": "KI10 Gate v2 hard gate", "status": "통과", "criterion": "artifact·step·reload·안전·민감정보·허위 원국 0", "result": "10/10 통과 · experiment_continuation_allowed=true"},
     {"name": "KI10 Gate v2 품질 목표", "status": "주의", "criterion": "지식·정책·handoff 목표", "result": "원국 글자 12/12 외 8개 목표 미달 · 배포 승격 금지"},
-    {"name": "KI20 비학습 preflight", "status": "통과", "criterion": "forward/backward/optimizer·후보 비교·16 GiB 미만", "result": "train 4×accum2·worker 0·eval 8 · peak 10,634 MiB"},
+    {"name": "KI20 비학습 preflight", "status": "통과", "criterion": "forward/backward/optimizer·후보 비교·16 GiB 미만", "result": "train 4×accum2·worker 0·eval 8 · train peak 10,634 MiB·eval peak 11,802 MiB"},
     {"name": "KI20 본학습", "status": "대기", "criterion": "별도 명시적 재확인", "result": "full_training_execution_enabled=false · 1 epoch 미실행"},
     {"name": "sealed blind", "status": "금지", "criterion": "final checkpoint 고정 뒤 단회", "result": "현재 미열람"}
   ],
@@ -186,7 +186,7 @@
     "KI10 1,250 optimizer step·새 프로세스 reload 5/5·유한 loss/gradient 통과",
     "Gate v2 reference 175/175 통과·의도적 mutation 175/175 거부·blind 미열람",
     "KI20 후보 1×8·2×4·4×2를 격리 비교해 4×2 선택, worker 2는 5% 개선 미달로 worker 0 유지",
-    "실측 GPU 최대 10,634 MiB로 16 GiB hard cap 통과·RAM/swap은 진단값으로만 기록",
+    "실측 GPU train peak 10,634 MiB·eval peak 11,802 MiB로 모두 16 GiB hard cap 통과·RAM/swap은 진단값으로만 기록",
     "eval batch 1/2/4/8 동등성 검사 후 batch 8 선택·full KI20 1 epoch는 실행하지 않음"
   ],
   "outputs": {
