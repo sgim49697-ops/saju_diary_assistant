@@ -238,6 +238,11 @@ runs/KI20-MIX-v2/v1.0.0/run-<fingerprint>/
 ## 진행 기록
 
 - 2026-08-29
+  - 작업 요약: KI10 forward-only preflight `run-e6b712f0d45e`가 BF16·SDPA·assistant-only evaluation을 통과했다. `train_method_called=false`, `backward_performed=false`, `optimizer_step_performed=false`를 manifest로 확인했다.
+  - 변경 범위: dev monitor 70건만 forward했고 비공개 `runs/PHASE5-PREFLIGHT` 경로 외에는 모델·데이터·checkpoint를 쓰지 않았다. TRL stop-token 경고는 assistant 뒤 user를 붙이는 generic probe와 Kanana의 last-response-only template 의미가 달라 발생했다.
+  - 검증: eval loss `3.658891439437866`, peak/free VRAM `3,675,810,816`/`12,867,076,096` bytes, summary/manifest SHA-256 `cdd5ca7…b6a79`/`01e5dfb…2cac5`다. KI10 10,000행 전수에서 final assistant EOS mask 10,000건, 누락 0건, 최대 609 token을 확인했다. 1,543개 멀티턴의 앞선 assistant는 원본 정책대로 context이고 마지막 응답만 supervision한다.
+  - 남은 이슈·후속 작업: preflight 통과 현황을 새 공개 status build로 고정한 clean tree에서만 KI10 Full FT를 시작한다. KI20은 계속 `ki20_promotion_allowed=false`다.
+- 2026-08-29
   - 작업 요약: 수정 runner를 포함한 readiness `v1.2.0/build-e325f16096dd`을 clean commit에서 새로 생성하고 별도 프로세스로 재검증했다. 이전 readiness는 덮어쓰지 않았다.
   - 변경 범위: registry 최신 승인 포인터와 공개 현황판을 새 build로 연결했다. dev monitor 70건과 canonical KI10/20K fingerprint는 불변이며 봉인 blind·학습·backward·optimizer step은 수행하지 않았다.
   - 검증: build SHA-256 `e325f160…fbf7775`, private/public manifest `fd7d2b0…67553`/`b0356b2…3b0e3`, summary `6ca7fb4…3d814`, dev monitor `aa61d2a…bcb31`을 확인했다. KI10 baseline 허용·KI20 금지·전문가 품질 주장 금지를 유지한다.

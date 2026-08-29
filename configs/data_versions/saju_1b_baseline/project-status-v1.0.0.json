@@ -83,7 +83,7 @@
     {"phase": 2, "title": "품질 보정 전처리", "status": "완료", "note": "7축 24K staging과 로컬 reservoir 완결"},
     {"phase": 3, "title": "모델·CUDA 환경", "status": "완료", "note": "Kanana BF16·torch 2.13.0+cu130 smoke 통과"},
     {"phase": 4, "title": "학습 전 기술 검증", "status": "완료", "note": "768 Full FT 200-step resume와 canonical v2 승인"},
-    {"phase": 5, "title": "10K·조건부 20K 학습", "status": "미시작", "note": "KI10 실행 대기, KI20은 자동 품질 Gate 전 금지"},
+    {"phase": 5, "title": "10K·조건부 20K 학습", "status": "미시작", "note": "KI10 forward 통과·Full FT 시작 대기, KI20은 자동 품질 Gate 전 금지"},
     {"phase": 6, "title": "봉인 평가·다음 결정", "status": "미시작", "note": "모델 고정 전 blind 접근 금지"}
   ],
   "dataset_axes": [
@@ -107,7 +107,7 @@
     {"name": "20K 의미·출처 감사", "status": "통과", "criterion": "hard blocker·critical/high·mask 오류 0", "result": "수정 없이 KI10 baseline 허용"},
     {"name": "평가 봉인", "status": "통과", "criterion": "v1.0 bytes 보존·blind 미열람", "result": "dev 930+guard 50만 사전 사용"},
     {"name": "Phase 5 readiness", "status": "통과", "criterion": "모델·환경·data·runner exact hash", "result": "KI10만 실행 허용"},
-    {"name": "KI10 forward preflight", "status": "대기", "criterion": "BF16 forward·assistant-only eval loss finite", "result": "clean commit 뒤 GPU 실행"},
+    {"name": "KI10 forward preflight", "status": "통과", "criterion": "BF16 forward·assistant-only eval loss finite", "result": "run-e6b712f0d45e · loss 3.658891 · peak VRAM 3,675,810,816 bytes"},
     {"name": "KI10 1,000case Gate", "status": "대기", "criterion": "고정 자동 기준 전부 통과", "result": "학습 뒤 판정"},
     {"name": "KI20", "status": "금지", "criterion": "KI10 모든 품질 기준 통과", "result": "현재 promotion false"},
     {"name": "sealed blind", "status": "금지", "criterion": "final checkpoint 고정 뒤 단회", "result": "현재 미열람"}
@@ -137,7 +137,8 @@
     "평가 v1.0 membership·blind bytes 보존, blind payload 미열람",
     "AI Hub 원문·ID·개별 hash·checkpoint를 공개 산출물에서 제외",
     "KI10과 KI20을 base snapshot에서 독립 시작하도록 runner 고정",
-    "KI20은 KI10 1,000case 자동 Gate 전까지 fail-closed"
+    "KI20은 KI10 1,000case 자동 Gate 전까지 fail-closed",
+    "KI10 10,000행의 최종 assistant EOS mask 10,000/10,000과 forward-only loss 3.658891 재검증"
   ],
   "outputs": {
     "root_html": "PROJECT_STATUS.html",

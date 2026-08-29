@@ -79,7 +79,7 @@ data/
         ├── phase5-readiness/v1.0.0/build-f6c8171f454f/ # 과거 비학습 계약
         ├── phase5-readiness/v1.1.0/build-201010b37e40/ # 봉인 평가 연결 계약
         ├── phase5-readiness/v1.2.0/build-e325f16096dd/ # 감사·평가·runner 연결 계약
-        ├── project-status/v1.0.0/build-a89d078aabc0/ # 공개 단일 파일 현황 snapshot
+        ├── project-status/v1.0.0/build-3f8a7f1df86a/ # 공개 단일 파일 현황 snapshot
         └── phase-verification/v1.0.0/review-20260828/
 
 configs/data_versions/saju_1b_baseline/
@@ -214,6 +214,11 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
 
 ## 진행 기록
 
+- 2026-08-29
+  - 작업 요약: 새 readiness의 KI10 forward-only preflight `run-e6b712f0d45e`를 실행해 BF16 model load와 dev monitor 70건의 assistant-only loss를 검증했다. 실제 `.train()`·backward·optimizer step은 수행하지 않았다.
+  - 변경 범위: 비공개 run summary만 생성했고 학습 데이터·모델·tokenizer·checkpoint·평가 split은 변경하지 않았다. TRL의 stop-token 일반 경고는 Kanana가 마지막 응답만 supervision하는 template라 발생함을 10K 전수 mask 집계로 분리 확인했다.
+  - 검증: eval loss `3.658891439437866`, peak VRAM `3,675,810,816` bytes, 종료 free VRAM `12,867,076,096` bytes, 최종 assistant EOS mask `10,000/10,000`, 최대 길이 `609/768`, mask·EOS 누락 0건이다. preflight summary SHA-256은 `cdd5ca7…b6a79`다.
+  - 남은 이슈·후속 작업: 현황판에 preflight 통과를 반영해 커밋한 뒤 KI10 1 epoch Full FT를 실행한다. KI20은 KI10 reload와 1,000case 자동 Gate가 모두 통과할 때까지 실행하지 않는다.
 - 2026-08-29
   - 작업 요약: TRL preflight 호출 수정 commit `a6a1eefa91fcd7fa34f37ffbea386a9a731c9ea6`에서 readiness `v1.2.0/build-e325f16096dd`을 새 경로에 생성·standalone verify하고 현황판 `v1.0.0/build-a89d078aabc0`을 재발행했다.
   - 변경 범위: 이전 `build-bffd…`와 `build-f3ae…`는 불변 이력으로 보존했다. registry 최신 포인터와 문서 경로만 새 runner fingerprint에 연결했으며 학습 데이터·평가 membership·봉인 blind는 변경하거나 열람하지 않았다.

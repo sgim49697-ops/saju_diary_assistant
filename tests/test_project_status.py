@@ -26,7 +26,7 @@ class ProjectStatusTests(unittest.TestCase):
         result = validate_contract(config, REPO_ROOT)
         context = prepare_context(REPO_ROOT, CONFIG_PATH)
         self.assertEqual(result["status"], "valid")
-        self.assertEqual(context["build_id"], "build-a89d078aabc0")
+        self.assertEqual(context["build_id"], "build-3f8a7f1df86a")
 
     def test_html_is_self_contained_and_carries_governance(self) -> None:
         context = prepare_context(REPO_ROOT, CONFIG_PATH)
