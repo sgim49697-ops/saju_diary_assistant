@@ -60,7 +60,7 @@ data/
 │   ├── manifests/
 │   └── eval/
 ├── derived/saju_1b_baseline/evaluation-split/v1.0.0/build-a5a04ab96594/
-├── derived/saju_1b_baseline/evaluation-split/v1.1.0/build-<fingerprint>/ # v1.0 봉인 유지·dev 진단 확장
+├── derived/saju_1b_baseline/evaluation-split/v1.1.0/build-d2f9e1623e96/ # v1.0 봉인 유지·dev 진단 확장
 ├── derived/saju_1b_baseline/phase5-readiness/v1.0.0/build-f6c8171f454f/ # 과거 readiness
 ├── derived/saju_1b_baseline/phase5-readiness/v1.1.0/build-201010b37e40/
 └── reports/
@@ -73,6 +73,8 @@ data/
         ├── preflight/v1.1.0/build-a1a34616dd72/      # 과거 A~E 완료 build
         ├── preflight/v2.0.0/build-6f32d52c2868/      # 현재 품질 보정 canonical
         ├── evaluation-split/v1.0.0/build-a5a04ab96594/ # 공개 split·누수 요약
+        ├── evaluation-split/v1.1.0/build-d2f9e1623e96/ # reference overlap·persona guard 공개 요약
+        ├── pretraining-audit/v1.0.0/build-c38926f86a3d/ # 20K 의미·출처 전수 감사
         ├── phase5-readiness/v1.0.0/build-f6c8171f454f/ # 과거 비학습 계약
         ├── phase5-readiness/v1.1.0/build-201010b37e40/ # 봉인 평가 연결 계약
         └── phase-verification/v1.0.0/review-20260828/
@@ -209,6 +211,11 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
 
 ## 진행 기록
 
+- 2026-08-29
+  - 작업 요약: 구현 commit `1e76232c0c094e6d3c3ed47b253c60f0e1af63b1`에서 평가 확장 `v1.1.0/build-d2f9e1623e96`과 학습 전 감사 `v1.0.0/build-c38926f86a3d`를 생성·독립 재검증하고 registry 승인 포인터 후보를 고정했다. 실제 학습은 수행하지 않았다.
+  - 변경 범위: 평가 v1.0 membership·bytes를 그대로 보존하면서 dev reference overlap 집계와 Nemotron 비인과 guard 50case만 추가했다. 20K 감사는 공개 집계만 생성하고 AI Hub 원문·개별 ID·봉인 blind를 읽거나 공개하지 않았다.
+  - 검증: 평가 private/public manifest는 `96b7912…47203`/`f491e71…82738`, 감사 public manifest는 `a488ab1…71e82`다. hard blocker·critical/high·mask·foreign CJK·target-only entity·중대 단정·control·revision drift는 모두 0이며 KI10 전 데이터 수정은 불필요하다.
+  - 실행 기록·후속 작업: `.venv-data` 시도는 부모 Phase 3 package freeze 불일치로 artifact 생성 전 실패했고, 고정 학습 `.venv`에서 재실행해 통과했다. 이 산출물과 registry를 커밋한 뒤 clean tree에서 readiness v1.2를 생성한다. KI20은 계속 금지다.
 - 2026-08-29
   - 작업 요약: 학습 직전 의미·출처 전수 감사, 평가 v1.0 불변 확장, readiness v1.2, 실제 BF16 Full FT runner와 공개 현황판 계약을 구현했다. 이 체크포인트에서는 모델 학습·backward·optimizer step과 봉인 blind 열람을 수행하지 않았다.
   - 변경 범위: canonical 계획을 `3.2.0`으로 올리고 20K assistant token 편중·정형 중복·개발 reference overlap·Nemotron 페르소나 연결 문구를 집계했다. KI10은 1,250 optimizer step, KI20은 KI10의 고정 1,000case 자동 Gate를 모두 통과할 때만 base snapshot에서 독립 2,500 step으로 실행하도록 fail-closed 계약을 추가했다.

@@ -1,0 +1,190 @@
+{
+  "as_of": "2026-08-29",
+  "audit_version": "v1.0.0",
+  "build_id": "build-c38926f86a3d",
+  "build_sha256": "c38926f86a3d18e1442a7795e32d0ce0e3931ff5a3f80e2cd191e0f0b4899314",
+  "canonical_dataset": {
+    "assistant_token_share_percent": {
+      "aihub_empathy_multiturn": 0.906623,
+      "aihub_empathy_single": 0.861964,
+      "bazi_sft": 25.218343,
+      "deterministic_saju_qa": 3.589891,
+      "nemotron_saju": 58.080955,
+      "saju_diary_bridge": 8.451735,
+      "yeji_shensha_derived": 2.890489
+    },
+    "assistant_tokens": 2357871,
+    "axis_rows": {
+      "aihub_empathy_multiturn": 1500,
+      "aihub_empathy_single": 1500,
+      "bazi_sft": 4000,
+      "deterministic_saju_qa": 2000,
+      "nemotron_saju": 6800,
+      "saju_diary_bridge": 3200,
+      "yeji_shensha_derived": 1000
+    },
+    "build_id": "build-6f32d52c2868",
+    "manifest_sha256": "731ace0ac5584fd97fc38f157a4ecdb1babedefd79e2ec5b2d755fa26e48a550",
+    "rows": 20000,
+    "version": "v2.0.0"
+  },
+  "governance": {
+    "baseline_training_allowed": true,
+    "blind_source_test_inspected": false,
+    "dataset_mutation_required_before_ki10": false,
+    "human_domain_review_performed": false,
+    "ki20_promotion_allowed": false,
+    "phase5_training_performed": false,
+    "production_quality_claim_allowed": false,
+    "quality_certification_claimed": false
+  },
+  "hard_blockers": [],
+  "hard_checks": {
+    "aihub_public_boundary_preserved": true,
+    "axis_counts_exact": true,
+    "canonical_rows_20000": true,
+    "control_rows_zero": true,
+    "critical_or_high_data_rows_zero": true,
+    "foreign_cjk_rows_zero": true,
+    "phase4_hash_chain": true,
+    "readiness_hash_chain": true,
+    "severe_safety_rows_zero": true,
+    "source_revision_drift_zero": true,
+    "target_only_entity_rows_zero": true,
+    "zero_assistant_masks_zero": true
+  },
+  "known_risks": {
+    "dominant_knowledge_axis_token_share": {
+      "axes": [
+        "nemotron_saju",
+        "bazi_sft"
+      ],
+      "percent": 83.299298,
+      "warning": true,
+      "warning_threshold_percent": 80.0
+    },
+    "human_domain_review_performed": false,
+    "nemotron_persona_alignment_language": {
+      "causalization_inferred": false,
+      "interpretation": "페르소나와 사주 설명을 연결하는 문구의 광범위 탐지값이며, 그 자체로 인과 단정 오류를 뜻하지 않습니다.",
+      "percent": 76.029412,
+      "rows": 5170,
+      "total_rows": 6800,
+      "warning": true,
+      "warning_threshold_percent": 20.0
+    },
+    "normalized_assistant_duplicates": {
+      "cross_axis_duplicate_groups": 0,
+      "maximum_multiplicity": 8,
+      "participating_rows_by_axis": {
+        "aihub_empathy_multiturn": 18,
+        "aihub_empathy_single": 6,
+        "deterministic_saju_qa": 156,
+        "saju_diary_bridge": 2,
+        "yeji_shensha_derived": 955
+      },
+      "participation_percent_by_axis": {
+        "aihub_empathy_multiturn": 1.2,
+        "aihub_empathy_single": 0.4,
+        "bazi_sft": 0.0,
+        "deterministic_saju_qa": 7.8,
+        "nemotron_saju": 0.0,
+        "saju_diary_bridge": 0.0625,
+        "yeji_shensha_derived": 95.5
+      }
+    },
+    "quality_certification_claimed": false
+  },
+  "raw_samples_in_report": false,
+  "report_type": "phase5_pretraining_semantic_and_source_audit",
+  "restricted_aihub_content_in_report": false,
+  "scan_counts": {
+    "control_rows": 0,
+    "critical_or_high_data_rows": 0,
+    "foreign_cjk_rows": 0,
+    "severe_safety_rows": 0,
+    "source_revision_drift": [],
+    "target_only_entity_rows": 0,
+    "zero_assistant_masks": 0
+  },
+  "schema_version": "1.0.0",
+  "web_and_policy_comparison": [
+    {
+      "decision_basis": "BF16 고정 snapshot과 generation marker chat template를 로컬 검증",
+      "expected_revision": "bf4786aa2a1908adce942d53976270132732f720",
+      "observed_revision": "bf4786aa2a1908adce942d53976270132732f720",
+      "role": "training_source",
+      "source_id": "kanana_2_1_3b_instruct"
+    },
+    {
+      "decision_basis": "페르소나 조건부 합성·비전문가 검수 한계를 soft interpretation으로 표시",
+      "expected_revision": "ffb934248746a2dea64ef771c0d86e1743d25702",
+      "observed_revision": "ffb934248746a2dea64ef771c0d86e1743d25702",
+      "role": "training_source",
+      "source_id": "nemotron_personas_korea_saju"
+    },
+    {
+      "decision_basis": "원문 답변 대신 구조 검산과 한국어 재렌더 파생본만 사용",
+      "expected_revision": "fad87063b317612e4164dfb0e0e08572c3831df4",
+      "observed_revision": "fad87063b317612e4164dfb0e0e08572c3831df4",
+      "role": "training_source",
+      "source_id": "bazi_sft"
+    },
+    {
+      "decision_basis": "로컬 학습 전용, 원문·식별자·개별 hash 외부 공개 금지",
+      "expected_revision": null,
+      "observed_revision": null,
+      "role": "training_source",
+      "source_id": "aihub_86"
+    },
+    {
+      "decision_basis": "지지 십신 정기 정책 비교용이며 휴리스틱 해석은 Gold에서 제외",
+      "expected_revision": "07b608a778be6dac8669e04b9ab794c441959208",
+      "observed_revision": "07b608a778be6dac8669e04b9ab794c441959208",
+      "role": "runtime_comparison",
+      "source_id": "ssaju"
+    },
+    {
+      "decision_basis": "정기 기준 지지 십신과 복수 일자·태양시 정책 비교",
+      "expected_revision": "fba3253d7305b8b61189bd78318a7a27ed8c9b09",
+      "observed_revision": "fba3253d7305b8b61189bd78318a7a27ed8c9b09",
+      "role": "runtime_comparison",
+      "source_id": "manseryeok"
+    },
+    {
+      "decision_basis": "KASI calendar fixture와 계산 경계 비교",
+      "expected_revision": "a8c0cf64adfde8fb1ce253112529edd8e90cc94b",
+      "observed_revision": "a8c0cf64adfde8fb1ce253112529edd8e90cc94b",
+      "role": "runtime_comparison",
+      "source_id": "oh_my_saju"
+    },
+    {
+      "decision_basis": "한국식 원국 계산 경계 비교",
+      "expected_revision": "8c81256db10d3179d31f551beacaa69f2ab2fcc5",
+      "observed_revision": "8c81256db10d3179d31f551beacaa69f2ab2fcc5",
+      "role": "runtime_comparison",
+      "source_id": "korean_saju"
+    },
+    {
+      "decision_basis": "승인 project-policy 생성값의 독립 일관성 확인",
+      "expected_revision": "448f397c1695cadab3899bf460e0042cab7f0e66",
+      "observed_revision": "448f397c1695cadab3899bf460e0042cab7f0e66",
+      "role": "runtime_comparison",
+      "source_id": "lunar_python"
+    },
+    {
+      "decision_basis": "출생시각→사주 계산 benchmark는 모델 SFT가 아닌 runtime 비교에만 사용",
+      "expected_revision": "ce60156b92f2b8bcc23e27c69144d22721abc899",
+      "observed_revision": "ce60156b92f2b8bcc23e27c69144d22721abc899",
+      "role": "reference_only",
+      "source_id": "nolli_saju"
+    },
+    {
+      "decision_basis": "음양력·달력 field만 primary fact이며 전체 사주 원국 oracle로 확대하지 않음",
+      "expected_revision": null,
+      "observed_revision": null,
+      "role": "reference_only",
+      "source_id": "kasi_lunisolar_openapi"
+    }
+  ]
+}

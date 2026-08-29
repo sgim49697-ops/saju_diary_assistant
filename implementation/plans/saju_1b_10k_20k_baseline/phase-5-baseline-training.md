@@ -238,6 +238,11 @@ runs/KI20-MIX-v2/v1.0.0/run-<fingerprint>/
 ## 진행 기록
 
 - 2026-08-29
+  - 작업 요약: 고정 구현 commit `1e76232c0c094e6d3c3ed47b253c60f0e1af63b1`에서 평가 v1.1과 20K 의미 감사를 실제 불변 build로 생성·독립 verify했다. 모델 학습·backward·optimizer step은 수행하지 않았다.
+  - 변경 범위: `evaluation-split/v1.1.0/build-d2f9e1623e96`은 parent membership과 봉인 bytes를 바꾸지 않고 persona guard 50case·reference overlap 집계만 추가했다. `pretraining-audit/v1.0.0/build-c38926f86a3d`은 canonical MIX20 전체를 공개 집계로만 검사했다.
+  - 검증: 기술 hard blocker 0, 데이터 수정 필요 없음, KI10 baseline 허용, 전문가·production 품질 주장 금지, KI20 사전 금지를 재확인했다. sealed blind는 읽지 않았고 private/public manifest bytes를 독립 재생성해 대조했다.
+  - 남은 이슈·후속 작업: 새 registry 포인터를 커밋한 clean tree에서 readiness v1.2를 생성한 뒤에만 Phase 5 runner가 KI10을 계획할 수 있다.
+- 2026-08-29
   - 작업 요약: 실제 학습 전 의미 감사·평가 확장·readiness v1.2와 KI10/조건부 KI20 Full FT runner를 구현했다. 현재는 구현 체크포인트이며 실제 backward·optimizer step은 수행하지 않았다.
   - 변경 범위: 768·BF16·batch 1·accumulation 8·evaluation batch 1·padding multiple 8·`logging_nan_inf_filter=false`를 고정했다. KI10 1 epoch 1,250 step과 새 process reload, 개발 1,000case 자동 품질 Gate, KI20 base 독립 2,500 step·사전 금지를 코드와 config에 묶었다.
   - 검증: 20K 전수 의미 감사에서 기술 hard blocker 0을 확인했고, 평가 v1.0 membership·blind bytes 비변경과 blind 미열람을 유지했다. 전체 175개 단위 테스트, Ruff, compile, diff check와 부모 Phase 4 계약 검증을 통과했다.

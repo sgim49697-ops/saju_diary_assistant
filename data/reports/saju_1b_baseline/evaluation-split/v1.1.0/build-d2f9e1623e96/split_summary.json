@@ -1,0 +1,21 @@
+{
+  "blind_components": 350,
+  "blind_rows": 500,
+  "blind_source_test_inspected": false,
+  "build_id": "build-d2f9e1623e96",
+  "build_sha256": "d2f9e1623e96699bcec57b0e583bfaf779e365f27ccf0907b855f02558494703",
+  "canonical_training_fingerprint_changed": false,
+  "parent_artifact_bytes_modified": false,
+  "parent_membership_modified": false,
+  "parent_split_build_id": "build-a5a04ab96594",
+  "parent_split_version": "v1.0.0",
+  "persona_guard_rows": 50,
+  "phase4_smoke_reexecution_required": false,
+  "phase5_training_performed": false,
+  "raw_samples_in_report": false,
+  "reference_overlap_reported": true,
+  "reference_similarity_final_claim_allowed": false,
+  "schema_version": "1.1.0",
+  "split_version": "v1.1.0",
+  "status": "sealed_blind_ready_with_pretraining_diagnostics"
+}

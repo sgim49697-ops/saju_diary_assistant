@@ -1,0 +1,40 @@
+{
+  "artifact_sha256": {
+    "audit_report.json": "a7cce0b513cb7386e5a20f62c3b91b5c047f712c5813c97ca9e91f984e82d4cb"
+  },
+  "build_id": "build-c38926f86a3d",
+  "build_inputs": {
+    "as_of": "2026-08-29",
+    "audit_version": "v1.0.0",
+    "implementation_hashes": {
+      "configs/data_versions/saju_1b_baseline/pretraining-audit-v1.0.0.json": "281edfa7e4e6f1670981a9a95a36f5833c90b72e07b6140eba945cacc8f276ed",
+      "scripts/training/pretraining_audit.py": "f756ad38368293c1351ecdc4144534a82559a768113f123e153aea72f9e90077"
+    },
+    "parent_phase4": {
+      "build_id": "build-6f32d52c2868",
+      "build_sha256": "6f32d52c2868bb8b5e07724cbdc00a6bc0b2f1608fe53ac54c357a6ec0832ee9",
+      "preflight_config": "configs/data_versions/saju_1b_baseline/preflight-v2.0.0.json",
+      "private_manifest_sha256": "66b21f086aa836ee595826f5f8f6eeb3bd234b47a15ec210a2131f548c4bedbf",
+      "selected_max_length": 768,
+      "training_promotion_allowed": true,
+      "version": "v2.0.0"
+    },
+    "parent_readiness": {
+      "build_id": "build-201010b37e40",
+      "build_sha256": "201010b37e40c53497bc4cc2c94a099f74d48174a3cefa62fec4547f661fd0d1",
+      "config": "configs/data_versions/saju_1b_baseline/phase5-readiness-v1.1.0.json",
+      "config_sha256": "4e7361b42030c08045183a6dcce23c6edb22864496969884b3b5725a9950d706",
+      "public_manifest_sha256": "1205f83a48c0961e63664f99f527c240c79eef98306b44a7722f0b5825cd1321",
+      "training_promotion_allowed": true,
+      "version": "v1.1.0"
+    },
+    "patterns_sha256": "b9ec1a8b9d2de0c9be1e2d8c6d61e07de7a21417a27849d2d07d9e105622b0d4",
+    "source_catalog_sha256": "2dfa2fce297490d3378dbb4f3c07ea5d01d348b8711dcbbb4240fd4c7996ed9f",
+    "thresholds_sha256": "0c1afb9edde74ccd78cb93f19be61d8ac3957501e68f0a3d1c432fbc5e7a8cb0"
+  },
+  "build_sha256": "c38926f86a3d18e1442a7795e32d0ce0e3931ff5a3f80e2cd191e0f0b4899314",
+  "phase5_training_performed": false,
+  "report_type": "phase5_pretraining_audit_public_manifest",
+  "schema_version": "1.0.0",
+  "status": "audited"
+}

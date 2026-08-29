@@ -1,0 +1,60 @@
+{
+  "blind_source_test_read": false,
+  "raw_samples_in_report": false,
+  "reference_similarity_final_claim_allowed": false,
+  "roles": {
+    "dev_diagnostic": {
+      "cases_by_axis": {
+        "aihub_empathy_multiturn": 105,
+        "aihub_empathy_single": 110,
+        "bazi_sft": 120,
+        "deterministic_saju_qa": 190,
+        "nemotron_saju": 130,
+        "saju_diary_bridge": 130,
+        "synthetic_public": 40,
+        "yeji_shensha_derived": 115
+      },
+      "exact_reference_overlap_by_axis": {
+        "aihub_empathy_multiturn": 4,
+        "deterministic_saju_qa": 9,
+        "synthetic_public": 12,
+        "yeji_shensha_derived": 112
+      },
+      "exact_reference_overlap_cases": 137,
+      "normalized_reference_overlap_by_axis": {
+        "aihub_empathy_multiturn": 4,
+        "deterministic_saju_qa": 9,
+        "synthetic_public": 12,
+        "yeji_shensha_derived": 112
+      },
+      "normalized_reference_overlap_cases": 137,
+      "total_cases": 940
+    },
+    "dev_monitor": {
+      "cases_by_axis": {
+        "aihub_empathy_multiturn": 10,
+        "aihub_empathy_single": 10,
+        "bazi_sft": 10,
+        "deterministic_saju_qa": 10,
+        "nemotron_saju": 10,
+        "saju_diary_bridge": 10,
+        "yeji_shensha_derived": 10
+      },
+      "exact_reference_overlap_by_axis": {
+        "aihub_empathy_multiturn": 1,
+        "deterministic_saju_qa": 1,
+        "yeji_shensha_derived": 10
+      },
+      "exact_reference_overlap_cases": 12,
+      "normalized_reference_overlap_by_axis": {
+        "aihub_empathy_multiturn": 1,
+        "deterministic_saju_qa": 1,
+        "yeji_shensha_derived": 10
+      },
+      "normalized_reference_overlap_cases": 12,
+      "total_cases": 70
+    }
+  },
+  "schema_version": "1.1.0",
+  "status": "measured"
+}

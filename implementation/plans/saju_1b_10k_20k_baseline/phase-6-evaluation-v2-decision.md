@@ -196,6 +196,11 @@ runs/next_stage_decision.md
 ## 진행 기록
 
 - 2026-08-29
+  - 작업 요약: 부모 평가 v1.0의 membership·artifact bytes를 보존한 `evaluation-split/v1.1.0/build-d2f9e1623e96`을 생성·검증했다. Phase 6 blind 모델 평가는 실행하지 않았다.
+  - 변경 범위: dev diagnostic 930에 deterministic Nemotron 비인과 guard 50case를 별도 추가하고, dev diagnostic 940case 중 137case·monitor 70case 중 12case의 train assistant reference overlap을 공개 집계했다.
+  - 검증: parent membership 변경 0, canonical training fingerprint 변경 0, blind 접근 0, private/public manifest SHA-256 `96b7912…47203`/`f491e71…82738`을 확인했다.
+  - 남은 이슈·후속 작업: 반복 template 축의 reference 일치는 최종 품질 주장에 사용하지 않는다. KI10/KI20 final이 고정되기 전에는 blind를 열지 않는다.
+- 2026-08-29
   - 작업 요약: Phase 5 학습 전에 평가 역할 계약만 선행 고정했다. Phase 6 모델 평가는 실행하지 않았다.
   - 변경 범위: 개발 monitor 70행·진단 930행·봉인 source blind 350 component/500행·외부 conformance 220행을 분리하고, blind는 K0·KI10·KI20 final checkpoint가 모두 고정된 뒤 한 번만 열도록 했다.
   - 검증: `evaluation-split/v1.0.0/build-a5a04ab96594`의 train/development/blind component·record·content hash 누수 0과 public raw·ID 비노출을 확인했다.

@@ -1,0 +1,47 @@
+{
+  "artifact_sha256": {
+    "reference_overlap_report.json": "c375c7cb24ffd16484d484b4e8c2866597c58c4b9383f6974c74c7bc636a6506",
+    "split_summary.json": "a116d86c9dd84477f5a9ab1b3fa336b329cda4b67cba467648f7526e1469cb95"
+  },
+  "blind_source_test_inspected": false,
+  "build_id": "build-d2f9e1623e96",
+  "build_inputs": {
+    "diagnostic_extension_sha256": "675bdd90aa829dd8946dd6b66bab1bd3a49f784d7938f3f055552163ca0a8742",
+    "governance_sha256": "51aff152f8cabd18978836f41e39f63f23e6ae39e8c85c9bd0d2e1819c2d50aa",
+    "implementation_hashes": {
+      "configs/data_versions/saju_1b_baseline/evaluation-split-v1.1.0.json": "6471290d144e56494fbabd6493a16311e4d8954585e0a99631c8c1923fa6fcf7",
+      "scripts/evaluation/phase5_split_v1_1.py": "32b50d7eb896ba90f64fbda5c5ca0cb6e13204c5eed83989cf10de4cfd6a3468"
+    },
+    "parent_phase4": {
+      "build_id": "build-6f32d52c2868",
+      "mix20_rows": 20000,
+      "mix20_sha256": "731ace0ac5584fd97fc38f157a4ecdb1babedefd79e2ec5b2d755fa26e48a550",
+      "preflight_config": "configs/data_versions/saju_1b_baseline/preflight-v2.0.0.json",
+      "version": "v2.0.0"
+    },
+    "parent_split": {
+      "blind_components_sha256": "43fd009804b5a3293a1b48c902b73e19b274bde8e9d9b8869354a222c6835be4",
+      "blind_source_test_sha256": "39c41fd7d9d53230dc53c4fcbf95017a232c47176b0075100bc3a67edfdb96ff",
+      "build_id": "build-a5a04ab96594",
+      "build_sha256": "a5a04ab96594563c88516aebea97df52c6b3efadb8f17b987f73544e7f5d26d2",
+      "canonical_training_fingerprint_changed": false,
+      "config": "configs/data_versions/saju_1b_baseline/evaluation-split-v1.0.0.json",
+      "config_sha256": "c456ef24ad7e49bdb4bf593ec291d7973a075f93f2106459aff9cf4ec3257a2b",
+      "dev_diagnostic_sha256": "0b6f62ad9f5849e24bf96f613f173be922aeaf1b9d149f72b2d37abf19a74676",
+      "dev_monitor_sha256": "aa61d2a763e3194e3a25561a3030c74bebb002c702ef8469c27a1bc22a2bcb31",
+      "phase5_training_performed": false,
+      "private_manifest_sha256": "da6e358d4a8f59f0d63cbbda3432d07c0bad5daa26baa4c6cd6bc08da6d295cc",
+      "public_manifest_sha256": "297f25582536fdb1a6cd53541ee2085575e07e7e0d2bcb92dafe98df55df64b4",
+      "status": "sealed_blind_ready_for_post_training_evaluation",
+      "version": "v1.0.0"
+    },
+    "seed": 42,
+    "split_version": "v1.1.0"
+  },
+  "build_sha256": "d2f9e1623e96699bcec57b0e583bfaf779e365f27ccf0907b855f02558494703",
+  "parent_membership_modified": false,
+  "phase5_training_performed": false,
+  "report_type": "evaluation_split_v1_1_public_manifest",
+  "schema_version": "1.1.0",
+  "status": "sealed_blind_ready_with_pretraining_diagnostics"
+}
