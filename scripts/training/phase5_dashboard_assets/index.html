@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <meta name="csrf-token" content="__CSRF_TOKEN__">
+    <title>KI20 학습 관제실</title>
+    <link rel="stylesheet" href="/dashboard.css">
+    <script src="/dashboard.js" defer></script>
+  </head>
+  <body>
+    <div class="ambient ambient-one" aria-hidden="true"></div>
+    <div class="ambient ambient-two" aria-hidden="true"></div>
+    <main class="shell">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">KANANA 2 · FULL FINE-TUNING</p>
+          <h1>KI20 학습 관제실</h1>
+          <p class="subtitle">학습 지표와 체크포인트를 읽기 전용으로 추적합니다.</p>
+        </div>
+        <div class="live-block">
+          <span id="live-dot" class="live-dot" aria-hidden="true"></span>
+          <div>
+            <strong id="lifecycle">연결 중</strong>
+            <span id="last-refresh">상태를 불러오는 중입니다.</span>
+          </div>
+        </div>
+      </header>
+
+      <section id="alerts" class="alerts" aria-live="polite"></section>
+
+      <section class="progress-panel panel">
+        <div class="progress-copy">
+          <div>
+            <span class="label">학습 진행률</span>
+            <strong id="progress-value" class="progress-value">—</strong>
+          </div>
+          <div class="progress-meta">
+            <span id="step-value">— / 2,500 step</span>
+            <span id="epoch-value">epoch —</span>
+            <span id="eta-value">예상 종료 —</span>
+          </div>
+        </div>
+        <div class="progress-track" role="progressbar" aria-label="학습 진행률" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div id="progress-bar" class="progress-bar"></div>
+        </div>
+      </section>
+
+      <section class="metric-grid" aria-label="핵심 학습 지표">
+        <article class="metric-card panel">
+          <span class="label">최근 Train loss</span>
+          <strong id="train-loss">—</strong>
+          <small id="train-accuracy">token accuracy —</small>
+        </article>
+        <article class="metric-card panel">
+          <span class="label">최근 Eval loss</span>
+          <strong id="eval-loss">—</strong>
+          <small id="eval-accuracy">token accuracy —</small>
+        </article>
+        <article class="metric-card panel">
+          <span class="label">Gradient norm</span>
+          <strong id="grad-norm">—</strong>
+          <small id="learning-rate">learning rate —</small>
+        </article>
+        <article class="metric-card panel">
+          <span class="label">GPU 전체 사용량</span>
+          <strong id="gpu-used">—</strong>
+          <small id="gpu-detail">16 GiB hard cap</small>
+        </article>
+      </section>
+
+      <nav class="tabs" aria-label="대시보드 화면">
+        <button class="tab active" type="button" data-tab="training">학습 곡선</button>
+        <button class="tab" type="button" data-tab="checkpoints">체크포인트</button>
+        <button class="tab" type="button" data-tab="model">모델 검사</button>
+      </nav>
+
+      <section id="tab-training" class="tab-panel active">
+        <div class="chart-grid">
+          <article class="panel chart-card">
+            <div class="panel-heading">
+              <div><span class="label">OBJECTIVE</span><h2>Loss</h2></div>
+              <div class="legend"><span class="train-key">Train</span><span class="eval-key">Eval</span></div>
+            </div>
+            <div id="loss-chart" class="chart" aria-label="Train과 eval loss 차트"></div>
+          </article>
+          <article class="panel chart-card">
+            <div class="panel-heading">
+              <div><span class="label">SUPERVISED TOKENS</span><h2>Token accuracy</h2></div>
+              <div class="legend"><span class="train-key">Train</span><span class="eval-key">Eval</span></div>
+            </div>
+            <div id="accuracy-chart" class="chart" aria-label="Token accuracy 차트"></div>
+          </article>
+          <article class="panel chart-card">
+            <div class="panel-heading"><div><span class="label">OPTIMIZER</span><h2>Gradient norm · LR</h2></div></div>
+            <div id="optimizer-chart" class="chart" aria-label="Gradient norm 차트"></div>
+          </article>
+          <article class="panel chart-card">
+            <div class="panel-heading"><div><span class="label">MEMORY</span><h2>GPU memory</h2></div><span class="cap-label">cap 16,384 MiB</span></div>
+            <div id="gpu-chart" class="chart" aria-label="GPU 메모리 차트"></div>
+          </article>
+          <article class="panel chart-card">
+            <div class="panel-heading"><div><span class="label">DISTRIBUTION</span><h2>Entropy</h2></div></div>
+            <div id="entropy-chart" class="chart" aria-label="학습 entropy 차트"></div>
+          </article>
+        </div>
+        <article class="panel identity-card">
+          <div><span class="label">RUN IDENTITY</span><code id="run-identity">—</code></div>
+          <div><span class="label">SERVICE</span><code id="service-identity">—</code></div>
+          <div><span class="label">GOVERNANCE</span><strong class="safe-copy">blind 미열람 · 배포 승격 불가 · 진단 전용</strong></div>
+        </article>
+      </section>
+
+      <section id="tab-checkpoints" class="tab-panel">
+        <article class="panel">
+          <div class="panel-heading">
+            <div><span class="label">ARTIFACT HEALTH</span><h2>체크포인트 상태</h2></div>
+            <span id="disk-free" class="cap-label">디스크 —</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>이름</th><th>상태</th><th>크기</th><th>수정 시각</th><th>보존</th></tr></thead>
+              <tbody id="checkpoint-rows"><tr><td colspan="5">불러오는 중입니다.</td></tr></tbody>
+            </table>
+          </div>
+          <p class="footnote">저장 직후 120초 동안 빠진 파일은 오류가 아닌 ‘저장 중’으로 표시합니다.</p>
+        </article>
+      </section>
+
+      <section id="tab-model" class="tab-panel">
+        <div id="model-lock" class="panel model-lock">
+          <span class="lock-icon" aria-hidden="true">◇</span>
+          <div><span class="label">SAFE INFERENCE LOCK</span><h2>학습 중에는 모델을 추가로 로드하지 않습니다.</h2><p id="model-lock-copy">학습 종료와 final reload 검증 뒤 자동으로 열립니다.</p><button id="run-probe-button" class="secondary-button hidden" type="button">고정 20건 검사 실행</button></div>
+        </div>
+        <article id="comparison-panel" class="panel hidden">
+          <div class="panel-heading">
+            <div><span class="label">FIXED 20 · DIAGNOSTIC ONLY</span><h2>KI10 ↔ KI20 응답 비교</h2></div>
+            <span id="comparison-status" class="cap-label">—</span>
+          </div>
+          <div id="comparison-summary" class="comparison-summary"></div>
+          <div id="comparison-list" class="comparison-list"></div>
+        </article>
+        <article id="manual-panel" class="panel manual-panel hidden">
+          <div class="panel-heading"><div><span class="label">LOCAL · NO HISTORY</span><h2>수동 질문</h2></div></div>
+          <form id="manual-form">
+            <label for="manual-prompt">KI20 final에 보낼 질문</label>
+            <textarea id="manual-prompt" maxlength="4000" rows="5" placeholder="예: 사주 정보가 없을 때 어떤 정보를 먼저 물어봐야 해?"></textarea>
+            <div class="form-actions"><small>질문과 답변은 저장하지 않습니다.</small><button id="generate-button" type="submit">답변 생성</button></div>
+          </form>
+          <div id="manual-output" class="manual-output" aria-live="polite"></div>
+        </article>
+      </section>
+
+      <footer>
+        <span>10초 자동 갱신</span>
+        <span>외부 전송 없음</span>
+        <span>학습 제어 없음</span>
+      </footer>
+    </main>
+  </body>
+</html>
