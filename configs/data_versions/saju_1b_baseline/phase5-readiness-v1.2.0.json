@@ -1,0 +1,73 @@
+{
+  "schema_version": "1.2.0",
+  "canonical_plan_version": "3.2.0",
+  "dataset_name": "saju_1b_baseline",
+  "readiness_version": "v1.2.0",
+  "parent_readiness": {
+    "version": "v1.1.0",
+    "config": "configs/data_versions/saju_1b_baseline/phase5-readiness-v1.1.0.json",
+    "config_sha256": "4e7361b42030c08045183a6dcce23c6edb22864496969884b3b5725a9950d706",
+    "build_id": "build-201010b37e40",
+    "build_sha256": "201010b37e40c53497bc4cc2c94a099f74d48174a3cefa62fec4547f661fd0d1",
+    "private_manifest_sha256": "4d28b744ff461bd260c6cd2f7e785936af626ac1332675371dff816b959db907",
+    "public_manifest_sha256": "1205f83a48c0961e63664f99f527c240c79eef98306b44a7722f0b5825cd1321",
+    "status": "ready_for_explicit_phase5_execution_with_sealed_blind",
+    "phase5_training_performed": false
+  },
+  "pretraining_audit": {
+    "version": "v1.0.0",
+    "config": "configs/data_versions/saju_1b_baseline/pretraining-audit-v1.0.0.json",
+    "config_sha256": "281edfa7e4e6f1670981a9a95a36f5833c90b72e07b6140eba945cacc8f276ed",
+    "build_id": "build-c38926f86a3d",
+    "build_sha256": "c38926f86a3d18e1442a7795e32d0ce0e3931ff5a3f80e2cd191e0f0b4899314",
+    "public_manifest_sha256": "a488ab1edc438f1ea21234259383fe839a26353388ed2670c5bec93e18071e82",
+    "baseline_training_allowed": true,
+    "dataset_mutation_required_before_ki10": false,
+    "production_quality_claim_allowed": false,
+    "ki20_promotion_allowed": false
+  },
+  "evaluation_split": {
+    "version": "v1.1.0",
+    "config": "configs/data_versions/saju_1b_baseline/evaluation-split-v1.1.0.json",
+    "config_sha256": "6471290d144e56494fbabd6493a16311e4d8954585e0a99631c8c1923fa6fcf7",
+    "build_id": "build-d2f9e1623e96",
+    "build_sha256": "d2f9e1623e96699bcec57b0e583bfaf779e365f27ccf0907b855f02558494703",
+    "public_manifest_sha256": "f491e719f23096e88a0fff3e418482f685178776b87c7399d49ae688d4782738",
+    "parent_membership_modified": false,
+    "persona_guard_rows": 50,
+    "blind_source_test_inspected": false
+  },
+  "training_runner": {
+    "version": "v1.0.0",
+    "config": "configs/model_versions/saju_1b_baseline/phase5-training-v1.0.0.json",
+    "config_sha256": "752f792ae6f6b44ea8a25b8a9fc3228082ef707d768ffe2205c1a2252907a016",
+    "implementation_sha256": {
+      "scripts/training/phase5_quality.py": "3f3ea2d7ffbaa3e5e566f17f1a0c63c810511c93d3fb3fa36fd0941e50e25a35",
+      "scripts/training/phase5_train.py": "38e780ba2d7179d52ed8d334560a1ef9864ec718ac33de94a04687cd6ce7e353"
+    },
+    "confirmation_variable": "PHASE5_TRAINING",
+    "ki10_confirmation": "KI10-MIX-v2",
+    "ki20_requires_ki10_gate": true,
+    "ki20_initializes_from_base": true
+  },
+  "outputs": {
+    "private_root": "data/derived/saju_1b_baseline/phase5-readiness/v1.2.0/{build_id}",
+    "public_root": "data/reports/saju_1b_baseline/phase5-readiness/v1.2.0/{build_id}"
+  },
+  "governance": {
+    "training_promotion_allowed": true,
+    "baseline_training_allowed": true,
+    "dataset_mutation_required_before_ki10": false,
+    "production_quality_claim_allowed": false,
+    "ki20_promotion_allowed": false,
+    "canonical_training_data_modified": false,
+    "phase4_smoke_reexecution_required": false,
+    "human_domain_review_performed": false,
+    "quality_certification_claimed": false,
+    "phase5_training_performed": false,
+    "blind_source_test_inspected": false
+  },
+  "implementation_files": [
+    "scripts/training/phase5_readiness_v1_2.py"
+  ]
+}

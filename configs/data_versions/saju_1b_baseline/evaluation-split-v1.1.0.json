@@ -1,0 +1,58 @@
+{
+  "schema_version": "1.1.0",
+  "canonical_plan_version": "3.2.0",
+  "dataset_name": "saju_1b_baseline",
+  "split_version": "v1.1.0",
+  "seed": 42,
+  "parent_split": {
+    "version": "v1.0.0",
+    "config": "configs/data_versions/saju_1b_baseline/evaluation-split-v1.0.0.json",
+    "config_sha256": "c456ef24ad7e49bdb4bf593ec291d7973a075f93f2106459aff9cf4ec3257a2b",
+    "build_id": "build-a5a04ab96594",
+    "build_sha256": "a5a04ab96594563c88516aebea97df52c6b3efadb8f17b987f73544e7f5d26d2",
+    "private_manifest_sha256": "da6e358d4a8f59f0d63cbbda3432d07c0bad5daa26baa4c6cd6bc08da6d295cc",
+    "public_manifest_sha256": "297f25582536fdb1a6cd53541ee2085575e07e7e0d2bcb92dafe98df55df64b4",
+    "dev_monitor_sha256": "aa61d2a763e3194e3a25561a3030c74bebb002c702ef8469c27a1bc22a2bcb31",
+    "dev_diagnostic_sha256": "0b6f62ad9f5849e24bf96f613f173be922aeaf1b9d149f72b2d37abf19a74676",
+    "blind_source_test_sha256": "39c41fd7d9d53230dc53c4fcbf95017a232c47176b0075100bc3a67edfdb96ff",
+    "blind_components_sha256": "43fd009804b5a3293a1b48c902b73e19b274bde8e9d9b8869354a222c6835be4",
+    "status": "sealed_blind_ready_for_post_training_evaluation",
+    "canonical_training_fingerprint_changed": false,
+    "phase5_training_performed": false
+  },
+  "parent_phase4": {
+    "version": "v2.0.0",
+    "build_id": "build-6f32d52c2868",
+    "preflight_config": "configs/data_versions/saju_1b_baseline/preflight-v2.0.0.json",
+    "mix20_rows": 20000,
+    "mix20_sha256": "731ace0ac5584fd97fc38f157a4ecdb1babedefd79e2ec5b2d755fa26e48a550"
+  },
+  "diagnostic_extension": {
+    "assistant_reference_overlap_roles": [
+      "dev_monitor",
+      "dev_diagnostic"
+    ],
+    "persona_guard_rows": 50,
+    "persona_guard_source_axis": "nemotron_saju",
+    "persona_guard_selector": "sha256_eval_id_v1",
+    "persona_guard_namespace": "saju-persona-noncausal-v1",
+    "blind_source_test_read_allowed": false,
+    "reference_similarity_final_claim_allowed": false
+  },
+  "outputs": {
+    "private_root": "data/derived/saju_1b_baseline/evaluation-split/v1.1.0/{build_id}",
+    "public_root": "data/reports/saju_1b_baseline/evaluation-split/v1.1.0/{build_id}"
+  },
+  "governance": {
+    "canonical_training_data_modified": false,
+    "parent_split_membership_modified": false,
+    "phase4_smoke_reexecution_required": false,
+    "human_domain_review_performed": false,
+    "quality_certification_claimed": false,
+    "phase5_training_performed": false,
+    "blind_source_test_inspected": false
+  },
+  "implementation_files": [
+    "scripts/evaluation/phase5_split_v1_1.py"
+  ]
+}

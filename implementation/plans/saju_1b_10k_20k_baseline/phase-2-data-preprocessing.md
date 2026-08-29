@@ -89,6 +89,8 @@ source build는 네 원천 manifest hash, audit build는 source build·감사 �
 
 전체 100만+ 원천을 모두 한국어 학습행으로 변환하지 않는다. 대표 후보 선택과 규칙 검증에는 전체 원천을 읽되 실제 정제 산출물은 최종 MIX20K와 source별 예비 20%를 합친 24,000건만 만든다. MIX1K·MIX10은 Phase 4에서 고정 tokenizer를 통과한 MIX20K의 중첩 부분집합으로 확정한다.
 
+아래 5축 표는 품질 보정 전 `v0.x` 역사 build의 계약이다. 현재 학습 정본의 구성표가 아니며 재현 검증을 위해 수치만 보존한다.
+
 | 축 | 최종 20K 목표 | staging 24K | 구현 결과 |
 |---|---:|---:|---:|
 | Nemotron | 11,000 | 13,200 | v6 2,640·v7 10,560 |
@@ -109,7 +111,7 @@ source build는 네 원천 manifest hash, audit build는 source build·감사 �
 
 외부 검수와 고정 revision `ssaju` 정책 비교 결과를 반영하되 기존 `v0.2.0`의 byte hash는 바꾸지 않았다. 새 `v1.0.0/build-a5a9e76d6a8c`는 공통 schema `2.0.0`에서 `label.tier`, `meta.leakage_group_ids`, 계산 정책 ID·SHA-256을 필수화한다.
 
-| 축 | MIX20K | staging 24K | 핵심 보정 |
+| 축 | Phase 2 제안 MIX20K | staging 24K | 핵심 보정 |
 |---|---:|---:|---|
 | Nemotron | 7,000 | 8,400 | v6:v7 20:80, 이름 문맥 치환, target-only 생년월일 제외, 고정 면책문 제거, 지장간 정기 십신, 비처방 오행 문구 |
 | `bazi-sft` | 4,000 | 4,800 | 규칙 파생 tier 고정, assistant 고정 면책문 제거 |
@@ -118,6 +120,8 @@ source build는 네 원천 manifest hash, audit build는 source build·감사 �
 | YEJI 파생 | 1,000 | 1,200 | 조사 보정, 검증·중립 설명 50:50 |
 | deterministic 사주 QA | 2,000 | 2,400 | 원국 글자·음양오행·지장간·천간 십신·지지 정기 십신만 `HARD_GT` |
 | 사주 일기 브리지 | 3,000 | 3,600 | AI Hub 대화와 고유 명식 1:1 결합, 공감+검증 사실, 비인과 문구, talk·chart 이중 leakage group |
+
+Phase 4는 행 수만이 아니라 assistant loss token 최소 비율까지 적용해 최종 canonical을 `Nemotron 6,800 / 사주 일기 브리지 3,200`으로 조정했다. 나머지 축은 위 제안과 같으며 최종 합계는 20,000행이다. 따라서 학습·평가·현황 보고에서 사용하는 정본 수량은 `6,800 / 4,000 / 1,500 / 1,500 / 1,000 / 2,000 / 3,200`이고, 이 표의 7,000/3,000은 staging 생성 당시 후보 배분 설명에만 사용한다.
 
 AI Hub 원천에서는 과거 `v0.2.0`의 3,600개 talk group을 제외하고 단일턴 5,000·멀티턴 5,000의 고유 reservoir를 별도로 만들었다. 순수 공감축에는 각 1,800개, 앱 브리지 부모에는 겹치지 않는 다음 각 1,800개를 사용하며 나머지는 로컬 reserve다. 원문·talk ID·개별 hash는 Git과 공개 보고서에 넣지 않고 private 파일은 0600으로 고정한다.
 

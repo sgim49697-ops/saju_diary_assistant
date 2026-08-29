@@ -1,0 +1,149 @@
+{
+  "schema_version": "1.0.0",
+  "canonical_plan_version": "3.2.0",
+  "dataset_name": "saju_1b_baseline",
+  "status_version": "v1.0.0",
+  "as_of": "2026-08-29",
+  "stage": "pre_ki10",
+  "components": [
+    {
+      "name": "원천 bundle",
+      "version": "v1.1.0",
+      "build_id": "build-9462ec148dcd",
+      "sha256": "9462ec148dcd93328b3b68522ad6c6f0d2c3694161d32a2d54332e8069d82f0a",
+      "status": "완료"
+    },
+    {
+      "name": "승인 audit",
+      "version": "v1.2.0",
+      "build_id": "build-ca756f3eb89f",
+      "sha256": "ca756f3eb89fa404c08dc49215b540b3294ed195c39c597303ec14777bb9c4f1",
+      "status": "완료"
+    },
+    {
+      "name": "품질 보정 staging",
+      "version": "v1.0.0",
+      "build_id": "build-a5a9e76d6a8c",
+      "sha256": "a5a9e76d6a8cd524314fbdb0d4ebf11f0b984c3748606eda56de2d7708d3cd23",
+      "status": "완료"
+    },
+    {
+      "name": "고정 모델·환경",
+      "version": "v1.0.0",
+      "build_id": "build-32e2c84af3d3",
+      "sha256": "32e2c84af3d3da1c2938f21d368453185535340fbbb281382a1051a2f789451d",
+      "status": "완료"
+    },
+    {
+      "name": "Phase 4 preflight",
+      "version": "v2.0.0",
+      "build_id": "build-2feaee353252",
+      "sha256": "2feaee35325205809e342097b69dbefb6dbe1609e08f913b434ee6bb3ec8f399",
+      "status": "완료"
+    },
+    {
+      "name": "canonical MIX20",
+      "version": "v2.0.0",
+      "build_id": "build-6f32d52c2868",
+      "sha256": "6f32d52c2868bb8b5e07724cbdc00a6bc0b2f1608fe53ac54c357a6ec0832ee9",
+      "status": "완료"
+    },
+    {
+      "name": "학습 전 의미 감사",
+      "version": "v1.0.0",
+      "build_id": "build-c38926f86a3d",
+      "sha256": "c38926f86a3d18e1442a7795e32d0ce0e3931ff5a3f80e2cd191e0f0b4899314",
+      "status": "완료"
+    },
+    {
+      "name": "평가 역할 계약",
+      "version": "v1.1.0",
+      "build_id": "build-d2f9e1623e96",
+      "sha256": "d2f9e1623e96699bcec57b0e583bfaf779e365f27ccf0907b855f02558494703",
+      "status": "완료"
+    },
+    {
+      "name": "Phase 5 readiness",
+      "version": "v1.2.0",
+      "build_id": "build-bffd53a2abb3",
+      "sha256": "bffd53a2abb3b60b759d574c13350c90d0531c32a4cd19d3feb42c370809f7fd",
+      "status": "완료"
+    },
+    {
+      "name": "Phase 5 runner 계약",
+      "version": "v1.0.0",
+      "build_id": "build-752f792ae6f6",
+      "sha256": "752f792ae6f6b44ea8a25b8a9fc3228082ef707d768ffe2205c1a2252907a016",
+      "status": "완료"
+    }
+  ],
+  "phases": [
+    {"phase": 0, "title": "범위 고정", "status": "완료", "note": "1.3B·10K/20K baseline과 비공개 경계를 고정"},
+    {"phase": 1, "title": "원천 수집·감사", "status": "완료", "note": "고정 revision·라이선스·AI Hub 로컬 경계 고정"},
+    {"phase": 2, "title": "품질 보정 전처리", "status": "완료", "note": "7축 24K staging과 로컬 reservoir 완결"},
+    {"phase": 3, "title": "모델·CUDA 환경", "status": "완료", "note": "Kanana BF16·torch 2.13.0+cu130 smoke 통과"},
+    {"phase": 4, "title": "학습 전 기술 검증", "status": "완료", "note": "768 Full FT 200-step resume와 canonical v2 승인"},
+    {"phase": 5, "title": "10K·조건부 20K 학습", "status": "미시작", "note": "KI10 실행 대기, KI20은 자동 품질 Gate 전 금지"},
+    {"phase": 6, "title": "봉인 평가·다음 결정", "status": "미시작", "note": "모델 고정 전 blind 접근 금지"}
+  ],
+  "dataset_axes": [
+    {"label": "Nemotron 사주 해석", "rows": 6800, "assistant_token_share_percent": 58.080955, "evidence": "SOFT_GT"},
+    {"label": "bazi-sft 규칙 파생", "rows": 4000, "assistant_token_share_percent": 25.218343, "evidence": "RULE_GT"},
+    {"label": "AI Hub 단일턴", "rows": 1500, "assistant_token_share_percent": 0.861964, "evidence": "HUMAN_REF"},
+    {"label": "AI Hub 멀티턴", "rows": 1500, "assistant_token_share_percent": 0.906623, "evidence": "HUMAN_REF"},
+    {"label": "YEJI 신살 파생", "rows": 1000, "assistant_token_share_percent": 2.890489, "evidence": "RULE_GT"},
+    {"label": "deterministic 사주 QA", "rows": 2000, "assistant_token_share_percent": 3.589891, "evidence": "HARD_GT"},
+    {"label": "사주 일기 브리지", "rows": 3200, "assistant_token_share_percent": 8.451735, "evidence": "GROUNDED_BRIDGE"}
+  ],
+  "evidence_tiers": [
+    {"code": "HARD_GT", "title": "결정론적 사실", "description": "고정 계산 정책으로 독립 재계산 가능한 원국 글자·오행·지장간·십신", "tone": "hard"},
+    {"code": "RULE_GT", "title": "검산 규칙 파생", "description": "고정 조건·긍부정 계약을 통과한 규칙형 답변", "tone": "rule"},
+    {"code": "HUMAN_REF", "title": "사람 대화 참조", "description": "AI Hub 승인 범위의 로컬 전용 공감·대화 문체", "tone": "human"},
+    {"code": "SOFT_GT", "title": "합성 해석 참조", "description": "전문가 Gold가 아닌 소프트 해석·문체 자료이며 최종 품질 주장을 금지", "tone": "soft"}
+  ],
+  "gates": [
+    {"name": "원천 revision", "status": "통과", "criterion": "고정 SHA drift 0", "result": "Kanana·Nemotron·bazi·비교 엔진 revision 일치"},
+    {"name": "Phase 4 hash chain", "status": "통과", "criterion": "A~E·768·Full FT smoke 재검증", "result": "canonical build-6f32d52c2868"},
+    {"name": "20K 의미·출처 감사", "status": "통과", "criterion": "hard blocker·critical/high·mask 오류 0", "result": "수정 없이 KI10 baseline 허용"},
+    {"name": "평가 봉인", "status": "통과", "criterion": "v1.0 bytes 보존·blind 미열람", "result": "dev 930+guard 50만 사전 사용"},
+    {"name": "Phase 5 readiness", "status": "통과", "criterion": "모델·환경·data·runner exact hash", "result": "KI10만 실행 허용"},
+    {"name": "KI10 forward preflight", "status": "대기", "criterion": "BF16 forward·assistant-only eval loss finite", "result": "clean commit 뒤 GPU 실행"},
+    {"name": "KI10 1,000case Gate", "status": "대기", "criterion": "고정 자동 기준 전부 통과", "result": "학습 뒤 판정"},
+    {"name": "KI20", "status": "금지", "criterion": "KI10 모든 품질 기준 통과", "result": "현재 promotion false"},
+    {"name": "sealed blind", "status": "금지", "criterion": "final checkpoint 고정 뒤 단회", "result": "현재 미열람"}
+  ],
+  "known_risks": [
+    {"id": "R-TOKEN-DOMINANCE", "severity": "주의", "title": "지식축 token 편중", "finding": "Nemotron+bazi가 assistant loss token의 83.299298%를 차지합니다.", "disposition": "행 비율이 아닌 token 비율을 공개하고 KI10 행동 Gate에서 공감·handoff 회귀를 검사합니다."},
+    {"id": "R-PERSONA-ALIGNMENT", "severity": "주의", "title": "페르소나 연결 문구", "finding": "Nemotron 6,800행 중 5,170행(76.029412%)에 광범위한 일치·연결 표현이 있습니다. 이는 인과 오류율이 아닙니다.", "disposition": "별도 50case 비인과 guard로 실제 인과 단정만 측정합니다."},
+    {"id": "R-TEMPLATE-DUP", "severity": "주의", "title": "정형 답변 반복", "finding": "YEJI 95.5%, deterministic QA 7.8%가 정규화 중복에 참여하지만 축간 중복 group은 0입니다.", "disposition": "reference 유사도를 최종 품질 점수에서 제외하고 조건·입력별 계약을 채점합니다."},
+    {"id": "R-DEV-REFERENCE-OVERLAP", "severity": "주의", "title": "개발 reference 학습 답변 중복", "finding": "dev diagnostic 940case 중 137, monitor 70case 중 12가 학습 assistant와 exact 일치합니다.", "disposition": "개발용 누수 진단으로 공개하고 blind 일반화 주장에 사용하지 않습니다."},
+    {"id": "R-NO-EXPERT-GOLD", "severity": "주의", "title": "전문가 Gold 부재", "finding": "사람 전문 항목 검수와 품질 인증을 수행하지 않았습니다.", "disposition": "KI10은 baseline 기술 실험으로만 취급하고 배포·전문가 정확성 주장을 금지합니다."}
+  ],
+  "web_sources": [
+    {"name": "Kanana 2 1.3B Instruct", "url": "https://huggingface.co/kakaocorp/kanana-2-1.3b-instruct", "revision": "bf4786aa2a1908adce942d53976270132732f720", "role": "학습 시작 모델", "decision": "고정 BF16 snapshot만 사용"},
+    {"name": "Nemotron-Personas-Korea-Saju", "url": "https://huggingface.co/datasets/rayraykim/Nemotron-Personas-Korea-Saju", "revision": "ffb934248746a2dea64ef771c0d86e1743d25702", "role": "합성 해석 원천", "decision": "SOFT_GT·페르소나 비인과 검사"},
+    {"name": "bazi-sft", "url": "https://huggingface.co/datasets/AmareshHebbar/bazi-sft", "revision": "fad87063b317612e4164dfb0e0e08572c3831df4", "role": "규칙 구조 원천", "decision": "원문 답변 대신 검산 파생만 사용"},
+    {"name": "ssaju", "url": "https://github.com/golbin/ssaju", "revision": "07b608a778be6dac8669e04b9ab794c441959208", "role": "runtime 정책 비교", "decision": "정기 십신 참고·휴리스틱 Gold 금지"},
+    {"name": "manseryeok", "url": "https://github.com/yhj1024/manseryeok", "revision": "fba3253d7305b8b61189bd78318a7a27ed8c9b09", "role": "runtime 정책 비교", "decision": "복수 경계 구현 교차 확인"},
+    {"name": "NOLLI", "url": "https://github.com/HAE-RAE/NOLLI", "revision": "ce60156b92f2b8bcc23e27c69144d22721abc899", "role": "runtime 계산 비교", "decision": "모델 SFT 최종 품질 점수에서 제외"},
+    {"name": "KASI 음양력 정보", "url": "https://www.data.go.kr/data/15012679/openapi.do", "revision": "2026-08-29 정책 확인", "role": "달력 field 기준", "decision": "전체 사주 원국 oracle로 확대 금지"},
+    {"name": "TRL SFTTrainer", "url": "https://huggingface.co/docs/trl/v1.12.0/en/sft_trainer", "revision": "v1.12.0", "role": "Full FT 실행 계약", "decision": "generation marker 기반 assistant-only loss"}
+  ],
+  "validation_summary": [
+    "canonical MIX20 20,000행·7축 수량·record hash 재검증",
+    "assistant loss mask 0행·special/control 0행·foreign CJK 0행",
+    "critical/high 위험 0행·target-only entity 0행·중대 단정 0행",
+    "모델 revision·chat template·package lock·BF16·단일 GPU 계약 고정",
+    "평가 v1.0 membership·blind bytes 보존, blind payload 미열람",
+    "AI Hub 원문·ID·개별 hash·checkpoint를 공개 산출물에서 제외",
+    "KI10과 KI20을 base snapshot에서 독립 시작하도록 runner 고정",
+    "KI20은 KI10 1,000case 자동 Gate 전까지 fail-closed"
+  ],
+  "outputs": {
+    "root_html": "PROJECT_STATUS.html",
+    "snapshot_root": "data/reports/saju_1b_baseline/project-status/v1.0.0/{build_id}"
+  },
+  "implementation_files": [
+    "scripts/status/project_status.py"
+  ]
+}

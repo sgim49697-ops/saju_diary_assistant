@@ -4,10 +4,10 @@
 |---|---|
 | 실행 상태 | 미시작 |
 | 선행 Phase | Phase 5 완료 |
-| 입력 | K0-INSTRUCT·KI10·KI20 모델, 고정 eval, Run log |
+| 입력 | K0-INSTRUCT·KI10, KI10 Gate 통과 시 KI20, 고정 eval, Run log |
 | 출력 | 자동·사람 평가, 400건 검수, 다음 단계 결정 기록 |
-| 완료 Gate | KI10·KI20 비교와 50K/v2 Lite 결정 승인 |
-| 웹 확인일 | 2026-08-27 |
+| 완료 Gate | 실행된 모델의 비교와 50K/v2 Lite/원인 단계 복귀 결정 승인 |
+| 웹 확인일 | 2026-08-29 |
 
 ## 목적
 
@@ -18,17 +18,21 @@ KI10과 KI20을 동일 조건에서 평가해 데이터량 증가의 효과와 �
 | 모델 | 역할 |
 |---|---|
 | `K0-INSTRUCT` | 학습 전 시작점 |
-| `KI10-MIX-v1` | 10K baseline |
-| `KI20-MIX-v1` | 20K baseline |
+| `KI10-MIX-v2` | 10K 품질 보정 baseline |
+| `KI20-MIX-v2` | KI10 자동 Gate 통과 시에만 실행하는 20K baseline |
 
 모든 모델에 동일 prompt, chat template, EOS와 아래 greedy 설정을 적용한다.
 
 평가 역할은 다음처럼 분리한다.
 
 - `dev_monitor_70`: Phase 5 loss 감시만 수행하며 checkpoint 선택·early stopping·최종 주장을 금지한다.
-- `dev_diagnostic_930`: K0·KI10·KI20 파이프라인과 오류 분석에 반복 사용할 수 있으나 최종 일반화 점수로 쓰지 않는다.
+- `dev_diagnostic_930` + `persona_causalization_guard_50`: KI10 승격과 실행된 모델의 파이프라인·오류 분석에 반복 사용할 수 있으나 최종 일반화 점수로 쓰지 않는다.
 - `blind_source_test_500`: 7축 350 component를 KI10·KI20 final checkpoint까지 봉인하고 K0·KI10·KI20에 동일하게 한 번만 실행한다. BaZi 4행을 먼저 component 평균하고 7축 macro average를 계산한다.
 - `external_conformance_220`: KASI 200행과 정책 경계 20행을 runtime/deterministic QA에 별도 채점하며 source blind 종합점수와 합치지 않는다.
+
+YEJI·deterministic QA처럼 정형 template 반복이 큰 축은 train assistant와 같은 reference가 존재할 수 있다. exact/normalized reference overlap은 누수 진단으로만 보고하고, reference 문자열 유사도·일치율을 모델 품질이나 일반화 향상의 근거로 사용하지 않는다. hard-fact는 입력별 계약 검증으로, 자연어 품질은 blind 오류율과 사람 평가로 판단한다.
+
+NOLLI `saju` 300은 출생시각에서 구조화 원국을 계산하는 runtime engine 비교 자료다. chat SFT 모델이 생년월일시를 직접 계산하도록 요구하거나 KI10/KI20 최종 성능 점수에 합치지 않는다. KASI도 음양력·달력 필드의 기준원으로만 사용하며 전체 사주 원국·십신의 단일 oracle로 확대하지 않는다.
 
 blind 출력을 확인한 뒤 데이터·정책·hyperparameter를 바꾸면 해당 split은 사용 완료로 표시하고 새 version을 만든다.
 
@@ -163,8 +167,8 @@ v2 Lite 비교는 `(a) 동일 ID 공통 subset`과 `(b) source/task를 맞춰 �
 
 ## 완료 Gate
 
-- [ ] 세 모델의 raw 출력과 자동평가를 같은 설정으로 저장했다.
-- [ ] 100문항 KI10·KI20 블라인드 선호 평가를 완료했다.
+- [ ] K0·KI10과 Gate를 통과해 실행된 경우 KI20의 raw 출력·자동평가를 같은 설정으로 저장했다.
+- [ ] KI20이 실행된 경우 100문항 KI10·KI20 블라인드 선호 평가를 완료했다. 미실행이면 KI10 실패 원인을 기록했다.
 - [ ] 400건 KEEP/EDIT/DROP 검수와 H1/H2/D 상태를 저장했다.
 - [ ] 자동 Gate, 선호율, source별 DROP 비율을 계산했다.
 - [ ] 50K 또는 v2 Lite 중 하나를 규칙에 따라 선택했다.
@@ -204,3 +208,5 @@ runs/next_stage_decision.md
 | 2026-08-27 | Transformers generation API | `max_new_tokens`, `do_sample`, greedy generation 의미 확인 |
 | 2026-08-27 | TRL SFT logged metrics | loss, entropy, token accuracy, learning rate, grad norm 정의 확인 |
 | 2026-08-27 | Kanana·AI Hub 이용조건 | checkpoint 배포와 원문 재배포를 별도 Gate로 유지 |
+| 2026-08-29 | NOLLI 현재 저장소·KASI API 역할 재확인 | NOLLI는 runtime 계산 비교, KASI는 달력 field 기준으로 제한하고 모델 SFT 품질 점수와 분리 |
+| 2026-08-29 | 개발 reference 중 학습 assistant 동일 문자열 측정 | 반복 template 축의 reference 일치율을 최종 일반화 주장에 사용하지 않고 계약 기반 채점으로 분리 |

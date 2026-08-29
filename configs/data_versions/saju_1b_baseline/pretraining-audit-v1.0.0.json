@@ -1,0 +1,156 @@
+{
+  "schema_version": "1.0.0",
+  "canonical_plan_version": "3.2.0",
+  "dataset_name": "saju_1b_baseline",
+  "audit_version": "v1.0.0",
+  "as_of": "2026-08-29",
+  "parent_phase4": {
+    "version": "v2.0.0",
+    "build_id": "build-6f32d52c2868",
+    "build_sha256": "6f32d52c2868bb8b5e07724cbdc00a6bc0b2f1608fe53ac54c357a6ec0832ee9",
+    "private_manifest_sha256": "66b21f086aa836ee595826f5f8f6eeb3bd234b47a15ec210a2131f548c4bedbf",
+    "preflight_config": "configs/data_versions/saju_1b_baseline/preflight-v2.0.0.json",
+    "selected_max_length": 768,
+    "training_promotion_allowed": true
+  },
+  "parent_readiness": {
+    "version": "v1.1.0",
+    "build_id": "build-201010b37e40",
+    "build_sha256": "201010b37e40c53497bc4cc2c94a099f74d48174a3cefa62fec4547f661fd0d1",
+    "config": "configs/data_versions/saju_1b_baseline/phase5-readiness-v1.1.0.json",
+    "config_sha256": "4e7361b42030c08045183a6dcce23c6edb22864496969884b3b5725a9950d706",
+    "public_manifest_sha256": "1205f83a48c0961e63664f99f527c240c79eef98306b44a7722f0b5825cd1321",
+    "training_promotion_allowed": true
+  },
+  "source_catalog": [
+    {
+      "source_id": "kanana_2_1_3b_instruct",
+      "url": "https://huggingface.co/kakaocorp/kanana-2-1.3b-instruct",
+      "expected_revision": "bf4786aa2a1908adce942d53976270132732f720",
+      "observed_revision": "bf4786aa2a1908adce942d53976270132732f720",
+      "license": "KANANA OPEN LICENSE AGREEMENT",
+      "decision": "training_source",
+      "decision_basis": "BF16 고정 snapshot과 generation marker chat template를 로컬 검증"
+    },
+    {
+      "source_id": "nemotron_personas_korea_saju",
+      "url": "https://huggingface.co/datasets/rayraykim/Nemotron-Personas-Korea-Saju",
+      "expected_revision": "ffb934248746a2dea64ef771c0d86e1743d25702",
+      "observed_revision": "ffb934248746a2dea64ef771c0d86e1743d25702",
+      "license": "CC BY 4.0",
+      "decision": "training_source",
+      "decision_basis": "페르소나 조건부 합성·비전문가 검수 한계를 soft interpretation으로 표시"
+    },
+    {
+      "source_id": "bazi_sft",
+      "url": "https://huggingface.co/datasets/AmareshHebbar/bazi-sft",
+      "expected_revision": "fad87063b317612e4164dfb0e0e08572c3831df4",
+      "observed_revision": "fad87063b317612e4164dfb0e0e08572c3831df4",
+      "license": "Apache-2.0",
+      "decision": "training_source",
+      "decision_basis": "원문 답변 대신 구조 검산과 한국어 재렌더 파생본만 사용"
+    },
+    {
+      "source_id": "aihub_86",
+      "url": "https://aihub.or.kr/intrcn/guid/usagepolicy.do?currMenu=151&topMenu=105",
+      "expected_revision": null,
+      "observed_revision": null,
+      "license": "AI Hub 신청·승인 범위 이용정책",
+      "decision": "training_source",
+      "decision_basis": "로컬 학습 전용, 원문·식별자·개별 hash 외부 공개 금지"
+    },
+    {
+      "source_id": "ssaju",
+      "url": "https://github.com/golbin/ssaju",
+      "expected_revision": "07b608a778be6dac8669e04b9ab794c441959208",
+      "observed_revision": "07b608a778be6dac8669e04b9ab794c441959208",
+      "license": "MIT",
+      "decision": "runtime_comparison",
+      "decision_basis": "지지 십신 정기 정책 비교용이며 휴리스틱 해석은 Gold에서 제외"
+    },
+    {
+      "source_id": "manseryeok",
+      "url": "https://github.com/yhj1024/manseryeok",
+      "expected_revision": "fba3253d7305b8b61189bd78318a7a27ed8c9b09",
+      "observed_revision": "fba3253d7305b8b61189bd78318a7a27ed8c9b09",
+      "license": "MIT",
+      "decision": "runtime_comparison",
+      "decision_basis": "정기 기준 지지 십신과 복수 일자·태양시 정책 비교"
+    },
+    {
+      "source_id": "oh_my_saju",
+      "url": "https://github.com/JaeSang1998/oh-my-saju",
+      "expected_revision": "a8c0cf64adfde8fb1ce253112529edd8e90cc94b",
+      "observed_revision": "a8c0cf64adfde8fb1ce253112529edd8e90cc94b",
+      "license": "Apache-2.0",
+      "decision": "runtime_comparison",
+      "decision_basis": "KASI calendar fixture와 계산 경계 비교"
+    },
+    {
+      "source_id": "korean_saju",
+      "url": "https://github.com/glee1228/korean_saju",
+      "expected_revision": "8c81256db10d3179d31f551beacaa69f2ab2fcc5",
+      "observed_revision": "8c81256db10d3179d31f551beacaa69f2ab2fcc5",
+      "license": "MIT",
+      "decision": "runtime_comparison",
+      "decision_basis": "한국식 원국 계산 경계 비교"
+    },
+    {
+      "source_id": "lunar_python",
+      "url": "https://github.com/6tail/lunar-python",
+      "expected_revision": "448f397c1695cadab3899bf460e0042cab7f0e66",
+      "observed_revision": "448f397c1695cadab3899bf460e0042cab7f0e66",
+      "license": "MIT",
+      "decision": "runtime_comparison",
+      "decision_basis": "승인 project-policy 생성값의 독립 일관성 확인"
+    },
+    {
+      "source_id": "nolli_saju",
+      "url": "https://github.com/HAE-RAE/NOLLI",
+      "expected_revision": "ce60156b92f2b8bcc23e27c69144d22721abc899",
+      "observed_revision": "ce60156b92f2b8bcc23e27c69144d22721abc899",
+      "license": "MIT",
+      "decision": "reference_only",
+      "decision_basis": "출생시각→사주 계산 benchmark는 모델 SFT가 아닌 runtime 비교에만 사용"
+    },
+    {
+      "source_id": "kasi_lunisolar_openapi",
+      "url": "https://www.data.go.kr/data/15012679/openapi.do",
+      "expected_revision": null,
+      "observed_revision": null,
+      "license": "공공데이터포털 이용허락범위 제한 없음",
+      "decision": "reference_only",
+      "decision_basis": "음양력·달력 field만 primary fact이며 전체 사주 원국 oracle로 확대하지 않음"
+    }
+  ],
+  "thresholds": {
+    "hard_blocker_max": 0,
+    "critical_or_high_data_rows_max": 0,
+    "zero_assistant_masks_max": 0,
+    "foreign_cjk_rows_max": 0,
+    "target_only_entity_rows_max": 0,
+    "severe_safety_rows_max": 0,
+    "dominant_knowledge_axis_token_share_warning_percent": 80.0,
+    "persona_alignment_language_warning_percent": 20.0
+  },
+  "patterns": {
+    "persona_alignment_language": [
+      "일치|부합|맞닿|잘\\s*어울|어울립니다|어울려|잘\\s*맞|맞아떨어|연결|닿아",
+      "(?:성향|기질|직업|일|커리어|역할).{0,36}(?:사주|명식|오행|일간).{0,24}(?:일치|부합|맞닿|어울|드러|보여)",
+      "(?:사주|명식|오행|일간).{0,36}(?:성향|기질|직업|일|커리어|역할).{0,24}(?:일치|부합|맞닿|어울|드러|보여)",
+      "(?:타고난|운명적|필연적).{0,32}(?:직업|성향|기질|역할)"
+    ],
+    "severe_safety": [
+      "(?:반드시|확실히|무조건).{0,24}(?:투자|수익|대박|돈을 벌)",
+      "(?:암|질병|죽음|사고|이혼).{0,24}(?:확정|반드시|틀림없)",
+      "(?:약을 끊|치료를 중단|병원에 가지 마)",
+      "(?:운명|사주).{0,16}(?:이므로|때문에).{0,24}(?:반드시|피할 수 없)"
+    ]
+  },
+  "outputs": {
+    "public_root": "data/reports/saju_1b_baseline/pretraining-audit/v1.0.0/{build_id}"
+  },
+  "implementation_files": [
+    "scripts/training/pretraining_audit.py"
+  ]
+}

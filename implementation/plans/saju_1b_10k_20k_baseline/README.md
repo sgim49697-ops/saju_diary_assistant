@@ -4,7 +4,7 @@
 
 | 항목 | 값 |
 |---|---|
-| 문서 버전 | `3.1.0` |
+| 문서 버전 | `3.2.0` |
 | 정본화 기준일 | 2026-08-29 |
 | 주 장비 | NVIDIA GeForce RTX 5070 Ti 16GiB, WSL2 |
 | 주 모델 | `kakaocorp/kanana-2-1.3b-instruct@bf4786aa2a1908adce942d53976270132732f720` |
@@ -14,7 +14,7 @@
 ## 고정 실험 계약
 
 - 모델 학습 방식은 BF16 전체 파라미터 Full Fine-tuning이다. LoRA/QLoRA로 자동 전환하지 않는다.
-- 10K와 20K는 같은 Instruct revision에서 각각 독립적으로 1 epoch 학습한다.
+- 10K를 먼저 1 epoch 학습하고 고정 자동 품질 Gate를 모두 통과한 경우에만, 20K를 같은 Instruct revision에서 독립적으로 1 epoch 학습한다.
 - `MIX1K-v2 ⊂ MIX10-v2 ⊂ MIX20-v2`이어야 한다.
 - 데이터 행 비율은 Nemotron 34%, 검산·한국어화한 `bazi-sft` 20%, AI Hub #86 단일턴 7.5%, 멀티턴 7.5%, 검증된 YEJI 신살 규칙 5%, deterministic 사주 QA 10%, 사주-일기 앱 브리지 16%로 고정한다.
 - Nemotron 내부는 v6 20%·v7 80%로 고정한다.
@@ -36,7 +36,7 @@
 | 2 | [데이터 전처리](phase-2-data-preprocessing.md) | 완료 | 품질 보정 7축 24K와 로컬 전용 AI Hub 후보 10K 완결, 학습 승격은 Phase 4 Gate로 분리 |
 | 3 | [학습 모델·환경 준비](phase-3-model-preparation.md) | 완료 | 고정 PyTorch cu130 환경에서 모델·tokenizer·template 전체 BF16 오프라인 로드 성공 |
 | 4 | [학습 전 데이터·모델 검증](phase-4-preflight-validation.md) | 완료 | 품질 보정 staging의 A~E·1,020case·Full FT 200-step resume와 768 canonical 승격 통과 |
-| 5 | [Baseline 학습](phase-5-baseline-training.md) | 미시작 | KI10·KI20 독립 Run과 산출물 완결 |
+| 5 | [Baseline 학습](phase-5-baseline-training.md) | 미시작 | 학습 전 의미 감사 후 KI10, 자동 품질 Gate 통과 시에만 독립 KI20 실행 |
 | 6 | [평가·검수·v2 결정](phase-6-evaluation-v2-decision.md) | 미시작 | 고정 평가 후 50K 또는 v2 Lite 경로 결정 |
 
 Phase 상태 값은 `미시작`, `부분 진행`, `진행 중`, `차단`, `완료`만 사용한다. 앞 Phase가 `완료`가 아니면 뒤 Phase의 공식 산출물을 만들지 않는다.
@@ -60,6 +60,7 @@ data/
 │   ├── manifests/
 │   └── eval/
 ├── derived/saju_1b_baseline/evaluation-split/v1.0.0/build-a5a04ab96594/
+├── derived/saju_1b_baseline/evaluation-split/v1.1.0/build-<fingerprint>/ # v1.0 봉인 유지·dev 진단 확장
 ├── derived/saju_1b_baseline/phase5-readiness/v1.0.0/build-f6c8171f454f/ # 과거 readiness
 ├── derived/saju_1b_baseline/phase5-readiness/v1.1.0/build-201010b37e40/
 └── reports/
@@ -91,12 +92,17 @@ configs/data_versions/saju_1b_baseline/
 ├── phase5-readiness-v1.0.0.json
 ├── evaluation-split-v1.0.0.json
 ├── phase5-readiness-v1.1.0.json
+├── pretraining-audit-v1.0.0.json
+├── evaluation-split-v1.1.0.json
+├── phase5-readiness-v1.2.0.json
+├── project-status-v1.0.0.json
 └── registry.json
 
 configs/model_versions/saju_1b_baseline/model-preparation-v1.0.0.json
 configs/chat_templates/kanana2_sft.jinja
 requirements.txt
 requirements-phase3.lock.txt
+PROJECT_STATUS.html
 
 runs/
 ├── K0-INSTRUCT/v2.0.0/build-2feaee353252/
@@ -203,6 +209,11 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
 
 ## 진행 기록
 
+- 2026-08-29
+  - 작업 요약: 학습 직전 의미·출처 전수 감사, 평가 v1.0 불변 확장, readiness v1.2, 실제 BF16 Full FT runner와 공개 현황판 계약을 구현했다. 이 체크포인트에서는 모델 학습·backward·optimizer step과 봉인 blind 열람을 수행하지 않았다.
+  - 변경 범위: canonical 계획을 `3.2.0`으로 올리고 20K assistant token 편중·정형 중복·개발 reference overlap·Nemotron 페르소나 연결 문구를 집계했다. KI10은 1,250 optimizer step, KI20은 KI10의 고정 1,000case 자동 Gate를 모두 통과할 때만 base snapshot에서 독립 2,500 step으로 실행하도록 fail-closed 계약을 추가했다.
+  - 검증: 고정 학습 환경에서 20K 전수 재검증 결과 hard blocker·critical/high·assistant mask 오류·foreign CJK·target-only entity·중대 단정·control·revision drift가 모두 0이었다. 175개 단위 테스트, Ruff, Python compile, `git diff --check`, Phase 4 계약 검증을 통과했다.
+  - 남은 이슈·후속 작업: Nemotron+bazi assistant token 비중 83.299298%, YEJI 정규화 중복 참여 95.5%, Nemotron 연결 표현 76.029412%를 알려진 위험으로 유지한다. 구현 commit을 고정한 뒤 평가·감사·readiness 불변 build와 현황 HTML을 생성하고, clean tree에서 KI10 forward preflight와 조건부 학습을 실행한다.
 - 2026-08-29
   - 작업 요약: Phase 5 전 평가 역할을 train·dev monitor·dev diagnostic·sealed blind·external conformance로 분리한 `evaluation-split/v1.0.0/build-a5a04ab96594`와 비학습 `phase5-readiness/v1.1.0/build-201010b37e40`을 생성·독립 재검증했다. 실제 KI10·KI20 학습은 실행하지 않았다.
   - 변경 범위: 기존 eval70과 1,000건을 개발용으로 재분류하고, 품질 보정 24K의 미사용 component에서 축별 50개·총 350 component/500행 blind를 봉인했다. KASI 200행과 고정 revision 정책 경계 20행, 라이선스 고지를 별도 공개 fixture로 고정하고 readiness v1.1 부모 계약에 정확한 manifest hash를 연결했다.

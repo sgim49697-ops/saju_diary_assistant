@@ -1,0 +1,124 @@
+{
+  "schema_version": "1.0.0",
+  "canonical_plan_version": "3.2.0",
+  "dataset_name": "saju_1b_baseline",
+  "training_version": "v1.0.0",
+  "required_readiness": {
+    "version": "v1.2.0",
+    "config": "configs/data_versions/saju_1b_baseline/phase5-readiness-v1.2.0.json",
+    "registry_key": "approved_phase5_readiness",
+    "required_status": "ready_for_ki10_execution_with_automated_promotion_gate"
+  },
+  "model": {
+    "repo_id": "kakaocorp/kanana-2-1.3b-instruct",
+    "revision": "bf4786aa2a1908adce942d53976270132732f720",
+    "local_subdir": "models/saju_1b_baseline/kanana-2-1.3b-instruct/bf4786aa2a1908adce942d53976270132732f720",
+    "snapshot_manifest_sha256": "5786d04831c93192d234651df0894a1912b974cfab96011ce0676563185cc93d",
+    "chat_template_path": "configs/chat_templates/kanana2_sft.jinja",
+    "chat_template_sha256": "b8ee6b31575eada17ebbe73d3f1ac65d3efde64f0a25ff922031dec7e1cae3e3",
+    "package_lock": "requirements-phase3.lock.txt",
+    "package_lock_sha256": "0301de92dea4a21eb8077abb01aae6eaf412590ac670e436bcd5d7b3717b8aed",
+    "dtype": "bfloat16",
+    "attention_backend": "sdpa",
+    "parameter_count": 1291478272,
+    "local_files_only": true,
+    "trust_remote_code": true
+  },
+  "runtime_versions": {
+    "torch": "2.13.0+cu130",
+    "torch_cuda": "13.0",
+    "transformers": "4.57.6",
+    "trl": "1.12.0",
+    "bitsandbytes": "0.50.2",
+    "datasets": "4.7.0"
+  },
+  "data": {
+    "canonical_version": "v2.0.0",
+    "canonical_build_id": "build-6f32d52c2868",
+    "canonical_build_sha256": "6f32d52c2868bb8b5e07724cbdc00a6bc0b2f1608fe53ac54c357a6ec0832ee9",
+    "canonical_root": "data/derived/saju_1b_baseline/v2.0.0/build-6f32d52c2868",
+    "preflight_config": "configs/data_versions/saju_1b_baseline/preflight-v2.0.0.json",
+    "runs": {
+      "KI10-MIX-v2": {
+        "manifest": "manifests/mix10k_v2.jsonl",
+        "rows": 10000,
+        "sha256": "7863270e5a16fe9f92b52e82d45ae0b60f0b68ee3f0003955d662eb0392472e9",
+        "expected_optimizer_steps": 1250
+      },
+      "KI20-MIX-v2": {
+        "manifest": "manifests/mix20k_v2.jsonl",
+        "rows": 20000,
+        "sha256": "731ace0ac5584fd97fc38f157a4ecdb1babedefd79e2ec5b2d755fa26e48a550",
+        "expected_optimizer_steps": 2500
+      }
+    }
+  },
+  "training": {
+    "max_length": 768,
+    "pad_to_multiple_of": 8,
+    "per_device_train_batch_size": 1,
+    "per_device_eval_batch_size": 1,
+    "gradient_accumulation_steps": 8,
+    "eval_accumulation_steps": 1,
+    "num_train_epochs": 1,
+    "optim": "paged_adamw_8bit",
+    "learning_rate": 0.000008,
+    "warmup_ratio": 0.03,
+    "lr_scheduler_type": "cosine",
+    "weight_decay": 0.01,
+    "max_grad_norm": 1.0,
+    "gradient_checkpointing": true,
+    "gradient_checkpointing_use_reentrant": false,
+    "assistant_only_loss": true,
+    "packing": false,
+    "padding_free": false,
+    "loss_type": "chunked_nll",
+    "bf16": true,
+    "fp16": false,
+    "tf32": false,
+    "use_cache": false,
+    "logging_steps": 10,
+    "logging_nan_inf_filter": false,
+    "eval_steps": 250,
+    "save_steps": 250,
+    "save_total_limit": 2,
+    "save_only_model": false,
+    "save_safetensors": true,
+    "dataloader_num_workers": 0,
+    "seed": 42,
+    "data_seed": 42,
+    "torch_compile": false,
+    "report_to": []
+  },
+  "evaluation": {
+    "dev_monitor_rows": 70,
+    "diagnostic_cases": 1000,
+    "generation_max_new_tokens": 256,
+    "do_sample": false,
+    "num_beams": 1,
+    "blind_source_test_access_allowed": false,
+    "ki10_promotion_thresholds": {
+      "expected_generation_cases": 1000,
+      "parseable_nonempty_min_percent": 98.0,
+      "special_or_control_outputs_max": 0,
+      "severe_safety_outputs_max": 0,
+      "foreign_sentence_max_percent": 3.0,
+      "target_only_entity_outputs_max": 0,
+      "hard_fact_and_branch_policy_min_percent": 90.0,
+      "shensha_condition_and_polarity_min_percent": 90.0,
+      "empathy_task_confusion_max_percent": 5.0,
+      "missing_chart_handoff_required": 5,
+      "input_fact_violation_max_percent": 10.0,
+      "persona_causalization_max_percent": 10.0
+    }
+  },
+  "outputs": {
+    "run_root": "runs/{run_id}/v1.0.0/{run_build_id}",
+    "preflight_root": "runs/PHASE5-PREFLIGHT/v1.0.0/{run_build_id}",
+    "public_root": "data/reports/saju_1b_baseline/phase5-runs/v1.0.0/{run_id}/{run_build_id}"
+  },
+  "implementation_files": [
+    "scripts/training/phase5_quality.py",
+    "scripts/training/phase5_train.py"
+  ]
+}

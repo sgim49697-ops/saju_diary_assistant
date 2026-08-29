@@ -32,6 +32,7 @@ section{padding:24px 0}.section-head{display:flex;align-items:flex-end;justify-c
 </head>
 <body>
 <main class="wrap">
+  <div class="note" style="margin-top:24px;border-color:#f1c36f;background:#fff9e8"><strong>역사 조사본:</strong> 이 문서는 2026-08-26의 초기 70~100K 아이디어를 보존한 비정본 자료입니다. 현재 10K/20K 계약·버전·Gate는 <a href="saju_1b_10k_20k_baseline/README.md">정본 계획</a>과 <a href="../../PROJECT_STATUS.html">프로젝트 현황판</a>을 따르세요.</div>
   <header class="hero">
     <span class="eyebrow">☀️ Kanana 2 1.3B · 사주 전문가 POC</span>
     <h1>사주 데이터셋, 많이보다<br>“어떻게 섞고 검증할지”가 중요</h1>
@@ -63,8 +64,8 @@ section{padding:24px 0}.section-head{display:flex;align-items:flex-end;justify-c
           <tr><td><span class="badge b">B</span></td><td><div class="name">YEJI Fortune-Telling KO v9</div></td><td>31,625<br><span class="small">사주 8,423</span></td><td>한국어 · 합성 상담문</td><td>말투/상담 스타일</td><td><b>2K~4K</b></td><td>CC BY-NC 4.0</td><td><a class="btn" href="https://huggingface.co/datasets/tellang/yeji-fortune-telling-ko-v9" target="_blank">HF ↗</a></td></tr>
           <tr><td><span class="badge a">A</span></td><td><div class="name">YEJI BaZi Rules</div></td><td>51+ 문서 표방<br><span class="small">viewer 7 rows</span></td><td>한·중 · 규칙/고전 문서</td><td>규칙 그래프·QA 생성 원천</td><td><b>문서 중심 사용</b></td><td>MIT</td><td><a class="btn" href="https://huggingface.co/datasets/tellang/yeji-bazi-rules" target="_blank">HF ↗</a></td></tr>
           <tr><td><span class="badge b">B</span></td><td><div class="name">AI Hub 공감형 대화</div></td><td>31,821 세션<br><span class="small">472,055 발화</span></td><td>한국어 · 공감 대화</td><td>사주 외 자연스러운 대화</td><td><b>3K~5K 세션</b></td><td>AI Hub 이용조건</td><td><a class="btn" href="https://aihub.or.kr/aihubdata/data/view.do?dataSetSn=71305" target="_blank">AI Hub ↗</a></td></tr>
-          <tr><td><span class="badge test">TEST</span></td><td><div class="name">NOLLI — saju</div></td><td>300</td><td>한국어 · solver 검증</td><td><b>최종 계산 평가 전용</b></td><td>학습 0건</td><td>MIT</td><td><a class="btn" href="https://huggingface.co/datasets/HAERAE-HUB/NOLLI" target="_blank">HF ↗</a></td></tr>
-          <tr><td><span class="badge ref">GT</span></td><td><div class="name">한국천문연구원 Open API</div></td><td>데이터셋 아님</td><td>음양력·24절기 등</td><td>한국 기준 계산 검증</td><td>필수 기준원</td><td>이용허락 제한 없음</td><td><a class="btn" href="https://astro.kasi.re.kr/information/pageView/31" target="_blank">KASI ↗</a></td></tr>
+          <tr><td><span class="badge test">TEST</span></td><td><div class="name">NOLLI — saju</div></td><td>300</td><td>한국어 · solver 검증</td><td><b>runtime 계산 비교 전용</b></td><td>모델 학습·평가 0건</td><td>MIT</td><td><a class="btn" href="https://huggingface.co/datasets/HAERAE-HUB/NOLLI" target="_blank">HF ↗</a></td></tr>
+          <tr><td><span class="badge ref">GT</span></td><td><div class="name">한국천문연구원 Open API</div></td><td>데이터셋 아님</td><td>음양력·24절기 등</td><td>달력 field 기준 검증</td><td>전체 사주 oracle 아님</td><td>이용허락 제한 없음</td><td><a class="btn" href="https://astro.kasi.re.kr/information/pageView/31" target="_blank">KASI ↗</a></td></tr>
         </tbody>
       </table>
     </div>
@@ -116,7 +117,7 @@ section{padding:24px 0}.section-head{display:flex;align-items:flex-end;justify-c
 
       <article class="dataset-card"><div class="top"><div><h3>⑦ AI Hub 공감형 대화</h3><div class="meta">31,821 세션 · 472,055 발화 · 한국어</div></div><span class="badge b">대화 유지</span></div><p>사주가 아닌 일반 공감 대화 자료. Full FT 후 모델이 모든 질문을 사주로 끌고 가거나 딱딱해지는 것을 막는 replay 데이터로 적합합니다.</p><div class="use"><b>추천:</b> 전체를 넣지 말고 3~5K 세션 정도만 선별. 짧게 듣기·되묻기·공감하기 같은 자연스러운 행동을 유지하는 용도.</div><div class="mini-grid"><div class="mini"><strong>좋은 점</strong>자연스러운 대화력 보강</div><div class="mini"><strong>주의</strong>사주 전문성 희석 금지</div></div></article>
 
-      <article class="dataset-card"><div class="top"><div><h3>⑧ NOLLI — saju</h3><div class="meta">300 · MIT · solver-verified</div></div><span class="badge test">평가 전용</span></div><p>난이도 easy/medium/hard 각 100문항으로, 출생 날짜·시간에서 사주 네 기둥을 계산하는 한국어 benchmark입니다.</p><div class="use"><b>추천:</b> 학습에 절대 넣지 않고 처음부터 잠가두기. Base → SFT → Gold polishing 단계별 계산 정확도를 같은 300문항으로 비교.</div><div class="mini-grid"><div class="mini"><strong>좋은 점</strong>독립된 계산 평가</div><div class="mini"><strong>주의</strong>해석 품질 평가는 별도 필요</div></div></article>
+      <article class="dataset-card"><div class="top"><div><h3>⑧ NOLLI — saju</h3><div class="meta">300 · MIT · solver-verified</div></div><span class="badge test">runtime 비교</span></div><p>난이도 easy/medium/hard 각 100문항으로, 출생 날짜·시간에서 사주 네 기둥을 계산하는 한국어 benchmark입니다.</p><div class="use"><b>추천:</b> chat SFT 학습·최종 모델 점수에는 넣지 않고 runtime 만세력 엔진의 계산 정책 비교에만 사용. 해석 품질은 별도 blind·계약 평가로 확인.</div><div class="mini-grid"><div class="mini"><strong>좋은 점</strong>독립된 계산 비교</div><div class="mini"><strong>주의</strong>모델 해석 품질 근거 아님</div></div></article>
     </div>
   </section>
 
@@ -126,7 +127,7 @@ section{padding:24px 0}.section-head{display:flex;align-items:flex-end;justify-c
       <div class="download-grid">
         <div>
           <h3 style="margin-top:0">Python에서 바로 로드</h3>
-          <div class="code">pip install -U datasets huggingface_hub
+          <div class="code">uv pip install -U datasets huggingface_hub
 
 from datasets import load_dataset
 
@@ -151,7 +152,7 @@ nolli = load_dataset(
         <div>
           <h3 style="margin-top:0">파일로 통째로 받기</h3>
           <div class="code"># Hugging Face CLI
-pip install -U huggingface_hub
+uv pip install -U huggingface_hub
 
 hf download rayraykim/Nemotron-Personas-Korea-Saju \
   --repo-type dataset --local-dir data/nemotron_saju
@@ -173,19 +174,19 @@ hf download tellang/yeji-bazi-rules \
   <section>
     <div class="section-head"><div><h2>5. 무엇을 “정답”으로 학습할까?</h2><p>정답의 종류를 분리해야 합성 데이터의 오류를 모델이 그대로 외우지 않습니다.</p></div></div>
     <div class="truth">
-      <div><b>① 계산 정답</b><span>연·월·일·시주, 십신, 오행 등 → 자체 만세력 엔진/KASI 기준.</span></div>
+      <div><b>① 계산 정답</b><span>연·월·일·시주, 십신, 오행 등 → 고정 정책 runtime 엔진. KASI는 음양력·달력 field만 대조.</span></div>
       <div><b>② 이론 정답</b><span>규칙·정의·예외 → 출처가 있는 rule graph.</span></div>
       <div><b>③ 해석 정답</b><span>계산 facts + 적용 규칙에 모순되지 않는 자연스러운 답변.</span></div>
       <div><b>④ 대화 정답</b><span>사주를 억지로 꺼내지 않고 질문 의도에 맞게 친절하게 응답.</span></div>
     </div>
-    <div class="note" style="margin-top:14px"><strong>추천 split:</strong> 행 랜덤 분할 대신 동일 명식(chart signature)이 train/test에 동시에 들어가지 않도록 group split. NOLLI 300은 완전 외부 테스트로 보존.</div>
+    <div class="note" style="margin-top:14px"><strong>추천 split:</strong> 행 랜덤 분할 대신 동일 명식(chart signature)이 train/test에 동시에 들어가지 않도록 group split. NOLLI 300은 모델 split이 아니라 runtime 계산 비교 fixture로 분리.</div>
   </section>
 
   <section>
     <div class="section-head"><div><h2>6. 바로 시작할 때의 최소 순서</h2></div></div>
     <div class="panel">
       <div class="steps">
-        <span class="step">1 · NOLLI 테스트셋 잠금</span><span class="arrow">→</span>
+        <span class="step">1 · runtime 계산 fixture 잠금</span><span class="arrow">→</span>
         <span class="step">2 · 공개 원천 4종 다운로드</span><span class="arrow">→</span>
         <span class="step">3 · 2~5K 샘플 수동 감사</span><span class="arrow">→</span>
         <span class="step">4 · 계산/용어 validator 제작</span><span class="arrow">→</span>

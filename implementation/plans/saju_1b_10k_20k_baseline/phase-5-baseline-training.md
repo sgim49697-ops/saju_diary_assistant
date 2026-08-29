@@ -6,7 +6,7 @@
 | 선행 Phase | Phase 4 완료 |
 | 입력 | 선택 길이의 canonical MIX10·MIX20, Instruct snapshot, 승인 config |
 | 출력 | KI10·KI20 checkpoint, trainer state, 환경·학습 보고서 |
-| 완료 Gate | 두 독립 Run이 재현·재로딩 가능한 상태로 종료 |
+| 완료 Gate | KI10 재현·재로딩·자동 품질 Gate 완료, 통과한 경우에만 독립 KI20까지 종료 |
 | 웹 확인일 | 2026-08-29 |
 
 ## 목적
@@ -16,15 +16,16 @@
 ## 실행 순서
 
 ```text
-고정 Instruct ──> KI10-MIX-v2, 1 epoch ──> 중간 안정성 검사
-고정 Instruct ──> KI20-MIX-v2, 1 epoch ──> 공식 비교 대상
+고정 Instruct ──> KI10-MIX-v2, 1 epoch ──> 1,000case 자동 품질 Gate
+                                                   ├─ 모든 기준 통과 ─> 고정 Instruct ─> KI20-MIX-v2
+                                                   └─ 하나라도 실패 ─> KI20 금지·원인 분석
 ```
 
-KI20은 KI10 checkpoint에서 시작하지 않는다. KI10 후 심각한 파이프라인 오류가 발견되면 KI20을 실행하지 않고 Phase 2~4로 돌아간다.
+KI20은 KI10 checkpoint에서 시작하지 않는다. KI10의 기술 안정성뿐 아니라 고정된 자동 품질 기준을 모두 통과해야만 실행한다. 실패 기준을 학습 결과에 맞춰 사후 완화하지 않으며 데이터·정책·hyperparameter 변경이 필요하면 새 버전으로 돌아간다.
 
 ## 고정 학습 설정
 
-`max_length`는 Phase 4가 고른 1024/768/512 중 하나를 그대로 사용한다.
+`max_length`는 Phase 4가 선택·승인한 `768`로 고정한다.
 
 ```yaml
 model_name_or_path: <local-instruct-snapshot>
@@ -37,8 +38,12 @@ bf16: true
 fp16: false
 tf32: false
 per_device_train_batch_size: 1
+per_device_eval_batch_size: 1
 gradient_accumulation_steps: 8
+eval_accumulation_steps: 1
 num_train_epochs: 1
+max_length: 768
+pad_to_multiple_of: 8
 
 optim: paged_adamw_8bit
 learning_rate: 8.0e-6
@@ -60,6 +65,7 @@ shuffle_dataset: true
 logging_strategy: steps
 logging_steps: 10
 logging_first_step: true
+logging_nan_inf_filter: false
 eval_strategy: steps
 eval_steps: 250
 save_strategy: steps
@@ -78,9 +84,9 @@ data_seed: 42
 
 `peft_config`와 quantized model loading을 전달하지 않는다. 8-bit는 optimizer state에만 적용하며 모델 전체 파라미터는 BF16 학습 대상이다.
 
-## Phase 5 실행 전 readiness Gate
+## Phase 5 실행 전 의미 감사·평가·readiness Gate
 
-실제 학습 명령을 만들기 전에 `phase5-readiness-v1.1.0`을 별도 실행한다. v1.1은 검증된 v1.0 데이터·모델·환경 계약을 그대로 부모로 두고 봉인 평가 split만 추가한다. 이 Gate는 학습·optimizer·backward를 수행하지 않고 다음만 불변 산출물로 고정한다.
+실제 학습 전에 의미·출처 감사 `v1.0`, 평가 확장 `v1.1`, readiness `v1.2`를 차례로 고정한다. 기존 평가 v1.0의 membership과 봉인 blind bytes는 바꾸거나 읽지 않는다. 이 Gate들은 학습·optimizer·backward를 수행하지 않고 다음만 불변 산출물로 고정한다.
 
 - registry가 품질 보정 Phase 4 v2 canonical을 가리키고 A~E·768·`training_promotion_allowed=true` hash chain이 전부 재검증됨
 - `mix10k_v2.jsonl` 10,000행과 `mix20k_v2.jsonl` 20,000행이 7축 고정 수량·strict subset·동일 record hash를 만족함
@@ -89,17 +95,31 @@ data_seed: 42
 - Python 3.10.12, uv 0.9.26, torch 2.13.0+cu130, Transformers 4.57.6, TRL 1.12.0, bitsandbytes 0.50.2와 `requirements-phase3.lock.txt` SHA-256이 일치함
 - 가용 disk가 최소 64GiB이고 KI10·KI20이 모두 고정 Instruct snapshot에서 독립 시작하며, checkpoint가 model·optimizer·scheduler·trainer state를 저장함
 - readiness 공개 보고서에는 제한 원문을 넣지 않고 `phase5_training_performed=false`를 유지함
+- 20K 전수 의미 감사에서 hard blocker 0, critical/high 0, assistant mask 0행·언어/제어/민감 entity 신규 위반 0을 확인함
+- dev reference 중 train assistant와 같은 답변은 별도 집계하되, 반복성이 높은 축에서 reference similarity를 최종 성능 주장으로 쓰지 않음
+- Nemotron 페르소나 연결 문구는 별도 50case 비인과 guard로 검사하며 광범위 연결 문구 비율 자체를 인과 오류율로 해석하지 않음
 
 학습 중 loss-only eval은 이 eval70으로 250 optimizer step마다 수행한다. 생성 품질 평가는 Phase 6에서 별도 고정 계약으로 실행하며, eval 결과를 근거로 같은 Run의 hyperparameter나 데이터 비율을 중간 변경하지 않는다.
 
 ```bash
-.venv/bin/python scripts/training/phase5_readiness_v1_1.py validate-contract
-.venv/bin/python scripts/training/phase5_readiness_v1_1.py plan
-.venv/bin/python scripts/training/phase5_readiness_v1_1.py prepare --execute
-.venv/bin/python scripts/training/phase5_readiness_v1_1.py verify
+.venv/bin/python scripts/training/pretraining_audit.py validate-contract
+.venv/bin/python scripts/training/pretraining_audit.py run --execute
+.venv/bin/python scripts/evaluation/phase5_split_v1_1.py prepare --execute
+.venv/bin/python scripts/training/phase5_readiness_v1_2.py prepare --execute
+.venv/bin/python scripts/training/phase5_readiness_v1_2.py verify
 ```
 
-`prepare`는 기본 dry-run이고 `--execute`가 있어도 eval70·KI10/KI20 입력 계약과 공개 요약만 만든다. 학습 API, backward, optimizer step은 이 도구에 없으며 실제 Phase 5 실행은 별도 명시적 명령과 `PHASE5_TRAINING` 확인값을 요구하도록 설계한다.
+각 `prepare`/`run`은 기본 dry-run이다. `--execute`가 있어도 평가·KI10/KI20 입력 계약과 공개 요약만 만들며, 실제 학습은 별도 runner와 정확한 `PHASE5_TRAINING=<run-id>` 확인값을 요구한다.
+
+```bash
+.venv/bin/python scripts/training/phase5_train.py validate-contract
+.venv/bin/python scripts/training/phase5_train.py plan --run-id KI10-MIX-v2
+.venv/bin/python scripts/training/phase5_train.py preflight-run --run-id KI10-MIX-v2 --execute
+PHASE5_TRAINING=KI10-MIX-v2 .venv/bin/python scripts/training/phase5_train.py train --run-id KI10-MIX-v2 --execute
+.venv/bin/python scripts/training/phase5_train.py evaluate-ki10 --execute
+```
+
+KI20 명령은 `evaluate-ki10`이 모든 기준을 통과해 `ki20_promotion_allowed=true`를 고정한 뒤에만 실행한다.
 
 ## Run 시작 전 동등성 검사
 
@@ -146,49 +166,58 @@ checkpoint 저장 실패 또는 disk 부족
 - 설정이 다르면 기존 Run을 덮어쓰지 않고 새 Run ID를 만든다.
 - final 저장 후 새 process에서 모델·tokenizer를 로드해 deterministic fixture 5개를 생성한다.
 
-## KI10 중간 안정성 검사
+## KI10 자동 품질 Gate
 
-KI10 종료 후 Phase 6 전체 평가 전에 core eval의 소규모 고정 subset으로 다음만 확인한다.
+KI10 종료 후 Phase 6 봉인 평가를 열기 전에 개발 진단 930case와 별도 페르소나 비인과 guard 50case를 합친 1,000case를 greedy 생성한다. train과 같은 reference 답변은 측정값으로 공개하지만 해당 reference를 그대로 재현했는지는 승격 점수로 쓰지 않는다.
 
-- 정상 생성·종료
-- JSON 태스크 파싱
-- 공감 질문에 사주를 꺼내는 태스크 혼동
-- 중국어 문장 혼입
-- 입력 사실을 무시한 명백한 환각
+```text
+비어 있지 않고 파싱 가능한 출력       >= 98%
+special/control token 노출             == 0건
+의료·투자·운명 중대 단정               == 0건
+외국어 문장 혼입                        <= 3%
+target-only 민감 entity                 == 0건
+hard fact·지지 정기 정책 충족           >= 90%
+신살 조건·긍부정 판정 충족              >= 90%
+공감↔사주 태스크 혼동                   <= 5%
+명식 누락 handoff                       == 5/5
+입력 사실 위반                          <= 10%
+페르소나 인과 단정                      <= 10%
+```
 
-모델이 생성 불능이거나 pipeline 오류가 있으면 KI20을 중단한다. 모델 품질이 낮지만 파이프라인이 정상이라면 데이터량 효과 측정을 위해 KI20은 진행한다.
+한 항목이라도 실패하면 KI20을 실행하지 않는다. 이 검사는 전문가 품질 인증이나 최종 일반화 점수가 아니며, KI20에 더 많은 계산량을 투입할 최소 기술·행동 품질 Gate다.
 
 ## 완료 Gate
 
-- [ ] KI10과 KI20 모두 같은 Instruct snapshot에서 독립적으로 시작했다.
-- [ ] 두 Run의 config 차이는 manifest·output 경로뿐이다.
-- [ ] 1 epoch가 NaN/Inf/OOM 없이 끝났다.
-- [ ] final 모델과 trainer state를 새 process에서 재로딩했다.
-- [ ] run manifest, package lock, log, checkpoint hash를 저장했다.
-- [ ] KI10 중간 안정성 검사가 KI20 진행을 허용했다.
+- [ ] KI10이 고정 Instruct snapshot에서 시작해 NaN/Inf/OOM 없이 1 epoch를 끝냈다.
+- [ ] KI10 final 모델과 trainer state를 새 process에서 재로딩했다.
+- [ ] KI10 run manifest, package lock, log, checkpoint hash를 저장했다.
+- [ ] KI10 1,000case 자동 품질 Gate를 고정 기준으로 판정했다.
+- [ ] Gate 통과 시에만 KI20을 같은 Instruct snapshot에서 독립 시작했다.
+- [ ] 실행된 KI20은 KI10과 manifest·output 경로 외 설정이 같고 재로딩 가능하다.
 - [ ] 모델·checkpoint를 공개 저장소나 Hub에 올리지 않았다.
 
 ## 산출물
 
 ```text
-data/derived/saju_1b_baseline/phase5-readiness/v1.1.0/build-<fingerprint>/
+data/derived/saju_1b_baseline/phase5-readiness/v1.2.0/build-<fingerprint>/
 ├── eval/dev_monitor_70.jsonl
 └── run_inputs/
 
-data/reports/saju_1b_baseline/phase5-readiness/v1.1.0/build-<fingerprint>/
+data/reports/saju_1b_baseline/phase5-readiness/v1.2.0/build-<fingerprint>/
 ├── build_manifest.json
 └── readiness_summary.json
 
-runs/KI10-MIX-v2/
+runs/KI10-MIX-v2/v1.0.0/run-<fingerprint>/
 ├── run_manifest.json
-├── config.resolved.yaml
+├── config.resolved.json
 ├── trainer_state.json
 ├── metrics.jsonl
 ├── checkpoint-*/
 ├── final/
-└── reload_fixtures.jsonl
+├── reload_fixtures.jsonl
+└── ki10_diagnostic_generations.jsonl
 
-runs/KI20-MIX-v2/
+runs/KI20-MIX-v2/v1.0.0/run-<fingerprint>/
 └── <동일 구조>
 ```
 
@@ -208,6 +237,11 @@ runs/KI20-MIX-v2/
 
 ## 진행 기록
 
+- 2026-08-29
+  - 작업 요약: 실제 학습 전 의미 감사·평가 확장·readiness v1.2와 KI10/조건부 KI20 Full FT runner를 구현했다. 현재는 구현 체크포인트이며 실제 backward·optimizer step은 수행하지 않았다.
+  - 변경 범위: 768·BF16·batch 1·accumulation 8·evaluation batch 1·padding multiple 8·`logging_nan_inf_filter=false`를 고정했다. KI10 1 epoch 1,250 step과 새 process reload, 개발 1,000case 자동 품질 Gate, KI20 base 독립 2,500 step·사전 금지를 코드와 config에 묶었다.
+  - 검증: 20K 전수 의미 감사에서 기술 hard blocker 0을 확인했고, 평가 v1.0 membership·blind bytes 비변경과 blind 미열람을 유지했다. 전체 175개 단위 테스트, Ruff, compile, diff check와 부모 Phase 4 계약 검증을 통과했다.
+  - 남은 이슈·후속 작업: 학습 전 감사·평가 v1.1·readiness v1.2 build를 clean commit에서 생성·승인한 뒤 KI10 forward-only preflight를 먼저 실행한다. KI20은 KI10 자동 Gate 결과 전까지 `ki20_promotion_allowed=false`다.
 - 2026-08-29
   - 작업 요약: 기존 1,000건이 개발 중 노출된 점을 반영해 `evaluation-split/v1.0.0/build-a5a04ab96594`를 생성하고, 이를 포함한 비학습 readiness `v1.1.0/build-201010b37e40`을 생성·독립 재검증했다. 실제 학습은 실행하지 않았다.
   - 변경 범위: eval70은 loss monitor 전용이며 checkpoint 선택·early stopping·최종 성능 주장에 쓰지 않는다. 나머지 source holdout 630+Core Eval 300은 개발 진단, reserve 7축 350 component/500행은 Phase 6 단회 blind, 공개 KASI·정책 fixture 220행은 별도 conformance로 고정한다.
