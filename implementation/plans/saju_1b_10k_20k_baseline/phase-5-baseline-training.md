@@ -279,6 +279,11 @@ runs/KI20-MIX-v2/v1.2.0/run-1f5d732cae67/  # 1 epoch 본학습 실행 중
 ## 진행 기록
 
 - 2026-08-29
+  - 작업 요약: `KI20-MIX-v2/run-1f5d732cae67` Full FT 1 epoch 2,500 step이 중단·resume 없이 완료됐고 final checkpoint 새 프로세스 reload 5/5를 통과했다. 대시보드의 비봉인 고정 20건 KI10↔KI20 진단도 완료했다.
+  - 변경 범위: 20,000행 BF16 Full FT의 private run·checkpoint와 Git 제외 dashboard 진단만 읽어 집계했다. sealed blind·Phase 6·production 승격은 실행하지 않았고, 학습 종료 시 생성된 untracked 공개 run 보고서는 이번 기록 커밋에 포함하지 않는다.
+  - 검증: 전체 training loss `0.687154`, final logged loss `0.5895`, eval loss는 step 250 `0.708870`에서 step 2250 최저 `0.533743`, final `0.535032`였고 final token accuracy는 `86.860620%`다. loss/grad norm은 전부 유한하고 peak allocated VRAM은 `6,918,075,904` bytes, 총 학습 시간은 `4,002.182초`다. 고정 20건에서 KI20은 non-empty 20/20·중대 안전 0·입력 간지 위반 0/16이었지만 hard fact/branch `2/7`, 신살 `1/3`, 정보부족 handoff `1/2`로 KI10 `3/7·1/3·1/2`보다 개선되지 않았다.
+  - 남은 이슈·후속 작업: 이 20건은 정식 Gate가 아닌 소표본 진단이며 `production_promotion_allowed=false`를 유지한다. sealed blind 전에 동일한 비봉인 전체 Gate v2 범위로 KI20을 평가하고, 새 공개 run 보고서·checkpoint inventory hash를 별도 검증한다. 현재 run은 checkpoint 6개와 final을 합쳐 약 38GiB이므로 삭제 전 보존·재현 계약을 새 retention 기록으로 고정한다.
+- 2026-08-29
   - 작업 요약: 실행 중인 KI20 Full FT와 분리된 loopback 전용 학습·모델 검사 대시보드 `v1.0.0`을 구현했다. 학습 중에는 `metrics.jsonl`·manifest·checkpoint만 읽고, final reload와 GPU idle이 확인된 뒤에만 모델 추론을 허용한다.
   - 변경 범위: 기존 `phase5_ki20_train.py`와 실행 config·run fingerprint는 수정하지 않았다. 별도 config·보안 HTTP 서버·자체 호스팅 HTML/CSS/JS·테스트를 추가했으며, 대시보드에는 학습 중단·재개·삭제 기능이 없다. KI10 비봉인 진단 결과에서 10개 범주 20건을 해시 기반으로 고정해 KI20 final과 비교하되 정식 Gate·Phase 6·sealed blind와 분리했다.
   - 검증: dashboard 단위·HTTP 보안 12건과 저장소 전체 220개 unittest, Ruff, JavaScript syntax, diff check가 통과했다. 실제 run HTTP smoke는 step 1,420에서 HTML/API 200, runtime alert 0, train/eval metric 143/5행, checkpoint 5개 complete, 학습 중 generation 409 차단을 확인했다. 격리 worktree에서 Git 제외 산출물 부재로 끝난 기존 테스트는 원 작업 트리 재실행에서 모두 통과했다.
