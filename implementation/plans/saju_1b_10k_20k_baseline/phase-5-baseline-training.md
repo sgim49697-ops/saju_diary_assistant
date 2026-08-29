@@ -279,6 +279,11 @@ runs/KI20-MIX-v2/v1.2.0/run-1f5d732cae67/  # 1 epoch 본학습 실행 중
 ## 진행 기록
 
 - 2026-08-29
+  - 작업 요약: 완료된 KI20 final을 수동 검사할 때 대화를 단발성으로 버리던 dashboard를 `v1.1.0` 세션 방식으로 확장했다. 새 세션·기존 세션 선택, turn별 질문/답변 조회와 이전 대화를 포함한 후속 생성을 지원한다.
+  - 변경 범위: 대화 원문은 `runs/.../dashboard/v1.1.0/manual_sessions`의 Git 제외 private JSON에만 0600으로 원자 저장한다. 최대 100세션·세션당 50 turn을 보존하고 모델 입력은 오래된 완결 turn부터 제외해 3,584 token으로 제한한다. fixed probe `v1.0.0`, 학습 run·checkpoint, sealed blind와 품질 Gate는 수정하지 않았다.
+  - 검증: dashboard 단위·HTTP 보안·세션 회귀 14건, Ruff, JavaScript syntax, JSON parse와 diff check가 통과했다. 실제 `run-1f5d732cae67` dashboard를 재기동해 `127.0.0.1:8765` active, CSRF 보호 `/api/sessions` 200, 빈 초기 세션 목록과 generation gate open을 확인했다. 재기동 중 확인한 TCP 재바인딩 지연은 loopback server의 안전한 address reuse로 보완했다.
+  - 남은 이슈·후속 작업: 저장된 수동 대화는 사용자 진단 편의 기능이며 정식 평가나 모델 품질 근거로 합치지 않는다. 3,584 token을 넘는 장기 대화는 전체 기록은 남지만 오래된 turn이 모델 입력에서 제외되고 화면에 제외 turn 수를 표시한다.
+- 2026-08-29
   - 작업 요약: `KI20-MIX-v2/run-1f5d732cae67` Full FT 1 epoch 2,500 step이 중단·resume 없이 완료됐고 final checkpoint 새 프로세스 reload 5/5를 통과했다. 대시보드의 비봉인 고정 20건 KI10↔KI20 진단도 완료했다.
   - 변경 범위: 20,000행 BF16 Full FT의 private run·checkpoint와 Git 제외 dashboard 진단만 읽어 집계했다. sealed blind·Phase 6·production 승격은 실행하지 않았고, 학습 종료 시 생성된 untracked 공개 run 보고서는 이번 기록 커밋에 포함하지 않는다.
   - 검증: 전체 training loss `0.687154`, final logged loss `0.5895`, eval loss는 step 250 `0.708870`에서 step 2250 최저 `0.533743`, final `0.535032`였고 final token accuracy는 `86.860620%`다. loss/grad norm은 전부 유한하고 peak allocated VRAM은 `6,918,075,904` bytes, 총 학습 시간은 `4,002.182초`다. 고정 20건에서 KI20은 non-empty 20/20·중대 안전 0·입력 간지 위반 0/16이었지만 hard fact/branch `2/7`, 신살 `1/3`, 정보부족 handoff `1/2`로 KI10 `3/7·1/3·1/2`보다 개선되지 않았다.

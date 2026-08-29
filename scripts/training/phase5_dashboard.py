@@ -31,13 +31,14 @@ if str(REPO_ROOT) not in sys.path:
 from scripts.training.phase5_quality import score_generations
 
 DEFAULT_CONFIG = Path(
-    "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.0.0.json"
+    "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.1.0.json"
 )
 ASSET_ROOT = Path(__file__).with_name("phase5_dashboard_assets")
 RUN_BUILD_PATTERN = re.compile(r"^run-[0-9a-f]{12}$")
 CHECKPOINT_PATTERN = re.compile(r"^checkpoint-([1-9][0-9]*)$")
 SERVICE_PATTERN = re.compile(r"^[A-Za-z0-9_.@:-]+\.service$")
 CONTROL_PATTERN = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
+SESSION_ID_PATTERN = re.compile(r"^[0-9a-f]{24}$")
 PRIVATE_FILE_MODE = 0o600
 PRIVATE_DIR_MODE = 0o700
 MAX_METRICS_BYTES = 32 * 1024 * 1024
@@ -174,8 +175,9 @@ def validate_config(config: dict[str, Any]) -> None:
         )
     ):
         raise Phase5DashboardError("대시보드 고정 probe 범주 계약이 다릅니다.")
+    schema_version = config.get("schema_version")
     if (
-        config.get("schema_version") != "1.0.0"
+        schema_version not in {"1.0.0", "1.1.0"}
         or config.get("dashboard_id") != "KI20-MIX-v2-dashboard"
         or config.get("allowed_run_id") != "KI20-MIX-v2"
         or config.get("refresh_seconds") != 10
@@ -201,10 +203,26 @@ def validate_config(config: dict[str, Any]) -> None:
         or governance.get("training_control_actions_allowed") is not False
         or governance.get("sealed_blind_access_allowed") is not False
         or governance.get("production_promotion_allowed") is not False
-        or governance.get("manual_prompts_persisted") is not False
         or governance.get("fixed_probe_results_private") is not True
     ):
         raise Phase5DashboardError("Phase 5 dashboard config 계약이 다릅니다.")
+    manual_session = config.get("manual_session")
+    if schema_version == "1.0.0":
+        if governance.get("manual_prompts_persisted") is not False or manual_session is not None:
+            raise Phase5DashboardError("Phase 5 dashboard v1.0 수동 질문 계약이 다릅니다.")
+    elif (
+        governance.get("manual_prompts_persisted") is not True
+        or governance.get("manual_sessions_local_only") is not True
+        or not isinstance(manual_session, dict)
+        or manual_session.get("private_output_relative")
+        != "dashboard/v1.1.0/manual_sessions"
+        or manual_session.get("max_sessions") != 100
+        or manual_session.get("max_turns_per_session") != 50
+        or manual_session.get("max_context_tokens") != 3584
+        or manual_session.get("max_session_bytes") != 2_000_000
+        or manual_session.get("title_max_chars") != 60
+    ):
+        raise Phase5DashboardError("Phase 5 dashboard v1.1 세션 계약이 다릅니다.")
     generation = model_check.get("generation")
     if generation != {"do_sample": False, "num_beams": 1, "max_new_tokens": 256}:
         raise Phase5DashboardError("대시보드 generation 계약이 다릅니다.")
@@ -722,28 +740,85 @@ def _generate_many(
     outputs: list[str] = []
     with torch.inference_mode():
         for messages in prompts:
-            input_ids = tokenizer.apply_chat_template(
-                messages,
-                tokenize=True,
-                add_generation_prompt=True,
-                return_tensors="pt",
-            ).to("cuda:0")
-            generated = model.generate(
-                input_ids,
-                do_sample=generation["do_sample"],
-                num_beams=generation["num_beams"],
-                max_new_tokens=generation["max_new_tokens"],
-                use_cache=True,
-                pad_token_id=tokenizer.pad_token_id,
-                eos_token_id=tokenizer.eos_token_id,
+            outputs.append(
+                _generate_loaded(
+                    torch, tokenizer, model, messages, generation, max_input_tokens=None
+                )["output"]
             )
-            text = tokenizer.decode(
-                generated[0, input_ids.shape[-1] :], skip_special_tokens=True
-            ).strip()
-            if not text:
-                raise Phase5DashboardError("모델 검사 출력이 비었습니다.")
-            outputs.append(text)
     return outputs
+
+
+def _generate_loaded(
+    torch: Any,
+    tokenizer: Any,
+    model: Any,
+    messages: Sequence[dict[str, str]],
+    generation: dict[str, Any],
+    *,
+    max_input_tokens: int | None,
+) -> dict[str, Any]:
+    prepared = [dict(message) for message in messages]
+    omitted_messages = 0
+    while True:
+        input_ids = tokenizer.apply_chat_template(
+            prepared,
+            tokenize=True,
+            add_generation_prompt=True,
+            return_tensors="pt",
+        )
+        input_tokens = int(input_ids.shape[-1])
+        if max_input_tokens is None or input_tokens <= max_input_tokens:
+            break
+        if len(prepared) < 3:
+            raise Phase5DashboardError(
+                "현재 수동 질문 하나가 세션 context token 상한을 넘습니다. 질문을 줄여 주세요."
+            )
+        drop_count = (
+            2
+            if prepared[0].get("role") == "user"
+            and prepared[1].get("role") == "assistant"
+            else 1
+        )
+        prepared = prepared[drop_count:]
+        omitted_messages += drop_count
+    input_ids = input_ids.to("cuda:0")
+    generated = model.generate(
+        input_ids,
+        do_sample=generation["do_sample"],
+        num_beams=generation["num_beams"],
+        max_new_tokens=generation["max_new_tokens"],
+        use_cache=True,
+        pad_token_id=tokenizer.pad_token_id,
+        eos_token_id=tokenizer.eos_token_id,
+    )
+    text = tokenizer.decode(
+        generated[0, input_ids.shape[-1] :], skip_special_tokens=True
+    ).strip()
+    if not text:
+        raise Phase5DashboardError("모델 검사 출력이 비었습니다.")
+    return {
+        "output": text,
+        "input_tokens": input_tokens,
+        "omitted_messages": omitted_messages,
+    }
+
+
+def _generate_conversation(
+    final_root: Path,
+    messages: Sequence[dict[str, str]],
+    generation: dict[str, Any],
+    max_input_tokens: int,
+) -> dict[str, Any]:
+    torch, tokenizer, model = _load_model(final_root)
+    with torch.inference_mode():
+        return _generate_loaded(
+            torch,
+            tokenizer,
+            model,
+            messages,
+            generation,
+            max_input_tokens=max_input_tokens,
+        )
 
 
 def _atomic_private_directory(target: Path, files: dict[str, bytes]) -> None:
@@ -835,7 +910,138 @@ def execute_fixed_probe(context: dict[str, Any]) -> dict[str, Any]:
     return summary
 
 
-def execute_manual_generation(context: dict[str, Any], prompt: str) -> dict[str, Any]:
+def _manual_session_contract(context: dict[str, Any]) -> dict[str, Any]:
+    contract = context["config"].get("manual_session")
+    if not isinstance(contract, dict):
+        raise Phase5DashboardError("이 dashboard config는 대화 세션 저장을 지원하지 않습니다.")
+    return contract
+
+
+def _manual_session_root(context: dict[str, Any], *, create: bool) -> Path:
+    contract = _manual_session_contract(context)
+    root = _safe_under(
+        context["run_root"], contract["private_output_relative"], "수동 대화 세션"
+    )
+    if create:
+        root.mkdir(parents=True, exist_ok=True, mode=PRIVATE_DIR_MODE)
+        if root.is_symlink() or not root.is_dir():
+            raise Phase5DashboardError("수동 대화 세션 경로가 안전한 directory가 아닙니다.")
+        root.chmod(PRIVATE_DIR_MODE)
+    elif root.exists() and (root.is_symlink() or not root.is_dir()):
+        raise Phase5DashboardError("수동 대화 세션 경로가 안전한 directory가 아닙니다.")
+    return root
+
+
+def _manual_session_path(context: dict[str, Any], session_id: str) -> Path:
+    if SESSION_ID_PATTERN.fullmatch(session_id) is None:
+        raise Phase5DashboardError("수동 대화 session_id가 잘못됐습니다.")
+    return _manual_session_root(context, create=False) / f"{session_id}.json"
+
+
+def _validate_manual_session(
+    context: dict[str, Any], value: dict[str, Any], session_id: str
+) -> dict[str, Any]:
+    messages = value.get("messages")
+    if (
+        value.get("schema_version") != "1.0.0"
+        or value.get("session_id") != session_id
+        or value.get("run_id") != context["manifest"]["run_id"]
+        or value.get("run_build_id") != context["manifest"]["run_build_id"]
+        or value.get("run_sha256") != context["manifest"]["run_sha256"]
+        or not isinstance(value.get("title"), str)
+        or not value["title"]
+        or not isinstance(value.get("created_at_utc"), str)
+        or not isinstance(value.get("updated_at_utc"), str)
+        or not isinstance(messages, list)
+        or not messages
+        or len(messages) % 2 != 0
+        or value.get("turn_count") != len(messages) // 2
+    ):
+        raise Phase5DashboardError("수동 대화 세션 계약이 다릅니다.")
+    for index, message in enumerate(messages):
+        expected_role = "user" if index % 2 == 0 else "assistant"
+        if (
+            not isinstance(message, dict)
+            or set(message) != {"role", "content", "created_at_utc"}
+            or message.get("role") != expected_role
+            or not isinstance(message.get("content"), str)
+            or not message["content"]
+            or not isinstance(message.get("created_at_utc"), str)
+        ):
+            raise Phase5DashboardError("수동 대화 메시지 계약이 다릅니다.")
+    if value["turn_count"] > _manual_session_contract(context)["max_turns_per_session"]:
+        raise Phase5DashboardError("수동 대화 세션 turn 수가 계약을 넘습니다.")
+    return value
+
+
+def manual_session_payload(context: dict[str, Any], session_id: str) -> dict[str, Any]:
+    path = _manual_session_path(context, session_id)
+    if path.is_symlink() or not path.is_file():
+        raise DashboardRequestError(HTTPStatus.NOT_FOUND, "수동 대화 세션을 찾을 수 없습니다.")
+    maximum = _manual_session_contract(context)["max_session_bytes"]
+    if path.stat().st_size > maximum:
+        raise Phase5DashboardError("수동 대화 세션 크기가 계약을 넘습니다.")
+    return _validate_manual_session(context, _load_json(path, "수동 대화 세션"), session_id)
+
+
+def manual_sessions_payload(context: dict[str, Any]) -> dict[str, Any]:
+    root = _manual_session_root(context, create=False)
+    if not root.exists():
+        return {"items": [], "persisted": True, "local_only": True}
+    items: list[dict[str, Any]] = []
+    for path in root.iterdir():
+        if path.name.startswith("."):
+            continue
+        match = re.fullmatch(r"([0-9a-f]{24})\.json", path.name)
+        if match is None or path.is_symlink() or not path.is_file():
+            raise Phase5DashboardError("수동 대화 세션 경로에 예상 밖 항목이 있습니다.")
+        session = manual_session_payload(context, match.group(1))
+        items.append(
+            {
+                "session_id": session["session_id"],
+                "title": session["title"],
+                "turn_count": session["turn_count"],
+                "created_at_utc": session["created_at_utc"],
+                "updated_at_utc": session["updated_at_utc"],
+            }
+        )
+    maximum = _manual_session_contract(context)["max_sessions"]
+    if len(items) > maximum:
+        raise Phase5DashboardError("수동 대화 session 수가 계약을 넘습니다.")
+    items.sort(key=lambda item: (item["updated_at_utc"], item["session_id"]), reverse=True)
+    return {"items": items, "persisted": True, "local_only": True}
+
+
+def _write_manual_session(context: dict[str, Any], session: dict[str, Any]) -> None:
+    session_id = session["session_id"]
+    root = _manual_session_root(context, create=True)
+    target = root / f"{session_id}.json"
+    if target.is_symlink():
+        raise Phase5DashboardError("수동 대화 세션 대상이 symlink입니다.")
+    payload = _json_bytes(session)
+    if len(payload) > _manual_session_contract(context)["max_session_bytes"]:
+        raise Phase5DashboardError("수동 대화 세션 저장 크기가 계약을 넘습니다.")
+    descriptor, temporary_name = tempfile.mkstemp(prefix=f".{session_id}.", dir=root)
+    temporary = Path(temporary_name)
+    try:
+        os.fchmod(descriptor, PRIVATE_FILE_MODE)
+        with os.fdopen(descriptor, "wb") as stream:
+            descriptor = -1
+            stream.write(payload)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, target)
+        target.chmod(PRIVATE_FILE_MODE)
+    finally:
+        if descriptor >= 0:
+            os.close(descriptor)
+        if temporary.exists():
+            temporary.unlink()
+
+
+def execute_manual_generation(
+    context: dict[str, Any], prompt: str, session_id: str | None = None
+) -> dict[str, Any]:
     gate = _generation_gate(context)
     if not gate["allowed"]:
         raise Phase5DashboardError(
@@ -847,17 +1053,72 @@ def execute_manual_generation(context: dict[str, Any], prompt: str) -> dict[str,
         or CONTROL_PATTERN.search(prompt)
     ):
         raise Phase5DashboardError("수동 질문 길이 또는 문자가 허용 범위를 벗어납니다.")
+    clean_prompt = prompt.strip()
+    contract = _manual_session_contract(context)
+    if session_id is None:
+        if len(manual_sessions_payload(context)["items"]) >= contract["max_sessions"]:
+            raise Phase5DashboardError("수동 대화 세션 최대 개수에 도달했습니다.")
+        session_id = secrets.token_hex(12)
+        previous_messages: list[dict[str, Any]] = []
+        created_at = datetime.now(timezone.utc).isoformat()
+        title = clean_prompt.splitlines()[0][: contract["title_max_chars"]]
+    else:
+        try:
+            current = manual_session_payload(context, session_id)
+        except DashboardRequestError as exc:
+            raise Phase5DashboardError(str(exc)) from exc
+        if current["turn_count"] >= contract["max_turns_per_session"]:
+            raise Phase5DashboardError("이 수동 대화 세션은 최대 turn 수에 도달했습니다.")
+        previous_messages = list(current["messages"])
+        created_at = current["created_at_utc"]
+        title = current["title"]
+    requested_at = datetime.now(timezone.utc).isoformat()
+    model_messages = [
+        {"role": message["role"], "content": message["content"]}
+        for message in previous_messages
+    ] + [{"role": "user", "content": clean_prompt}]
     started = time.monotonic()
-    output = _generate_many(
+    generated = _generate_conversation(
         context["run_root"] / "final",
-        [[{"role": "user", "content": prompt.strip()}]],
+        model_messages,
         context["config"]["model_check"]["generation"],
-    )[0]
+        contract["max_context_tokens"],
+    )
+    completed_at = datetime.now(timezone.utc).isoformat()
+    output = generated["output"]
+    session = {
+        "schema_version": "1.0.0",
+        "session_id": session_id,
+        "run_id": context["manifest"]["run_id"],
+        "run_build_id": context["manifest"]["run_build_id"],
+        "run_sha256": context["manifest"]["run_sha256"],
+        "title": title,
+        "created_at_utc": created_at,
+        "updated_at_utc": completed_at,
+        "turn_count": len(previous_messages) // 2 + 1,
+        "messages": previous_messages
+        + [
+            {"role": "user", "content": clean_prompt, "created_at_utc": requested_at},
+            {"role": "assistant", "content": output, "created_at_utc": completed_at},
+        ],
+        "quality_gate_evaluated": False,
+        "production_promotion_allowed": False,
+    }
+    _validate_manual_session(context, session, session_id)
+    _write_manual_session(context, session)
     return {
         "status": "generated",
         "output": output,
+        "session_id": session_id,
+        "session": session,
         "elapsed_seconds": round(time.monotonic() - started, 3),
-        "persisted": False,
+        "context": {
+            "input_tokens": generated["input_tokens"],
+            "omitted_turns": generated["omitted_messages"] // 2,
+            "max_context_tokens": contract["max_context_tokens"],
+        },
+        "persisted": True,
+        "local_only": True,
         "quality_gate_evaluated": False,
         "production_promotion_allowed": False,
     }
@@ -867,7 +1128,7 @@ class DashboardHTTPServer(ThreadingHTTPServer):
     """loopback 전용 대시보드 context와 CSRF token을 보관한다."""
 
     daemon_threads = True
-    allow_reuse_address = False
+    allow_reuse_address = True
 
     def __init__(
         self,
@@ -978,6 +1239,22 @@ class DashboardRequestHandler(BaseHTTPRequestHandler):
                 if path == "/api/model-checks":
                     self._send_json(HTTPStatus.OK, model_checks_payload(self.server.context))
                     return
+                if path == "/api/sessions":
+                    self._send_json(
+                        HTTPStatus.OK, manual_sessions_payload(self.server.context)
+                    )
+                    return
+                session_match = re.fullmatch(
+                    r"/api/sessions/([0-9a-f]{24})", path
+                )
+                if session_match is not None:
+                    self._send_json(
+                        HTTPStatus.OK,
+                        manual_session_payload(
+                            self.server.context, session_match.group(1)
+                        ),
+                    )
+                    return
                 raise DashboardRequestError(HTTPStatus.NOT_FOUND, "API 경로를 찾을 수 없습니다.")
             payload, content_type = self._static(path)
             self._send_bytes(HTTPStatus.OK, payload, content_type)
@@ -1020,14 +1297,22 @@ class DashboardRequestHandler(BaseHTTPRequestHandler):
                 raise DashboardRequestError(HTTPStatus.CONFLICT, "다른 모델 생성이 실행 중입니다.")
             try:
                 if path == "/api/generate":
-                    if set(payload) != {"prompt"} or not isinstance(
-                        payload["prompt"], str
+                    if (
+                        set(payload) != {"prompt", "session_id"}
+                        or not isinstance(payload["prompt"], str)
+                        or (
+                            payload["session_id"] is not None
+                            and not isinstance(payload["session_id"], str)
+                        )
                     ):
                         raise DashboardRequestError(
-                            HTTPStatus.BAD_REQUEST, "prompt 문자열만 허용됩니다."
+                            HTTPStatus.BAD_REQUEST,
+                            "prompt 문자열과 session_id 문자열 또는 null만 허용됩니다.",
                         )
                     result = _manual_generation_subprocess(
-                        self.server.context, payload["prompt"]
+                        self.server.context,
+                        payload["prompt"],
+                        payload["session_id"],
                     )
                 else:
                     if payload:
@@ -1053,7 +1338,7 @@ class DashboardRequestHandler(BaseHTTPRequestHandler):
 
 
 def _manual_generation_subprocess(
-    context: dict[str, Any], prompt: str
+    context: dict[str, Any], prompt: str, session_id: str | None
 ) -> dict[str, Any]:
     command = [
         sys.executable,
@@ -1067,7 +1352,9 @@ def _manual_generation_subprocess(
     ]
     result = subprocess.run(
         command,
-        input=json.dumps({"prompt": prompt}, ensure_ascii=False),
+        input=json.dumps(
+            {"prompt": prompt, "session_id": session_id}, ensure_ascii=False
+        ),
         check=False,
         capture_output=True,
         text=True,
@@ -1082,7 +1369,12 @@ def _manual_generation_subprocess(
         value = json.loads(result.stdout)
     except json.JSONDecodeError as exc:
         raise Phase5DashboardError("수동 모델 생성 결과가 JSON이 아닙니다.") from exc
-    if not isinstance(value, dict) or value.get("persisted") is not False:
+    if (
+        not isinstance(value, dict)
+        or value.get("persisted") is not True
+        or value.get("local_only") is not True
+        or SESSION_ID_PATTERN.fullmatch(str(value.get("session_id", ""))) is None
+    ):
         raise Phase5DashboardError("수동 모델 생성 결과 계약이 다릅니다.")
     return value
 
@@ -1175,9 +1467,19 @@ def main(argv: Sequence[str] | None = None) -> int:
             if not args.execute:
                 raise Phase5DashboardError("수동 generation에는 --execute가 필요합니다.")
             payload = json.loads(sys.stdin.read())
-            if not isinstance(payload, dict) or set(payload) != {"prompt"} or not isinstance(payload["prompt"], str):
+            if (
+                not isinstance(payload, dict)
+                or set(payload) != {"prompt", "session_id"}
+                or not isinstance(payload["prompt"], str)
+                or (
+                    payload["session_id"] is not None
+                    and not isinstance(payload["session_id"], str)
+                )
+            ):
                 raise Phase5DashboardError("수동 generation stdin 계약이 다릅니다.")
-            result = execute_manual_generation(context, payload["prompt"])
+            result = execute_manual_generation(
+                context, payload["prompt"], payload["session_id"]
+            )
         else:
             raise Phase5DashboardError("지원하지 않는 command입니다.")
     except (

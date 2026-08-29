@@ -22,6 +22,8 @@ from scripts.training.phase5_dashboard import (
     _service_snapshot,
     checkpoints_payload,
     execute_manual_generation,
+    manual_session_payload,
+    manual_sessions_payload,
     metrics_payload,
     prepare_context,
     read_live_metrics,
@@ -38,7 +40,7 @@ class DashboardFixture:
         self.config = json.loads((REPO_ROOT / DEFAULT_CONFIG).read_text(encoding="utf-8"))
         self.config_path = (
             root
-            / "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.0.0.json"
+            / "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.1.0.json"
         )
         self.config_path.parent.mkdir(parents=True)
         self.run_root = root / "runs/KI20-MIX-v2/v1.2.0/run-123456abcdef"
@@ -139,6 +141,7 @@ class Phase5DashboardTests(unittest.TestCase):
         invalid["model_check"]["category_counts"]["empathy"] = "1"
         with self.assertRaisesRegex(Phase5DashboardError, "probe 범주"):
             validate_config(invalid)
+        self.assertTrue(DashboardHTTPServer.allow_reuse_address)
 
     def test_prepare_context_rejects_symlink_and_outside_run(self) -> None:
         context = self.fixture.context()
@@ -264,17 +267,50 @@ class Phase5DashboardTests(unittest.TestCase):
         self.assertEqual(len(first), 20)
         self.assertNotIn("blind", json.dumps(first))
 
-    @patch("scripts.training.phase5_dashboard._generate_many")
+    @patch("scripts.training.phase5_dashboard._generate_conversation")
     @patch("scripts.training.phase5_dashboard._generation_gate")
-    def test_manual_generation_does_not_persist(
+    def test_manual_generation_persists_and_reuses_session_context(
         self, gate: object, generate: object
     ) -> None:
         gate.return_value = {"allowed": True, "reasons": []}
-        generate.return_value = ["로컬 답변"]
+        generate.side_effect = [
+            {"output": "첫 답변", "input_tokens": 20, "omitted_messages": 0},
+            {"output": "후속 답변", "input_tokens": 45, "omitted_messages": 0},
+        ]
         result = execute_manual_generation(self.fixture.context(), "질문입니다")
-        self.assertEqual(result["output"], "로컬 답변")
-        self.assertFalse(result["persisted"])
+        self.assertEqual(result["output"], "첫 답변")
+        self.assertTrue(result["persisted"])
+        self.assertTrue(result["local_only"])
+        session_id = result["session_id"]
+        followup = execute_manual_generation(
+            self.fixture.context(), "앞 답변을 요약해줘", session_id
+        )
+        self.assertEqual(followup["session"]["turn_count"], 2)
+        self.assertEqual(
+            generate.call_args_list[1].args[1],
+            [
+                {"role": "user", "content": "질문입니다"},
+                {"role": "assistant", "content": "첫 답변"},
+                {"role": "user", "content": "앞 답변을 요약해줘"},
+            ],
+        )
+        stored = manual_session_payload(self.fixture.context(), session_id)
+        self.assertEqual(stored["messages"][-1]["content"], "후속 답변")
+        self.assertEqual(manual_sessions_payload(self.fixture.context())["items"][0]["turn_count"], 2)
         self.assertFalse(result["production_promotion_allowed"])
+
+    def test_manual_session_rejects_invalid_id_and_symlink(self) -> None:
+        with self.assertRaisesRegex(Phase5DashboardError, "session_id"):
+            manual_session_payload(self.fixture.context(), "../outside")
+        root = (
+            self.fixture.run_root
+            / self.fixture.config["manual_session"]["private_output_relative"]
+        )
+        root.mkdir(parents=True)
+        target = root / ("a" * 24 + ".json")
+        target.symlink_to(self.fixture.run_root / "run_manifest.json")
+        with self.assertRaisesRegex(Phase5DashboardError, "예상 밖"):
+            manual_sessions_payload(self.fixture.context())
 
     def test_static_assets_are_self_hosted_and_contain_no_training_controls(self) -> None:
         html = (ASSET_ROOT / "index.html").read_text(encoding="utf-8")
@@ -341,6 +377,31 @@ class Phase5DashboardHTTPTests(unittest.TestCase):
         self.assertEqual(status, 421)
         status, _, _ = self.request("GET", "/api/status")
         self.assertEqual(status, 403)
+
+    @patch("scripts.training.phase5_dashboard._generate_conversation")
+    @patch("scripts.training.phase5_dashboard._generation_gate")
+    def test_session_list_and_detail_are_loopback_api(
+        self, gate: object, generate: object
+    ) -> None:
+        gate.return_value = {"allowed": True, "reasons": []}
+        generate.return_value = {
+            "output": "저장 답변",
+            "input_tokens": 18,
+            "omitted_messages": 0,
+        }
+        created = execute_manual_generation(self.context, "저장 질문")
+        status, _, payload = self.request(
+            "GET", "/api/sessions", token=True
+        )
+        self.assertEqual(status, 200)
+        sessions = json.loads(payload)
+        self.assertEqual(sessions["items"][0]["session_id"], created["session_id"])
+        status, _, payload = self.request(
+            "GET", f"/api/sessions/{created['session_id']}", token=True
+        )
+        self.assertEqual(status, 200)
+        session = json.loads(payload)
+        self.assertEqual(session["messages"][0]["content"], "저장 질문")
 
     @patch("scripts.training.phase5_dashboard._generation_gate")
     def test_generation_is_fail_closed_while_training(self, gate: object) -> None:

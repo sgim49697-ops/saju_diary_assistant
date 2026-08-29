@@ -142,13 +142,23 @@
           <div id="comparison-list" class="comparison-list"></div>
         </article>
         <article id="manual-panel" class="panel manual-panel hidden">
-          <div class="panel-heading"><div><span class="label">LOCAL · NO HISTORY</span><h2>수동 질문</h2></div></div>
+          <div class="panel-heading">
+            <div><span class="label">LOCAL · SESSION HISTORY</span><h2>세션별 수동 질문</h2></div>
+            <button id="new-session-button" class="secondary-button compact-button" type="button">새 세션</button>
+          </div>
+          <div class="session-toolbar">
+            <label for="session-select">대화 세션</label>
+            <select id="session-select"><option value="">새 대화</option></select>
+            <small id="session-meta">새 세션에서 첫 질문을 입력하세요.</small>
+          </div>
+          <div id="manual-conversation" class="manual-conversation" aria-live="polite">
+            <p class="empty-conversation">아직 저장된 대화가 없습니다.</p>
+          </div>
           <form id="manual-form">
             <label for="manual-prompt">KI20 final에 보낼 질문</label>
             <textarea id="manual-prompt" maxlength="4000" rows="5" placeholder="예: 사주 정보가 없을 때 어떤 정보를 먼저 물어봐야 해?"></textarea>
-            <div class="form-actions"><small>질문과 답변은 저장하지 않습니다.</small><button id="generate-button" type="submit">답변 생성</button></div>
+            <div class="form-actions"><small>질문·답변은 현재 run의 Git 제외 private 폴더에만 저장됩니다.</small><button id="generate-button" type="submit">답변 생성</button></div>
           </form>
-          <div id="manual-output" class="manual-output" aria-live="polite"></div>
         </article>
       </section>
 

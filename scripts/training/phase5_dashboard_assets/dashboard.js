@@ -5,6 +5,9 @@
 const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 const refreshMilliseconds = 10_000;
 let activeTab = "training";
+let activeSessionId = null;
+let loadedSessionUpdatedAt = null;
+let startingNewSession = false;
 
 const byId = (id) => document.getElementById(id);
 const number = (value, digits = 4) => Number.isFinite(value) ? value.toLocaleString("ko-KR", { maximumFractionDigits: digits }) : "—";
@@ -163,15 +166,61 @@ function renderModelChecks(payload) {
   </details>`).join("");
 }
 
+function renderConversation(session, context = null) {
+  const target = byId("manual-conversation");
+  if (!session) {
+    target.innerHTML = '<p class="empty-conversation">새 세션입니다. 첫 질문을 입력하세요.</p>';
+    byId("session-meta").textContent = "새 세션에서 첫 질문을 입력하세요.";
+    return;
+  }
+  target.innerHTML = session.messages.map((message) => `<article class="message ${escapeHtml(message.role)}">
+    <div class="message-head"><strong>${message.role === "user" ? "사용자" : "KI20"}</strong><span>${escapeHtml(localTime(message.created_at_utc))}</span></div>
+    <p>${escapeHtml(message.content)}</p>
+  </article>`).join("");
+  const omitted = context?.omitted_turns ? ` · 오래된 ${context.omitted_turns} turn 입력 제외` : "";
+  byId("session-meta").textContent = `${session.turn_count} turn · 최근 저장 ${localTime(session.updated_at_utc)}${omitted}`;
+  target.scrollTop = target.scrollHeight;
+}
+
+async function renderSessions(payload) {
+  const select = byId("session-select");
+  const knownIds = new Set(payload.items.map((item) => item.session_id));
+  if (activeSessionId && !knownIds.has(activeSessionId)) {
+    activeSessionId = null;
+    loadedSessionUpdatedAt = null;
+  }
+  if (!activeSessionId && !startingNewSession && payload.items.length) {
+    activeSessionId = payload.items[0].session_id;
+  }
+  select.innerHTML = '<option value="">새 대화</option>' + payload.items.map((item) =>
+    `<option value="${escapeHtml(item.session_id)}">${escapeHtml(item.title)} · ${item.turn_count} turn</option>`
+  ).join("");
+  select.value = activeSessionId || "";
+  if (!activeSessionId) {
+    if (loadedSessionUpdatedAt !== null || startingNewSession || !payload.items.length) {
+      loadedSessionUpdatedAt = null;
+      renderConversation(null);
+    }
+    return;
+  }
+  const summary = payload.items.find((item) => item.session_id === activeSessionId);
+  if (summary && summary.updated_at_utc !== loadedSessionUpdatedAt) {
+    const session = await api(`/api/sessions/${activeSessionId}`);
+    loadedSessionUpdatedAt = session.updated_at_utc;
+    renderConversation(session);
+  }
+}
+
 async function refresh() {
   try {
-    const [status, metrics, checkpoints, checks] = await Promise.all([
-      api("/api/status"), api("/api/metrics"), api("/api/checkpoints"), api("/api/model-checks"),
+    const [status, metrics, checkpoints, checks, sessions] = await Promise.all([
+      api("/api/status"), api("/api/metrics"), api("/api/checkpoints"), api("/api/model-checks"), api("/api/sessions"),
     ]);
     renderStatus(status);
     renderMetrics(metrics);
     renderCheckpoints(checkpoints);
     renderModelChecks(checks);
+    await renderSessions(sessions);
   } catch (error) {
     byId("live-dot").className = "live-dot error";
     byId("lifecycle").textContent = "대시보드 오류";
@@ -186,25 +235,55 @@ document.querySelectorAll(".tab").forEach((button) => button.addEventListener("c
   document.querySelectorAll(".tab-panel").forEach((panel) => panel.classList.toggle("active", panel.id === `tab-${activeTab}`));
 }));
 
+byId("new-session-button").addEventListener("click", () => {
+  activeSessionId = null;
+  loadedSessionUpdatedAt = null;
+  startingNewSession = true;
+  byId("session-select").value = "";
+  byId("manual-prompt").value = "";
+  renderConversation(null);
+  byId("manual-prompt").focus();
+});
+
+byId("session-select").addEventListener("change", async (event) => {
+  activeSessionId = event.target.value || null;
+  loadedSessionUpdatedAt = null;
+  startingNewSession = activeSessionId === null;
+  if (!activeSessionId) {
+    renderConversation(null);
+    return;
+  }
+  try {
+    const session = await api(`/api/sessions/${activeSessionId}`);
+    loadedSessionUpdatedAt = session.updated_at_utc;
+    renderConversation(session);
+  } catch (error) {
+    byId("session-meta").textContent = `세션 로드 실패: ${error.message}`;
+  }
+});
+
 byId("manual-form").addEventListener("submit", async (event) => {
   event.preventDefault();
   const prompt = byId("manual-prompt").value.trim();
   if (!prompt) return;
   const button = byId("generate-button");
-  const output = byId("manual-output");
   button.disabled = true;
   button.textContent = "모델 로딩 중…";
-  output.className = "manual-output visible";
-  output.textContent = "final checkpoint를 별도 프로세스에서 불러오고 있습니다.";
+  byId("session-meta").textContent = "final checkpoint를 별도 프로세스에서 불러오고 있습니다.";
   try {
     const result = await api("/api/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt }),
+      body: JSON.stringify({ prompt, session_id: activeSessionId }),
     });
-    output.textContent = result.output;
+    activeSessionId = result.session_id;
+    startingNewSession = false;
+    loadedSessionUpdatedAt = result.session.updated_at_utc;
+    byId("manual-prompt").value = "";
+    renderConversation(result.session, result.context);
+    await renderSessions(await api("/api/sessions"));
   } catch (error) {
-    output.textContent = `생성 실패: ${error.message}`;
+    byId("session-meta").textContent = `생성 실패: ${error.message}`;
   } finally {
     button.disabled = false;
     button.textContent = "답변 생성";
