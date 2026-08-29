@@ -238,6 +238,11 @@ runs/KI20-MIX-v2/v1.0.0/run-<fingerprint>/
 ## 진행 기록
 
 - 2026-08-29
+  - 작업 요약: 구현 checkpoint `618ce4d9870e7a64681823f0cde3a38f9934fad1`에서 KI10 Gate 실패 현황판 `v1.0.0/build-a4014017c26c`를 발행하고 registry 최신 포인터를 갱신했다.
+  - 변경 범위: 기존 pre-KI10 status build는 불변 이력으로 보존했다. root `PROJECT_STATUS.html`과 새 snapshot은 KI10 학습 완료, 4개 품질 Gate 미달, KI20·sealed blind 차단을 공개 집계로만 표시한다.
+  - 검증: build SHA-256 `a401401…a5a8e4`, HTML `4d81927…1f732e`, manifest `f0f1d6a…a0d253`, config `73e5b1a…ee914b`이며 root/snapshot HTML byte가 같다. restricted content와 외부 실행 자산은 포함하지 않았다.
+  - 남은 이슈·후속 작업: 현 계약의 조건부 학습 흐름은 KI20 미실행으로 종료한다. 후속은 현재 run을 수정하는 작업이 아니라 데이터·평가·run 새 version을 설계하고 다시 사전 승인하는 별도 Phase 5 재시도다.
+- 2026-08-29
   - 작업 요약: KI10 Gate 실패 뒤에도 `PRE-KI10 / GO`로 남던 현황판을 config 기반 현재 결정으로 전환하고 `ki10_gate_failed / STOP` 계약을 구현했다. 이 항목은 렌더러 fingerprint 체크포인트이며 실제 새 HTML build 발행은 다음 clean commit에서 수행한다.
   - 변경 범위: 현황 config에 KI10 Full FT와 자동 Gate component, Phase 5 차단 상태, 실패 지표, KI20·sealed blind 금지를 추가했다. hero·현재 결정·Gate 제목은 하드코딩 대신 검증된 `decision` 객체에서 escape해 렌더링한다.
   - 검증: status `validate-contract`, dry-run `plan`, Ruff와 `git diff --check`가 통과했고 예상 snapshot은 `v1.0.0/build-a4014017c26c`다.

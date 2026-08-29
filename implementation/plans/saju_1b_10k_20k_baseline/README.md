@@ -79,7 +79,7 @@ data/
         ├── phase5-readiness/v1.0.0/build-f6c8171f454f/ # 과거 비학습 계약
         ├── phase5-readiness/v1.1.0/build-201010b37e40/ # 봉인 평가 연결 계약
         ├── phase5-readiness/v1.2.0/build-e325f16096dd/ # 감사·평가·runner 연결 계약
-        ├── project-status/v1.0.0/build-3f8a7f1df86a/ # 공개 단일 파일 현황 snapshot
+        ├── project-status/v1.0.0/build-a4014017c26c/ # KI10 Gate 실패 공개 현황 snapshot
         └── phase-verification/v1.0.0/review-20260828/
 
 configs/data_versions/saju_1b_baseline/
@@ -214,6 +214,11 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
 
 ## 진행 기록
 
+- 2026-08-29
+  - 작업 요약: 현황 렌더러 checkpoint `618ce4d9870e7a64681823f0cde3a38f9934fad1`에서 KI10 Gate 실패 snapshot `v1.0.0/build-a4014017c26c`를 생성하고 registry 승인 포인터와 root HTML을 연결했다.
+  - 변경 범위: 과거 pre-KI10 현황 build는 덮어쓰지 않았다. 새 현황은 KI10 Full FT·reload 통과와 1,000case 4개 Gate 미달, `ki20_promotion_allowed=false`, sealed blind 미열람을 집계로만 표시한다.
+  - 검증: status build/HTML/manifest/config SHA-256은 `a401401…a5a8e4`/`4d81927…1f732e`/`f0f1d6a…a0d253`/`73e5b1a…ee914b`이며 root와 snapshot HTML은 byte-identical하다.
+  - 남은 이슈·후속 작업: 현재 Phase 5는 `차단`으로 종료하고 KI20을 실행하지 않는다. 다음 보강은 지식·branch-policy·신살·handoff용 새 데이터 fingerprint와 평가/run version을 먼저 설계해야 한다.
 - 2026-08-29
   - 작업 요약: KI10 자동 Gate 실패를 단일 파일 현황판에 정확히 표시하도록 current decision을 config화하고 `ki10_gate_failed / STOP` 렌더링 계약을 구현했다. 새 HTML은 구현 commit을 고정한 다음 불변 build로 발행한다.
   - 변경 범위: KI10 Full FT·품질 Gate hash chain, Phase 5 차단, 네 가지 미달 지표, KI20·sealed blind 금지를 status config에 추가했다. 기존 pre-KI10 hero·결정 표 하드코딩을 제거했다.
