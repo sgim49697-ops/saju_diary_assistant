@@ -41,7 +41,7 @@ class Phase5ReadinessV12Tests(unittest.TestCase):
             ).read_text(encoding="utf-8")
         )
         approved = registry["approved_phase5_readiness"]
-        self.assertEqual(approved["build_id"], "build-bffd53a2abb3")
+        self.assertEqual(approved["build_id"], "build-e325f16096dd")
         public_root = (
             REPO_ROOT
             / "data/reports/saju_1b_baseline/phase5-readiness/v1.2.0"

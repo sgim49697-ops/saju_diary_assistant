@@ -238,6 +238,11 @@ runs/KI20-MIX-v2/v1.0.0/run-<fingerprint>/
 ## 진행 기록
 
 - 2026-08-29
+  - 작업 요약: 수정 runner를 포함한 readiness `v1.2.0/build-e325f16096dd`을 clean commit에서 새로 생성하고 별도 프로세스로 재검증했다. 이전 readiness는 덮어쓰지 않았다.
+  - 변경 범위: registry 최신 승인 포인터와 공개 현황판을 새 build로 연결했다. dev monitor 70건과 canonical KI10/20K fingerprint는 불변이며 봉인 blind·학습·backward·optimizer step은 수행하지 않았다.
+  - 검증: build SHA-256 `e325f160…fbf7775`, private/public manifest `fd7d2b0…67553`/`b0356b2…3b0e3`, summary `6ca7fb4…3d814`, dev monitor `aa61d2a…bcb31`을 확인했다. KI10 baseline 허용·KI20 금지·전문가 품질 주장 금지를 유지한다.
+  - 남은 이슈·후속 작업: 이 승인 변경을 커밋·푸시하고 clean tree가 된 뒤 forward-only preflight를 재실행한다. 그 결과가 통과하기 전에는 `PHASE5_TRAINING`을 설정하지 않는다.
+- 2026-08-29
   - 작업 요약: 첫 KI10 forward-only preflight는 모델 load 뒤 TRL 1.12.0 `SFTTrainer`가 `train_dataset`을 필수로 검사해 evaluation 전에 중단됐다. 임시 경로는 atomic cleanup되어 partial run·backward·optimizer step·학습 데이터 변경이 없었다.
   - 변경 범위: 동일한 dev monitor 70건을 TRL 전처리용 `train_dataset`과 실제 `eval_dataset`에 함께 전달하되 실행 메서드는 `evaluate()`만 허용했다. summary와 manifest에 `train_method_called=false` 및 전처리용 train dataset 제공 사실을 명시하고 회귀 테스트를 추가했다.
   - 검증: 설치된 TRL `1.12.0`의 생성자에서 `train_dataset is None`이면 `ValueError`가 발생함을 로컬 source로 확인했다. 수정 runner SHA-256은 `aff05d86…1eb3f`, 새 readiness 예상 build는 `v1.2.0/build-e325f16096dd`다.

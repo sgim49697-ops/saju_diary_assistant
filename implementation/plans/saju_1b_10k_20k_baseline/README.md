@@ -63,7 +63,7 @@ data/
 ├── derived/saju_1b_baseline/evaluation-split/v1.1.0/build-d2f9e1623e96/ # v1.0 봉인 유지·dev 진단 확장
 ├── derived/saju_1b_baseline/phase5-readiness/v1.0.0/build-f6c8171f454f/ # 과거 readiness
 ├── derived/saju_1b_baseline/phase5-readiness/v1.1.0/build-201010b37e40/
-├── derived/saju_1b_baseline/phase5-readiness/v1.2.0/build-bffd53a2abb3/ # 현재 KI10 자동 Gate 계약
+├── derived/saju_1b_baseline/phase5-readiness/v1.2.0/build-e325f16096dd/ # 현재 KI10 자동 Gate 계약
 └── reports/
     └── saju_1b_baseline/
         ├── audit/v1.2.0/build-ca756f3eb89f/
@@ -78,8 +78,8 @@ data/
         ├── pretraining-audit/v1.0.0/build-c38926f86a3d/ # 20K 의미·출처 전수 감사
         ├── phase5-readiness/v1.0.0/build-f6c8171f454f/ # 과거 비학습 계약
         ├── phase5-readiness/v1.1.0/build-201010b37e40/ # 봉인 평가 연결 계약
-        ├── phase5-readiness/v1.2.0/build-bffd53a2abb3/ # 감사·평가·runner 연결 계약
-        ├── project-status/v1.0.0/build-f3ae22a8860e/ # 공개 단일 파일 현황 snapshot
+        ├── phase5-readiness/v1.2.0/build-e325f16096dd/ # 감사·평가·runner 연결 계약
+        ├── project-status/v1.0.0/build-a89d078aabc0/ # 공개 단일 파일 현황 snapshot
         └── phase-verification/v1.0.0/review-20260828/
 
 configs/data_versions/saju_1b_baseline/
@@ -214,6 +214,11 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
 
 ## 진행 기록
 
+- 2026-08-29
+  - 작업 요약: TRL preflight 호출 수정 commit `a6a1eefa91fcd7fa34f37ffbea386a9a731c9ea6`에서 readiness `v1.2.0/build-e325f16096dd`을 새 경로에 생성·standalone verify하고 현황판 `v1.0.0/build-a89d078aabc0`을 재발행했다.
+  - 변경 범위: 이전 `build-bffd…`와 `build-f3ae…`는 불변 이력으로 보존했다. registry 최신 포인터와 문서 경로만 새 runner fingerprint에 연결했으며 학습 데이터·평가 membership·봉인 blind는 변경하거나 열람하지 않았다.
+  - 검증: readiness private/public manifest는 `fd7d2b0…67553`/`b0356b2…3b0e3`, summary는 `6ca7fb4…3d814`, dev monitor는 기존과 같은 `aa61d2a…bcb31`이다. 현황 HTML은 snapshot과 byte-identical하고 SHA-256 `df379e4…69f5b`다.
+  - 남은 이슈·후속 작업: registry·현황판 checkpoint를 커밋한 clean tree에서 KI10 forward-only preflight를 재실행한다. 유한 loss·BF16·VRAM Gate가 통과할 때만 실제 KI10 Full FT를 시작하며 KI20은 계속 금지한다.
 - 2026-08-29
   - 작업 요약: 승인된 감사·평가 build와 Phase 5 runner 구현 hash를 묶은 readiness `v1.2.0/build-bffd53a2abb3`을 생성·standalone verify하고, 공개 현황판 `v1.0.0/build-f3ae22a8860e`을 고정했다. 실제 학습은 아직 수행하지 않았다.
   - 변경 범위: registry의 최신 평가·감사·readiness·현황 포인터를 갱신했다. readiness는 KI10만 허용하고 KI20은 1,000case 자동 품질 Gate 전까지 금지한다. `PROJECT_STATUS.html`은 버전 chain·20K token 구성·근거 등급·Gate·알려진 위험만 포함한다.
