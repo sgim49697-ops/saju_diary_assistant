@@ -1,0 +1,17 @@
+{
+  "artifact_sha256": {
+    "aggregate.json": "454649282dedef23e17b4a2ab3d14ff4109ee3d6db88a734f95d92bc8ee8ae23"
+  },
+  "build_id": "build-0f80acfeed13",
+  "build_sha256": "0f80acfeed134d078688fd164e0c283e4432abe4bef5e8766b5c1d719f5e85dd",
+  "candidate_ids_included": false,
+  "candidate_version": "v1.0.0",
+  "dataset_name": "saju_1b_baseline",
+  "generated_on": "2026-08-29",
+  "private_manifest_sha256": "f4135e4ba3ca2748a6dc600c6d7f2a5d12577ee0b5939a63e2675efe6a57eb48",
+  "rendered_candidate_rows_included": false,
+  "report_type": "saju_intake_handoff_candidate_public_manifest",
+  "schema_version": "1.0.0",
+  "tracked_template_fragments_public": true,
+  "training_promotion_allowed": false
+}

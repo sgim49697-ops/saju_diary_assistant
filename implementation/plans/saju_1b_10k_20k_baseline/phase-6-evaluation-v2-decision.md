@@ -75,6 +75,21 @@ max_new_tokens: 512
 
 평가 스크립트 버전, prompt hash, generation config와 raw 출력은 모델별로 보존한다.
 
+## Phase 5 후속 상태형 대화 축
+
+2026-08-30의 비봉인 합성 100건 진단은 기존 source blind를 대체하거나 Phase 6을 시작하는 평가가 아니다. 다만 기존 평가가 단발성 handoff 5건만 포함해 실제 다회전 입력 상태를 대표하지 못하므로, 다음 데이터·평가 version에는 아래 축을 별도 component로 추가한다.
+
+| 보강 축 | 현재 비봉인 증거 | 다음 계약 |
+|---|---|---|
+| 누락 slot만 요청 | 필수 행동 `14/100`, no-input `1/10`, date-only `0/10` | 생년월일·달력 유형·조건부 윤달·시각/시간 미상·도시/국가를 독립 slot으로 채점 |
+| 정정·누적·재질문 금지 | accumulated-context `1/10`, 제공 필드 재질문 18건 | 최신 정정 우선, 이미 받은 값과 시간 미상 재질문 0건 |
+| 계산 engine 경계 | complete-input handoff `0/10`, time-unknown limit `0/10` | 원시 생년월일→명식 계산 금지와 도구 미연결·오류 복구를 분리 채점 |
+| 사실 비조작 | 임의 간지 없는 출력 `84/100` | intake 행의 간지 0, structured 행의 출생 입력 0, 새 간지 1쌍부터 위반 |
+| 허위 UI·완료·기간 사실 | 허위 UI·완료 1건, 미지원 날짜·기간 사실 5건 | 실제 없는 버튼·완료 0, 검증된 기간 간지 없는 운세 사실 0 |
+| 구조화 사실 활용 | structured-chart required action `0/10` | 검증된 fact만 근거로 사용하고 blocked/heuristic field는 Gold에서 제외 |
+
+보강 후보 `build-0f80acfeed13`은 10개 층 각 200건의 `candidate_only` 자료다. 실제 세션·AI Hub 원문·실제 생년월일을 포함하지 않고 dev100과 component·template·정규화/근접중복을 분리했지만, 반복적인 결정적 template이므로 사람 또는 독립 모델 검수와 자연어 다양화 없이 학습 manifest에 넣지 않는다. 새 축의 blind는 기존 `blind_source_test_500`을 열거나 바꾸지 않고 다음 evaluation-split version에서 새로 봉인한다.
+
 ## 사람 평가 100문항
 
 Core Eval에서 영역 비율을 유지한 100문항을 고정하고 KI10·KI20 출력 순서를 문항별로 무작위화한다. 평가자는 모델 이름을 보지 않는다.
@@ -195,6 +210,11 @@ runs/next_stage_decision.md
 
 ## 진행 기록
 
+- 2026-08-30
+  - 작업 요약: KI20 final에 안내 보정 prompt를 적용한 비봉인 상태형 대화 100건을 진단하고 다음 evaluation version에 필요한 입력 상태 축을 위 표로 고정했다. 품질 상태는 `guided_diagnostic_not_met`이며 Phase 6은 시작하지 않았다.
+  - 변경 범위: 원문 출력과 case별 점수는 Git 제외 private run에만 두고 공개 보고서는 count·비율·Wilson 95% 구간·hash만 포함한다. source blind payload, 기존 membership, K0/KI10/KI20 Phase 6 raw 출력과 사람 평가는 열거나 생성하지 않았다.
+  - 검증: 10개 층 각 10건, system prompt 첫 위치 정확히 1건, reference `100/100` 통과·의도 변이 `100/100` 거부를 확인했다. 실제 모델은 non-empty와 중대 안전·반복만 통과했으며 필수 행동·사실 비조작·재질문·허위 완료·미지원 기간 사실 Gate는 실패했다.
+  - 남은 이슈·후속 작업: 실패를 곧바로 재학습 필요로 단정하지 않고 scorer 오탐 표본, prompt 한계, 외부 slot state·runtime 부재를 분리한다. 현재 2,000건 후보의 표현 다양화·승인과 새 비봉인 dev 계약을 먼저 닫은 뒤에도 기존 sealed blind는 Phase 6 정식 단회 실행까지 봉인한다.
 - 2026-08-29
   - 작업 요약: Phase 5 Gate v2와 KI20 비학습 preflight를 완료했지만 KI20 final checkpoint가 없으므로 Phase 6은 시작하지 않았다.
   - 변경 범위: 평가 v1.2는 기존 membership과 blind bytes를 보존한 채 typed contract 130건과 missing-chart handoff 50건만 개발용으로 추가했다. blind payload·Phase 6 raw 출력·사람 평가는 생성하거나 열람하지 않았다.

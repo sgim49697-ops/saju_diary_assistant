@@ -18,6 +18,7 @@ from scripts.training.phase5_dashboard import (
     DashboardHTTPServer,
     DashboardRequestError,
     Phase5DashboardError,
+    _generate_loaded,
     _parser,
     _select_probes,
     _service_snapshot,
@@ -43,9 +44,15 @@ class DashboardFixture:
         self.config = json.loads((REPO_ROOT / DEFAULT_CONFIG).read_text(encoding="utf-8"))
         self.config_path = (
             root
-            / "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.2.0.json"
+            / "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.3.0.json"
         )
         self.config_path.parent.mkdir(parents=True)
+        prompt_source = REPO_ROOT / self.config["prompt_profiles"]["profiles"][
+            "guided_diagnostic_v1"
+        ]["system_prompt"]["path"]
+        prompt_target = root / prompt_source.relative_to(REPO_ROOT)
+        prompt_target.parent.mkdir(parents=True)
+        prompt_target.write_bytes(prompt_source.read_bytes())
         self.run_root = root / "runs/KI20-MIX-v2/v1.2.0/run-123456abcdef"
         self.run_root.mkdir(parents=True)
         self._write_json(
@@ -151,6 +158,70 @@ class Phase5DashboardTests(unittest.TestCase):
         with self.assertRaisesRegex(Phase5DashboardError, "dataset browser"):
             validate_config(invalid_dataset)
         self.assertTrue(DashboardHTTPServer.allow_reuse_address)
+
+    def test_prompt_hash_drift_is_rejected(self) -> None:
+        prompt = self.fixture.root / "configs/chat_prompts/saju_intake_handoff_v1.txt"
+        prompt.write_text("변조된 prompt\n", encoding="utf-8")
+        with self.assertRaisesRegex(Phase5DashboardError, "system prompt 파일 계약"):
+            self.fixture.context()
+
+    def test_context_trimming_preserves_single_leading_system_message(self) -> None:
+        class FakeTensor:
+            def __init__(self, length: int) -> None:
+                self.shape = (1, length)
+
+            def to(self, _device: str) -> FakeTensor:
+                return self
+
+        class FakeGenerated:
+            def __getitem__(self, _key: object) -> list[int]:
+                return [1]
+
+        class FakeTokenizer:
+            pad_token_id = 0
+            eos_token_id = 1
+
+            def __init__(self) -> None:
+                self.calls: list[list[dict[str, str]]] = []
+
+            def apply_chat_template(
+                self, messages: object, **_kwargs: object
+            ) -> FakeTensor:
+                copied = [dict(message) for message in messages]
+                self.calls.append(copied)
+                return FakeTensor(500 if len(copied) > 4 else 100)
+
+            def decode(self, _tokens: object, **_kwargs: object) -> str:
+                return "보존 답변"
+
+        class FakeModel:
+            def generate(self, _input: object, **_kwargs: object) -> FakeGenerated:
+                return FakeGenerated()
+
+        tokenizer = FakeTokenizer()
+        result = _generate_loaded(
+            object(),
+            tokenizer,
+            FakeModel(),
+            [
+                {"role": "system", "content": "고정 지침"},
+                {"role": "user", "content": "오래된 질문"},
+                {"role": "assistant", "content": "오래된 답변"},
+                {"role": "user", "content": "중간 질문"},
+                {"role": "assistant", "content": "중간 답변"},
+                {"role": "user", "content": "최근 질문"},
+            ],
+            {"do_sample": False, "num_beams": 1, "max_new_tokens": 32},
+            max_input_tokens=200,
+        )
+        self.assertEqual(result["omitted_messages"], 2)
+        self.assertEqual(
+            [message["role"] for message in tokenizer.calls[-1]],
+            ["system", "user", "assistant", "user"],
+        )
+        self.assertEqual(
+            sum(message["role"] == "system" for message in tokenizer.calls[-1]), 1
+        )
 
     def test_prepare_context_rejects_symlink_and_outside_run(self) -> None:
         context = self.fixture.context()
@@ -347,6 +418,9 @@ class Phase5DashboardTests(unittest.TestCase):
         self.assertEqual(result["output"], "첫 답변")
         self.assertTrue(result["persisted"])
         self.assertTrue(result["local_only"])
+        self.assertEqual(
+            result["prompt_profile"]["profile_id"], "guided_diagnostic_v1"
+        )
         session_id = result["session_id"]
         followup = execute_manual_generation(
             self.fixture.context(), "앞 답변을 요약해줘", session_id
@@ -355,6 +429,15 @@ class Phase5DashboardTests(unittest.TestCase):
         self.assertEqual(
             generate.call_args_list[1].args[1],
             [
+                {
+                    "role": "system",
+                    "content": (
+                        REPO_ROOT
+                        / "configs/chat_prompts/saju_intake_handoff_v1.txt"
+                    )
+                    .read_text(encoding="utf-8")
+                    .strip(),
+                },
                 {"role": "user", "content": "질문입니다"},
                 {"role": "assistant", "content": "첫 답변"},
                 {"role": "user", "content": "앞 답변을 요약해줘"},
@@ -362,8 +445,102 @@ class Phase5DashboardTests(unittest.TestCase):
         )
         stored = manual_session_payload(self.fixture.context(), session_id)
         self.assertEqual(stored["messages"][-1]["content"], "후속 답변")
+        self.assertEqual(stored["prompt_profile"], "guided_diagnostic_v1")
         self.assertEqual(manual_sessions_payload(self.fixture.context())["items"][0]["turn_count"], 2)
         self.assertFalse(result["production_promotion_allowed"])
+
+    @patch("scripts.training.phase5_dashboard._generate_conversation")
+    @patch("scripts.training.phase5_dashboard._generation_gate")
+    def test_raw_profile_is_explicit_and_locked_per_session(
+        self, gate: object, generate: object
+    ) -> None:
+        gate.return_value = {"allowed": True, "reasons": []}
+        generate.side_effect = [
+            {"output": "원출력", "input_tokens": 10, "omitted_messages": 0},
+            {"output": "후속", "input_tokens": 20, "omitted_messages": 0},
+        ]
+        context = self.fixture.context()
+        result = execute_manual_generation(
+            context, "원질문", profile="raw_no_system"
+        )
+        self.assertEqual(
+            generate.call_args_list[0].args[1],
+            [{"role": "user", "content": "원질문"}],
+        )
+        self.assertEqual(result["session"]["prompt_profile"], "raw_no_system")
+        with self.assertRaisesRegex(Phase5DashboardError, "변경할 수 없습니다"):
+            execute_manual_generation(
+                context,
+                "운영으로 바꿔줘",
+                result["session_id"],
+                "guided_diagnostic_v1",
+            )
+
+    @patch("scripts.training.phase5_dashboard._generate_conversation")
+    @patch("scripts.training.phase5_dashboard._generation_gate")
+    def test_legacy_session_continues_without_system_and_migrates_profile(
+        self, gate: object, generate: object
+    ) -> None:
+        gate.return_value = {"allowed": True, "reasons": []}
+        generate.return_value = {
+            "output": "이어진 답변",
+            "input_tokens": 30,
+            "omitted_messages": 0,
+        }
+        context = self.fixture.context()
+        session_id = "b" * 24
+        root = (
+            self.fixture.run_root
+            / self.fixture.config["manual_session"]["private_output_relative"]
+        )
+        self.fixture._write_json(
+            root / f"{session_id}.json",
+            {
+                "schema_version": "1.0.0",
+                "session_id": session_id,
+                "run_id": "KI20-MIX-v2",
+                "run_build_id": "run-123456abcdef",
+                "run_sha256": "a" * 64,
+                "title": "기존 질문",
+                "created_at_utc": "2026-08-29T10:00:00+00:00",
+                "updated_at_utc": "2026-08-29T10:00:01+00:00",
+                "turn_count": 1,
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": "기존 질문",
+                        "created_at_utc": "2026-08-29T10:00:00+00:00",
+                    },
+                    {
+                        "role": "assistant",
+                        "content": "기존 답변",
+                        "created_at_utc": "2026-08-29T10:00:01+00:00",
+                    },
+                ],
+                "quality_gate_evaluated": False,
+                "production_promotion_allowed": False,
+            },
+        )
+        result = execute_manual_generation(
+            context, "후속 질문", session_id, "raw_legacy"
+        )
+        self.assertEqual(
+            generate.call_args.args[1],
+            [
+                {"role": "user", "content": "기존 질문"},
+                {"role": "assistant", "content": "기존 답변"},
+                {"role": "user", "content": "후속 질문"},
+            ],
+        )
+        self.assertEqual(result["session"]["prompt_profile"], "raw_no_system")
+        self.assertEqual(
+            manual_session_payload(context, session_id)["prompt_profile"],
+            "raw_no_system",
+        )
+        with self.assertRaisesRegex(Phase5DashboardError, "허용되지 않습니다"):
+            execute_manual_generation(context, "새 질문", profile="raw_legacy")
+        with self.assertRaisesRegex(Phase5DashboardError, "허용되지 않습니다"):
+            execute_manual_generation(context, "새 질문", profile="unknown_profile")
 
     def test_manual_session_rejects_invalid_id_and_symlink(self) -> None:
         with self.assertRaisesRegex(Phase5DashboardError, "session_id"):
@@ -391,6 +568,9 @@ class Phase5DashboardTests(unittest.TestCase):
         self.assertLess(html.index('id="manual-panel"'), html.index('id="comparison-panel"'))
         self.assertIn('<details id="comparison-panel"', html)
         self.assertNotIn('<details id="comparison-panel" open', html)
+        self.assertIn('id="prompt-profile-select"', html)
+        self.assertIn("guided_diagnostic_v1", html + script)
+        self.assertIn("raw_no_system", html + script)
         self.assertIn("/api/dataset-samples/", script)
         self.assertIn("--bg: #f4efe4", style)
         dashboard_source = (REPO_ROOT / "scripts/training/phase5_dashboard.py").read_text(
@@ -454,6 +634,37 @@ class Phase5DashboardHTTPTests(unittest.TestCase):
         self.assertEqual(status, 421)
         status, _, _ = self.request("GET", "/api/status")
         self.assertEqual(status, 403)
+
+    @patch("scripts.training.phase5_dashboard._manual_generation_subprocess")
+    @patch("scripts.training.phase5_dashboard._generation_gate")
+    def test_generation_api_forwards_explicit_prompt_profile(
+        self, gate: object, generate: object
+    ) -> None:
+        gate.return_value = {"allowed": True, "reasons": []}
+        generate.return_value = {
+            "status": "generated",
+            "persisted": True,
+            "local_only": True,
+            "session_id": "c" * 24,
+        }
+        body = json.dumps(
+            {
+                "prompt": "진단 질문",
+                "session_id": None,
+                "profile": "guided_diagnostic_v1",
+            }
+        ).encode()
+        status, _, _ = self.request(
+            "POST",
+            "/api/generate",
+            token=True,
+            origin=True,
+            body=body,
+        )
+        self.assertEqual(status, 200)
+        generate.assert_called_once_with(
+            self.context, "진단 질문", None, "guided_diagnostic_v1"
+        )
 
     @patch("scripts.training.phase5_dashboard._generate_conversation")
     @patch("scripts.training.phase5_dashboard._generation_gate")

@@ -278,6 +278,11 @@ runs/KI20-MIX-v2/v1.2.0/run-1f5d732cae67/  # 1 epoch 본학습 실행 중
 
 ## 진행 기록
 
+- 2026-08-30
+  - 작업 요약: 실제 11턴 수동 대화는 22개 메시지 전체가 `553/3,584` token으로 보존되고 system message가 없었으므로, 실패 원인을 context 손실이 아닌 입력 수집·계산 경계 행동 제어 부재로 확정했다. dashboard `v1.3.0`은 새 세션 기본값을 `guided_diagnostic_v1`로 바꾸고 `raw_no_system`은 명시적 진단 선택으로만 남겼다. 두 profile 모두 `diagnostic_only=true`, `production_like=false`다.
+  - 변경 범위: 안내 보정 prompt는 대화 첫 위치에 정확히 한 번 삽입하고 오래된 완결 turn을 줄여도 보존한다. v1.0 기존 세션은 `raw_legacy`로 읽어 원래 의미를 바꾸지 않는다. 공개 합성 상태형 dev 100건과 10개 층×200건인 보강 후보 2,000건 `build-0f80acfeed13`을 새로 만들었지만 후보는 `candidate_only`, `training_promotion_allowed=false`이며 기존 20K·checkpoint·학습 설정을 수정하거나 재학습하지 않았다.
+  - 검증: 후보 JSONL SHA-256은 `fec7403e…6917b`, dev100과 정규화 exact·문자 5-gram Jaccard 0.85 이상 중복은 각각 0건이고 최대 유사도는 `0.065217`이다. intake transcript의 명식·간지와 structured transcript의 출생일·시각·장소 혼합, PII, 실제 사용자 세션·AI Hub 원문, 허위 4주, 정규화 중복은 모두 0건이다. 실제 KI20 상태형 Gate `stateful-gate-f5b76dde1921`은 100건을 105.577초에 생성했으며 non-empty `100/100`, 중대 안전·직전 답변 반복 0건은 통과했지만 필수 행동 `14/100`, 임의 간지 없는 출력 `84/100`, 이미 받은 필드 재질문 18건, 허위 UI·완료 1건, 미지원 날짜·기간 사실 5건으로 `guided_diagnostic_not_met`였다. 봉인 blind는 열지 않았다.
+  - 남은 이슈·후속 작업: system prompt만으로는 보정되지 않았으며 sanitized 1턴 smoke도 네 필수 범주 중 생년월일·달력 구분만 요청했다. 후보 2,000건은 내부 hash 표식 없는 실제 system prompt와 조건부 `calendar_type`·`leap_month`를 사용하지만 결정적 template 후보이므로 그대로 학습 Gold로 승격하지 않는다. 자연스러운 다회전 표현 다양화, 실패 사례 소수 검토, 새 train/dev 평가 계약·data fingerprint 승인 뒤에만 별도 재학습을 결정한다. 실제 앱은 독립 slot state와 승인된 생년월일시→명식 계산 engine이 필요하다.
 - 2026-08-29
   - 작업 요약: dashboard `v1.2.0`에 현재 KI10·KI20 학습, dev monitor·diagnostic, persona guard, 외부 정합성의 수량·축별 분포와 고정 샘플을 보는 `데이터 스플릿` 탭을 추가했다. 화면은 밝은 한지 바탕과 저채도 오행 색으로 바꾸고, 세션 챗봇을 먼저 배치한 뒤 고정 20건 진단 비교를 기본 닫힘 토글로 이동했다.
   - 변경 범위: 샘플 API는 고정 SHA-256을 확인한 로컬 비봉인 데이터만 읽고 message 또는 구조화 input/expected 최소 투영만 반환한다. AI Hub 두 축은 `로컬 제한·외부 공유 금지`를 표시하며 내부 record·leakage·locator·hash는 반환하지 않는다. `blind_source_test_500`은 수량·봉인 상태만 표시하고 payload path를 구현에 포함하거나 읽지 않았다. 학습 데이터·split membership·checkpoint·기존 dashboard 세션과 fixed probe 결과는 수정하지 않았다.

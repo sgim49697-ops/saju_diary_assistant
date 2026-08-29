@@ -31,10 +31,13 @@ if str(REPO_ROOT) not in sys.path:
 from scripts.training.phase5_quality import score_generations
 
 DEFAULT_CONFIG = Path(
-    "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.2.0.json"
+    "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.3.0.json"
 )
 ASSET_ROOT = Path(__file__).with_name("phase5_dashboard_assets")
 RUN_BUILD_PATTERN = re.compile(r"^run-[0-9a-f]{12}$")
+GUIDED_PROMPT_SHA256 = (
+    "d2aa55a54bfab253669a56570ceca63e02b8d688d3699e40c9258ac6f7c18232"
+)
 CHECKPOINT_PATTERN = re.compile(r"^checkpoint-([1-9][0-9]*)$")
 SERVICE_PATTERN = re.compile(r"^[A-Za-z0-9_.@:-]+\.service$")
 CONTROL_PATTERN = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
@@ -155,6 +158,42 @@ def _safe_under(root: Path, value: str | Path, label: str) -> Path:
     return resolved
 
 
+def _validate_prompt_profiles(value: Any, governance: dict[str, Any]) -> None:
+    if not isinstance(value, dict):
+        raise Phase5DashboardError("Phase 5 prompt profile 계약이 없습니다.")
+    profiles = value.get("profiles")
+    if (
+        value.get("default_profile") != "guided_diagnostic_v1"
+        or value.get("legacy_profile") != "raw_legacy"
+        or not isinstance(profiles, dict)
+        or set(profiles) != {"guided_diagnostic_v1", "raw_no_system"}
+        or governance.get("manual_default_profile_guided") is not True
+        or governance.get("raw_profile_diagnostic_only") is not True
+    ):
+        raise Phase5DashboardError("Phase 5 prompt profile 계약이 다릅니다.")
+    production = profiles["guided_diagnostic_v1"]
+    raw = profiles["raw_no_system"]
+    prompt = production.get("system_prompt") if isinstance(production, dict) else None
+    if (
+        not isinstance(production, dict)
+        or production.get("label") != "안내 보정 진단"
+        or not isinstance(production.get("description"), str)
+        or production.get("production_like") is not False
+        or production.get("diagnostic_only") is not True
+        or not isinstance(prompt, dict)
+        or prompt.get("path") != "configs/chat_prompts/saju_intake_handoff_v1.txt"
+        or prompt.get("bytes") != 1805
+        or prompt.get("sha256") != GUIDED_PROMPT_SHA256
+        or not isinstance(raw, dict)
+        or raw.get("label") != "무지시 원출력"
+        or not isinstance(raw.get("description"), str)
+        or raw.get("system_prompt") is not None
+        or raw.get("production_like") is not False
+        or raw.get("diagnostic_only") is not True
+    ):
+        raise Phase5DashboardError("Phase 5 prompt profile 세부 계약이 다릅니다.")
+
+
 def validate_config(config: dict[str, Any]) -> None:
     server = config.get("server")
     training = config.get("training_contract")
@@ -178,7 +217,7 @@ def validate_config(config: dict[str, Any]) -> None:
         raise Phase5DashboardError("대시보드 고정 probe 범주 계약이 다릅니다.")
     schema_version = config.get("schema_version")
     if (
-        schema_version not in {"1.0.0", "1.1.0", "1.2.0"}
+        schema_version not in {"1.0.0", "1.1.0", "1.2.0", "1.3.0"}
         or config.get("dashboard_id") != "KI20-MIX-v2-dashboard"
         or config.get("allowed_run_id") != "KI20-MIX-v2"
         or config.get("refresh_seconds") != 10
@@ -225,11 +264,16 @@ def validate_config(config: dict[str, Any]) -> None:
     ):
         raise Phase5DashboardError("Phase 5 dashboard v1.1 세션 계약이 다릅니다.")
     dataset_browser = config.get("dataset_browser")
+    prompt_profiles = config.get("prompt_profiles")
     if schema_version in {"1.0.0", "1.1.0"}:
         if dataset_browser is not None:
             raise Phase5DashboardError("과거 dashboard config에 dataset browser가 있습니다.")
     else:
         _validate_dataset_browser(dataset_browser, governance)
+    if schema_version == "1.3.0":
+        _validate_prompt_profiles(prompt_profiles, governance)
+    elif prompt_profiles is not None:
+        raise Phase5DashboardError("과거 dashboard config에 prompt profile이 있습니다.")
     generation = model_check.get("generation")
     if generation != {"do_sample": False, "num_beams": 1, "max_new_tokens": 256}:
         raise Phase5DashboardError("대시보드 generation 계약이 다릅니다.")
@@ -316,6 +360,56 @@ def _validate_dataset_browser(value: Any, governance: dict[str, Any]) -> None:
         raise Phase5DashboardError("봉인 split 축 계약이 다릅니다.")
 
 
+def _load_prompt_profiles(repo_root: Path, config: dict[str, Any]) -> dict[str, Any]:
+    contract = config.get("prompt_profiles")
+    if contract is None:
+        return {
+            "default_profile": "raw_no_system",
+            "legacy_profile": "raw_legacy",
+            "profiles": {
+                "raw_no_system": {
+                    "label": "무지시 원출력",
+                    "description": "과거 dashboard 호환 profile",
+                    "system_prompt_text": None,
+                    "system_prompt_sha256": None,
+                    "production_like": False,
+                    "diagnostic_only": True,
+                }
+            },
+        }
+    loaded: dict[str, dict[str, Any]] = {}
+    for profile_id, profile in contract["profiles"].items():
+        prompt = profile["system_prompt"]
+        text: str | None = None
+        digest: str | None = None
+        if prompt is not None:
+            path = _safe_under(repo_root, prompt["path"], "수동 대화 system prompt")
+            if path.is_symlink() or not path.is_file() or path.stat().st_size != prompt["bytes"]:
+                raise Phase5DashboardError("수동 대화 system prompt 파일 계약이 다릅니다.")
+            digest = _sha256_file(path)
+            if digest != prompt["sha256"]:
+                raise Phase5DashboardError("수동 대화 system prompt SHA-256이 다릅니다.")
+            try:
+                text = path.read_text(encoding="utf-8").strip()
+            except (OSError, UnicodeError) as exc:
+                raise Phase5DashboardError("수동 대화 system prompt를 읽을 수 없습니다.") from exc
+            if not text or CONTROL_PATTERN.search(text):
+                raise Phase5DashboardError("수동 대화 system prompt 내용이 안전하지 않습니다.")
+        loaded[profile_id] = {
+            "label": profile["label"],
+            "description": profile["description"],
+            "system_prompt_text": text,
+            "system_prompt_sha256": digest,
+            "production_like": profile["production_like"],
+            "diagnostic_only": profile["diagnostic_only"],
+        }
+    return {
+        "default_profile": contract["default_profile"],
+        "legacy_profile": contract["legacy_profile"],
+        "profiles": loaded,
+    }
+
+
 def prepare_context(
     repo_root: Path, config_path: Path, run_root: Path
 ) -> dict[str, Any]:
@@ -357,6 +451,7 @@ def prepare_context(
         != expected["gpu_hard_cap_mib"]
     ):
         raise Phase5DashboardError("KI20 학습 계약과 dashboard가 다릅니다.")
+    prompt_profiles = _load_prompt_profiles(root, config)
     return {
         "repo_root": root,
         "config_path": config_target,
@@ -364,6 +459,7 @@ def prepare_context(
         "run_root": run_target,
         "manifest": manifest,
         "resolved": resolved,
+        "prompt_profiles": prompt_profiles,
     }
 
 
@@ -1222,18 +1318,28 @@ def _generate_loaded(
         input_tokens = int(input_ids.shape[-1])
         if max_input_tokens is None or input_tokens <= max_input_tokens:
             break
-        if len(prepared) < 3:
+        minimum_messages = 4 if prepared[0].get("role") == "system" else 3
+        if len(prepared) < minimum_messages:
             raise Phase5DashboardError(
                 "현재 수동 질문 하나가 세션 context token 상한을 넘습니다. 질문을 줄여 주세요."
             )
-        drop_count = (
-            2
-            if prepared[0].get("role") == "user"
-            and prepared[1].get("role") == "assistant"
-            else 1
-        )
-        prepared = prepared[drop_count:]
-        omitted_messages += drop_count
+        if prepared[0].get("role") == "system":
+            if (
+                prepared[1].get("role") != "user"
+                or prepared[2].get("role") != "assistant"
+            ):
+                raise Phase5DashboardError("수동 대화 system profile 뒤의 turn 계약이 다릅니다.")
+            prepared = [prepared[0], *prepared[3:]]
+            omitted_messages += 2
+        else:
+            drop_count = (
+                2
+                if prepared[0].get("role") == "user"
+                and prepared[1].get("role") == "assistant"
+                else 1
+            )
+            prepared = prepared[drop_count:]
+            omitted_messages += drop_count
     input_ids = input_ids.to("cuda:0")
     generated = model.generate(
         input_ids,
@@ -1370,6 +1476,53 @@ def _manual_session_contract(context: dict[str, Any]) -> dict[str, Any]:
     return contract
 
 
+def _prompt_profile(
+    context: dict[str, Any], profile_id: str, *, allow_legacy: bool = False
+) -> dict[str, Any]:
+    profiles = context["prompt_profiles"]
+    if allow_legacy and profile_id == profiles["legacy_profile"]:
+        return {
+            "profile_id": profile_id,
+            "label": "기존 무지시",
+            "description": "v1.0 세션에서 보존한 무지시 원출력",
+            "system_prompt_text": None,
+            "system_prompt_sha256": None,
+            "production_like": False,
+            "diagnostic_only": True,
+        }
+    profile = profiles["profiles"].get(profile_id)
+    if not isinstance(profile, dict):
+        raise Phase5DashboardError("수동 대화 prompt profile이 허용되지 않습니다.")
+    return {"profile_id": profile_id, **profile}
+
+
+def prompt_profiles_payload(context: dict[str, Any]) -> dict[str, Any]:
+    profiles = context["prompt_profiles"]
+    return {
+        "default_profile": profiles["default_profile"],
+        "legacy_profile": profiles["legacy_profile"],
+        "items": [
+            {
+                "profile_id": profile_id,
+                "label": profile["label"],
+                "description": profile["description"],
+                "system_prompt_sha256": profile["system_prompt_sha256"],
+                "production_like": profile["production_like"],
+                "diagnostic_only": profile["diagnostic_only"],
+            }
+            for profile_id, profile in profiles["profiles"].items()
+        ],
+    }
+
+
+def _session_prompt_profile(context: dict[str, Any], session: dict[str, Any]) -> dict[str, Any]:
+    if session.get("schema_version") == "1.0.0":
+        return _prompt_profile(
+            context, context["prompt_profiles"]["legacy_profile"], allow_legacy=True
+        )
+    return _prompt_profile(context, str(session.get("prompt_profile", "")))
+
+
 def _manual_session_root(context: dict[str, Any], *, create: bool) -> Path:
     contract = _manual_session_contract(context)
     root = _safe_under(
@@ -1395,8 +1548,9 @@ def _validate_manual_session(
     context: dict[str, Any], value: dict[str, Any], session_id: str
 ) -> dict[str, Any]:
     messages = value.get("messages")
+    schema_version = value.get("schema_version")
     if (
-        value.get("schema_version") != "1.0.0"
+        schema_version not in {"1.0.0", "1.1.0"}
         or value.get("session_id") != session_id
         or value.get("run_id") != context["manifest"]["run_id"]
         or value.get("run_build_id") != context["manifest"]["run_build_id"]
@@ -1411,6 +1565,12 @@ def _validate_manual_session(
         or value.get("turn_count") != len(messages) // 2
     ):
         raise Phase5DashboardError("수동 대화 세션 계약이 다릅니다.")
+    profile = _session_prompt_profile(context, value)
+    if schema_version == "1.1.0" and (
+        value.get("prompt_profile") != profile["profile_id"]
+        or value.get("system_prompt_sha256") != profile["system_prompt_sha256"]
+    ):
+        raise Phase5DashboardError("수동 대화 세션 prompt profile 계약이 다릅니다.")
     for index, message in enumerate(messages):
         expected_role = "user" if index % 2 == 0 else "assistant"
         if (
@@ -1434,13 +1594,27 @@ def manual_session_payload(context: dict[str, Any], session_id: str) -> dict[str
     maximum = _manual_session_contract(context)["max_session_bytes"]
     if path.stat().st_size > maximum:
         raise Phase5DashboardError("수동 대화 세션 크기가 계약을 넘습니다.")
-    return _validate_manual_session(context, _load_json(path, "수동 대화 세션"), session_id)
+    session = _validate_manual_session(
+        context, _load_json(path, "수동 대화 세션"), session_id
+    )
+    profile = _session_prompt_profile(context, session)
+    return {
+        **session,
+        "prompt_profile": profile["profile_id"],
+        "prompt_profile_label": profile["label"],
+        "system_prompt_sha256": profile["system_prompt_sha256"],
+    }
 
 
 def manual_sessions_payload(context: dict[str, Any]) -> dict[str, Any]:
     root = _manual_session_root(context, create=False)
     if not root.exists():
-        return {"items": [], "persisted": True, "local_only": True}
+        return {
+            "items": [],
+            "prompt_profiles": prompt_profiles_payload(context),
+            "persisted": True,
+            "local_only": True,
+        }
     items: list[dict[str, Any]] = []
     for path in root.iterdir():
         if path.name.startswith("."):
@@ -1449,6 +1623,7 @@ def manual_sessions_payload(context: dict[str, Any]) -> dict[str, Any]:
         if match is None or path.is_symlink() or not path.is_file():
             raise Phase5DashboardError("수동 대화 세션 경로에 예상 밖 항목이 있습니다.")
         session = manual_session_payload(context, match.group(1))
+        profile = _session_prompt_profile(context, session)
         items.append(
             {
                 "session_id": session["session_id"],
@@ -1456,13 +1631,20 @@ def manual_sessions_payload(context: dict[str, Any]) -> dict[str, Any]:
                 "turn_count": session["turn_count"],
                 "created_at_utc": session["created_at_utc"],
                 "updated_at_utc": session["updated_at_utc"],
+                "prompt_profile": profile["profile_id"],
+                "prompt_profile_label": profile["label"],
             }
         )
     maximum = _manual_session_contract(context)["max_sessions"]
     if len(items) > maximum:
         raise Phase5DashboardError("수동 대화 session 수가 계약을 넘습니다.")
     items.sort(key=lambda item: (item["updated_at_utc"], item["session_id"]), reverse=True)
-    return {"items": items, "persisted": True, "local_only": True}
+    return {
+        "items": items,
+        "prompt_profiles": prompt_profiles_payload(context),
+        "persisted": True,
+        "local_only": True,
+    }
 
 
 def _write_manual_session(context: dict[str, Any], session: dict[str, Any]) -> None:
@@ -1493,7 +1675,10 @@ def _write_manual_session(context: dict[str, Any], session: dict[str, Any]) -> N
 
 
 def execute_manual_generation(
-    context: dict[str, Any], prompt: str, session_id: str | None = None
+    context: dict[str, Any],
+    prompt: str,
+    session_id: str | None = None,
+    profile: str | None = None,
 ) -> dict[str, Any]:
     gate = _generation_gate(context)
     if not gate["allowed"]:
@@ -1515,6 +1700,9 @@ def execute_manual_generation(
         previous_messages: list[dict[str, Any]] = []
         created_at = datetime.now(timezone.utc).isoformat()
         title = clean_prompt.splitlines()[0][: contract["title_max_chars"]]
+        selected_profile = _prompt_profile(
+            context, profile or context["prompt_profiles"]["default_profile"]
+        )
     else:
         try:
             current = manual_session_payload(context, session_id)
@@ -1525,11 +1713,19 @@ def execute_manual_generation(
         previous_messages = list(current["messages"])
         created_at = current["created_at_utc"]
         title = current["title"]
+        selected_profile = _session_prompt_profile(context, current)
+        if profile is not None and profile != selected_profile["profile_id"]:
+            raise Phase5DashboardError("기존 세션의 prompt profile은 변경할 수 없습니다.")
     requested_at = datetime.now(timezone.utc).isoformat()
-    model_messages = [
+    model_messages: list[dict[str, str]] = [
         {"role": message["role"], "content": message["content"]}
         for message in previous_messages
     ] + [{"role": "user", "content": clean_prompt}]
+    if selected_profile["system_prompt_text"] is not None:
+        model_messages.insert(
+            0,
+            {"role": "system", "content": selected_profile["system_prompt_text"]},
+        )
     started = time.monotonic()
     generated = _generate_conversation(
         context["run_root"] / "final",
@@ -1539,8 +1735,11 @@ def execute_manual_generation(
     )
     completed_at = datetime.now(timezone.utc).isoformat()
     output = generated["output"]
+    stored_profile = selected_profile
+    if selected_profile["profile_id"] == context["prompt_profiles"]["legacy_profile"]:
+        stored_profile = _prompt_profile(context, "raw_no_system")
     session = {
-        "schema_version": "1.0.0",
+        "schema_version": "1.1.0",
         "session_id": session_id,
         "run_id": context["manifest"]["run_id"],
         "run_build_id": context["manifest"]["run_build_id"],
@@ -1549,6 +1748,8 @@ def execute_manual_generation(
         "created_at_utc": created_at,
         "updated_at_utc": completed_at,
         "turn_count": len(previous_messages) // 2 + 1,
+        "prompt_profile": stored_profile["profile_id"],
+        "system_prompt_sha256": stored_profile["system_prompt_sha256"],
         "messages": previous_messages
         + [
             {"role": "user", "content": clean_prompt, "created_at_utc": requested_at},
@@ -1569,6 +1770,13 @@ def execute_manual_generation(
             "input_tokens": generated["input_tokens"],
             "omitted_turns": generated["omitted_messages"] // 2,
             "max_context_tokens": contract["max_context_tokens"],
+        },
+        "prompt_profile": {
+            "profile_id": stored_profile["profile_id"],
+            "label": stored_profile["label"],
+            "system_prompt_sha256": stored_profile["system_prompt_sha256"],
+            "production_like": stored_profile["production_like"],
+            "diagnostic_only": stored_profile["diagnostic_only"],
         },
         "persisted": True,
         "local_only": True,
@@ -1771,21 +1979,30 @@ class DashboardRequestHandler(BaseHTTPRequestHandler):
             try:
                 if path == "/api/generate":
                     if (
-                        set(payload) != {"prompt", "session_id"}
+                        set(payload)
+                        not in (
+                            {"prompt", "session_id"},
+                            {"prompt", "session_id", "profile"},
+                        )
                         or not isinstance(payload["prompt"], str)
                         or (
                             payload["session_id"] is not None
                             and not isinstance(payload["session_id"], str)
                         )
+                        or (
+                            payload.get("profile") is not None
+                            and not isinstance(payload.get("profile"), str)
+                        )
                     ):
                         raise DashboardRequestError(
                             HTTPStatus.BAD_REQUEST,
-                            "prompt 문자열과 session_id 문자열 또는 null만 허용됩니다.",
+                            "prompt·profile 문자열과 session_id 문자열 또는 null만 허용됩니다.",
                         )
                     result = _manual_generation_subprocess(
                         self.server.context,
                         payload["prompt"],
                         payload["session_id"],
+                        payload.get("profile"),
                     )
                 else:
                     if payload:
@@ -1811,7 +2028,10 @@ class DashboardRequestHandler(BaseHTTPRequestHandler):
 
 
 def _manual_generation_subprocess(
-    context: dict[str, Any], prompt: str, session_id: str | None
+    context: dict[str, Any],
+    prompt: str,
+    session_id: str | None,
+    profile: str | None,
 ) -> dict[str, Any]:
     command = [
         sys.executable,
@@ -1826,7 +2046,8 @@ def _manual_generation_subprocess(
     result = subprocess.run(
         command,
         input=json.dumps(
-            {"prompt": prompt, "session_id": session_id}, ensure_ascii=False
+            {"prompt": prompt, "session_id": session_id, "profile": profile},
+            ensure_ascii=False,
         ),
         check=False,
         capture_output=True,
@@ -1942,16 +2163,27 @@ def main(argv: Sequence[str] | None = None) -> int:
             payload = json.loads(sys.stdin.read())
             if (
                 not isinstance(payload, dict)
-                or set(payload) != {"prompt", "session_id"}
+                or set(payload)
+                not in (
+                    {"prompt", "session_id"},
+                    {"prompt", "session_id", "profile"},
+                )
                 or not isinstance(payload["prompt"], str)
                 or (
                     payload["session_id"] is not None
                     and not isinstance(payload["session_id"], str)
                 )
+                or (
+                    payload.get("profile") is not None
+                    and not isinstance(payload.get("profile"), str)
+                )
             ):
                 raise Phase5DashboardError("수동 generation stdin 계약이 다릅니다.")
             result = execute_manual_generation(
-                context, payload["prompt"], payload["session_id"]
+                context,
+                payload["prompt"],
+                payload["session_id"],
+                payload.get("profile"),
             )
         else:
             raise Phase5DashboardError("지원하지 않는 command입니다.")

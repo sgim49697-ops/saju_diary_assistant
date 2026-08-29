@@ -177,6 +177,14 @@
             <select id="session-select"><option value="">새 대화</option></select>
             <small id="session-meta">새 세션에서 첫 질문을 입력하세요.</small>
           </div>
+          <div class="profile-toolbar">
+            <label for="prompt-profile-select">추론 프로필</label>
+            <select id="prompt-profile-select">
+              <option value="guided_diagnostic_v1">안내 보정 진단</option>
+              <option value="raw_no_system">무지시 원출력</option>
+            </select>
+            <small id="prompt-profile-copy">계산 도구 미연결 경계를 고정한 안내 보정 prompt를 적용합니다. 새 세션을 만든 뒤에는 프로필을 바꿀 수 없습니다.</small>
+          </div>
           <div id="manual-conversation" class="manual-conversation" aria-live="polite">
             <p class="empty-conversation">아직 저장된 대화가 없습니다.</p>
           </div>

@@ -229,6 +229,11 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
 
 ## 진행 기록
 
+- 2026-08-30
+  - 작업 요약: KI20 수동 대화 실패를 context 손실이 아닌 무지시 행동 제어 문제로 진단하고 dashboard `v1.3.0`, 안내 보정 prompt, 공개 합성 상태형 dev 100건, 보강 후보 2,000건을 구현했다. 실제 재학습과 Phase 6은 수행하지 않았다.
+  - 변경 범위: 최종 후보 `build-0f80acfeed13`은 기존 20K를 덮어쓰지 않은 `candidate_only` build이며 실제 사용자·AI Hub 원문과 생년월일↔명식 연결을 포함하지 않는다. dashboard의 raw profile·기존 세션·고정 20건은 비교 이력으로 보존하고 새 안내 profile도 운영 품질로 표시하지 않는다.
+  - 검증: 상태형 Gate `stateful-gate-f5b76dde1921`은 reference/mutation 자체검증 각 `100/100` 뒤 KI20 실제 생성 100건을 완료했으나 필수 행동 `14%`, 무조작 `84%`, 재질문 18건, 허위 완료 1건, 미지원 날짜·기간 5건으로 `guided_diagnostic_not_met`였다. 후보는 10층×200건, 중복·PII·chart/DOB 혼합 0건과 dev100 근접중복 0건을 통과했다.
+  - 남은 이슈·후속 작업: system prompt만으로는 production 준비가 되지 않는다. 2,000건 template 후보를 자연스러운 다회전 문장으로 다양화·소수 검수하고 새 데이터·split·평가 fingerprint를 승인한 뒤에만 별도 재학습을 검토한다. 앱 runtime의 deterministic slot state와 승인 계산 engine, 새 상태형 blind는 별도 구현 대상이며 기존 sealed blind는 계속 미열람이다.
 - 2026-08-29
   - 작업 요약: clean commit `9ad00a283ce64ff222a54c41f743ae378ce12fe4`에서 KI20 1 epoch run `run-1f5d732cae67`을 독립 시작했다. goal 완료 기준인 첫 유한 optimizer step과 활성 process를 확인했다.
   - 변경 범위: model·data·과거 run은 수정하지 않고 Git 제외 `runs/KI20-MIX-v2/v1.2.0/run-1f5d732cae67`에 private 실행 상태를 생성했다. systemd user service가 학습을 계속 수행한다.

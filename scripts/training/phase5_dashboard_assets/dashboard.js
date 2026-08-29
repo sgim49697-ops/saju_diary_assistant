@@ -8,6 +8,8 @@ let activeTab = "training";
 let activeSessionId = null;
 let loadedSessionUpdatedAt = null;
 let startingNewSession = false;
+let selectedPromptProfile = "guided_diagnostic_v1";
+let promptProfileCatalog = null;
 let datasetCatalog = null;
 let selectedDatasetSplit = "ki20_train";
 let selectedDatasetAxis = "all";
@@ -287,11 +289,36 @@ function renderConversation(session, context = null) {
     <p>${escapeHtml(message.content)}</p>
   </article>`).join("");
   const omitted = context?.omitted_turns ? ` · 오래된 ${context.omitted_turns} turn 입력 제외` : "";
-  byId("session-meta").textContent = `${session.turn_count} turn · 최근 저장 ${localTime(session.updated_at_utc)}${omitted}`;
+  const profile = session.prompt_profile_label || session.prompt_profile || "기존 무지시";
+  byId("session-meta").textContent = `${session.turn_count} turn · ${profile} · 최근 저장 ${localTime(session.updated_at_utc)}${omitted}`;
   target.scrollTop = target.scrollHeight;
 }
 
+function profileMetadata(profileId) {
+  const item = promptProfileCatalog?.items?.find((profile) => profile.profile_id === profileId);
+  if (item) return item;
+  if (profileId === promptProfileCatalog?.legacy_profile || profileId === "raw_legacy") {
+    return { profile_id: "raw_legacy", label: "기존 무지시", description: "과거 세션의 system message 없는 원출력입니다.", diagnostic_only: true };
+  }
+  return null;
+}
+
+function renderPromptProfile(profileId, locked) {
+  const select = byId("prompt-profile-select");
+  const items = [...(promptProfileCatalog?.items || [])];
+  if (profileId === promptProfileCatalog?.legacy_profile || profileId === "raw_legacy") {
+    items.push({ profile_id: "raw_legacy", label: "기존 무지시", description: "과거 세션의 system message 없는 원출력입니다.", diagnostic_only: true });
+  }
+  select.innerHTML = items.map((item) => `<option value="${escapeHtml(item.profile_id)}">${escapeHtml(item.label)}${item.diagnostic_only ? " · 진단" : " · 기본"}</option>`).join("");
+  selectedPromptProfile = profileId;
+  select.value = profileId;
+  select.disabled = locked;
+  const metadata = profileMetadata(profileId);
+  byId("prompt-profile-copy").textContent = `${metadata?.description || "프로필 정보를 불러오는 중입니다."}${locked ? " 이 세션에서는 변경할 수 없습니다." : " 새 세션을 만든 뒤에는 변경할 수 없습니다."}`;
+}
+
 async function renderSessions(payload) {
+  promptProfileCatalog = payload.prompt_profiles;
   const select = byId("session-select");
   const knownIds = new Set(payload.items.map((item) => item.session_id));
   if (activeSessionId && !knownIds.has(activeSessionId)) {
@@ -306,6 +333,8 @@ async function renderSessions(payload) {
   ).join("");
   select.value = activeSessionId || "";
   if (!activeSessionId) {
+    const requested = profileMetadata(selectedPromptProfile) ? selectedPromptProfile : payload.prompt_profiles.default_profile;
+    renderPromptProfile(requested, false);
     if (loadedSessionUpdatedAt !== null || startingNewSession || !payload.items.length) {
       loadedSessionUpdatedAt = null;
       renderConversation(null);
@@ -313,6 +342,7 @@ async function renderSessions(payload) {
     return;
   }
   const summary = payload.items.find((item) => item.session_id === activeSessionId);
+  if (summary) renderPromptProfile(summary.prompt_profile, true);
   if (summary && summary.updated_at_utc !== loadedSessionUpdatedAt) {
     const session = await api(`/api/sessions/${activeSessionId}`);
     loadedSessionUpdatedAt = session.updated_at_utc;
@@ -351,6 +381,8 @@ byId("new-session-button").addEventListener("click", () => {
   startingNewSession = true;
   byId("session-select").value = "";
   byId("manual-prompt").value = "";
+  selectedPromptProfile = promptProfileCatalog?.default_profile || "guided_diagnostic_v1";
+  renderPromptProfile(selectedPromptProfile, false);
   renderConversation(null);
   byId("manual-prompt").focus();
 });
@@ -360,16 +392,25 @@ byId("session-select").addEventListener("change", async (event) => {
   loadedSessionUpdatedAt = null;
   startingNewSession = activeSessionId === null;
   if (!activeSessionId) {
+    selectedPromptProfile = promptProfileCatalog?.default_profile || "guided_diagnostic_v1";
+    renderPromptProfile(selectedPromptProfile, false);
     renderConversation(null);
     return;
   }
   try {
     const session = await api(`/api/sessions/${activeSessionId}`);
     loadedSessionUpdatedAt = session.updated_at_utc;
+    renderPromptProfile(session.prompt_profile, true);
     renderConversation(session);
   } catch (error) {
     byId("session-meta").textContent = `세션 로드 실패: ${error.message}`;
   }
+});
+
+byId("prompt-profile-select").addEventListener("change", (event) => {
+  if (activeSessionId) return;
+  selectedPromptProfile = event.target.value;
+  renderPromptProfile(selectedPromptProfile, false);
 });
 
 byId("dataset-split-select").addEventListener("change", (event) => {
@@ -394,11 +435,13 @@ byId("manual-form").addEventListener("submit", async (event) => {
     const result = await api("/api/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt, session_id: activeSessionId }),
+      body: JSON.stringify({ prompt, session_id: activeSessionId, profile: selectedPromptProfile }),
     });
     activeSessionId = result.session_id;
     startingNewSession = false;
     loadedSessionUpdatedAt = result.session.updated_at_utc;
+    selectedPromptProfile = result.session.prompt_profile;
+    renderPromptProfile(selectedPromptProfile, true);
     byId("manual-prompt").value = "";
     renderConversation(result.session, result.context);
     await renderSessions(await api("/api/sessions"));

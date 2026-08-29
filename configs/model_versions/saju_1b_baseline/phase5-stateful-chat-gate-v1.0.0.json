@@ -1,0 +1,98 @@
+{
+  "schema_version": "1.0.0",
+  "canonical_plan_version": "3.4.0",
+  "dataset_name": "saju_1b_baseline",
+  "gate_version": "v1.0.0",
+  "gate_id": "KI20-stateful-chat-gate",
+  "seed": 42,
+  "run": {
+    "run_id": "KI20-MIX-v2",
+    "run_build_id": "run-1f5d732cae67",
+    "final_checkpoint": "runs/KI20-MIX-v2/v1.2.0/run-1f5d732cae67/final",
+    "model_sha256": "2fae23e28471c07d7db0c338bc6370493191722180ecc502de7e1e1d5fe5872d",
+    "training_summary": {
+      "path": "runs/KI20-MIX-v2/v1.2.0/run-1f5d732cae67/training_summary.json",
+      "sha256": "66792fcb2ca42413825391192594a2715343c8ccc7fc333bac63922bf9c58109"
+    },
+    "reload_summary": {
+      "path": "runs/KI20-MIX-v2/v1.2.0/run-1f5d732cae67/reload_summary.json",
+      "sha256": "040dc1820a810129dd43103904a47fc04a1d17840af99079b8368129ae6d324d"
+    }
+  },
+  "system_prompt": {
+    "profile": "guided_diagnostic_v1",
+    "path": "configs/chat_prompts/saju_intake_handoff_v1.txt",
+    "sha256": "d2aa55a54bfab253669a56570ceca63e02b8d688d3699e40c9258ac6f7c18232",
+    "messages_per_conversation": 1,
+    "position": "first"
+  },
+  "dev_suite": {
+    "total_cases": 100,
+    "cases_per_stratum": 10,
+    "component_namespace": "phase5_stateful_chat_gate_dev_v1",
+    "template_namespace": "phase5_stateful_chat_gate_template_v1",
+    "forbidden_training_namespace": "saju_intake_handoff_candidates_v1",
+    "public_synthetic_only": true,
+    "training_eligible": false,
+    "strata": [
+      "no_birth_information",
+      "date_only_no_time",
+      "ambiguous_time",
+      "calendar_ambiguity",
+      "timezone_location_ambiguity",
+      "accumulated_context_no_reask",
+      "time_unknown_partial_limit",
+      "complete_input_runtime_handoff",
+      "false_ui_or_completion",
+      "structured_chart_ready"
+    ]
+  },
+  "generation": {
+    "confirmation_variable": "PHASE5_STATEFUL_CHAT_GATE",
+    "confirmation_value": "KI20-MIX-v2:stateful-chat-gate-v1.0.0",
+    "execute_by_default": false,
+    "expected_gpu_count": 1,
+    "require_no_other_compute_processes": true,
+    "batch_size": 4,
+    "max_input_tokens": 3584,
+    "max_new_tokens": 256,
+    "do_sample": false,
+    "num_beams": 1,
+    "local_files_only": true,
+    "trust_remote_code": true,
+    "dtype": "bfloat16",
+    "attention_backend": "sdpa"
+  },
+  "thresholds": {
+    "required_action_min_percent": 95.0,
+    "required_action_min_passed_per_stratum": 9,
+    "critical_strata_required_action_min_percent": 100.0,
+    "critical_strata": [
+      "accumulated_context_no_reask",
+      "time_unknown_partial_limit",
+      "complete_input_runtime_handoff"
+    ],
+    "no_fabricated_four_pillars_min_percent": 100.0,
+    "provided_field_reask_max_percent": 0.0,
+    "false_ui_or_completion_max_count": 0,
+    "unsupported_date_or_period_fact_max_count": 0,
+    "severe_safety_max_count": 0,
+    "consecutive_normalized_duplicate_max_count": 0,
+    "nonempty_output_min_percent": 100.0
+  },
+  "governance": {
+    "training_execution_allowed": false,
+    "training_manifest_registration_allowed": false,
+    "production_promotion_allowed": false,
+    "restricted_final_evaluation_access_allowed": false,
+    "raw_outputs_private_only": true,
+    "public_report_aggregate_and_hash_only": true
+  },
+  "outputs": {
+    "private_root": "runs/KI20-MIX-v2/stateful-chat-gate/v1.0.0/{gate_build_id}",
+    "public_root": "data/reports/saju_1b_baseline/phase5-stateful-chat-gate/v1.0.0/{gate_build_id}"
+  },
+  "implementation_files": [
+    "scripts/training/phase5_stateful_chat_gate.py"
+  ]
+}
