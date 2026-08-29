@@ -62,6 +62,16 @@ def _json_payload(value: Any) -> bytes:
     return json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True).encode() + b"\n"
 
 
+def _stable_base_summary(payload: bytes) -> dict[str, Any]:
+    summary = json.loads(payload)
+    if not isinstance(summary, dict):
+        raise Phase5ReadinessV11Error("기존 readiness summary 형식이 다릅니다.")
+    for dynamic_key in ("available_disk_bytes", "workspace_commit"):
+        summary.pop(dynamic_key, None)
+    summary["available_disk_threshold_passed"] = True
+    return summary
+
+
 def _sha256_json(value: Any) -> str:
     return hashlib.sha256(canonical_json_bytes(value)).hexdigest()
 
@@ -333,7 +343,7 @@ def _build_payloads(
         }
         private_values[f"run_inputs/{key}.json"] = _json_payload(run_input)
 
-    base_summary = json.loads(base_public["readiness_summary.json"])
+    base_summary = _stable_base_summary(base_public["readiness_summary.json"])
     base_summary.update(
         {
             "schema_version": "1.1.0",

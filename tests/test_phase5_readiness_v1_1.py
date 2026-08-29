@@ -6,12 +6,39 @@ import json
 import unittest
 from pathlib import Path
 
-from scripts.training.phase5_readiness_v1_1 import _parser, validate_contract
+from scripts.training.phase5_readiness_v1_1 import (
+    _json_payload,
+    _parser,
+    _stable_base_summary,
+    validate_contract,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
 class Phase5ReadinessV11Tests(unittest.TestCase):
+    def test_dynamic_runtime_values_are_not_part_of_immutable_summary(self) -> None:
+        first = _stable_base_summary(
+            _json_payload(
+                {
+                    "available_disk_bytes": 100,
+                    "workspace_commit": "a" * 40,
+                    "runtime_versions": {"torch": "2.13.0"},
+                }
+            )
+        )
+        second = _stable_base_summary(
+            _json_payload(
+                {
+                    "available_disk_bytes": 200,
+                    "workspace_commit": "b" * 40,
+                    "runtime_versions": {"torch": "2.13.0"},
+                }
+            )
+        )
+        self.assertEqual(first, second)
+        self.assertTrue(first["available_disk_threshold_passed"])
+
     def test_committed_contract_is_valid(self) -> None:
         config_path = (
             REPO_ROOT

@@ -212,6 +212,7 @@ runs/KI20-MIX-v2/
   - 작업 요약: 기존 1,000건이 개발 중 노출된 점을 반영해 `evaluation-split/v1.0.0/build-a5a04ab96594`를 생성·재검증하고 Phase 5 readiness v1.1 부모 계약에 고정했다. 실제 학습은 실행하지 않았다.
   - 변경 범위: eval70은 loss monitor 전용이며 checkpoint 선택·early stopping·최종 성능 주장에 쓰지 않는다. 나머지 source holdout 630+Core Eval 300은 개발 진단, reserve 7축 350 component/500행은 Phase 6 단회 blind, 공개 KASI·정책 fixture 220행은 별도 conformance로 고정한다.
   - 검증: 고정 tokenizer 768 제한, 7축 층화, BaZi 4질문 component, component/record/content hash 누수 0을 통과했다. 외부 fixture는 runtime·학습 Gold를 자동 승인하지 않으며 평가 split public summary에는 raw·ID가 없다.
+  - 재현성 보강: 최초 미승인 readiness 시도 `build-69b21cb079a7`은 가용 disk와 Git HEAD 순간값 때문에 작성 직후 byte 재현 검증이 실패해 private/public 경로를 제거했다. disk 임계값·runtime·GPU 검증은 계속 실행하되 순간값 자체는 불변 summary에서 제외하는 회귀 테스트를 추가했다.
   - 남은 이슈·후속 작업: readiness v1.1 checkpoint를 커밋해 clean tree에서 비학습 readiness build를 생성·재검증하고 최종 build/hash를 기록한다. `phase5_training_performed=false`다.
 - 2026-08-29
   - 작업 요약: 구현 checkpoint `89685ba82927a96c40654a47a4b0daa7f8b3a91f`에서 비학습 readiness `v1.0.0/build-f6c8171f454f`을 생성하고 독립 재검증했다. Phase 5 상태는 실제 KI10·KI20 학습을 시작하지 않았으므로 계속 `미시작`이다.
