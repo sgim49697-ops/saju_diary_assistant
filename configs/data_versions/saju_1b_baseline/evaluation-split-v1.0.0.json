@@ -1,0 +1,241 @@
+{
+  "schema_version": "1.0.0",
+  "canonical_plan_version": "3.1.0",
+  "dataset_name": "saju_1b_baseline",
+  "split_version": "v1.0.0",
+  "seed": 42,
+  "parent_phase4": {
+    "version": "v2.0.0",
+    "preflight_config": "configs/data_versions/saju_1b_baseline/preflight-v2.0.0.json",
+    "preflight_build_id": "build-2feaee353252",
+    "preflight_build_sha256": "2feaee35325205809e342097b69dbefb6dbe1609e08f913b434ee6bb3ec8f399",
+    "canonical_build_id": "build-6f32d52c2868",
+    "canonical_build_sha256": "6f32d52c2868bb8b5e07724cbdc00a6bc0b2f1608fe53ac54c357a6ec0832ee9",
+    "private_manifest_sha256": "66b21f086aa836ee595826f5f8f6eeb3bd234b47a15ec210a2131f548c4bedbf",
+    "public_manifest_sha256": "c670c2ad6481221ec140f49fc79ef4d83bdd275342d7692c3134a9e133ff7fec",
+    "completion_report_sha256": "f4d576789b1774164fbb5a58758c96a9cc31da9a8827b3e5df9d9397e4fc7e5c",
+    "selected_max_length": 768,
+    "status": "approved_for_phase5_training",
+    "training_promotion_allowed": true,
+    "phase5_training_performed": false
+  },
+  "parent_staging": {
+    "version": "v1.0.0",
+    "build_id": "build-a5a9e76d6a8c",
+    "build_sha256": "a5a9e76d6a8cd524314fbdb0d4ebf11f0b984c3748606eda56de2d7708d3cd23",
+    "private_manifest_sha256": "1d0f06990a53824a1b75c121c504f54c3d778f7fd7551d9fbf768ce399b1f1da"
+  },
+  "canonical_inputs": {
+    "mix20": {
+      "relative_path": "manifests/mix20k_v2.jsonl",
+      "rows": 20000,
+      "sha256": "731ace0ac5584fd97fc38f157a4ecdb1babedefd79e2ec5b2d755fa26e48a550"
+    },
+    "core_eval": {
+      "relative_path": "eval/core_eval_300.jsonl",
+      "rows": 300,
+      "sha256": "9d4a086351a01f14b2bd832e5185f1f099ec69a6309a611565de54460ee8fc9c"
+    },
+    "source_holdout": {
+      "relative_path": "eval/source_holdout_700.jsonl",
+      "rows": 700,
+      "sha256": "da539c6aee784fc211c0428bf4770011798cc2517bb48c6b35779a2895a6175c"
+    }
+  },
+  "tokenization": {
+    "formal_max_length": 768,
+    "model_revision": "bf4786aa2a1908adce942d53976270132732f720",
+    "model_local_subdir": "models/saju_1b_baseline/kanana-2-1.3b-instruct/bf4786aa2a1908adce942d53976270132732f720",
+    "chat_template_sha256": "b8ee6b31575eada17ebbe73d3f1ac65d3efde64f0a25ff922031dec7e1cae3e3",
+    "snapshot_manifest_sha256": "5786d04831c93192d234651df0894a1912b974cfab96011ce0676563185cc93d"
+  },
+  "roles": {
+    "dev_monitor": {
+      "rows": 70,
+      "rows_per_axis": 10,
+      "selection_seed": 42,
+      "expected_sha256": "aa61d2a763e3194e3a25561a3030c74bebb002c702ef8469c27a1bc22a2bcb31",
+      "training_use": "loss_monitor_only",
+      "checkpoint_selection_allowed": false,
+      "final_claim_allowed": false
+    },
+    "dev_diagnostic": {
+      "source_holdout_rows": 630,
+      "core_eval_rows": 300,
+      "total_rows": 930,
+      "training_use": "pipeline_and_error_analysis",
+      "final_claim_allowed": false
+    },
+    "blind_source_test": {
+      "components_per_axis": 50,
+      "total_components": 350,
+      "total_rows": 500,
+      "selector": "sha256_component_stratified_v1",
+      "selector_namespace": "saju-blind-source-v1",
+      "sealed": true,
+      "final_evaluation_runs": 1,
+      "aggregation": "component_then_axis_macro",
+      "expected_rows_by_axis": {
+        "nemotron_saju": 50,
+        "bazi_sft": 200,
+        "aihub_empathy_single": 50,
+        "aihub_empathy_multiturn": 50,
+        "yeji_shensha_derived": 50,
+        "deterministic_saju_qa": 50,
+        "saju_diary_bridge": 50
+      },
+      "strata": {
+        "nemotron_saju": {
+          "field": "source_variant",
+          "quotas": {"v6": 10, "v7": 40}
+        },
+        "bazi_sft": {
+          "component_rows": 4,
+          "required_member_values": [
+            "career",
+            "element_balance",
+            "general_natal",
+            "relationships"
+          ]
+        },
+        "aihub_empathy_single": {
+          "field": "emotion_type",
+          "distinct_min": 50
+        },
+        "aihub_empathy_multiturn": {
+          "field": "emotion_type",
+          "distinct_min": 50
+        },
+        "yeji_shensha_derived": {
+          "field": "task_presentation",
+          "quotas": {
+            "shensha_neutral_explanation": 25,
+            "shensha_rule_validation": 25
+          }
+        },
+        "deterministic_saju_qa": {
+          "field": "qa_category",
+          "quotas": {
+            "branch_ten_gods": 10,
+            "hidden_stems": 10,
+            "stem_branch_identity": 10,
+            "stem_ten_gods": 10,
+            "yin_yang_elements_and_surface_counts": 10
+          }
+        },
+        "saju_diary_bridge": {
+          "field": "emotion_type",
+          "distinct_min": 50
+        }
+      }
+    },
+    "external_conformance": {
+      "suite_version": "v1.0.0",
+      "training_data_inclusion_allowed": false,
+      "blind_source_test_inclusion_allowed": false,
+      "score_separately": true
+    }
+  },
+  "external_conformance": {
+    "schema_version": "1.0.0",
+    "suite_version": "v1.0.0",
+    "status": "fixture_contract_ready_runtime_adapter_pending",
+    "retrieved_at": "2026-08-29",
+    "training_data_inclusion_allowed": false,
+    "blind_source_test_inclusion_allowed": false,
+    "calculation_policy": {
+      "path": "configs/saju_calculation_policy.json",
+      "sha256": "62d42d4300067b9ee7bfa6b40482c318c24e965cbdba8cf8b423978d075073f1"
+    },
+    "source_catalog": [
+      {
+        "source_id": "kasi_lunisolar_openapi",
+        "url": "https://www.data.go.kr/data/15012679/openapi.do",
+        "revision": null,
+        "role": "primary",
+        "license": "공공데이터포털 이용허락범위 제한 없음"
+      },
+      {
+        "source_id": "oh_my_saju",
+        "url": "https://github.com/JaeSang1998/oh-my-saju",
+        "revision": "a8c0cf64adfde8fb1ce253112529edd8e90cc94b",
+        "role": "comparative",
+        "license": "Apache-2.0; copied KASI fixture remains MIT"
+      },
+      {
+        "source_id": "manseryeok",
+        "url": "https://github.com/yhj1024/manseryeok",
+        "revision": "fba3253d7305b8b61189bd78318a7a27ed8c9b09",
+        "role": "comparative",
+        "license": "MIT"
+      },
+      {
+        "source_id": "korean_saju",
+        "url": "https://github.com/glee1228/korean_saju",
+        "revision": "8c81256db10d3179d31f551beacaa69f2ab2fcc5",
+        "role": "comparative",
+        "license": "MIT"
+      },
+      {
+        "source_id": "lunar_python",
+        "url": "https://github.com/6tail/lunar-python",
+        "revision": "448f397c1695cadab3899bf460e0042cab7f0e66",
+        "role": "consistency_only",
+        "license": "MIT"
+      },
+      {
+        "source_id": "ssaju",
+        "url": "https://github.com/golbin/ssaju",
+        "revision": "07b608a778be6dac8669e04b9ab794c441959208",
+        "role": "comparative",
+        "license": "MIT"
+      }
+    ],
+    "fixtures": {
+      "kasi_lunar_200": {
+        "path": "tests/fixtures/saju_external_conformance/kasi_lunar_200.json",
+        "sha256": "d651d5a77d7970cde4b36f414995b6ea833b4d50760f23fe0f462c96fdf8ca1a",
+        "rows": 200,
+        "fact_class": "hard_fact",
+        "oracle_tier": "primary_snapshot"
+      },
+      "policy_cases_20": {
+        "path": "tests/fixtures/saju_external_conformance/policy_cases_20.jsonl",
+        "sha256": "5a424a7bf7f31cc9bb8505317a8674213fc7ec26eaee72f4062bed5b82cb94e6",
+        "rows": 20,
+        "fact_class": "policy_bound",
+        "oracle_tier": "comparative"
+      }
+    }
+  },
+  "sealing": {
+    "private_file_mode": "0600",
+    "private_directory_mode": "0700",
+    "raw_or_ids_in_public_report": false,
+    "requires_frozen_checkpoints": [
+      "K0-INSTRUCT",
+      "KI10-MIX-v2",
+      "KI20-MIX-v2"
+    ],
+    "blind_spent_after_output_inspection": true,
+    "post_inspection_change_requires_new_version": true
+  },
+  "outputs": {
+    "private_root": "data/derived/saju_1b_baseline/evaluation-split/v1.0.0/{build_id}",
+    "public_root": "data/reports/saju_1b_baseline/evaluation-split/v1.0.0/{build_id}"
+  },
+  "governance": {
+    "canonical_training_data_modified": false,
+    "phase4_smoke_reexecution_required": false,
+    "human_domain_review_performed": false,
+    "quality_certification_claimed": false,
+    "phase5_training_performed": false
+  },
+  "implementation_files": [
+    "scripts/evaluation/__init__.py",
+    "scripts/evaluation/external_conformance.py",
+    "scripts/evaluation/phase5_split.py",
+    "scripts/preflight/phase4_data_v2.py",
+    "scripts/training/phase5_readiness.py"
+  ]
+}

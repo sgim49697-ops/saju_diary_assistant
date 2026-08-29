@@ -1,0 +1,95 @@
+{
+  "calculation_policy": {
+    "policy_id": "saju-calculation-policy-draft-v0.2.0",
+    "policy_version": "0.2.0",
+    "runtime_enabled": false,
+    "sha256": "62d42d4300067b9ee7bfa6b40482c318c24e965cbdba8cf8b423978d075073f1"
+  },
+  "evaluation_gold_automatically_promoted": false,
+  "heuristic_excluded_fields": [
+    "automatic_interpretation",
+    "day_strength",
+    "geukguk",
+    "luck_start_age",
+    "relation_priority",
+    "remedy_advice",
+    "shensha_interpretation",
+    "yongsin"
+  ],
+  "kasi_primary_snapshot": {
+    "explicitly_not_equivalent_fields": {
+      "calendar_month_ganzhi": "saju_month_pillar",
+      "calendar_year_ganzhi": "saju_year_pillar"
+    },
+    "fact_class": "hard_fact",
+    "gold_eligible_fields": [
+      "solar_lunar_conversion",
+      "leap_month",
+      "calendar_year_ganzhi",
+      "calendar_month_ganzhi",
+      "day_ganzhi"
+    ],
+    "oracle_tier": "primary_snapshot",
+    "rows": 200
+  },
+  "lunar_python_comparison": {
+    "adapter": "lunar-python",
+    "field_conflicts": {
+      "calendar_month_ganzhi": 64,
+      "calendar_year_ganzhi": 0,
+      "day_ganzhi": 0,
+      "leap_month": 0,
+      "lunar_date": 3
+    },
+    "fully_matching_rows": 136,
+    "independent_oracle": false,
+    "oracle_role": "advisory_consistency_only",
+    "rows": 200,
+    "rows_with_any_conflict": 64,
+    "semantic_guard": {
+      "calendar_month_ganzhi_is_not_saju_month_pillar": true,
+      "calendar_year_ganzhi_is_not_saju_year_pillar": true,
+      "day_ganzhi_is_midnight_boundary_day_pillar_candidate": true
+    },
+    "version": "1.4.8"
+  },
+  "phase5_training_performed": false,
+  "policy_cases": {
+    "case_type_counts": {
+      "branch_main_hidden_stem": 1,
+      "day_boundary": 3,
+      "four_pillars": 11,
+      "solar_term_boundary": 2,
+      "stem_ten_gods": 1,
+      "true_solar_time": 1,
+      "void_branches": 1
+    },
+    "policy_profile_counts": {
+      "branch_main_hidden_stem_v1": 1,
+      "day_pillar_xun_void_v1": 1,
+      "kst_civil_midnight_no_solar_correction_v1": 12,
+      "kst_exact_jie_boundary_manseryeok_v1": 2,
+      "kst_jasi_no_solar_correction_v1": 1,
+      "kst_local_apparent_solar_seoul_v1": 1,
+      "kst_split_jasi_no_solar_correction_v1": 1,
+      "ten_god_stem_element_polarity_v1": 1
+    },
+    "rows": 20
+  },
+  "raw_restricted_samples_in_report": false,
+  "report_type": "saju_external_conformance_summary",
+  "retrieved_at": "2026-08-29",
+  "runtime_engine_approved": false,
+  "schema_version": "1.0.0",
+  "source_revisions": {
+    "kasi_lunisolar_openapi": null,
+    "korean_saju": "8c81256db10d3179d31f551beacaa69f2ab2fcc5",
+    "lunar_python": "448f397c1695cadab3899bf460e0042cab7f0e66",
+    "manseryeok": "fba3253d7305b8b61189bd78318a7a27ed8c9b09",
+    "oh_my_saju": "a8c0cf64adfde8fb1ce253112529edd8e90cc94b",
+    "ssaju": "07b608a778be6dac8669e04b9ab794c441959208"
+  },
+  "status": "fixture_contract_ready_runtime_adapter_pending",
+  "suite_version": "v1.0.0",
+  "training_data_modified": false
+}

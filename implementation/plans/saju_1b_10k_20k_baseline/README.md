@@ -4,7 +4,7 @@
 
 | 항목 | 값 |
 |---|---|
-| 문서 버전 | `3.0.0` |
+| 문서 버전 | `3.1.0` |
 | 정본화 기준일 | 2026-08-29 |
 | 주 장비 | NVIDIA GeForce RTX 5070 Ti 16GiB, WSL2 |
 | 주 모델 | `kakaocorp/kanana-2-1.3b-instruct@bf4786aa2a1908adce942d53976270132732f720` |
@@ -19,6 +19,8 @@
 - 데이터 행 비율은 Nemotron 34%, 검산·한국어화한 `bazi-sft` 20%, AI Hub #86 단일턴 7.5%, 멀티턴 7.5%, 검증된 YEJI 신살 규칙 5%, deterministic 사주 QA 10%, 사주-일기 앱 브리지 16%로 고정한다.
 - Nemotron 내부는 v6 20%·v7 80%로 고정한다.
 - 평가셋과 group holdout은 학습 manifest보다 먼저 고정한다.
+- 기존 Core Eval 300·source holdout 700은 개발·진단용으로만 사용하고, 최종 성능 주장은 미사용 reserve에서 component 단위로 새로 봉인한 7축 blind test를 사용한다.
+- KASI와 외부 구현의 공개 fixture는 `external_conformance`로 분리하며 학습·source blind에 섞지 않는다.
 - 모든 데이터 산출물은 `vMAJOR.MINOR.PATCH/build-<fingerprint>` 경로에 보관하고 기존 build를 덮어쓰지 않는다.
 - source 내부 묶음과 split 누수 경계를 분리하며, Nemotron·`bazi-sft`·향후 YEJI 파생본의 동일 8자 명식은 원천이 달라도 하나의 전역 leakage group으로 묶는다.
 - 해석 답변은 soft/reference label이며, 계산 가능한 구조만 검산 후 hard label로 승격한다.
@@ -57,7 +59,9 @@ data/
 │   ├── unified/
 │   ├── manifests/
 │   └── eval/
-├── derived/saju_1b_baseline/phase5-readiness/v1.0.0/build-f6c8171f454f/
+├── derived/saju_1b_baseline/evaluation-split/v1.0.0/build-a5a04ab96594/
+├── derived/saju_1b_baseline/phase5-readiness/v1.0.0/build-f6c8171f454f/ # 과거 readiness
+├── derived/saju_1b_baseline/phase5-readiness/v1.1.0/build-201010b37e40/
 └── reports/
     └── saju_1b_baseline/
         ├── audit/v1.2.0/build-ca756f3eb89f/
@@ -67,7 +71,9 @@ data/
         ├── preflight/v1.0.0/build-a6813ba3b778/       # 과거 A~C build
         ├── preflight/v1.1.0/build-a1a34616dd72/      # 과거 A~E 완료 build
         ├── preflight/v2.0.0/build-6f32d52c2868/      # 현재 품질 보정 canonical
-        ├── phase5-readiness/v1.0.0/build-f6c8171f454f/ # 비학습 실행 계약
+        ├── evaluation-split/v1.0.0/build-a5a04ab96594/ # 공개 split·누수 요약
+        ├── phase5-readiness/v1.0.0/build-f6c8171f454f/ # 과거 비학습 계약
+        ├── phase5-readiness/v1.1.0/build-201010b37e40/ # 봉인 평가 연결 계약
         └── phase-verification/v1.0.0/review-20260828/
 
 configs/data_versions/saju_1b_baseline/
@@ -83,6 +89,8 @@ configs/data_versions/saju_1b_baseline/
 ├── preflight-v1.1.0.json
 ├── preflight-v2.0.0.json
 ├── phase5-readiness-v1.0.0.json
+├── evaluation-split-v1.0.0.json
+├── phase5-readiness-v1.1.0.json
 └── registry.json
 
 configs/model_versions/saju_1b_baseline/model-preparation-v1.0.0.json
@@ -195,6 +203,11 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
 
 ## 진행 기록
 
+- 2026-08-29
+  - 작업 요약: Phase 5 전 평가 역할을 train·dev monitor·dev diagnostic·sealed blind·external conformance로 분리한 `evaluation-split/v1.0.0/build-a5a04ab96594`와 비학습 `phase5-readiness/v1.1.0/build-201010b37e40`을 생성·독립 재검증했다. 실제 KI10·KI20 학습은 실행하지 않았다.
+  - 변경 범위: 기존 eval70과 1,000건을 개발용으로 재분류하고, 품질 보정 24K의 미사용 component에서 축별 50개·총 350 component/500행 blind를 봉인했다. KASI 200행과 고정 revision 정책 경계 20행, 라이선스 고지를 별도 공개 fixture로 고정하고 readiness v1.1 부모 계약에 정확한 manifest hash를 연결했다.
+  - 검증: reserve는 축별 최소 YEJI 61 component이며 50개 선택 후 11개가 남는다. train·개발·blind의 component/record/content hash 누수 0, BaZi 4행 component 보존, 고정 tokenizer 768 이하, Kanana 고정 revision·torch 2.13.0+cu130·RTX 5070 Ti·BF16·64GiB disk Gate를 통과했다. readiness private/public manifest는 `4d28b744…db907`/`1205f83a…d1321`이다.
+  - 남은 이슈·후속 작업: Phase 5는 실제 학습을 시작하지 않아 계속 `미시작`이다. 다음 실행은 사용자가 별도로 승인할 때 KI10을 고정 Instruct에서 시작하는 것이며 `phase5_training_performed=false`를 유지한다.
 - 2026-08-29
   - 작업 요약: Phase 4 v2 canonical을 부모로 실제 학습 없는 Phase 5 readiness `build-f6c8171f454f`을 완료했다. KI10·KI20 학습은 시작하지 않아 Phase 5 상태는 `미시작`이다.
   - 변경 범위: KI10 10K·KI20 20K, 축별 10건 eval70, 고정 Kanana·CUDA 13.0·BF16·package lock, 독립 Run과 checkpoint state 계약을 고정했다. AI Hub 원문이 포함된 eval70은 Git 제외 private 경로에만 저장했다.

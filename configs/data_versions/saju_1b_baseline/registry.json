@@ -21,6 +21,39 @@
     "training_promotion_allowed": true,
     "version": "v2.0.0"
   },
+  "approved_evaluation_split": {
+    "blind_components": 350,
+    "blind_rows": 500,
+    "build_id": "build-a5a04ab96594",
+    "build_sha256": "a5a04ab96594563c88516aebea97df52c6b3efadb8f17b987f73544e7f5d26d2",
+    "canonical_training_fingerprint_changed": false,
+    "config_sha256": "c456ef24ad7e49bdb4bf593ec291d7973a075f93f2106459aff9cf4ec3257a2b",
+    "external_conformance_report_sha256": "5e611e2138970f591b642f3412f1f886f6e56930f9e9f52fb7c454d78a8900cd",
+    "implementation_commit": "551fdb051bb70d3ee71da729f8c4e29767cf132d",
+    "phase4_smoke_reexecution_required": false,
+    "phase5_training_performed": false,
+    "private_manifest_sha256": "da6e358d4a8f59f0d63cbbda3432d07c0bad5daa26baa4c6cd6bc08da6d295cc",
+    "public_manifest_sha256": "297f25582536fdb1a6cd53541ee2085575e07e7e0d2bcb92dafe98df55df64b4",
+    "split_summary_sha256": "7e2a535dffc188fdc4b7480b81df5ff38d3a5e680225ea08041ca231fd7f0464",
+    "status": "sealed_blind_ready_for_post_training_evaluation",
+    "version": "v1.0.0"
+  },
+  "approved_phase5_readiness": {
+    "build_id": "build-201010b37e40",
+    "build_sha256": "201010b37e40c53497bc4cc2c94a099f74d48174a3cefa62fec4547f661fd0d1",
+    "canonical_training_fingerprint_changed": false,
+    "config_sha256": "4e7361b42030c08045183a6dcce23c6edb22864496969884b3b5725a9950d706",
+    "evaluation_split_build_id": "build-a5a04ab96594",
+    "implementation_commit": "32905b9f2b3f58492f7c40eec395398688c7e639",
+    "phase4_smoke_reexecution_required": false,
+    "phase5_training_performed": false,
+    "private_manifest_sha256": "4d28b744ff461bd260c6cd2f7e785936af626ac1332675371dff816b959db907",
+    "public_manifest_sha256": "1205f83a48c0961e63664f99f527c240c79eef98306b44a7722f0b5825cd1321",
+    "readiness_summary_sha256": "e8ed61e384058bcc2c74ac9f2ed5d36a9365d89d0ec392ac228b0940cd66c38d",
+    "status": "ready_for_explicit_phase5_execution_with_sealed_blind",
+    "training_promotion_allowed": true,
+    "version": "v1.1.0"
+  },
   "approved_staging": {
     "approval_basis": "explicit_owner_automated_technical_acceptance",
     "build_id": "build-a5a9e76d6a8c",
@@ -118,6 +151,43 @@
       "technical_full_ft_preflight_passed": true,
       "training_promotion_allowed": true,
       "version": "v2.0.0"
+    }
+  ],
+  "evaluation_split_builds": [
+    {
+      "blind_components": 350,
+      "blind_rows": 500,
+      "build_id": "build-a5a04ab96594",
+      "build_sha256": "a5a04ab96594563c88516aebea97df52c6b3efadb8f17b987f73544e7f5d26d2",
+      "canonical_training_fingerprint_changed": false,
+      "config_sha256": "c456ef24ad7e49bdb4bf593ec291d7973a075f93f2106459aff9cf4ec3257a2b",
+      "external_conformance_report_sha256": "5e611e2138970f591b642f3412f1f886f6e56930f9e9f52fb7c454d78a8900cd",
+      "implementation_commit": "551fdb051bb70d3ee71da729f8c4e29767cf132d",
+      "phase4_smoke_reexecution_required": false,
+      "phase5_training_performed": false,
+      "private_manifest_sha256": "da6e358d4a8f59f0d63cbbda3432d07c0bad5daa26baa4c6cd6bc08da6d295cc",
+      "public_manifest_sha256": "297f25582536fdb1a6cd53541ee2085575e07e7e0d2bcb92dafe98df55df64b4",
+      "split_summary_sha256": "7e2a535dffc188fdc4b7480b81df5ff38d3a5e680225ea08041ca231fd7f0464",
+      "status": "sealed_blind_ready_for_post_training_evaluation",
+      "version": "v1.0.0"
+    }
+  ],
+  "phase5_readiness_builds": [
+    {
+      "build_id": "build-201010b37e40",
+      "build_sha256": "201010b37e40c53497bc4cc2c94a099f74d48174a3cefa62fec4547f661fd0d1",
+      "canonical_training_fingerprint_changed": false,
+      "config_sha256": "4e7361b42030c08045183a6dcce23c6edb22864496969884b3b5725a9950d706",
+      "evaluation_split_build_id": "build-a5a04ab96594",
+      "implementation_commit": "32905b9f2b3f58492f7c40eec395398688c7e639",
+      "phase4_smoke_reexecution_required": false,
+      "phase5_training_performed": false,
+      "private_manifest_sha256": "4d28b744ff461bd260c6cd2f7e785936af626ac1332675371dff816b959db907",
+      "public_manifest_sha256": "1205f83a48c0961e63664f99f527c240c79eef98306b44a7722f0b5825cd1321",
+      "readiness_summary_sha256": "e8ed61e384058bcc2c74ac9f2ed5d36a9365d89d0ec392ac228b0940cd66c38d",
+      "status": "ready_for_explicit_phase5_execution_with_sealed_blind",
+      "training_promotion_allowed": true,
+      "version": "v1.1.0"
     }
   ],
   "schema_version": "1.0.0",

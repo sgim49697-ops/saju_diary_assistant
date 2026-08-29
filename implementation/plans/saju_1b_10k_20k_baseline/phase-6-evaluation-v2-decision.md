@@ -23,6 +23,15 @@ KI10과 KI20을 동일 조건에서 평가해 데이터량 증가의 효과와 �
 
 모든 모델에 동일 prompt, chat template, EOS와 아래 greedy 설정을 적용한다.
 
+평가 역할은 다음처럼 분리한다.
+
+- `dev_monitor_70`: Phase 5 loss 감시만 수행하며 checkpoint 선택·early stopping·최종 주장을 금지한다.
+- `dev_diagnostic_930`: K0·KI10·KI20 파이프라인과 오류 분석에 반복 사용할 수 있으나 최종 일반화 점수로 쓰지 않는다.
+- `blind_source_test_500`: 7축 350 component를 KI10·KI20 final checkpoint까지 봉인하고 K0·KI10·KI20에 동일하게 한 번만 실행한다. BaZi 4행을 먼저 component 평균하고 7축 macro average를 계산한다.
+- `external_conformance_220`: KASI 200행과 정책 경계 20행을 runtime/deterministic QA에 별도 채점하며 source blind 종합점수와 합치지 않는다.
+
+blind 출력을 확인한 뒤 데이터·정책·hyperparameter를 바꾸면 해당 split은 사용 완료로 표시하고 새 version을 만든다.
+
 ```yaml
 do_sample: false
 num_beams: 1
@@ -179,6 +188,14 @@ runs/next_stage_decision.md
 - [TRL 1.12.0 SFTTrainer metrics](https://huggingface.co/docs/trl/v1.12.0/en/sft_trainer)
 - [Kanana Open License](https://huggingface.co/kakaocorp/kanana-2-1.3b-instruct/blob/bf4786aa2a1908adce942d53976270132732f720/LICENSE)
 - [AI Hub 데이터 이용정책](https://aihub.or.kr/intrcn/guid/usagepolicy.do)
+
+## 진행 기록
+
+- 2026-08-29
+  - 작업 요약: Phase 5 학습 전에 평가 역할 계약만 선행 고정했다. Phase 6 모델 평가는 실행하지 않았다.
+  - 변경 범위: 개발 monitor 70행·진단 930행·봉인 source blind 350 component/500행·외부 conformance 220행을 분리하고, blind는 K0·KI10·KI20 final checkpoint가 모두 고정된 뒤 한 번만 열도록 했다.
+  - 검증: `evaluation-split/v1.0.0/build-a5a04ab96594`의 train/development/blind component·record·content hash 누수 0과 public raw·ID 비노출을 확인했다.
+  - 남은 이슈·후속 작업: KI10·KI20 실제 학습과 checkpoint 동결 전에는 blind를 실행하지 않는다. 출력 확인 후 변경이 필요하면 split version을 새로 만든다.
 
 ## 웹 확인 기록
 

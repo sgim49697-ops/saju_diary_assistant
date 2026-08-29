@@ -1,14 +1,15 @@
 {
-  "_description": "한국식 사주 계산 필드의 근거 등급, runtime 채택 상태, validator 동작을 고정하는 초안 정책이다.",
+  "_description": "한국식 사주 계산 필드의 근거 등급, 외부 conformance 상태, runtime 채택 상태와 validator 동작을 고정하는 초안 정책이다.",
   "schema_version": "1.0.0",
-  "policy_version": "0.1.0",
+  "policy_version": "0.2.0",
   "status": "draft_not_runtime_approved",
-  "policy_id": "saju-calculation-policy-draft-v0.1.0",
+  "policy_id": "saju-calculation-policy-draft-v0.2.0",
   "reviewed_at": "2026-08-29",
   "scope": {
     "runtime_enabled": false,
     "training_data_mutation_allowed": false,
     "evaluation_gold_generation_allowed": false,
+    "external_conformance_fixture_ready": true,
     "phase5_training_state_changed": false
   },
   "evidence_classes": {
@@ -45,16 +46,42 @@
       "tests/calculateSaju.test.ts": "22c3e90e19027a82e75d21f4ee3f2b92fd70e5ddd363c28d509d93ac31df3971"
     }
   },
+  "external_conformance": {
+    "suite_version": "v1.0.0",
+    "status": "fixture_contract_ready_runtime_adapter_pending",
+    "primary_source": {
+      "name": "한국천문연구원 음양력 정보 OpenAPI",
+      "url": "https://www.data.go.kr/data/15012679/openapi.do",
+      "snapshot_rows": 200,
+      "fixture_sha256": "d651d5a77d7970cde4b36f414995b6ea833b4d50760f23fe0f462c96fdf8ca1a"
+    },
+    "comparative_revisions": {
+      "oh_my_saju": "a8c0cf64adfde8fb1ce253112529edd8e90cc94b",
+      "manseryeok": "fba3253d7305b8b61189bd78318a7a27ed8c9b09",
+      "korean_saju": "8c81256db10d3179d31f551beacaa69f2ab2fcc5",
+      "lunar_python": "448f397c1695cadab3899bf460e0042cab7f0e66",
+      "ssaju": "07b608a778be6dac8669e04b9ab794c441959208"
+    },
+    "semantic_guards": {
+      "kasi_calendar_year_ganzhi_is_saju_year_pillar": false,
+      "kasi_calendar_month_ganzhi_is_saju_month_pillar": false,
+      "policy_bound_cases_require_matching_profile": true,
+      "heuristic_fields_are_gold": false
+    },
+    "training_data_inclusion_allowed": false,
+    "blind_source_test_inclusion_allowed": false,
+    "runtime_engine_approved": false
+  },
   "time_and_calendar_contract": {
-    "status": "blocked_pending_independent_gold",
+    "status": "external_fixture_ready_runtime_adapter_pending",
     "timezone": "Asia/Seoul",
     "longitude_policy": "explicit_location_required",
     "day_boundary_policy": "undecided",
     "hour_boundary_policy": "undecided",
-    "solar_term_source": "undecided",
-    "lunar_conversion_source": "KASI_candidate_not_integrated",
+    "solar_term_source": "pinned_comparative_profiles_not_runtime_approved",
+    "lunar_conversion_source": "KASI_200_snapshot_conformance_only",
     "historical_timezone_source": "IANA_tzdb_candidate_not_integrated",
-    "reason": "ssaju의 지원 범위 내 음양력 역변환 실패와 한국 역사 DST 누락이 확인되어 birth-to-pillars를 runtime 정답으로 승인할 수 없음"
+    "reason": "KASI 음양력 200행과 정책 경계 20행을 고정했지만 절입·자시·진태양시 runtime profile과 독립 adapter 검증이 끝나지 않아 birth-to-pillars 정답 엔진 승인은 보류"
   },
   "branch_ten_god_contract": {
     "current_dataset_policy_id": "branch_surface_element_yinyang_v1",

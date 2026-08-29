@@ -80,11 +80,12 @@ data_seed: 42
 
 ## Phase 5 실행 전 readiness Gate
 
-실제 학습 명령을 만들기 전에 `phase5-readiness-v1.0.0`을 별도 실행한다. 이 Gate는 학습·optimizer·backward를 수행하지 않고 다음만 불변 산출물로 고정한다.
+실제 학습 명령을 만들기 전에 `phase5-readiness-v1.1.0`을 별도 실행한다. v1.1은 검증된 v1.0 데이터·모델·환경 계약을 그대로 부모로 두고 봉인 평가 split만 추가한다. 이 Gate는 학습·optimizer·backward를 수행하지 않고 다음만 불변 산출물로 고정한다.
 
 - registry가 품질 보정 Phase 4 v2 canonical을 가리키고 A~E·768·`training_promotion_allowed=true` hash chain이 전부 재검증됨
 - `mix10k_v2.jsonl` 10,000행과 `mix20k_v2.jsonl` 20,000행이 7축 고정 수량·strict subset·동일 record hash를 만족함
-- source holdout 700에서 축별 10건씩 결정론적으로 선택한 eval70이 KI20 leakage component와 겹치지 않음
+- 기존 eval70 byte hash를 `dev_monitor_70`으로 보존하고 KI20 leakage component와 겹치지 않음
+- 개발 진단 930행, 미사용 reserve의 7축 blind 350 component/500행, 외부 conformance 220행은 학습 loop 입력에서 제외됨
 - Python 3.10.12, uv 0.9.26, torch 2.13.0+cu130, Transformers 4.57.6, TRL 1.12.0, bitsandbytes 0.50.2와 `requirements-phase3.lock.txt` SHA-256이 일치함
 - 가용 disk가 최소 64GiB이고 KI10·KI20이 모두 고정 Instruct snapshot에서 독립 시작하며, checkpoint가 model·optimizer·scheduler·trainer state를 저장함
 - readiness 공개 보고서에는 제한 원문을 넣지 않고 `phase5_training_performed=false`를 유지함
@@ -92,10 +93,10 @@ data_seed: 42
 학습 중 loss-only eval은 이 eval70으로 250 optimizer step마다 수행한다. 생성 품질 평가는 Phase 6에서 별도 고정 계약으로 실행하며, eval 결과를 근거로 같은 Run의 hyperparameter나 데이터 비율을 중간 변경하지 않는다.
 
 ```bash
-.venv/bin/python scripts/training/phase5_readiness.py validate-contract
-.venv/bin/python scripts/training/phase5_readiness.py plan
-.venv/bin/python scripts/training/phase5_readiness.py prepare --execute
-.venv/bin/python scripts/training/phase5_readiness.py verify
+.venv/bin/python scripts/training/phase5_readiness_v1_1.py validate-contract
+.venv/bin/python scripts/training/phase5_readiness_v1_1.py plan
+.venv/bin/python scripts/training/phase5_readiness_v1_1.py prepare --execute
+.venv/bin/python scripts/training/phase5_readiness_v1_1.py verify
 ```
 
 `prepare`는 기본 dry-run이고 `--execute`가 있어도 eval70·KI10/KI20 입력 계약과 공개 요약만 만든다. 학습 API, backward, optimizer step은 이 도구에 없으며 실제 Phase 5 실행은 별도 명시적 명령과 `PHASE5_TRAINING` 확인값을 요구하도록 설계한다.
@@ -170,11 +171,11 @@ KI10 종료 후 Phase 6 전체 평가 전에 core eval의 소규모 고정 subse
 ## 산출물
 
 ```text
-data/derived/saju_1b_baseline/phase5-readiness/v1.0.0/build-<fingerprint>/
-├── eval/phase5_eval70.jsonl
+data/derived/saju_1b_baseline/phase5-readiness/v1.1.0/build-<fingerprint>/
+├── eval/dev_monitor_70.jsonl
 └── run_inputs/
 
-data/reports/saju_1b_baseline/phase5-readiness/v1.0.0/build-<fingerprint>/
+data/reports/saju_1b_baseline/phase5-readiness/v1.1.0/build-<fingerprint>/
 ├── build_manifest.json
 └── readiness_summary.json
 
@@ -207,6 +208,13 @@ runs/KI20-MIX-v2/
 
 ## 진행 기록
 
+- 2026-08-29
+  - 작업 요약: 기존 1,000건이 개발 중 노출된 점을 반영해 `evaluation-split/v1.0.0/build-a5a04ab96594`를 생성하고, 이를 포함한 비학습 readiness `v1.1.0/build-201010b37e40`을 생성·독립 재검증했다. 실제 학습은 실행하지 않았다.
+  - 변경 범위: eval70은 loss monitor 전용이며 checkpoint 선택·early stopping·최종 성능 주장에 쓰지 않는다. 나머지 source holdout 630+Core Eval 300은 개발 진단, reserve 7축 350 component/500행은 Phase 6 단회 blind, 공개 KASI·정책 fixture 220행은 별도 conformance로 고정한다.
+  - 검증: 고정 tokenizer 768 제한, 7축 층화, BaZi 4질문 component, component/record/content hash 누수 0을 통과했다. 외부 fixture는 runtime·학습 Gold를 자동 승인하지 않으며 평가 split public summary에는 raw·ID가 없다.
+  - 재현성 보강: 최초 미승인 readiness 시도 `build-69b21cb079a7`은 가용 disk와 Git HEAD 순간값 때문에 작성 직후 byte 재현 검증이 실패해 private/public 경로를 제거했다. disk 임계값·runtime·GPU 검증은 계속 실행하되 순간값 자체는 불변 summary에서 제외하는 회귀 테스트를 추가했다.
+  - readiness 검증: KI10 10,000행·KI20 20,000행, 기존 eval70 byte 보존, 단일 RTX 5070 Ti·CUDA 13.0·BF16, 64GiB disk 임계값을 통과했다. private/public manifest는 `4d28b744…db907`/`1205f83a…d1321`, summary는 `e8ed61e3…6c38d`다.
+  - 남은 이슈·후속 작업: Phase 5는 실제 학습을 시작하지 않아 계속 `미시작`이다. 사용자가 별도로 승인하면 KI10부터 실행하며 KI20은 KI10 checkpoint를 재사용하지 않는다. `phase5_training_performed=false`다.
 - 2026-08-29
   - 작업 요약: 구현 checkpoint `89685ba82927a96c40654a47a4b0daa7f8b3a91f`에서 비학습 readiness `v1.0.0/build-f6c8171f454f`을 생성하고 독립 재검증했다. Phase 5 상태는 실제 KI10·KI20 학습을 시작하지 않았으므로 계속 `미시작`이다.
   - 변경 범위: canonical KI10 10,000행·KI20 20,000행의 7축 수량과 strict subset, 축별 10건 eval70의 train component 교집합 0, 고정 Kanana revision·template·package lock, 단일 RTX 5070 Ti·CUDA 13.0·BF16 및 64GiB disk 최소값을 불변 입력 계약으로 고정했다.
