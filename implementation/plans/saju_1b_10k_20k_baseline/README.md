@@ -215,6 +215,11 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
 ## 진행 기록
 
 - 2026-08-29
+  - 작업 요약: KI10 자동 Gate 실패를 단일 파일 현황판에 정확히 표시하도록 current decision을 config화하고 `ki10_gate_failed / STOP` 렌더링 계약을 구현했다. 새 HTML은 구현 commit을 고정한 다음 불변 build로 발행한다.
+  - 변경 범위: KI10 Full FT·품질 Gate hash chain, Phase 5 차단, 네 가지 미달 지표, KI20·sealed blind 금지를 status config에 추가했다. 기존 pre-KI10 hero·결정 표 하드코딩을 제거했다.
+  - 검증: `project_status.py validate-contract`와 `plan`이 통과했고 예상 build는 `build-a4014017c26c`다. 테스트는 실패 상태 문구와 지표가 self-contained HTML에 포함됨을 검사한다.
+  - 남은 이슈·후속 작업: 이 구현 checkpoint를 커밋한 뒤 snapshot·root HTML을 생성하고 registry 최신 포인터와 정본 경로를 새 build로 연결한다.
+- 2026-08-29
   - 작업 요약: `KI10-MIX-v2/run-e6b712f0d45e`로 개발용 1,000case 자동 품질 Gate를 완료했으나 hard fact·branch policy, 신살, missing-chart handoff, target-only entity 4개 Gate가 실패했다. `ki20_promotion_allowed=false`로 고정하고 KI20을 실행하지 않았다.
   - 변경 범위: 생성 1,000건은 Git 제외 private run에만 저장하고 공개 경로에는 원문 없는 Gate 집계와 manifest만 추가했다. sealed blind·Phase 6·학습 데이터는 변경하거나 열람하지 않았다.
   - 검증: 통과 항목은 parseable 100%, special/control·severe safety 0, foreign sentence 1.4%, input fact violation·empathy confusion·persona causalization 0%다. 실패 항목은 hard fact·branch policy `38/100`, 신살 `17/25`, handoff `3/5`, 입력에 없는 날짜 `1건`이다. 고정 reference의 동일 채점 결과 `60/60`·`40/40`·`25/25` 통과로 평가기 자체의 exact-term 계약은 유효함을 재확인했다.

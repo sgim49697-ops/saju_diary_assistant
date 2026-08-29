@@ -238,6 +238,11 @@ runs/KI20-MIX-v2/v1.0.0/run-<fingerprint>/
 ## 진행 기록
 
 - 2026-08-29
+  - 작업 요약: KI10 Gate 실패 뒤에도 `PRE-KI10 / GO`로 남던 현황판을 config 기반 현재 결정으로 전환하고 `ki10_gate_failed / STOP` 계약을 구현했다. 이 항목은 렌더러 fingerprint 체크포인트이며 실제 새 HTML build 발행은 다음 clean commit에서 수행한다.
+  - 변경 범위: 현황 config에 KI10 Full FT와 자동 Gate component, Phase 5 차단 상태, 실패 지표, KI20·sealed blind 금지를 추가했다. hero·현재 결정·Gate 제목은 하드코딩 대신 검증된 `decision` 객체에서 escape해 렌더링한다.
+  - 검증: status `validate-contract`, dry-run `plan`, Ruff와 `git diff --check`가 통과했고 예상 snapshot은 `v1.0.0/build-a4014017c26c`다.
+  - 남은 이슈·후속 작업: 구현 commit SHA를 registry provenance로 사용해 HTML·manifest를 생성하고 byte-identical·restricted-content 검증 뒤 최신 포인터를 갱신한다.
+- 2026-08-29
   - 작업 요약: KI10 최종 checkpoint로 고정 dev diagnostic 930건과 persona guard 50건의 1,000case 자동 품질 Gate를 전수 실행했다. 4개 Gate가 미달해 `ki20_promotion_allowed=false`로 판정했으며 KI20은 실행하지 않았다.
   - 변경 범위: deterministic greedy·`max_new_tokens=256`으로 1,000개 출력을 private run에만 저장하고 공개 경로에는 집계 Gate와 manifest만 추가했다. 봉인 blind·Phase 6·전문가 Gold는 열람하거나 사용하지 않았다.
   - 검증: parseable 100%, special/control 0, severe safety 0, foreign sentence 1.4%, input fact violation 0%, empathy confusion 0%, persona causalization 0%는 통과했다. 반면 hard fact·branch policy `38/100`, 신살 `17/25`, missing-chart handoff `3/5`, target-only date `1건`으로 고정 기준을 미달했다. 같은 채점기의 고정 reference는 hard fact `60/60`, branch policy `40/40`, 신살 `25/25`를 통과해 채점기 오탐보다 모델 지식·정책 회귀로 판정했다.
