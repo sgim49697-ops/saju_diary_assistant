@@ -1,0 +1,25 @@
+{
+  "gate_build_id": "gate-df26e962e145",
+  "gate_build_sha256": "df26e962e1450b5b2c956b3b0f96531fa567c0c7ac897be233d5375879d878f4",
+  "private_files": {
+    "additional_handoff_generations.jsonl": {
+      "bytes": 37154,
+      "sha256": "bc0df36d823fd07f81400feb19829b055e7644fe318ce79ba99c8c7f9ab4d5c3"
+    },
+    "gate_v2_detailed.json": {
+      "bytes": 5513,
+      "sha256": "6fbd520ca369e152eb89eee150bc583840a9e6ddfff92e994e5b0b6b17e16314"
+    },
+    "generation_metadata.json": {
+      "bytes": 467,
+      "sha256": "058f1642bca0795f3108bc85845742d19e46032178e52b371e61e39a87ea05ce"
+    }
+  },
+  "public_files": {
+    "gate_v2_summary.json": {
+      "bytes": 5513,
+      "sha256": "6fbd520ca369e152eb89eee150bc583840a9e6ddfff92e994e5b0b6b17e16314"
+    }
+  },
+  "schema_version": "2.0.0"
+}

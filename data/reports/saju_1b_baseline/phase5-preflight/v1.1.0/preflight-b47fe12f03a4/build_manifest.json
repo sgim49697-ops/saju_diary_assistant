@@ -1,0 +1,29 @@
+{
+  "preflight_build_id": "preflight-b47fe12f03a4",
+  "preflight_build_sha256": "b47fe12f03a4114a8b9c30bb39b1cc57c12bcfc0525747209b50d0113fcbcd2e",
+  "private_files": {
+    "benchmark_detailed.json": {
+      "bytes": 23534,
+      "sha256": "13b97de21009daf86f850b9289e0d88b26a89f728e0ef2ec338a243be23f7b8b"
+    },
+    "config.resolved.json": {
+      "bytes": 2195,
+      "sha256": "8277c2595ecaf073416dc7872a45c2e98a08b9667da476ecdaec136cee606acb"
+    },
+    "fixed_subset_ids.json": {
+      "bytes": 47831,
+      "sha256": "ecee6bcece305a3d577dcdd22d2b9c2737a6a4f06aafe29cf8b3491b1472c635"
+    }
+  },
+  "public_files": {
+    "config.resolved.json": {
+      "bytes": 2195,
+      "sha256": "8277c2595ecaf073416dc7872a45c2e98a08b9667da476ecdaec136cee606acb"
+    },
+    "preflight_report.json": {
+      "bytes": 23534,
+      "sha256": "13b97de21009daf86f850b9289e0d88b26a89f728e0ef2ec338a243be23f7b8b"
+    }
+  },
+  "schema_version": "1.1.0"
+}

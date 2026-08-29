@@ -4,7 +4,7 @@
 
 | 항목 | 값 |
 |---|---|
-| 문서 버전 | `3.2.0` |
+| 문서 버전 | `3.3.0` |
 | 정본화 기준일 | 2026-08-29 |
 | 주 장비 | NVIDIA GeForce RTX 5070 Ti 16GiB, WSL2 |
 | 주 모델 | `kakaocorp/kanana-2-1.3b-instruct@bf4786aa2a1908adce942d53976270132732f720` |
@@ -14,7 +14,7 @@
 ## 고정 실험 계약
 
 - 모델 학습 방식은 BF16 전체 파라미터 Full Fine-tuning이다. LoRA/QLoRA로 자동 전환하지 않는다.
-- 10K를 먼저 1 epoch 학습하고 고정 자동 품질 Gate를 모두 통과한 경우에만, 20K를 같은 Instruct revision에서 독립적으로 1 epoch 학습한다.
+- 10K를 먼저 1 epoch 학습한다. Gate v2 기술·안전 hard gate는 추가 baseline 실험 허용 여부를, 품질 목표는 배포·품질 승격 여부를 판정한다. 20K는 같은 Instruct revision에서 독립 시작하며 비학습 preflight 뒤에도 별도 명시 확인 없이는 실행하지 않는다.
 - `MIX1K-v2 ⊂ MIX10-v2 ⊂ MIX20-v2`이어야 한다.
 - 데이터 행 비율은 Nemotron 34%, 검산·한국어화한 `bazi-sft` 20%, AI Hub #86 단일턴 7.5%, 멀티턴 7.5%, 검증된 YEJI 신살 규칙 5%, deterministic 사주 QA 10%, 사주-일기 앱 브리지 16%로 고정한다.
 - Nemotron 내부는 v6 20%·v7 80%로 고정한다.
@@ -36,7 +36,7 @@
 | 2 | [데이터 전처리](phase-2-data-preprocessing.md) | 완료 | 품질 보정 7축 24K와 로컬 전용 AI Hub 후보 10K 완결, 학습 승격은 Phase 4 Gate로 분리 |
 | 3 | [학습 모델·환경 준비](phase-3-model-preparation.md) | 완료 | 고정 PyTorch cu130 환경에서 모델·tokenizer·template 전체 BF16 오프라인 로드 성공 |
 | 4 | [학습 전 데이터·모델 검증](phase-4-preflight-validation.md) | 완료 | 품질 보정 staging의 A~E·1,020case·Full FT 200-step resume와 768 canonical 승격 통과 |
-| 5 | [Baseline 학습](phase-5-baseline-training.md) | 차단 | KI10 학습·재로딩 완료, 자동 품질 Gate 4개 미달로 KI20 금지 |
+| 5 | [Baseline 학습](phase-5-baseline-training.md) | 진행 중 | KI10·Gate v2·KI20 비학습 preflight 완료, KI20 본학습은 별도 확인 대기 |
 | 6 | [평가·검수·v2 결정](phase-6-evaluation-v2-decision.md) | 미시작 | 고정 평가 후 50K 또는 v2 Lite 경로 결정 |
 
 Phase 상태 값은 `미시작`, `부분 진행`, `진행 중`, `차단`, `완료`만 사용한다. 앞 Phase가 `완료`가 아니면 뒤 Phase의 공식 산출물을 만들지 않는다.
@@ -61,6 +61,7 @@ data/
 │   └── eval/
 ├── derived/saju_1b_baseline/evaluation-split/v1.0.0/build-a5a04ab96594/
 ├── derived/saju_1b_baseline/evaluation-split/v1.1.0/build-d2f9e1623e96/ # v1.0 봉인 유지·dev 진단 확장
+├── derived/saju_1b_baseline/evaluation-split/v1.2.0/build-e885b47cae74/ # Gate v2 typed contract·handoff 50
 ├── derived/saju_1b_baseline/phase5-readiness/v1.0.0/build-f6c8171f454f/ # 과거 readiness
 ├── derived/saju_1b_baseline/phase5-readiness/v1.1.0/build-201010b37e40/
 ├── derived/saju_1b_baseline/phase5-readiness/v1.2.0/build-e325f16096dd/ # 현재 KI10 자동 Gate 계약
@@ -75,11 +76,15 @@ data/
         ├── preflight/v2.0.0/build-6f32d52c2868/      # 현재 품질 보정 canonical
         ├── evaluation-split/v1.0.0/build-a5a04ab96594/ # 공개 split·누수 요약
         ├── evaluation-split/v1.1.0/build-d2f9e1623e96/ # reference overlap·persona guard 공개 요약
+        ├── evaluation-split/v1.2.0/build-e885b47cae74/ # typed scorer·handoff 확장
         ├── pretraining-audit/v1.0.0/build-c38926f86a3d/ # 20K 의미·출처 전수 감사
         ├── phase5-readiness/v1.0.0/build-f6c8171f454f/ # 과거 비학습 계약
         ├── phase5-readiness/v1.1.0/build-201010b37e40/ # 봉인 평가 연결 계약
         ├── phase5-readiness/v1.2.0/build-e325f16096dd/ # 감사·평가·runner 연결 계약
-        ├── project-status/v1.0.0/build-a4014017c26c/ # KI10 Gate 실패 공개 현황 snapshot
+        ├── phase5-gate/v2.0.0/KI10-MIX-v2/gate-df26e962e145/ # 기술/안전·품질 목표 분리
+        ├── phase5-preflight/v1.1.0/preflight-b47fe12f03a4/ # KI20 비학습 처리량 검증
+        ├── phase5-readiness/v1.3.0/build-7eb4c34364cc/ # KI20 preflight readiness
+        ├── project-status/v1.0.0/build-d97639639b75/ # KI20 preflight 대기 현황
         └── phase-verification/v1.0.0/review-20260828/
 
 configs/data_versions/saju_1b_baseline/
@@ -100,10 +105,15 @@ configs/data_versions/saju_1b_baseline/
 ├── pretraining-audit-v1.0.0.json
 ├── evaluation-split-v1.1.0.json
 ├── phase5-readiness-v1.2.0.json
+├── evaluation-split-v1.2.0.json
+├── phase5-readiness-v1.3.0.json
 ├── project-status-v1.0.0.json
 └── registry.json
 
-configs/model_versions/saju_1b_baseline/model-preparation-v1.0.0.json
+configs/model_versions/saju_1b_baseline/
+├── model-preparation-v1.0.0.json
+├── phase5-quality-gate-v2.0.0.json
+└── phase5-training-v1.1.0.json
 configs/chat_templates/kanana2_sft.jinja
 requirements.txt
 requirements-phase3.lock.txt
@@ -206,6 +216,10 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
 - 16GiB GPU에서 Full FT가 된다고 가정하지 않는다. 512 기능 검사, 후보 상한 밖 1024 진단, 후보 전체를 수용하는 768의 100→200-step checkpoint resume를 통과 조건으로 둔다.
 - 20행 블록은 정확한 소스 수량 산출에만 쓰고, 실제 학습 manifest는 seed 42로 최종 shuffle해 주기적 순서 편향을 막는다.
 - 512 smoke 실패 시 DeepSpeed·CPU offload·LoRA로 자동 우회하지 않고 Phase 4를 `차단`한다.
+- KI10 Gate v1은 불변 이력으로 보존하고 v2부터 기술·안전 hard gate와 배포 품질 목표를 분리한다. hard gate 통과는 추가 실험만 허용하며 품질 인증을 뜻하지 않는다.
+- KI20 목적함수는 uniform assistant-token `chunked_nll`로 유지한다. weighted sampler·DFT는 baseline 목표 분포를 바꾸므로 사용하지 않고 축별 macro 지표로 편중을 공개한다.
+- 16GiB hard cap 안에서 실측 비교한 KI20 runtime은 train `4×accumulation 2`, worker 0, eval batch 8이다. RAM·swap은 진단값이며 GPU 전체 사용량만 hard gate다.
+- tokenizer regex와 YaRN 경고는 현 model·tokenizer fingerprint를 바꾸지 않는다. 교정은 별도 model/data/run version으로 격리한다.
 
 ## 원본 보관
 
@@ -214,6 +228,11 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
 
 ## 진행 기록
 
+- 2026-08-29
+  - 작업 요약: 정본을 `3.3.0`으로 올려 Gate v2와 KI20 비학습 preflight를 반영했다. readiness `v1.3.0/build-7eb4c34364cc`과 현황 `v1.0.0/build-d97639639b75`을 registry 최신 포인터로 고정했으며 KI20 본학습은 실행하지 않았다.
+  - 변경 범위: 평가 `v1.2.0/build-e885b47cae74`, Gate `v2.0.0/gate-df26e962e145`, preflight `v1.1.0/preflight-b47fe12f03a4`을 새 경로에 추가했다. 과거 Gate v1, canonical 10K/20K, KI10 checkpoint, blind bytes를 덮어쓰지 않았다.
+  - 검증: Gate v2 hard gate 10개 전부 통과, scorer reference/mutation 각 175건 전부 기대대로 판정했다. KI20 후보 중 train `4×2`·worker 0·eval 8을 선택했고 peak GPU `10,634MiB`로 16GiB 상한을 통과했다. 품질 목표는 8개 미달이라 배포 승격은 금지다.
+  - 남은 이슈·후속 작업: `full_training_execution_enabled=false`, `production_promotion_allowed=false`, `blind_source_test_inspected=false`를 유지한다. 실제 KI20 1 epoch는 사용자의 새 명시 확인과 별도 실행 checkpoint 뒤에만 시작한다.
 - 2026-08-29
   - 작업 요약: 현황 렌더러 checkpoint `618ce4d9870e7a64681823f0cde3a38f9934fad1`에서 KI10 Gate 실패 snapshot `v1.0.0/build-a4014017c26c`를 생성하고 registry 승인 포인터와 root HTML을 연결했다.
   - 변경 범위: 과거 pre-KI10 현황 build는 덮어쓰지 않았다. 새 현황은 KI10 Full FT·reload 통과와 1,000case 4개 Gate 미달, `ki20_promotion_allowed=false`, sealed blind 미열람을 집계로만 표시한다.

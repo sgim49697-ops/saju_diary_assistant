@@ -1,0 +1,161 @@
+{
+  "schema_version": "1.1.0",
+  "canonical_plan_version": "3.2.0",
+  "dataset_name": "saju_1b_baseline",
+  "training_version": "v1.1.0",
+  "run_id": "KI20-MIX-v2-THROUGHPUT",
+  "required_gate_v2": {
+    "version": "v2.0.0",
+    "path": "data/reports/saju_1b_baseline/phase5-gate/v2.0.0/KI10-MIX-v2/gate-df26e962e145/gate_v2_summary.json",
+    "sha256": "6fbd520ca369e152eb89eee150bc583840a9e6ddfff92e994e5b0b6b17e16314",
+    "gate_build_id": "gate-df26e962e145",
+    "gate_build_sha256": "df26e962e1450b5b2c956b3b0f96531fa567c0c7ac897be233d5375879d878f4",
+    "experiment_continuation_allowed": true,
+    "quality_target_status": "not_met",
+    "production_promotion_allowed": false
+  },
+  "model": {
+    "repo_id": "kakaocorp/kanana-2-1.3b-instruct",
+    "revision": "bf4786aa2a1908adce942d53976270132732f720",
+    "local_subdir": "models/saju_1b_baseline/kanana-2-1.3b-instruct/bf4786aa2a1908adce942d53976270132732f720",
+    "model_sha256": "49aa6cd8686563c59321d83810731956c61ec8d5c8538a249d38007986cdc942",
+    "snapshot_manifest_sha256": "5786d04831c93192d234651df0894a1912b974cfab96011ce0676563185cc93d",
+    "chat_template_path": "configs/chat_templates/kanana2_sft.jinja",
+    "chat_template_sha256": "b8ee6b31575eada17ebbe73d3f1ac65d3efde64f0a25ff922031dec7e1cae3e3",
+    "package_lock": "requirements-phase3.lock.txt",
+    "package_lock_sha256": "0301de92dea4a21eb8077abb01aae6eaf412590ac670e436bcd5d7b3717b8aed",
+    "dtype": "bfloat16",
+    "attention_backend": "sdpa",
+    "parameter_count": 1291478272,
+    "local_files_only": true,
+    "trust_remote_code": true
+  },
+  "runtime_versions": {
+    "torch": "2.13.0+cu130",
+    "torch_cuda": "13.0",
+    "transformers": "4.57.6",
+    "trl": "1.12.0",
+    "bitsandbytes": "0.50.2",
+    "datasets": "4.7.0"
+  },
+  "data": {
+    "canonical_version": "v2.0.0",
+    "canonical_build_id": "build-6f32d52c2868",
+    "canonical_build_sha256": "6f32d52c2868bb8b5e07724cbdc00a6bc0b2f1608fe53ac54c357a6ec0832ee9",
+    "canonical_root": "data/derived/saju_1b_baseline/v2.0.0/build-6f32d52c2868",
+    "preflight_config": "configs/data_versions/saju_1b_baseline/preflight-v2.0.0.json",
+    "manifest": "manifests/mix20k_v2.jsonl",
+    "manifest_sha256": "731ace0ac5584fd97fc38f157a4ecdb1babedefd79e2ec5b2d755fa26e48a550",
+    "rows": 20000
+  },
+  "dev_monitor": {
+    "path": "data/derived/saju_1b_baseline/phase5-readiness/v1.2.0/build-e325f16096dd/eval/dev_monitor_70.jsonl",
+    "sha256": "aa61d2a763e3194e3a25561a3030c74bebb002c702ef8469c27a1bc22a2bcb31",
+    "rows": 70,
+    "rows_per_axis": 10,
+    "role": "forward_only_loss_and_token_accuracy_diagnostic"
+  },
+  "historical_ki10": {
+    "run_id": "KI10-MIX-v2",
+    "run_build_id": "run-e6b712f0d45e",
+    "checkpoint": "runs/KI10-MIX-v2/v1.0.0/run-e6b712f0d45e/final",
+    "checkpoint_model_sha256": "6f4f6d5b22bed64c4bd4e3c5c50ffba6bcf365a75f40e6acdbf61180c628f7b6",
+    "comparison_role": "historical_reference_not_strict_causal_control",
+    "rerun_allowed": false
+  },
+  "objective": {
+    "name": "assistant_only_token_nll",
+    "trainer_loss_type": "chunked_nll",
+    "token_weighting": "uniform_over_supervised_assistant_tokens",
+    "weighted_sampler": false,
+    "dft": false,
+    "absolute_loss_is_quality_gate": false
+  },
+  "fixed_training": {
+    "max_length": 768,
+    "pad_to_multiple_of": 8,
+    "effective_batch_size": 8,
+    "num_train_epochs": 1,
+    "expected_optimizer_steps": 2500,
+    "optim": "paged_adamw_8bit",
+    "learning_rate": 0.000008,
+    "warmup_ratio": 0.03,
+    "lr_scheduler_type": "cosine",
+    "weight_decay": 0.01,
+    "max_grad_norm": 1.0,
+    "gradient_checkpointing": true,
+    "gradient_checkpointing_use_reentrant": false,
+    "assistant_only_loss": true,
+    "packing": false,
+    "padding_free": false,
+    "loss_type": "chunked_nll",
+    "bf16": true,
+    "fp16": false,
+    "tf32": false,
+    "torch_compile": false,
+    "group_by_length": false,
+    "shuffle_dataset": true,
+    "seed": 42,
+    "data_seed": 42
+  },
+  "benchmark": {
+    "confirmation_variable": "PHASE5_BENCHMARK",
+    "confirmation_value": "KI20-MIX-v2-THROUGHPUT",
+    "train_batch_candidates": [
+      {
+        "per_device_train_batch_size": 1,
+        "gradient_accumulation_steps": 8
+      },
+      {
+        "per_device_train_batch_size": 2,
+        "gradient_accumulation_steps": 4
+      },
+      {
+        "per_device_train_batch_size": 4,
+        "gradient_accumulation_steps": 2
+      }
+    ],
+    "worker_candidates": [0, 2],
+    "eval_batch_candidates": [1, 2, 4, 8],
+    "longest_observed_stress_steps": 8,
+    "warmup_optimizer_steps": 10,
+    "timed_optimizer_steps": 50,
+    "throughput_windows": 5,
+    "effective_batch_size": 8,
+    "representative_rows": 480,
+    "dataloader_prefetch_factor": 2,
+    "dataloader_pin_memory": true,
+    "dataloader_persistent_workers": false,
+    "limits": {
+      "max_total_gpu_memory_used_mib": 16384,
+      "required_free_gpu_memory_mib": 0,
+      "min_system_ram_available_bytes": 4294967296,
+      "max_swap_growth_bytes": 536870912,
+      "ram_swap_hard_gate": false,
+      "eval_loss_tolerance": 0.0001,
+      "minimum_throughput_improvement_percent": 5.0,
+      "throughput_tie_percent": 3.0
+    }
+  },
+  "tokenizer_compatibility": {
+    "preserve_phase4_and_ki10_tokenization": true,
+    "fix_mistral_regex_applied": false,
+    "disposition": "동일 tokenizer revision의 기존 Phase 4·KI10 byte semantics를 유지하고 별도 데이터·run version에서만 변경 검토"
+  },
+  "governance": {
+    "ki10_rerun_allowed": false,
+    "ki20_full_training_performed": false,
+    "full_training_command_exposed": false,
+    "production_promotion_allowed": false,
+    "blind_source_test_inspected": false,
+    "benchmark_optimizer_steps_are_temporary": true,
+    "temporary_models_and_optimizer_states_retained": false
+  },
+  "outputs": {
+    "private_root": "runs/KI20-MIX-v2-THROUGHPUT/v1.1.0/{preflight_build_id}",
+    "public_root": "data/reports/saju_1b_baseline/phase5-preflight/v1.1.0/{preflight_build_id}"
+  },
+  "implementation_files": [
+    "scripts/training/phase5_ki20_preflight.py"
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "artifact_sha256": {
+    "readiness_summary.json": "4fd2bba2accec2e84e1c2b90813c2d58b8c88cd9ce40da12a434479621761cbb"
+  },
+  "blind_source_test_inspected": false,
+  "build_id": "build-7eb4c34364cc",
+  "build_inputs": {
+    "evaluation_split": {
+      "build_id": "build-e885b47cae74",
+      "build_sha256": "e885b47cae74c63dec1e813f6223df064cb01e507f85717eaa9bcccbe8f21759",
+      "config": "configs/data_versions/saju_1b_baseline/evaluation-split-v1.2.0.json",
+      "config_sha256": "4ab7e4d9737ae794d256589a5e7a5aff06d0536ba5c22f7fcef43f026cd3802a",
+      "public_manifest": "data/reports/saju_1b_baseline/evaluation-split/v1.2.0/build-e885b47cae74/build_manifest.json",
+      "public_manifest_sha256": "0fdeed9abbea900c344cab0cc1794601bf6d7f1c1863ce9c7c46fc48fecebb88",
+      "split_summary": "data/reports/saju_1b_baseline/evaluation-split/v1.2.0/build-e885b47cae74/split_summary.json",
+      "split_summary_sha256": "94c0bf0e22c4f05f9870bd15966b41df39f6c8f97b8744856883e5d40d0e4888",
+      "version": "v1.2.0"
+    },
+    "governance_sha256": "b5b6be5a8357e175362341895f605bd1516ed202769f6c4abde479f18954c383",
+    "implementation_hashes": {
+      "configs/data_versions/saju_1b_baseline/phase5-readiness-v1.3.0.json": "938b752f849ce0b264043cd7fe4b652a52dbd7c2af36c8164f66baf7e9b708df",
+      "scripts/training/phase5_readiness_v1_3.py": "925c4e875a91b71fc8e41923e4402020e9917e41b37826262f1fe755079db340"
+    },
+    "ki20_preflight": {
+      "build_id": "preflight-b47fe12f03a4",
+      "build_sha256": "b47fe12f03a4114a8b9c30bb39b1cc57c12bcfc0525747209b50d0113fcbcd2e",
+      "config": "configs/model_versions/saju_1b_baseline/phase5-training-v1.1.0.json",
+      "config_sha256": "ee0f80eac83ae8cf4f72476bc0f69d002e9b41c21c11162f4b40e43f6d34db2f",
+      "preflight_report": "data/reports/saju_1b_baseline/phase5-preflight/v1.1.0/preflight-b47fe12f03a4/preflight_report.json",
+      "preflight_report_sha256": "13b97de21009daf86f850b9289e0d88b26a89f728e0ef2ec338a243be23f7b8b",
+      "public_manifest": "data/reports/saju_1b_baseline/phase5-preflight/v1.1.0/preflight-b47fe12f03a4/build_manifest.json",
+      "public_manifest_sha256": "5ab09eaa1f1d3e7d62b5f6c43a99d2b6b3df0a97381731eff96a4348f26597e8",
+      "resolved_config": "data/reports/saju_1b_baseline/phase5-preflight/v1.1.0/preflight-b47fe12f03a4/config.resolved.json",
+      "resolved_config_sha256": "8277c2595ecaf073416dc7872a45c2e98a08b9667da476ecdaec136cee606acb",
+      "version": "v1.1.0"
+    },
+    "parent_readiness": {
+      "build_id": "build-e325f16096dd",
+      "build_sha256": "e325f16096dd135b08c3c6e7219c1a7e285841b8ddee27e059bb76b12fbf7775",
+      "config": "configs/data_versions/saju_1b_baseline/phase5-readiness-v1.2.0.json",
+      "config_sha256": "9c26c9fe8f990c4914c8451443dc020ae416ae90e482b8e2dac0fb78d2e2f8e4",
+      "public_manifest": "data/reports/saju_1b_baseline/phase5-readiness/v1.2.0/build-e325f16096dd/build_manifest.json",
+      "public_manifest_sha256": "b0356b2d5179dab49ffb997bd882685ddfa3e35fdc3b8bacf652e57371a3b0e3",
+      "readiness_summary": "data/reports/saju_1b_baseline/phase5-readiness/v1.2.0/build-e325f16096dd/readiness_summary.json",
+      "readiness_summary_sha256": "6ca7fb4e83d7c4db5824f5de6cc10465fc31a573247d0b77361da1b4bf63d814",
+      "version": "v1.2.0"
+    },
+    "quality_gate": {
+      "build_id": "gate-df26e962e145",
+      "build_sha256": "df26e962e1450b5b2c956b3b0f96531fa567c0c7ac897be233d5375879d878f4",
+      "config": "configs/model_versions/saju_1b_baseline/phase5-quality-gate-v2.0.0.json",
+      "config_sha256": "0f6c3cdf5d2df4d35dd0c109a9794bbd15022c5fec09d77f79054b1a79f4cf57",
+      "gate_summary": "data/reports/saju_1b_baseline/phase5-gate/v2.0.0/KI10-MIX-v2/gate-df26e962e145/gate_v2_summary.json",
+      "gate_summary_sha256": "6fbd520ca369e152eb89eee150bc583840a9e6ddfff92e994e5b0b6b17e16314",
+      "public_manifest": "data/reports/saju_1b_baseline/phase5-gate/v2.0.0/KI10-MIX-v2/gate-df26e962e145/build_manifest.json",
+      "public_manifest_sha256": "cebc0bc5f11175b401362f525e29549deff35f7bbe086288a6e61dde5ec70995",
+      "version": "v2.0.0"
+    },
+    "readiness_version": "v1.3.0"
+  },
+  "build_sha256": "7eb4c34364ccdbcb0a6d026d9062ca592727f6b1c4ec801ec96ab8b2178def44",
+  "experiment_continuation_allowed": true,
+  "full_training_execution_enabled": false,
+  "ki20_full_training_performed": false,
+  "ki20_preflight_ready": true,
+  "production_promotion_allowed": false,
+  "report_type": "phase5_readiness_v1_3_public_manifest",
+  "schema_version": "1.3.0",
+  "status": "ki20_preflight_ready_quality_targets_not_met"
+}

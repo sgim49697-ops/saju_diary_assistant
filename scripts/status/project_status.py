@@ -29,7 +29,7 @@ DEFAULT_CONFIG = Path(
     "configs/data_versions/saju_1b_baseline/project-status-v1.0.0.json"
 )
 PUBLIC_FILE_MODE = 0o644
-BUILD_PATTERN = re.compile(r"^(?:build|run)-[0-9a-f]{12}$")
+BUILD_PATTERN = re.compile(r"^(?:build|run|gate|preflight)-[0-9a-f]{12}$")
 
 
 class ProjectStatusError(RuntimeError):
@@ -53,11 +53,12 @@ def _json_bytes(value: Any) -> bytes:
 def validate_contract(config: dict[str, Any], repo_root: Path) -> dict[str, Any]:
     if (
         config.get("schema_version") != "1.0.0"
-        or config.get("canonical_plan_version") != "3.2.0"
+        or config.get("canonical_plan_version") != "3.3.0"
         or config.get("dataset_name") != "saju_1b_baseline"
         or config.get("status_version") != "v1.0.0"
         or config.get("as_of") != "2026-08-29"
-        or config.get("stage") not in {"pre_ki10", "ki10_gate_failed"}
+        or config.get("stage")
+        not in {"pre_ki10", "ki10_gate_failed", "ki20_preflight_ready"}
     ):
         raise ProjectStatusError("project status identity가 다릅니다.")
     components = config.get("components")

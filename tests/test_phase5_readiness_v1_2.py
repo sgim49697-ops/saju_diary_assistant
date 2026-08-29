@@ -40,8 +40,11 @@ class Phase5ReadinessV12Tests(unittest.TestCase):
                 REPO_ROOT / "configs/data_versions/saju_1b_baseline/registry.json"
             ).read_text(encoding="utf-8")
         )
-        approved = registry["approved_phase5_readiness"]
-        self.assertEqual(approved["build_id"], "build-e325f16096dd")
+        approved = next(
+            value
+            for value in registry["phase5_readiness_builds"]
+            if value["build_id"] == "build-e325f16096dd"
+        )
         public_root = (
             REPO_ROOT
             / "data/reports/saju_1b_baseline/phase5-readiness/v1.2.0"

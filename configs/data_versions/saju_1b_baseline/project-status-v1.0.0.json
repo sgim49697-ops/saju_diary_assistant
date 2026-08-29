@@ -1,20 +1,20 @@
 {
   "schema_version": "1.0.0",
-  "canonical_plan_version": "3.2.0",
+  "canonical_plan_version": "3.3.0",
   "dataset_name": "saju_1b_baseline",
   "status_version": "v1.0.0",
   "as_of": "2026-08-29",
-  "stage": "ki10_gate_failed",
+  "stage": "ki20_preflight_ready",
   "decision": {
-    "stage_label": "KI10 GATE FAILED",
-    "stage_status": "차단",
-    "signal": "STOP",
-    "signal_tone": "stop",
-    "headline": "KI10은 완료됐지만,",
-    "headline_accent": "KI20은 차단됐습니다.",
-    "summary": "KI10 학습·재로딩은 통과했지만 고정 1,000case 자동 품질 Gate 4개가 미달했습니다. 임계값을 완화하지 않고 KI20 승격과 sealed blind 접근을 차단합니다.",
+    "stage_label": "KI20 PREFLIGHT READY",
+    "stage_status": "대기",
+    "signal": "WAIT",
+    "signal_tone": "wait",
+    "headline": "KI20 비학습 검증은 준비됐고,",
+    "headline_accent": "실제 학습은 아직 실행하지 않았습니다.",
+    "summary": "Gate v2의 기술·안전 hard gate는 모두 통과해 실험 지속은 허용됩니다. 다만 지식·정책 품질 목표는 미달이므로 배포 승격은 금지하며, KI20 본학습은 별도 명시적 확인 전까지 비활성입니다.",
     "ki10_baseline": "완료",
-    "ki20_promotion": "차단",
+    "ki20_promotion": "대기",
     "expert_quality": "금지",
     "sealed_blind": "금지",
     "phase4_rerun": "불필요 · 데이터 fingerprint 불변"
@@ -71,23 +71,23 @@
     },
     {
       "name": "평가 역할 계약",
-      "version": "v1.1.0",
-      "build_id": "build-d2f9e1623e96",
-      "sha256": "d2f9e1623e96699bcec57b0e583bfaf779e365f27ccf0907b855f02558494703",
+      "version": "v1.2.0",
+      "build_id": "build-e885b47cae74",
+      "sha256": "e885b47cae74c63dec1e813f6223df064cb01e507f85717eaa9bcccbe8f21759",
       "status": "완료"
     },
     {
       "name": "Phase 5 readiness",
-      "version": "v1.2.0",
-      "build_id": "build-e325f16096dd",
-      "sha256": "e325f16096dd135b08c3c6e7219c1a7e285841b8ddee27e059bb76b12fbf7775",
+      "version": "v1.3.0",
+      "build_id": "build-7eb4c34364cc",
+      "sha256": "7eb4c34364ccdbcb0a6d026d9062ca592727f6b1c4ec801ec96ab8b2178def44",
       "status": "완료"
     },
     {
-      "name": "Phase 5 runner 계약",
-      "version": "v1.0.0",
-      "build_id": "build-752f792ae6f6",
-      "sha256": "752f792ae6f6b44ea8a25b8a9fc3228082ef707d768ffe2205c1a2252907a016",
+      "name": "KI20 비학습 preflight",
+      "version": "v1.1.0",
+      "build_id": "preflight-b47fe12f03a4",
+      "sha256": "b47fe12f03a4114a8b9c30bb39b1cc57c12bcfc0525747209b50d0113fcbcd2e",
       "status": "완료"
     },
     {
@@ -98,11 +98,18 @@
       "status": "완료"
     },
     {
-      "name": "KI10 자동 품질 Gate",
+      "name": "KI10 Gate v1 기록",
       "version": "v1.0.0",
       "build_id": "run-e6b712f0d45e",
       "sha256": "96e7b412009259e261b77eb429ffdcdfc9470b3f030ed53cba105f31ba2b304d",
       "status": "차단"
+    },
+    {
+      "name": "KI10 Gate v2",
+      "version": "v2.0.0",
+      "build_id": "gate-df26e962e145",
+      "sha256": "df26e962e1450b5b2c956b3b0f96531fa567c0c7ac897be233d5375879d878f4",
+      "status": "완료"
     }
   ],
   "phases": [
@@ -111,8 +118,8 @@
     {"phase": 2, "title": "품질 보정 전처리", "status": "완료", "note": "7축 24K staging과 로컬 reservoir 완결"},
     {"phase": 3, "title": "모델·CUDA 환경", "status": "완료", "note": "Kanana BF16·torch 2.13.0+cu130 smoke 통과"},
     {"phase": 4, "title": "학습 전 기술 검증", "status": "완료", "note": "768 Full FT 200-step resume와 canonical v2 승인"},
-    {"phase": 5, "title": "10K·조건부 20K 학습", "status": "차단", "note": "KI10 완료·자동 품질 Gate 4개 미달, KI20 승격 금지"},
-    {"phase": 6, "title": "봉인 평가·다음 결정", "status": "미시작", "note": "KI20 차단 상태에서 sealed blind 접근 금지"}
+    {"phase": 5, "title": "10K·조건부 20K 학습", "status": "진행 중", "note": "KI10 완료·Gate v2 기술/안전 통과·KI20 비학습 preflight 완료"},
+    {"phase": 6, "title": "봉인 평가·다음 결정", "status": "미시작", "note": "KI20 본학습과 최종 checkpoint 고정 전 sealed blind 접근 금지"}
   ],
   "dataset_axes": [
     {"label": "Nemotron 사주 해석", "rows": 6800, "assistant_token_share_percent": 58.080955, "evidence": "SOFT_GT"},
@@ -133,12 +140,15 @@
     {"name": "원천 revision", "status": "통과", "criterion": "고정 SHA drift 0", "result": "Kanana·Nemotron·bazi·비교 엔진 revision 일치"},
     {"name": "Phase 4 hash chain", "status": "통과", "criterion": "A~E·768·Full FT smoke 재검증", "result": "canonical build-6f32d52c2868"},
     {"name": "20K 의미·출처 감사", "status": "통과", "criterion": "hard blocker·critical/high·mask 오류 0", "result": "수정 없이 KI10 baseline 허용"},
-    {"name": "평가 봉인", "status": "통과", "criterion": "v1.0 bytes 보존·blind 미열람", "result": "dev 930+guard 50만 사전 사용"},
-    {"name": "Phase 5 readiness", "status": "통과", "criterion": "모델·환경·data·runner exact hash", "result": "KI10만 실행 허용"},
+    {"name": "평가 봉인", "status": "통과", "criterion": "기존 membership·blind bytes 보존", "result": "v1.2 contract 130·handoff 50 추가, blind 미열람"},
+    {"name": "Phase 5 readiness", "status": "통과", "criterion": "split·Gate v2·preflight exact hash", "result": "build-7eb4c34364cc · 본학습 실행 비활성"},
     {"name": "KI10 forward preflight", "status": "통과", "criterion": "BF16 forward·assistant-only eval loss finite", "result": "run-e6b712f0d45e · loss 3.658891 · peak VRAM 3,675,810,816 bytes"},
     {"name": "KI10 Full FT·reload", "status": "통과", "criterion": "1,250 step·finite loss/gradient·새 프로세스 reload 5/5", "result": "train 0.767983 · final dev 0.944268 · peak VRAM 6,757,645,824 bytes"},
-    {"name": "KI10 1,000case Gate", "status": "차단", "criterion": "고정 자동 기준 전부 통과", "result": "hard/branch 38/100 · 신살 17/25 · handoff 3/5 · target-only date 1건"},
-    {"name": "KI20", "status": "차단", "criterion": "KI10 모든 품질 기준 통과", "result": "ki20_promotion_allowed=false · 실행하지 않음"},
+    {"name": "KI10 Gate v1", "status": "차단", "criterion": "과거 통합 승격 기준", "result": "원본 코드·보고서 bytes를 변경하지 않고 역사 기록으로 보존"},
+    {"name": "KI10 Gate v2 hard gate", "status": "통과", "criterion": "artifact·step·reload·안전·민감정보·허위 원국 0", "result": "10/10 통과 · experiment_continuation_allowed=true"},
+    {"name": "KI10 Gate v2 품질 목표", "status": "주의", "criterion": "지식·정책·handoff 목표", "result": "원국 글자 12/12 외 8개 목표 미달 · 배포 승격 금지"},
+    {"name": "KI20 비학습 preflight", "status": "통과", "criterion": "forward/backward/optimizer·후보 비교·16 GiB 미만", "result": "train 4×accum2·worker 0·eval 8 · peak 10,634 MiB"},
+    {"name": "KI20 본학습", "status": "대기", "criterion": "별도 명시적 재확인", "result": "full_training_execution_enabled=false · 1 epoch 미실행"},
     {"name": "sealed blind", "status": "금지", "criterion": "final checkpoint 고정 뒤 단회", "result": "현재 미열람"}
   ],
   "known_risks": [
@@ -147,7 +157,9 @@
     {"id": "R-TEMPLATE-DUP", "severity": "주의", "title": "정형 답변 반복", "finding": "YEJI 95.5%, deterministic QA 7.8%가 정규화 중복에 참여하지만 축간 중복 group은 0입니다.", "disposition": "reference 유사도를 최종 품질 점수에서 제외하고 조건·입력별 계약을 채점합니다."},
     {"id": "R-DEV-REFERENCE-OVERLAP", "severity": "주의", "title": "개발 reference 학습 답변 중복", "finding": "dev diagnostic 940case 중 137, monitor 70case 중 12가 학습 assistant와 exact 일치합니다.", "disposition": "개발용 누수 진단으로 공개하고 blind 일반화 주장에 사용하지 않습니다."},
     {"id": "R-NO-EXPERT-GOLD", "severity": "주의", "title": "전문가 Gold 부재", "finding": "사람 전문 항목 검수와 품질 인증을 수행하지 않았습니다.", "disposition": "KI10은 baseline 기술 실험으로만 취급하고 배포·전문가 정확성 주장을 금지합니다."},
-    {"id": "R-KI10-KNOWLEDGE-GATE", "severity": "차단", "title": "KI10 지식·정책 Gate 미달", "finding": "hard fact·branch policy 38%, 신살 조건·긍부정 68%, missing-chart handoff 3/5로 승격 기준을 미달했습니다.", "disposition": "현재 임계값을 낮추지 않고 새 데이터·평가·run version에서 지식·정책 축을 보강할 때까지 KI20을 금지합니다."}
+    {"id": "R-KI10-QUALITY-TARGET", "severity": "주의", "title": "Gate v2 지식·정책 목표 미달", "finding": "원국 글자 12/12는 통과했지만 지장간 7/12·천간 십신 0/12·지지 십신 1/12·handoff 행동 7/50 등 8개 목표가 미달했습니다.", "disposition": "기술 실험 지속과 배포 품질 승격을 분리합니다. KI20 실험 결과는 품질 인증이 아니며 sealed blind와 배포는 계속 금지합니다."},
+    {"id": "R-TOKENIZER-REGEX", "severity": "주의", "title": "Mistral regex 호환 경고", "finding": "base snapshot과 KI10 final tokenizer 파일 SHA-256은 동일하지만 현재 Transformers가 Mistral regex 호환 경고를 냅니다.", "disposition": "이번 비교에서는 토큰 fingerprint를 보존하고 fix_mistral_regex를 적용하지 않습니다. 변경은 별도 tokenizer·data·run version에서 검증합니다."},
+    {"id": "R-LOSS-AGGREGATION", "severity": "주의", "title": "loss 집계 단위 차이", "finding": "과거 Trainer eval loss와 이번 전체 supervised-token micro NLL은 집계 단위가 달라 절대값을 직접 비교할 수 없습니다.", "disposition": "표준 assistant-only chunked NLL을 유지하고 macro·micro loss는 진단값으로만 사용하며 자동 품질 Gate에는 넣지 않습니다."}
   ],
   "web_sources": [
     {"name": "Kanana 2 1.3B Instruct", "url": "https://huggingface.co/kakaocorp/kanana-2-1.3b-instruct", "revision": "bf4786aa2a1908adce942d53976270132732f720", "role": "학습 시작 모델", "decision": "고정 BF16 snapshot만 사용"},
@@ -157,7 +169,9 @@
     {"name": "manseryeok", "url": "https://github.com/yhj1024/manseryeok", "revision": "fba3253d7305b8b61189bd78318a7a27ed8c9b09", "role": "runtime 정책 비교", "decision": "복수 경계 구현 교차 확인"},
     {"name": "NOLLI", "url": "https://github.com/HAE-RAE/NOLLI", "revision": "ce60156b92f2b8bcc23e27c69144d22721abc899", "role": "runtime 계산 비교", "decision": "모델 SFT 최종 품질 점수에서 제외"},
     {"name": "KASI 음양력 정보", "url": "https://www.data.go.kr/data/15012679/openapi.do", "revision": "2026-08-29 정책 확인", "role": "달력 field 기준", "decision": "전체 사주 원국 oracle로 확대 금지"},
-    {"name": "TRL SFTTrainer", "url": "https://huggingface.co/docs/trl/v1.12.0/en/sft_trainer", "revision": "v1.12.0", "role": "Full FT 실행 계약", "decision": "generation marker 기반 assistant-only loss"}
+    {"name": "TRL SFTTrainer", "url": "https://huggingface.co/docs/trl/v1.12.0/en/sft_trainer", "revision": "v1.12.0", "role": "SFT 목적함수·mask 계약", "decision": "assistant-only chunked_nll; 표준 NLL과 같은 수학"},
+    {"name": "PyTorch CrossEntropyLoss", "url": "https://docs.pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html", "revision": "2026-08-29 확인", "role": "token NLL reduction 기준", "decision": "ignore_index 제외 token micro와 축 macro를 분리 보고"},
+    {"name": "Transformers tokenizer backend", "url": "https://github.com/huggingface/transformers/blob/main/src/transformers/tokenization_utils_tokenizers.py", "revision": "2026-08-29 main 확인", "role": "Mistral regex 경고 근거", "decision": "현 fingerprint 보존·별도 version에서만 migration"}
   ],
   "validation_summary": [
     "canonical MIX20 20,000행·7축 수량·record hash 재검증",
@@ -167,11 +181,13 @@
     "평가 v1.0 membership·blind bytes 보존, blind payload 미열람",
     "AI Hub 원문·ID·개별 hash·checkpoint를 공개 산출물에서 제외",
     "KI10과 KI20을 base snapshot에서 독립 시작하도록 runner 고정",
-    "KI20은 KI10 1,000case 자동 Gate 미달로 fail-closed",
+    "Gate v1 산출물 bytes를 보존하고 Gate v2에서 기술·안전 hard gate와 품질 목표를 분리",
     "KI10 10,000행의 최종 assistant EOS mask 10,000/10,000과 forward-only loss 3.658891 재검증",
     "KI10 1,250 optimizer step·새 프로세스 reload 5/5·유한 loss/gradient 통과",
-    "KI10 1,000case에서 안전·공감 Gate는 통과했으나 지식·정책 4개 Gate 미달로 KI20 차단",
-    "고정 reference 동일 채점에서 hard fact 60/60·branch policy 40/40·신살 25/25 통과"
+    "Gate v2 reference 175/175 통과·의도적 mutation 175/175 거부·blind 미열람",
+    "KI20 후보 1×8·2×4·4×2를 격리 비교해 4×2 선택, worker 2는 5% 개선 미달로 worker 0 유지",
+    "실측 GPU 최대 10,634 MiB로 16 GiB hard cap 통과·RAM/swap은 진단값으로만 기록",
+    "eval batch 1/2/4/8 동등성 검사 후 batch 8 선택·full KI20 1 epoch는 실행하지 않음"
   ],
   "outputs": {
     "root_html": "PROJECT_STATUS.html",
