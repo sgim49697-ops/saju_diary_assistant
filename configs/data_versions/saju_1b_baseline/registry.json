@@ -21,6 +21,23 @@
     "training_promotion_allowed": true,
     "version": "v2.0.0"
   },
+  "approved_evaluation_split": {
+    "blind_components": 350,
+    "blind_rows": 500,
+    "build_id": "build-a5a04ab96594",
+    "build_sha256": "a5a04ab96594563c88516aebea97df52c6b3efadb8f17b987f73544e7f5d26d2",
+    "canonical_training_fingerprint_changed": false,
+    "config_sha256": "c456ef24ad7e49bdb4bf593ec291d7973a075f93f2106459aff9cf4ec3257a2b",
+    "external_conformance_report_sha256": "5e611e2138970f591b642f3412f1f886f6e56930f9e9f52fb7c454d78a8900cd",
+    "implementation_commit": "551fdb051bb70d3ee71da729f8c4e29767cf132d",
+    "phase4_smoke_reexecution_required": false,
+    "phase5_training_performed": false,
+    "private_manifest_sha256": "da6e358d4a8f59f0d63cbbda3432d07c0bad5daa26baa4c6cd6bc08da6d295cc",
+    "public_manifest_sha256": "297f25582536fdb1a6cd53541ee2085575e07e7e0d2bcb92dafe98df55df64b4",
+    "split_summary_sha256": "7e2a535dffc188fdc4b7480b81df5ff38d3a5e680225ea08041ca231fd7f0464",
+    "status": "sealed_blind_ready_for_post_training_evaluation",
+    "version": "v1.0.0"
+  },
   "approved_staging": {
     "approval_basis": "explicit_owner_automated_technical_acceptance",
     "build_id": "build-a5a9e76d6a8c",
@@ -118,6 +135,25 @@
       "technical_full_ft_preflight_passed": true,
       "training_promotion_allowed": true,
       "version": "v2.0.0"
+    }
+  ],
+  "evaluation_split_builds": [
+    {
+      "blind_components": 350,
+      "blind_rows": 500,
+      "build_id": "build-a5a04ab96594",
+      "build_sha256": "a5a04ab96594563c88516aebea97df52c6b3efadb8f17b987f73544e7f5d26d2",
+      "canonical_training_fingerprint_changed": false,
+      "config_sha256": "c456ef24ad7e49bdb4bf593ec291d7973a075f93f2106459aff9cf4ec3257a2b",
+      "external_conformance_report_sha256": "5e611e2138970f591b642f3412f1f886f6e56930f9e9f52fb7c454d78a8900cd",
+      "implementation_commit": "551fdb051bb70d3ee71da729f8c4e29767cf132d",
+      "phase4_smoke_reexecution_required": false,
+      "phase5_training_performed": false,
+      "private_manifest_sha256": "da6e358d4a8f59f0d63cbbda3432d07c0bad5daa26baa4c6cd6bc08da6d295cc",
+      "public_manifest_sha256": "297f25582536fdb1a6cd53541ee2085575e07e7e0d2bcb92dafe98df55df64b4",
+      "split_summary_sha256": "7e2a535dffc188fdc4b7480b81df5ff38d3a5e680225ea08041ca231fd7f0464",
+      "status": "sealed_blind_ready_for_post_training_evaluation",
+      "version": "v1.0.0"
     }
   ],
   "schema_version": "1.0.0",

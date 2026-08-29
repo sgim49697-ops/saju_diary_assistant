@@ -1,0 +1,120 @@
+{
+  "blind_raw_or_ids_in_public_report": false,
+  "build_id": "build-a5a04ab96594",
+  "build_sha256": "a5a04ab96594563c88516aebea97df52c6b3efadb8f17b987f73544e7f5d26d2",
+  "canonical_training_fingerprint_changed": false,
+  "human_domain_review_performed": false,
+  "leakage": {
+    "bazi_rows_per_component": 4,
+    "blind_component_grouping_preserved": true,
+    "development_internal_component_overlap": 8,
+    "normalized_content_hash_checked": true,
+    "overlaps": {
+      "development_blind_component": 0,
+      "development_blind_content_sha256": 0,
+      "development_blind_record_id": 0,
+      "development_blind_record_sha256": 0,
+      "train_blind_component": 0,
+      "train_blind_content_sha256": 0,
+      "train_blind_record_id": 0,
+      "train_blind_record_sha256": 0,
+      "train_development_component": 0,
+      "train_development_content_sha256": 0,
+      "train_development_record_id": 0,
+      "train_development_record_sha256": 0
+    },
+    "raw_samples_in_report": false,
+    "schema_version": "1.0.0",
+    "status": "passed"
+  },
+  "parent_phase4": {
+    "canonical_build_id": "build-6f32d52c2868",
+    "canonical_build_sha256": "6f32d52c2868bb8b5e07724cbdc00a6bc0b2f1608fe53ac54c357a6ec0832ee9",
+    "completion_report_sha256": "f4d576789b1774164fbb5a58758c96a9cc31da9a8827b3e5df9d9397e4fc7e5c",
+    "phase5_training_performed": false,
+    "preflight_build_id": "build-2feaee353252",
+    "preflight_build_sha256": "2feaee35325205809e342097b69dbefb6dbe1609e08f913b434ee6bb3ec8f399",
+    "preflight_config": "configs/data_versions/saju_1b_baseline/preflight-v2.0.0.json",
+    "private_manifest_sha256": "66b21f086aa836ee595826f5f8f6eeb3bd234b47a15ec210a2131f548c4bedbf",
+    "public_manifest_sha256": "c670c2ad6481221ec140f49fc79ef4d83bdd275342d7692c3134a9e133ff7fec",
+    "selected_max_length": 768,
+    "status": "approved_for_phase5_training",
+    "training_promotion_allowed": true,
+    "version": "v2.0.0"
+  },
+  "phase4_smoke_reexecution_required": false,
+  "phase5_training_performed": false,
+  "private_artifact_sha256": {
+    "eval/blind_source_test_500.jsonl": "39c41fd7d9d53230dc53c4fcbf95017a232c47176b0075100bc3a67edfdb96ff",
+    "eval/dev_diagnostic_930.jsonl": "0b6f62ad9f5849e24bf96f613f173be922aeaf1b9d149f72b2d37abf19a74676",
+    "eval/dev_monitor_70.jsonl": "aa61d2a763e3194e3a25561a3030c74bebb002c702ef8469c27a1bc22a2bcb31",
+    "manifests/blind_components_350.jsonl": "43fd009804b5a3293a1b48c902b73e19b274bde8e9d9b8869354a222c6835be4",
+    "manifests/evaluation_roles.json": "e81903ba91c8f1ba970aade402308179d22c4343f8e8ef28d94be179a6bc37a4",
+    "reports/leakage_report.json": "15582274a1cbe09380892a52eb2e9311b70159f6c35a4918adcf73a3cfa14df6"
+  },
+  "quality_certification_claimed": false,
+  "report_type": "phase5_evaluation_split_summary",
+  "roles": {
+    "blind_source_test_components": 350,
+    "blind_source_test_rows": 500,
+    "dev_diagnostic_rows": 930,
+    "dev_monitor_rows": 70,
+    "external_conformance_kasi_rows": 200,
+    "external_conformance_policy_rows": 20,
+    "train_10k_rows": 10000,
+    "train_20k_rows": 20000
+  },
+  "schema_version": "1.0.0",
+  "selection": {
+    "candidate_components_by_axis": {
+      "aihub_empathy_multiturn": 185,
+      "aihub_empathy_single": 180,
+      "bazi_sft": 137,
+      "deterministic_saju_qa": 200,
+      "nemotron_saju": 1430,
+      "saju_diary_bridge": 260,
+      "yeji_shensha_derived": 61
+    },
+    "cross_axis_reserve_components_selected": 0,
+    "dev_monitor_axis_counts": {
+      "aihub_empathy_multiturn": 10,
+      "aihub_empathy_single": 10,
+      "bazi_sft": 10,
+      "deterministic_saju_qa": 10,
+      "nemotron_saju": 10,
+      "saju_diary_bridge": 10,
+      "yeji_shensha_derived": 10
+    },
+    "development_internal_component_overlap": 8,
+    "development_internal_overlap_policy": "allowed_same_development_suite_not_final_test",
+    "remaining_components_by_axis": {
+      "aihub_empathy_multiturn": 135,
+      "aihub_empathy_single": 130,
+      "bazi_sft": 87,
+      "deterministic_saju_qa": 150,
+      "nemotron_saju": 1380,
+      "saju_diary_bridge": 210,
+      "yeji_shensha_derived": 11
+    },
+    "selected_components_by_axis": {
+      "aihub_empathy_multiturn": 50,
+      "aihub_empathy_single": 50,
+      "bazi_sft": 50,
+      "deterministic_saju_qa": 50,
+      "nemotron_saju": 50,
+      "saju_diary_bridge": 50,
+      "yeji_shensha_derived": 50
+    },
+    "selected_rows_by_axis": {
+      "aihub_empathy_multiturn": 50,
+      "aihub_empathy_single": 50,
+      "bazi_sft": 200,
+      "deterministic_saju_qa": 50,
+      "nemotron_saju": 50,
+      "saju_diary_bridge": 50,
+      "yeji_shensha_derived": 50
+    }
+  },
+  "split_version": "v1.0.0",
+  "status": "sealed_blind_ready_for_post_training_evaluation"
+}

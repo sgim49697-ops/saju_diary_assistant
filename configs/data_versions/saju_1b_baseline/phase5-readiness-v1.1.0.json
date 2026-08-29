@@ -1,0 +1,80 @@
+{
+  "schema_version": "1.0.0",
+  "canonical_plan_version": "3.1.0",
+  "dataset_name": "saju_1b_baseline",
+  "readiness_version": "v1.1.0",
+  "base_readiness": {
+    "version": "v1.0.0",
+    "config": "configs/data_versions/saju_1b_baseline/phase5-readiness-v1.0.0.json",
+    "config_sha256": "6a3765affe49976059991cfdae70374ca3a4d6e46d0a976ae56fa63f95426bb7",
+    "canonical_training_fingerprint_changed": false
+  },
+  "evaluation_split": {
+    "version": "v1.0.0",
+    "config": "configs/data_versions/saju_1b_baseline/evaluation-split-v1.0.0.json",
+    "config_sha256": "c456ef24ad7e49bdb4bf593ec291d7973a075f93f2106459aff9cf4ec3257a2b",
+    "build_id": "build-a5a04ab96594",
+    "build_sha256": "a5a04ab96594563c88516aebea97df52c6b3efadb8f17b987f73544e7f5d26d2",
+    "private_manifest_sha256": "da6e358d4a8f59f0d63cbbda3432d07c0bad5daa26baa4c6cd6bc08da6d295cc",
+    "public_manifest_sha256": "297f25582536fdb1a6cd53541ee2085575e07e7e0d2bcb92dafe98df55df64b4",
+    "split_summary_sha256": "7e2a535dffc188fdc4b7480b81df5ff38d3a5e680225ea08041ca231fd7f0464",
+    "external_conformance_report_sha256": "5e611e2138970f591b642f3412f1f886f6e56930f9e9f52fb7c454d78a8900cd",
+    "status": "sealed_blind_ready_for_post_training_evaluation",
+    "canonical_training_fingerprint_changed": false,
+    "phase4_smoke_reexecution_required": false,
+    "phase5_training_performed": false
+  },
+  "evaluation_roles": {
+    "dev_monitor": {
+      "rows": 70,
+      "training_loop_access": true,
+      "checkpoint_selection_allowed": false,
+      "final_claim_allowed": false
+    },
+    "dev_diagnostic": {
+      "rows": 930,
+      "training_loop_access": false,
+      "final_claim_allowed": false
+    },
+    "blind_source_test": {
+      "components": 350,
+      "rows": 500,
+      "training_loop_access": false,
+      "sealed": true,
+      "aggregation": "component_then_axis_macro"
+    },
+    "external_conformance": {
+      "rows": 220,
+      "training_loop_access": false,
+      "score_separately": true
+    }
+  },
+  "final_evaluation_gate": {
+    "required_frozen_checkpoints": [
+      "K0-INSTRUCT",
+      "KI10-MIX-v2",
+      "KI20-MIX-v2"
+    ],
+    "blind_evaluation_runs": 1,
+    "blind_spent_after_output_inspection": true,
+    "post_inspection_change_requires_new_split_version": true
+  },
+  "outputs": {
+    "private_root": "data/derived/saju_1b_baseline/phase5-readiness/v1.1.0/{build_id}",
+    "public_root": "data/reports/saju_1b_baseline/phase5-readiness/v1.1.0/{build_id}"
+  },
+  "governance": {
+    "training_promotion_allowed": true,
+    "canonical_training_data_modified": false,
+    "phase4_smoke_reexecution_required": false,
+    "human_domain_review_performed": false,
+    "quality_certification_claimed": false,
+    "phase5_training_performed": false
+  },
+  "implementation_files": [
+    "scripts/training/phase5_readiness.py",
+    "scripts/training/phase5_readiness_v1_1.py",
+    "scripts/evaluation/external_conformance.py",
+    "scripts/evaluation/phase5_split.py"
+  ]
+}
