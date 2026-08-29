@@ -208,6 +208,11 @@ runs/KI20-MIX-v2/
 ## 진행 기록
 
 - 2026-08-29
+  - 작업 요약: 기존 1,000건이 개발 중 노출된 점을 반영해 Phase 5 평가 역할 분리와 새 source blind 생성기를 구현했다. 실제 학습은 실행하지 않았다.
+  - 변경 범위: eval70은 loss monitor 전용이며 checkpoint 선택·early stopping·최종 성능 주장에 쓰지 않는다. 나머지 source holdout 630+Core Eval 300은 개발 진단, reserve 7축 350 component/500행은 Phase 6 단회 blind, 공개 KASI·정책 fixture 220행은 별도 conformance로 고정한다.
+  - 검증: 고정 tokenizer 768 제한, 7축 층화, BaZi 4질문 component, component/record/content hash 누수 0을 fail-closed로 검사한다. 외부 fixture는 runtime·학습 Gold를 자동 승인하지 않는다.
+  - 남은 이슈·후속 작업: clean checkpoint에서 evaluation-split build와 readiness v1.1을 생성·재검증한 뒤 문서에 최종 build/hash를 기록한다. `phase5_training_performed=false`다.
+- 2026-08-29
   - 작업 요약: 구현 checkpoint `89685ba82927a96c40654a47a4b0daa7f8b3a91f`에서 비학습 readiness `v1.0.0/build-f6c8171f454f`을 생성하고 독립 재검증했다. Phase 5 상태는 실제 KI10·KI20 학습을 시작하지 않았으므로 계속 `미시작`이다.
   - 변경 범위: canonical KI10 10,000행·KI20 20,000행의 7축 수량과 strict subset, 축별 10건 eval70의 train component 교집합 0, 고정 Kanana revision·template·package lock, 단일 RTX 5070 Ti·CUDA 13.0·BF16 및 64GiB disk 최소값을 불변 입력 계약으로 고정했다.
   - 검증: `prepare --execute`와 별도 `verify`가 통과했다. readiness SHA-256은 `f6c8171f…1135c3`, private/public manifest는 `6f72abe1…8c273`/`9b71d2d3…8a176`, eval70은 `aa61d2a7…bcb31`이며 생성 시 가용 disk는 754,540,773,376 bytes였다.

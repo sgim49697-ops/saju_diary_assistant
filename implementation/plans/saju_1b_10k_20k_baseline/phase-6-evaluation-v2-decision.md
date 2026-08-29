@@ -23,6 +23,15 @@ KI10과 KI20을 동일 조건에서 평가해 데이터량 증가의 효과와 �
 
 모든 모델에 동일 prompt, chat template, EOS와 아래 greedy 설정을 적용한다.
 
+평가 역할은 다음처럼 분리한다.
+
+- `dev_monitor_70`: Phase 5 loss 감시만 수행하며 checkpoint 선택·early stopping·최종 주장을 금지한다.
+- `dev_diagnostic_930`: K0·KI10·KI20 파이프라인과 오류 분석에 반복 사용할 수 있으나 최종 일반화 점수로 쓰지 않는다.
+- `blind_source_test_500`: 7축 350 component를 KI10·KI20 final checkpoint까지 봉인하고 K0·KI10·KI20에 동일하게 한 번만 실행한다. BaZi 4행을 먼저 component 평균하고 7축 macro average를 계산한다.
+- `external_conformance_220`: KASI 200행과 정책 경계 20행을 runtime/deterministic QA에 별도 채점하며 source blind 종합점수와 합치지 않는다.
+
+blind 출력을 확인한 뒤 데이터·정책·hyperparameter를 바꾸면 해당 split은 사용 완료로 표시하고 새 version을 만든다.
+
 ```yaml
 do_sample: false
 num_beams: 1
