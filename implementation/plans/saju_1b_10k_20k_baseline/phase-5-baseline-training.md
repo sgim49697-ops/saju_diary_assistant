@@ -281,8 +281,8 @@ runs/KI20-MIX-v2/v1.2.0/run-1f5d732cae67/  # 1 epoch 본학습 실행 중
 - 2026-08-29
   - 작업 요약: 실행 중인 KI20 Full FT와 분리된 loopback 전용 학습·모델 검사 대시보드 `v1.0.0`을 구현했다. 학습 중에는 `metrics.jsonl`·manifest·checkpoint만 읽고, final reload와 GPU idle이 확인된 뒤에만 모델 추론을 허용한다.
   - 변경 범위: 기존 `phase5_ki20_train.py`와 실행 config·run fingerprint는 수정하지 않았다. 별도 config·보안 HTTP 서버·자체 호스팅 HTML/CSS/JS·테스트를 추가했으며, 대시보드에는 학습 중단·재개·삭제 기능이 없다. KI10 비봉인 진단 결과에서 10개 범주 20건을 해시 기반으로 고정해 KI20 final과 비교하되 정식 Gate·Phase 6·sealed blind와 분리했다.
-  - 검증: dashboard 단위·HTTP 보안 12건, Ruff, JavaScript syntax, diff check가 통과했다. 실제 run을 읽기 전용으로 연결해 step 1,170에서 service/PID active, runtime alert 0, checkpoint 250·500·750·1000 complete를 확인했다. 격리 worktree 전체 206개 테스트 중 Git 제외 model/raw/derived/staging 부재에 의존하는 기존 18건은 환경 오류였고, 구현 반영 후 원 작업 트리에서 재실행한다.
-  - 남은 이슈·후속 작업: 검증된 구현을 원 작업 트리에 반영한 뒤 전체 테스트와 HTTP smoke를 재실행하고 `127.0.0.1:8765` systemd user service를 시작한다. 고정 20건·수동 질문은 학습 완료 전까지 fail-closed로 유지하며, 결과는 Git 제외 private run에만 둔다.
+  - 검증: dashboard 단위·HTTP 보안 12건과 저장소 전체 220개 unittest, Ruff, JavaScript syntax, diff check가 통과했다. 실제 run HTTP smoke는 step 1,420에서 HTML/API 200, runtime alert 0, train/eval metric 143/5행, checkpoint 5개 complete, 학습 중 generation 409 차단을 확인했다. 격리 worktree에서 Git 제외 산출물 부재로 끝난 기존 테스트는 원 작업 트리 재실행에서 모두 통과했다.
+  - 남은 이슈·후속 작업: `saju-ki20-dashboard-run-1f5d732cae67.service`가 `127.0.0.1:8765`에서 실행 중이며 Windows/WSL의 `http://localhost:8765`로 확인한다. 고정 20건·수동 질문은 학습 완료 전까지 fail-closed로 유지하고, 완료 뒤 화면에서 고정 검사를 한 번 실행하되 결과는 Git 제외 private run에만 둔다. 대시보드 종료는 `systemctl --user stop saju-ki20-dashboard-run-1f5d732cae67.service`를 사용한다.
 - 2026-08-29
   - 작업 요약: 실행 계약 commit `9ad00a283ce64ff222a54c41f743ae378ce12fe4`에서 KI20 `run-1f5d732cae67`을 systemd user service로 시작하고 첫 정상 optimizer step을 검증했다.
   - 변경 범위: Git 제외 private run 경로에 initializing manifest를 만든 뒤 step 1에서만 `phase5_training_performed=true`와 start marker를 원자적으로 기록했다. 모델·20K manifest·기존 KI10/v1.1 산출물은 수정하지 않았다.
