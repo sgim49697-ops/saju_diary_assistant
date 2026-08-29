@@ -2,7 +2,7 @@
 
 | 항목 | 값 |
 |---|---|
-| 실행 상태 | 진행 중 — KI20 비학습 preflight 완료·본학습 대기 |
+| 실행 상태 | 진행 중 — KI20 1 epoch 실행 계약 승인·시작 대기 |
 | 선행 Phase | Phase 4 완료 |
 | 입력 | 선택 길이의 canonical MIX10·MIX20, Instruct snapshot, 승인 config |
 | 출력 | KI10·KI20 checkpoint, trainer state, 환경·학습 보고서 |
@@ -21,7 +21,7 @@
                                           ├─ hard gate 실패 ─> 실험 중단
                                           └─ hard gate 통과 ─> KI20 비학습 preflight
                                                                ├─ 품질 목표 미달 ─> 배포 승격 금지
-                                                               └─ 별도 명시 확인 ─> 고정 Instruct에서 KI20
+                                                               └─ 별도 명시 확인 ─> v1.2 실행 계약 ─> 고정 Instruct에서 KI20
 ```
 
 KI20은 KI10 checkpoint에서 시작하지 않는다. Gate v2는 계산 자원을 더 투입해도 되는 기술·안전 hard gate와 배포 품질 목표를 분리한다. hard gate 통과는 실험 지속만 허용하며 품질 인증·배포 승격을 뜻하지 않는다. 품질 목표는 사후 완화하지 않고 그대로 보고한다. KI20 본학습은 preflight 통과만으로 자동 실행되지 않으며 사용자의 새 명시 확인을 요구한다.
@@ -73,7 +73,7 @@ eval_strategy: steps
 eval_steps: 250
 save_strategy: steps
 save_steps: 250
-save_total_limit: 2
+save_total_limit: 6  # 0.5 epoch(1,250)와 final step(2,500) milestone 보존
 save_only_model: false
 save_safetensors: true
 dataloader_num_workers: 0       # worker 2가 5% 처리량 개선 기준 미달
@@ -123,7 +123,7 @@ KI10 뒤의 조건을 다시 판정하기 위해 의미·출처 감사 `v1.0`, �
 .venv-data/bin/python scripts/training/phase5_readiness_v1_3.py verify --require-registry
 ```
 
-각 `prepare`/`run`은 기본 dry-run이다. KI20 preflight v1.1은 후보별 임시 forward/backward/optimizer만 실행하고 임시 model·optimizer state를 삭제한다. 이 계약은 full KI20 명령을 제공하지 않으며 실제 1 epoch 학습은 별도 새 확인과 실행 계약이 필요하다.
+각 `prepare`/`run`은 기본 dry-run이다. KI20 preflight v1.1은 후보별 임시 forward/backward/optimizer만 실행하고 임시 model·optimizer state를 삭제한다. 이 계약 자체는 full KI20 명령을 제공하지 않으며, 실제 1 epoch 학습은 아래 별도 v1.2 실행 계약으로만 시작한다.
 
 ```bash
 .venv/bin/python scripts/training/phase5_train.py validate-contract
@@ -134,6 +134,17 @@ PHASE5_TRAINING=KI10-MIX-v2 .venv/bin/python scripts/training/phase5_train.py tr
 ```
 
 위 KI10 명령은 실행 이력 재현용이며 다시 실행하지 않는다. KI20은 Gate v2 hard gate와 preflight가 통과했어도 자동 실행하지 않는다. 현재 readiness는 `experiment_continuation_allowed=true`, `quality_target_status=not_met`, `full_training_execution_enabled=false`, `production_promotion_allowed=false`다.
+
+2026-08-29 사용자가 KI20 1 epoch 본학습을 별도로 명시 확인했다. readiness v1.3의 당시 상태는 소급 변경하지 않고 `phase5-training-v1.2.0.json`과 registry 실행 승인 포인터로 새 이력을 만든다. 실행은 기본 dry-run과 환경변수 이중 확인을 유지한다.
+
+```bash
+.venv-data/bin/python scripts/training/phase5_ki20_train.py validate-contract
+.venv-data/bin/python scripts/training/phase5_ki20_train.py plan
+PHASE5_TRAINING=KI20-MIX-v2 .venv-data/bin/python scripts/training/phase5_ki20_train.py train --execute
+.venv-data/bin/python scripts/training/phase5_ki20_train.py verify-start
+```
+
+`verify-start`는 정확히 첫 optimizer step에서 loss·grad norm·전체 gradient가 유한하고 gradient가 nonzero이며, 기록된 PID가 같은 runner와 CUDA compute process로 계속 실행 중일 때만 통과한다. 이 판정은 실험 시작 확인일 뿐 학습 완료·품질 인증·배포 승격이 아니다.
 
 ## Run 시작 전 동등성 검사
 
@@ -175,7 +186,7 @@ checkpoint 저장 실패 또는 disk 부족
 ## Checkpoint와 재시작
 
 - 250 optimizer step마다 모델·optimizer·scheduler·trainer state를 저장한다.
-- 최근 2개 step checkpoint와 final checkpoint를 유지한다.
+- v1.2 KI20은 마지막 6개 step checkpoint를 유지해 1,250·2,500 step milestone과 final checkpoint를 보존한다. 기존 KI10 이력은 최근 2개 설정 그대로다.
 - 재시작은 Instruct snapshot, manifest, config, package lock, world size가 완전히 같을 때만 허용한다.
 - 설정이 다르면 기존 Run을 덮어쓰지 않고 새 Run ID를 만든다.
 - final 저장 후 새 process에서 모델·tokenizer를 로드해 deterministic fixture 5개를 생성한다.
@@ -217,6 +228,7 @@ handoff 행동 7/50                      미달
 - [x] KI10 run manifest, package lock, log, checkpoint hash를 저장했다.
 - [x] Gate v1 bytes를 보존하고 Gate v2 hard gate·품질 목표를 분리 판정했다.
 - [x] KI20의 forward/backward/optimizer·batch/worker/eval 비학습 preflight를 완료했다.
+- [x] 사용자의 별도 명시 확인을 v1.2 실행 계약과 registry 승인 포인터로 고정했다.
 - [ ] 별도 명시 확인 뒤에만 KI20을 같은 Instruct snapshot에서 독립 시작했다.
 - [ ] 실행된 KI20은 KI10과 manifest·output 경로 외 설정이 같고 재로딩 가능하다.
 - [x] 모델·checkpoint를 공개 저장소나 Hub에 올리지 않았다.
@@ -241,7 +253,7 @@ runs/KI10-MIX-v2/v1.0.0/run-<fingerprint>/
 ├── reload_fixtures.jsonl
 └── ki10_diagnostic_generations.jsonl
 
-runs/KI20-MIX-v2/v1.1.0/run-<fingerprint>/  # 아직 생성하지 않음
+runs/KI20-MIX-v2/v1.2.0/run-<fingerprint>/  # 첫 정상 step 전에는 시작으로 판정하지 않음
 └── <동일 구조>
 ```
 
@@ -266,6 +278,11 @@ runs/KI20-MIX-v2/v1.1.0/run-<fingerprint>/  # 아직 생성하지 않음
 
 ## 진행 기록
 
+- 2026-08-29
+  - 작업 요약: 사용자의 KI20 1 epoch 실행 확인을 받았고, 첫 정상 optimizer step을 시작 완료 기준으로 하는 training `v1.2.0` 계약을 추가했다.
+  - 변경 범위: 기존 v1.0 runner와 v1.1 preflight를 수정하지 않고 전용 runner·config·registry 승인 이력을 분리했다. 1 epoch 2,500 step, `4×2`, eval 8, assistant-only `chunked_nll`, BF16 Full FT를 유지하며 1,250·2,500 step checkpoint를 보존한다.
+  - 검증: 시작 전 모델·data·Gate·preflight·readiness hash, Git clean, GPU compute process·VRAM, RAM, disk를 fail-closed로 확인하고 첫 step 전에는 `phase5_training_performed=false`를 유지하도록 구현했다.
+  - 남은 이슈·후속 작업: clean implementation commit을 push한 뒤 systemd user service에서 실행하고 첫 step marker·활성 PID·CUDA process를 확인해야 한다. 이 기록 시점에는 본학습을 시작하지 않았다.
 - 2026-08-29
   - 작업 요약: Gate v2 계약 탐색부터 KI20 비학습 preflight까지 완료해 readiness `v1.3.0/build-7eb4c34364cc`으로 묶었다. 실제 KI20 1 epoch 학습은 실행하지 않았다.
   - 변경 범위: 평가 계약 `v1.2.0/build-e885b47cae74`, Gate `v2.0.0/gate-df26e962e145`, preflight `v1.1.0/preflight-b47fe12f03a4`, 공개 현황 `build-e23e3501a200`을 새 불변 경로에 추가했다. Gate v1 코드·보고서, 학습 데이터, 모델 checkpoint, sealed blind는 수정·열람하지 않았다.

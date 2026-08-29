@@ -110,6 +110,21 @@
     "status": "ki20_preflight_ready_quality_targets_not_met",
     "version": "v1.3.0"
   },
+  "approved_phase5_training_execution": {
+    "blind_source_test_inspected": false,
+    "config": "configs/model_versions/saju_1b_baseline/phase5-training-v1.2.0.json",
+    "config_sha256": "6cada246e58c6efaff82ed3e5bb5c73c09c1c9083159bc9220a9a59184380bed",
+    "expected_optimizer_steps": 2500,
+    "explicit_user_confirmation_received": true,
+    "full_training_execution_enabled": true,
+    "goal_completion_criterion": "first_finite_optimizer_step_while_process_alive",
+    "num_train_epochs": 1,
+    "production_promotion_allowed": false,
+    "quality_target_status": "not_met",
+    "run_id": "KI20-MIX-v2",
+    "status": "approved_for_ki20_one_epoch_execution",
+    "version": "v1.2.0"
+  },
   "approved_project_status": {
     "build_id": "build-e23e3501a200",
     "build_manifest_sha256": "c19ab12b61e72b147672fe19813a6f5c89b11ea3d5c0eab58fffc7fe1c86520d",
@@ -418,6 +433,23 @@
       "readiness_summary_sha256": "4fd2bba2accec2e84e1c2b90813c2d58b8c88cd9ce40da12a434479621761cbb",
       "status": "ki20_preflight_ready_quality_targets_not_met",
       "version": "v1.3.0"
+    }
+  ],
+  "phase5_training_execution_contracts": [
+    {
+      "blind_source_test_inspected": false,
+      "config": "configs/model_versions/saju_1b_baseline/phase5-training-v1.2.0.json",
+      "config_sha256": "6cada246e58c6efaff82ed3e5bb5c73c09c1c9083159bc9220a9a59184380bed",
+      "expected_optimizer_steps": 2500,
+      "explicit_user_confirmation_received": true,
+      "full_training_execution_enabled": true,
+      "goal_completion_criterion": "first_finite_optimizer_step_while_process_alive",
+      "num_train_epochs": 1,
+      "production_promotion_allowed": false,
+      "quality_target_status": "not_met",
+      "run_id": "KI20-MIX-v2",
+      "status": "approved_for_ki20_one_epoch_execution",
+      "version": "v1.2.0"
     }
   ],
   "project_status_builds": [

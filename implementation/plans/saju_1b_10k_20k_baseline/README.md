@@ -4,7 +4,7 @@
 
 | 항목 | 값 |
 |---|---|
-| 문서 버전 | `3.3.0` |
+| 문서 버전 | `3.4.0` |
 | 정본화 기준일 | 2026-08-29 |
 | 주 장비 | NVIDIA GeForce RTX 5070 Ti 16GiB, WSL2 |
 | 주 모델 | `kakaocorp/kanana-2-1.3b-instruct@bf4786aa2a1908adce942d53976270132732f720` |
@@ -14,7 +14,7 @@
 ## 고정 실험 계약
 
 - 모델 학습 방식은 BF16 전체 파라미터 Full Fine-tuning이다. LoRA/QLoRA로 자동 전환하지 않는다.
-- 10K를 먼저 1 epoch 학습한다. Gate v2 기술·안전 hard gate는 추가 baseline 실험 허용 여부를, 품질 목표는 배포·품질 승격 여부를 판정한다. 20K는 같은 Instruct revision에서 독립 시작하며 비학습 preflight 뒤에도 별도 명시 확인 없이는 실행하지 않는다.
+- 10K를 먼저 1 epoch 학습한다. Gate v2 기술·안전 hard gate는 추가 baseline 실험 허용 여부를, 품질 목표는 배포·품질 승격 여부를 판정한다. 20K는 같은 Instruct revision에서 독립 시작하며, 2026-08-29에 받은 별도 명시 확인은 v1.2 실행 계약에만 적용한다.
 - `MIX1K-v2 ⊂ MIX10-v2 ⊂ MIX20-v2`이어야 한다.
 - 데이터 행 비율은 Nemotron 34%, 검산·한국어화한 `bazi-sft` 20%, AI Hub #86 단일턴 7.5%, 멀티턴 7.5%, 검증된 YEJI 신살 규칙 5%, deterministic 사주 QA 10%, 사주-일기 앱 브리지 16%로 고정한다.
 - Nemotron 내부는 v6 20%·v7 80%로 고정한다.
@@ -36,7 +36,7 @@
 | 2 | [데이터 전처리](phase-2-data-preprocessing.md) | 완료 | 품질 보정 7축 24K와 로컬 전용 AI Hub 후보 10K 완결, 학습 승격은 Phase 4 Gate로 분리 |
 | 3 | [학습 모델·환경 준비](phase-3-model-preparation.md) | 완료 | 고정 PyTorch cu130 환경에서 모델·tokenizer·template 전체 BF16 오프라인 로드 성공 |
 | 4 | [학습 전 데이터·모델 검증](phase-4-preflight-validation.md) | 완료 | 품질 보정 staging의 A~E·1,020case·Full FT 200-step resume와 768 canonical 승격 통과 |
-| 5 | [Baseline 학습](phase-5-baseline-training.md) | 진행 중 | KI10·Gate v2·KI20 비학습 preflight 완료, KI20 본학습은 별도 확인 대기 |
+| 5 | [Baseline 학습](phase-5-baseline-training.md) | 진행 중 | KI10·Gate v2·KI20 비학습 preflight 완료, KI20 1 epoch 실행 계약 승인·시작 대기 |
 | 6 | [평가·검수·v2 결정](phase-6-evaluation-v2-decision.md) | 미시작 | 고정 평가 후 50K 또는 v2 Lite 경로 결정 |
 
 Phase 상태 값은 `미시작`, `부분 진행`, `진행 중`, `차단`, `완료`만 사용한다. 앞 Phase가 `완료`가 아니면 뒤 Phase의 공식 산출물을 만들지 않는다.
@@ -113,7 +113,8 @@ configs/data_versions/saju_1b_baseline/
 configs/model_versions/saju_1b_baseline/
 ├── model-preparation-v1.0.0.json
 ├── phase5-quality-gate-v2.0.0.json
-└── phase5-training-v1.1.0.json
+├── phase5-training-v1.1.0.json
+└── phase5-training-v1.2.0.json
 configs/chat_templates/kanana2_sft.jinja
 requirements.txt
 requirements-phase3.lock.txt
@@ -123,7 +124,7 @@ runs/
 ├── K0-INSTRUCT/v2.0.0/build-2feaee353252/
 ├── KI1K-SMOKE-v2/v2.0.0/build-2feaee353252/
 ├── KI10-MIX-v2/
-├── KI20-MIX-v2/
+├── KI20-MIX-v2/v1.2.0/run-<fingerprint>/
 └── KI20-MIX-v2-LITE/  # Phase 6 결정 시에만 생성
 ```
 
@@ -228,6 +229,11 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
 
 ## 진행 기록
 
+- 2026-08-29
+  - 작업 요약: 사용자의 별도 명시 확인을 받아 KI20 1 epoch Full FT 실행 계약 `v1.2.0`을 승인했다. 실제 시작 판정은 첫 optimizer step의 유한 loss·gradient와 활성 process 확인으로 분리했다.
+  - 변경 범위: 기존 training v1.0·preflight v1.1·readiness v1.3은 불변으로 보존하고 새 config, 전용 runner, registry 실행 승인 포인터를 추가했다. 품질 목표 미달과 `production_promotion_allowed=false`는 유지한다.
+  - 검증: 고정 모델·20K manifest·Gate v2·preflight·readiness hash chain, 1 epoch 2,500 step, `4×2`, eval 8, 16GiB 운영 상한을 실행 전 재검증하도록 고정했다.
+  - 남은 이슈·후속 작업: 실행 계약을 커밋·푸시한 clean HEAD에서 백그라운드 학습을 시작하고 첫 정상 step 증거를 확인해야 한다. 이 항목 작성 시점에는 본학습을 시작하지 않았다.
 - 2026-08-29
   - 작업 요약: 정본을 `3.3.0`으로 올려 Gate v2와 KI20 비학습 preflight를 반영했다. readiness `v1.3.0/build-7eb4c34364cc`과 현황 `v1.0.0/build-e23e3501a200`을 registry 최신 포인터로 고정했으며 KI20 본학습은 실행하지 않았다.
   - 변경 범위: 평가 `v1.2.0/build-e885b47cae74`, Gate `v2.0.0/gate-df26e962e145`, preflight `v1.1.0/preflight-b47fe12f03a4`을 새 경로에 추가했다. 과거 Gate v1, canonical 10K/20K, KI10 checkpoint, blind bytes를 덮어쓰지 않았다.
