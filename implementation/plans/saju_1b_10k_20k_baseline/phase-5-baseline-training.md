@@ -2,7 +2,7 @@
 
 | 항목 | 값 |
 |---|---|
-| 실행 상태 | 미시작 |
+| 실행 상태 | 진행 중 |
 | 선행 Phase | Phase 4 완료 |
 | 입력 | 선택 길이의 canonical MIX10·MIX20, Instruct snapshot, 승인 config |
 | 출력 | KI10·KI20 checkpoint, trainer state, 환경·학습 보고서 |
@@ -237,6 +237,11 @@ runs/KI20-MIX-v2/v1.0.0/run-<fingerprint>/
 
 ## 진행 기록
 
+- 2026-08-29
+  - 작업 요약: 고정 Instruct snapshot에서 `KI10-MIX-v2/run-e6b712f0d45e` Full FT 1 epoch를 실행하고 최종 checkpoint를 새 프로세스로 재로딩해 5개 smoke 출력이 모두 비어 있지 않음을 확인했다. Phase 5는 진행 중이며 KI20은 아직 실행하지 않았다.
+  - 변경 범위: canonical 10,000행을 BF16·SDPA·8-bit optimizer로 정확히 1,250 optimizer step 학습했다. 비공개 모델·optimizer·생성문은 `runs/`에만 저장하고 공개 경로에는 집계 summary와 manifest만 기록했다. 데이터·평가 membership·봉인 blind는 변경하거나 열람하지 않았다.
+  - 검증: train/eval loss `0.7679830020904541`/`0.9442684650421143`, 유한·nonzero gradient, peak VRAM `6,757,645,824` bytes, final reload 5/5를 확인했다. private training/reload/inventory SHA-256은 `1cbec50…e80a53`/`7235fa4…0f17c`/`1ebab21…cda747`, 공개 summary/manifest는 `1cbec50…e80a53`/`1b35d59…f7ca6`다.
+  - 남은 이슈·후속 작업: 고정 dev diagnostic 930건과 persona guard 50건을 합친 1,000case 자동 품질 Gate를 실행한다. 모든 임계값이 통과한 경우에만 KI20을 base snapshot에서 독립 시작하며 sealed blind와 전문 품질 주장은 계속 금지한다.
 - 2026-08-29
   - 작업 요약: KI10 forward-only preflight `run-e6b712f0d45e`가 BF16·SDPA·assistant-only evaluation을 통과했다. `train_method_called=false`, `backward_performed=false`, `optimizer_step_performed=false`를 manifest로 확인했다.
   - 변경 범위: dev monitor 70건만 forward했고 비공개 `runs/PHASE5-PREFLIGHT` 경로 외에는 모델·데이터·checkpoint를 쓰지 않았다. TRL stop-token 경고는 assistant 뒤 user를 붙이는 generic probe와 Kanana의 last-response-only template 의미가 달라 발생했다.

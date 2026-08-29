@@ -36,7 +36,7 @@
 | 2 | [데이터 전처리](phase-2-data-preprocessing.md) | 완료 | 품질 보정 7축 24K와 로컬 전용 AI Hub 후보 10K 완결, 학습 승격은 Phase 4 Gate로 분리 |
 | 3 | [학습 모델·환경 준비](phase-3-model-preparation.md) | 완료 | 고정 PyTorch cu130 환경에서 모델·tokenizer·template 전체 BF16 오프라인 로드 성공 |
 | 4 | [학습 전 데이터·모델 검증](phase-4-preflight-validation.md) | 완료 | 품질 보정 staging의 A~E·1,020case·Full FT 200-step resume와 768 canonical 승격 통과 |
-| 5 | [Baseline 학습](phase-5-baseline-training.md) | 미시작 | 학습 전 의미 감사 후 KI10, 자동 품질 Gate 통과 시에만 독립 KI20 실행 |
+| 5 | [Baseline 학습](phase-5-baseline-training.md) | 진행 중 | KI10 학습·재로딩 완료, 자동 품질 Gate 통과 시에만 독립 KI20 실행 |
 | 6 | [평가·검수·v2 결정](phase-6-evaluation-v2-decision.md) | 미시작 | 고정 평가 후 50K 또는 v2 Lite 경로 결정 |
 
 Phase 상태 값은 `미시작`, `부분 진행`, `진행 중`, `차단`, `완료`만 사용한다. 앞 Phase가 `완료`가 아니면 뒤 Phase의 공식 산출물을 만들지 않는다.
@@ -214,6 +214,11 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
 
 ## 진행 기록
 
+- 2026-08-29
+  - 작업 요약: 고정 Instruct snapshot에서 `KI10-MIX-v2/run-e6b712f0d45e`를 1 epoch·1,250 optimizer step Full FT하고 최종 checkpoint의 새 프로세스 재로딩과 5/5 비공개 generation smoke를 통과했다. Phase 5 상태를 `진행 중`으로 전환했다.
+  - 변경 범위: 모델·optimizer·생성문은 Git 제외 `runs/`에만 보존하고 공개 경로에는 원문 없는 집계 summary와 manifest만 추가했다. canonical 10K·평가 split·봉인 blind·KI20은 변경하거나 열람·실행하지 않았다.
+  - 검증: train loss `0.7679830020904541`, final dev loss `0.9442684650421143`, 유한·nonzero gradient, peak VRAM `6,757,645,824` bytes, 공개 summary SHA-256 `1cbec50…e80a53`을 확인했다.
+  - 남은 이슈·후속 작업: 개발용 1,000case 자동 품질 Gate를 실행한다. 하나라도 실패하면 KI20은 fail-closed로 금지하며, 전부 통과할 때만 고정 base에서 독립 KI20을 실행한다.
 - 2026-08-29
   - 작업 요약: 새 readiness의 KI10 forward-only preflight `run-e6b712f0d45e`를 실행해 BF16 model load와 dev monitor 70건의 assistant-only loss를 검증했다. 실제 `.train()`·backward·optimizer step은 수행하지 않았다.
   - 변경 범위: 비공개 run summary만 생성했고 학습 데이터·모델·tokenizer·checkpoint·평가 split은 변경하지 않았다. TRL의 stop-token 일반 경고는 Kanana가 마지막 응답만 supervision하는 template라 발생함을 10K 전수 mask 집계로 분리 확인했다.
