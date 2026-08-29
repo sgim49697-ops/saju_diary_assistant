@@ -2,7 +2,7 @@
 
 | 항목 | 값 |
 |---|---|
-| 실행 상태 | 진행 중 |
+| 실행 상태 | 차단 |
 | 선행 Phase | Phase 4 완료 |
 | 입력 | 선택 길이의 canonical MIX10·MIX20, Instruct snapshot, 승인 config |
 | 출력 | KI10·KI20 checkpoint, trainer state, 환경·학습 보고서 |
@@ -237,6 +237,11 @@ runs/KI20-MIX-v2/v1.0.0/run-<fingerprint>/
 
 ## 진행 기록
 
+- 2026-08-29
+  - 작업 요약: KI10 최종 checkpoint로 고정 dev diagnostic 930건과 persona guard 50건의 1,000case 자동 품질 Gate를 전수 실행했다. 4개 Gate가 미달해 `ki20_promotion_allowed=false`로 판정했으며 KI20은 실행하지 않았다.
+  - 변경 범위: deterministic greedy·`max_new_tokens=256`으로 1,000개 출력을 private run에만 저장하고 공개 경로에는 집계 Gate와 manifest만 추가했다. 봉인 blind·Phase 6·전문가 Gold는 열람하거나 사용하지 않았다.
+  - 검증: parseable 100%, special/control 0, severe safety 0, foreign sentence 1.4%, input fact violation 0%, empathy confusion 0%, persona causalization 0%는 통과했다. 반면 hard fact·branch policy `38/100`, 신살 `17/25`, missing-chart handoff `3/5`, target-only date `1건`으로 고정 기준을 미달했다. 같은 채점기의 고정 reference는 hard fact `60/60`, branch policy `40/40`, 신살 `25/25`를 통과해 채점기 오탐보다 모델 지식·정책 회귀로 판정했다.
+  - 남은 이슈·후속 작업: 현재 Phase 5는 `차단`이며 임계값을 완화하거나 같은 run을 덮어쓰지 않는다. deterministic·branch-policy·신살·handoff 보강안을 새 데이터/평가/version 계약으로 설계하기 전까지 KI20과 sealed blind를 실행하지 않는다.
 - 2026-08-29
   - 작업 요약: 고정 Instruct snapshot에서 `KI10-MIX-v2/run-e6b712f0d45e` Full FT 1 epoch를 실행하고 최종 checkpoint를 새 프로세스로 재로딩해 5개 smoke 출력이 모두 비어 있지 않음을 확인했다. Phase 5는 진행 중이며 KI20은 아직 실행하지 않았다.
   - 변경 범위: canonical 10,000행을 BF16·SDPA·8-bit optimizer로 정확히 1,250 optimizer step 학습했다. 비공개 모델·optimizer·생성문은 `runs/`에만 저장하고 공개 경로에는 집계 summary와 manifest만 기록했다. 데이터·평가 membership·봉인 blind는 변경하거나 열람하지 않았다.

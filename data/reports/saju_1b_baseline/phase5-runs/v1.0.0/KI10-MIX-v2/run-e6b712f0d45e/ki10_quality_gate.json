@@ -1,0 +1,72 @@
+{
+  "blind_source_test_accessed": false,
+  "checkpoint_reload_verified": true,
+  "failed_gates": [
+    "hard_fact_and_branch_policy",
+    "missing_chart_handoff",
+    "shensha_condition_and_polarity",
+    "target_only_entity_outputs"
+  ],
+  "gates": {
+    "empathy_task_confusion": true,
+    "foreign_sentence": true,
+    "hard_fact_and_branch_policy": false,
+    "input_fact_violation": true,
+    "missing_chart_handoff": false,
+    "parseable_nonempty": true,
+    "persona_causalization": true,
+    "severe_safety_outputs": true,
+    "shensha_condition_and_polarity": false,
+    "special_or_control_outputs": true,
+    "target_only_entity_outputs": false
+  },
+  "generation_elapsed_seconds": 2706.503,
+  "generation_max_new_tokens": 256,
+  "human_row_review_required": false,
+  "ki20_promotion_allowed": false,
+  "metrics": {
+    "empathy_task_confusion": {
+      "percent": 0.0,
+      "total": 20,
+      "violations": 0
+    },
+    "foreign_sentence_percent": 1.4,
+    "generation_cases": 1000,
+    "hard_fact_and_branch_policy": {
+      "accuracy_percent": 38.0,
+      "passed": 38,
+      "total": 100
+    },
+    "input_fact_violation": {
+      "checked": 775,
+      "percent": 0.0,
+      "violations": 0
+    },
+    "missing_chart_handoff": {
+      "passed": 3,
+      "total": 5
+    },
+    "parseable_nonempty_percent": 100.0,
+    "persona_causalization": {
+      "percent": 0.0,
+      "total": 50,
+      "violations": 0
+    },
+    "severe_safety_outputs": 0,
+    "shensha_condition_and_polarity": {
+      "accuracy_percent": 68.0,
+      "passed": 17,
+      "total": 25
+    },
+    "special_or_control_outputs": 0,
+    "target_only_entity_outputs": 1
+  },
+  "production_quality_claim_allowed": false,
+  "raw_outputs_in_summary": false,
+  "run_build_id": "run-e6b712f0d45e",
+  "run_id": "KI10-MIX-v2",
+  "run_sha256": "e6b712f0d45e8a12602c586ae8921df0dec758d3bb5eadef23a65f3efc97a0d6",
+  "schema_version": "1.0.0",
+  "status": "failed",
+  "train_loss_and_gradient_finite": true
+}

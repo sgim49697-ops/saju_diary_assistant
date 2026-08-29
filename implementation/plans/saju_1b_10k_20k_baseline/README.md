@@ -36,7 +36,7 @@
 | 2 | [데이터 전처리](phase-2-data-preprocessing.md) | 완료 | 품질 보정 7축 24K와 로컬 전용 AI Hub 후보 10K 완결, 학습 승격은 Phase 4 Gate로 분리 |
 | 3 | [학습 모델·환경 준비](phase-3-model-preparation.md) | 완료 | 고정 PyTorch cu130 환경에서 모델·tokenizer·template 전체 BF16 오프라인 로드 성공 |
 | 4 | [학습 전 데이터·모델 검증](phase-4-preflight-validation.md) | 완료 | 품질 보정 staging의 A~E·1,020case·Full FT 200-step resume와 768 canonical 승격 통과 |
-| 5 | [Baseline 학습](phase-5-baseline-training.md) | 진행 중 | KI10 학습·재로딩 완료, 자동 품질 Gate 통과 시에만 독립 KI20 실행 |
+| 5 | [Baseline 학습](phase-5-baseline-training.md) | 차단 | KI10 학습·재로딩 완료, 자동 품질 Gate 4개 미달로 KI20 금지 |
 | 6 | [평가·검수·v2 결정](phase-6-evaluation-v2-decision.md) | 미시작 | 고정 평가 후 50K 또는 v2 Lite 경로 결정 |
 
 Phase 상태 값은 `미시작`, `부분 진행`, `진행 중`, `차단`, `완료`만 사용한다. 앞 Phase가 `완료`가 아니면 뒤 Phase의 공식 산출물을 만들지 않는다.
@@ -214,6 +214,11 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
 
 ## 진행 기록
 
+- 2026-08-29
+  - 작업 요약: `KI10-MIX-v2/run-e6b712f0d45e`로 개발용 1,000case 자동 품질 Gate를 완료했으나 hard fact·branch policy, 신살, missing-chart handoff, target-only entity 4개 Gate가 실패했다. `ki20_promotion_allowed=false`로 고정하고 KI20을 실행하지 않았다.
+  - 변경 범위: 생성 1,000건은 Git 제외 private run에만 저장하고 공개 경로에는 원문 없는 Gate 집계와 manifest만 추가했다. sealed blind·Phase 6·학습 데이터는 변경하거나 열람하지 않았다.
+  - 검증: 통과 항목은 parseable 100%, special/control·severe safety 0, foreign sentence 1.4%, input fact violation·empathy confusion·persona causalization 0%다. 실패 항목은 hard fact·branch policy `38/100`, 신살 `17/25`, handoff `3/5`, 입력에 없는 날짜 `1건`이다. 고정 reference의 동일 채점 결과 `60/60`·`40/40`·`25/25` 통과로 평가기 자체의 exact-term 계약은 유효함을 재확인했다.
+  - 남은 이슈·후속 작업: Phase 5 상태를 `차단`으로 전환하고 실패 현황판을 새 불변 build로 발행한다. 다음 학습은 현재 임계값을 낮추는 방식이 아니라 지식·정책 축 보강과 새 fingerprint/version 승인부터 시작해야 한다.
 - 2026-08-29
   - 작업 요약: 고정 Instruct snapshot에서 `KI10-MIX-v2/run-e6b712f0d45e`를 1 epoch·1,250 optimizer step Full FT하고 최종 checkpoint의 새 프로세스 재로딩과 5/5 비공개 generation smoke를 통과했다. Phase 5 상태를 `진행 중`으로 전환했다.
   - 변경 범위: 모델·optimizer·생성문은 Git 제외 `runs/`에만 보존하고 공개 경로에는 원문 없는 집계 summary와 manifest만 추가했다. canonical 10K·평가 split·봉인 blind·KI20은 변경하거나 열람·실행하지 않았다.

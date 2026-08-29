@@ -1,0 +1,14 @@
+{
+  "artifact_sha256": {
+    "ki10_quality_gate.json": "96e7b412009259e261b77eb429ffdcdfc9470b3f030ed53cba105f31ba2b304d"
+  },
+  "blind_source_test_accessed": false,
+  "human_row_review_required": false,
+  "ki20_promotion_allowed": false,
+  "report_type": "ki10_automated_promotion_gate",
+  "run_build_id": "run-e6b712f0d45e",
+  "run_id": "KI10-MIX-v2",
+  "run_sha256": "e6b712f0d45e8a12602c586ae8921df0dec758d3bb5eadef23a65f3efc97a0d6",
+  "schema_version": "1.0.0",
+  "status": "failed"
+}

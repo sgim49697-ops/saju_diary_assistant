@@ -2,7 +2,7 @@
 
 # 사주 일기 도우미
 
-Kanana 2 1.3B 기반 한국어 사주·공감 대화 baseline 프로젝트다. 현재 정본은 품질 보정 `KI10-MIX-v2`를 먼저 학습하고, 고정된 1,000case 자동 품질 Gate를 모두 통과한 경우에만 같은 base snapshot에서 독립 `KI20-MIX-v2`를 실행한다.
+Kanana 2 1.3B 기반 한국어 사주·공감 대화 baseline 프로젝트다. `KI10-MIX-v2` 학습·재로딩은 완료했지만 고정 1,000case 자동 품질 Gate 4개가 미달해 `KI20-MIX-v2` 승격은 차단됐다. 임계값을 사후 완화하지 않으며 다음 시도는 새 데이터·평가·run 버전으로 진행한다.
 
 - [프로젝트 현황판](PROJECT_STATUS.html)
 - [10K/20K 정본 계획](implementation/plans/saju_1b_10k_20k_baseline/README.md)
