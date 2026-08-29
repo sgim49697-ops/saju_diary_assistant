@@ -26,7 +26,7 @@ class Phase5ReadinessV12Tests(unittest.TestCase):
         result = validate_contract(config, REPO_ROOT)
         context = prepare_context(REPO_ROOT, CONFIG_PATH)
         self.assertEqual(result["status"], "valid")
-        self.assertEqual(context["build_id"], "build-bffd53a2abb3")
+        self.assertEqual(context["build_id"], "build-e325f16096dd")
         self.assertFalse(config["governance"]["ki20_promotion_allowed"])
         self.assertFalse(config["governance"]["blind_source_test_inspected"])
 

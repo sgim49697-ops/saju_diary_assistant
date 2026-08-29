@@ -238,6 +238,11 @@ runs/KI20-MIX-v2/v1.0.0/run-<fingerprint>/
 ## 진행 기록
 
 - 2026-08-29
+  - 작업 요약: 첫 KI10 forward-only preflight는 모델 load 뒤 TRL 1.12.0 `SFTTrainer`가 `train_dataset`을 필수로 검사해 evaluation 전에 중단됐다. 임시 경로는 atomic cleanup되어 partial run·backward·optimizer step·학습 데이터 변경이 없었다.
+  - 변경 범위: 동일한 dev monitor 70건을 TRL 전처리용 `train_dataset`과 실제 `eval_dataset`에 함께 전달하되 실행 메서드는 `evaluate()`만 허용했다. summary와 manifest에 `train_method_called=false` 및 전처리용 train dataset 제공 사실을 명시하고 회귀 테스트를 추가했다.
+  - 검증: 설치된 TRL `1.12.0`의 생성자에서 `train_dataset is None`이면 `ValueError`가 발생함을 로컬 source로 확인했다. 수정 runner SHA-256은 `aff05d86…1eb3f`, 새 readiness 예상 build는 `v1.2.0/build-e325f16096dd`다.
+  - 남은 이슈·후속 작업: 수정 checkpoint를 먼저 커밋한 뒤 새 readiness와 현황판을 불변 build로 재생성·재승인한다. 그 hash chain이 통과할 때만 forward-only preflight를 재시도하며, 실제 KI10 학습은 그 결과 전까지 시작하지 않는다.
+- 2026-08-29
   - 작업 요약: 감사·평가·runner 구현을 한 hash chain으로 묶은 readiness `v1.2.0/build-bffd53a2abb3`을 생성하고 별도 명령으로 재검증했다. 실제 KI10·KI20 학습은 아직 시작하지 않았다.
   - 변경 범위: KI10 baseline만 허용하고 KI20은 자동 품질 Gate 전까지 금지한 registry 포인터, private run input, 공개 readiness summary와 `PROJECT_STATUS.html` 현황판을 고정했다.
   - 검증: readiness private/public manifest `02d5ecc…b551c`/`514bcc5…fe62`, dev monitor byte hash `aa61d2a…bcb31`을 확인했다. 현황 HTML은 snapshot과 byte-identical하고 AI Hub 원문·ID·checkpoint·외부 script를 포함하지 않는다.

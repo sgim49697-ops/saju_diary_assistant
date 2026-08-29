@@ -43,7 +43,7 @@
     "config_sha256": "752f792ae6f6b44ea8a25b8a9fc3228082ef707d768ffe2205c1a2252907a016",
     "implementation_sha256": {
       "scripts/training/phase5_quality.py": "3f3ea2d7ffbaa3e5e566f17f1a0c63c810511c93d3fb3fa36fd0941e50e25a35",
-      "scripts/training/phase5_train.py": "38e780ba2d7179d52ed8d334560a1ef9864ec718ac33de94a04687cd6ce7e353"
+      "scripts/training/phase5_train.py": "aff05d86ffb2d483bf4817721797ad1aa410c019b7b77501071849c2dca1eb3f"
     },
     "confirmation_variable": "PHASE5_TRAINING",
     "ki10_confirmation": "KI10-MIX-v2",
