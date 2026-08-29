@@ -63,6 +63,7 @@ data/
 ├── derived/saju_1b_baseline/evaluation-split/v1.1.0/build-d2f9e1623e96/ # v1.0 봉인 유지·dev 진단 확장
 ├── derived/saju_1b_baseline/phase5-readiness/v1.0.0/build-f6c8171f454f/ # 과거 readiness
 ├── derived/saju_1b_baseline/phase5-readiness/v1.1.0/build-201010b37e40/
+├── derived/saju_1b_baseline/phase5-readiness/v1.2.0/build-bffd53a2abb3/ # 현재 KI10 자동 Gate 계약
 └── reports/
     └── saju_1b_baseline/
         ├── audit/v1.2.0/build-ca756f3eb89f/
@@ -77,6 +78,8 @@ data/
         ├── pretraining-audit/v1.0.0/build-c38926f86a3d/ # 20K 의미·출처 전수 감사
         ├── phase5-readiness/v1.0.0/build-f6c8171f454f/ # 과거 비학습 계약
         ├── phase5-readiness/v1.1.0/build-201010b37e40/ # 봉인 평가 연결 계약
+        ├── phase5-readiness/v1.2.0/build-bffd53a2abb3/ # 감사·평가·runner 연결 계약
+        ├── project-status/v1.0.0/build-f3ae22a8860e/ # 공개 단일 파일 현황 snapshot
         └── phase-verification/v1.0.0/review-20260828/
 
 configs/data_versions/saju_1b_baseline/
@@ -211,6 +214,11 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
 
 ## 진행 기록
 
+- 2026-08-29
+  - 작업 요약: 승인된 감사·평가 build와 Phase 5 runner 구현 hash를 묶은 readiness `v1.2.0/build-bffd53a2abb3`을 생성·standalone verify하고, 공개 현황판 `v1.0.0/build-f3ae22a8860e`을 고정했다. 실제 학습은 아직 수행하지 않았다.
+  - 변경 범위: registry의 최신 평가·감사·readiness·현황 포인터를 갱신했다. readiness는 KI10만 허용하고 KI20은 1,000case 자동 품질 Gate 전까지 금지한다. `PROJECT_STATUS.html`은 버전 chain·20K token 구성·근거 등급·Gate·알려진 위험만 포함한다.
+  - 검증: readiness private/public manifest SHA-256은 `02d5ecc…b551c`/`514bcc5…fe62`, summary는 `e6c89a4…d0ce`다. 현황 HTML은 snapshot과 byte-identical하며 SHA-256 `dc01a04…e4696`, 외부 실행 자산·restricted content 0으로 registry verify를 통과했다.
+  - 남은 이슈·후속 작업: Phase 5 상태는 backward·optimizer step 전이므로 계속 `미시작`이다. 이 체크포인트를 커밋한 clean tree에서 KI10 forward-only preflight를 실행한 뒤에만 실제 KI10을 시작한다.
 - 2026-08-29
   - 작업 요약: 구현 commit `1e76232c0c094e6d3c3ed47b253c60f0e1af63b1`에서 평가 확장 `v1.1.0/build-d2f9e1623e96`과 학습 전 감사 `v1.0.0/build-c38926f86a3d`를 생성·독립 재검증하고 registry 승인 포인터 후보를 고정했다. 실제 학습은 수행하지 않았다.
   - 변경 범위: 평가 v1.0 membership·bytes를 그대로 보존하면서 dev reference overlap 집계와 Nemotron 비인과 guard 50case만 추가했다. 20K 감사는 공개 집계만 생성하고 AI Hub 원문·개별 ID·봉인 blind를 읽거나 공개하지 않았다.

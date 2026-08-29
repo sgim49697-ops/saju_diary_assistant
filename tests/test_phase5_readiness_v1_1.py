@@ -51,13 +51,17 @@ class Phase5ReadinessV11Tests(unittest.TestCase):
         self.assertEqual(result["evaluation_split_build_id"], "build-a5a04ab96594")
         self.assertFalse(result["phase5_training_performed"])
 
-    def test_registry_points_to_public_readiness_build(self) -> None:
+    def test_registry_preserves_public_readiness_build(self) -> None:
         registry = json.loads(
             (
                 REPO_ROOT / "configs/data_versions/saju_1b_baseline/registry.json"
             ).read_text(encoding="utf-8")
         )
-        approved = registry["approved_phase5_readiness"]
+        approved = next(
+            value
+            for value in registry["phase5_readiness_builds"]
+            if value["version"] == "v1.1.0"
+        )
         self.assertEqual(approved["build_id"], "build-201010b37e40")
         self.assertFalse(approved["phase5_training_performed"])
         public_root = (

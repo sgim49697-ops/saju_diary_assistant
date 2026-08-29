@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import unittest
 from pathlib import Path
@@ -32,6 +33,28 @@ class Phase5ReadinessV12Tests(unittest.TestCase):
     def test_prepare_defaults_to_dry_run(self) -> None:
         args = _parser().parse_args(["prepare"])
         self.assertFalse(args.execute)
+
+    def test_registry_points_to_verified_public_build(self) -> None:
+        registry = json.loads(
+            (
+                REPO_ROOT / "configs/data_versions/saju_1b_baseline/registry.json"
+            ).read_text(encoding="utf-8")
+        )
+        approved = registry["approved_phase5_readiness"]
+        self.assertEqual(approved["build_id"], "build-bffd53a2abb3")
+        public_root = (
+            REPO_ROOT
+            / "data/reports/saju_1b_baseline/phase5-readiness/v1.2.0"
+            / approved["build_id"]
+        )
+        self.assertEqual(
+            hashlib.sha256((public_root / "build_manifest.json").read_bytes()).hexdigest(),
+            approved["public_manifest_sha256"],
+        )
+        self.assertEqual(
+            hashlib.sha256((public_root / "readiness_summary.json").read_bytes()).hexdigest(),
+            approved["readiness_summary_sha256"],
+        )
 
 
 if __name__ == "__main__":

@@ -238,6 +238,11 @@ runs/KI20-MIX-v2/v1.0.0/run-<fingerprint>/
 ## 진행 기록
 
 - 2026-08-29
+  - 작업 요약: 감사·평가·runner 구현을 한 hash chain으로 묶은 readiness `v1.2.0/build-bffd53a2abb3`을 생성하고 별도 명령으로 재검증했다. 실제 KI10·KI20 학습은 아직 시작하지 않았다.
+  - 변경 범위: KI10 baseline만 허용하고 KI20은 자동 품질 Gate 전까지 금지한 registry 포인터, private run input, 공개 readiness summary와 `PROJECT_STATUS.html` 현황판을 고정했다.
+  - 검증: readiness private/public manifest `02d5ecc…b551c`/`514bcc5…fe62`, dev monitor byte hash `aa61d2a…bcb31`을 확인했다. 현황 HTML은 snapshot과 byte-identical하고 AI Hub 원문·ID·checkpoint·외부 script를 포함하지 않는다.
+  - 남은 이슈·후속 작업: clean commit 뒤 `phase5_train.py preflight-run --run-id KI10-MIX-v2 --execute`로 forward-only loss·GPU/VRAM을 검증한다. 그 결과가 통과하기 전에는 `PHASE5_TRAINING` 실행을 시작하지 않는다.
+- 2026-08-29
   - 작업 요약: 고정 구현 commit `1e76232c0c094e6d3c3ed47b253c60f0e1af63b1`에서 평가 v1.1과 20K 의미 감사를 실제 불변 build로 생성·독립 verify했다. 모델 학습·backward·optimizer step은 수행하지 않았다.
   - 변경 범위: `evaluation-split/v1.1.0/build-d2f9e1623e96`은 parent membership과 봉인 bytes를 바꾸지 않고 persona guard 50case·reference overlap 집계만 추가했다. `pretraining-audit/v1.0.0/build-c38926f86a3d`은 canonical MIX20 전체를 공개 집계로만 검사했다.
   - 검증: 기술 hard blocker 0, 데이터 수정 필요 없음, KI10 baseline 허용, 전문가·production 품질 주장 금지, KI20 사전 금지를 재확인했다. sealed blind는 읽지 않았고 private/public manifest bytes를 독립 재생성해 대조했다.
