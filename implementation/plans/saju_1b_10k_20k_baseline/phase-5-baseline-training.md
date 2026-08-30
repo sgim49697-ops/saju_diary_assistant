@@ -279,6 +279,11 @@ runs/KI20-MIX-v2/v1.2.0/run-1f5d732cae67/  # 1 epoch 본학습 실행 중
 ## 진행 기록
 
 - 2026-08-30
+  - 작업 요약: dashboard `v1.5.0`에서 중복 select를 제거하고 split 카드·축 분포 행을 직접 선택하는 데이터 탐색 흐름으로 정리했다. 현재 선택의 샘플은 기본 접힌 카드 10건으로 보여주며, 요약 미리보기 뒤 필요한 항목만 펼칠 수 있다.
+  - 변경 범위: `POST /api/dataset-samples/{split}/{axis}/random`은 loopback host·CSRF token·동일 Origin을 확인한 뒤 `secrets.SystemRandom`으로 현재 후보 풀에서 10건을 비복원 추출한다. 한 요청 안 identity 중복은 fail-closed하고 요청 간 중복은 의도적으로 허용하며, `전체 혼합`은 각 축을 균등 샘플링하지 않고 해당 split 전체의 실제 구성비를 따른다. 응답과 선택 이력은 cache·세션·디스크에 저장하지 않는다. 샘플은 기존 최소 투영만 반환하고 내부 locator·hash·record ID를 제외하며 AI Hub 로컬 제한 표시와 sealed blind 접근 금지를 유지했다. 학습 20K membership, 모델·checkpoint, 고정 20건, 수동 세션과 Phase 6은 변경하지 않았다.
+  - 검증: dashboard 단위·HTTP·정적 asset 회귀 31건과 저장소 전체 264건 unittest, Ruff, JavaScript syntax, config JSON parse와 `git diff --check`가 통과했다. live API 연속 호출은 각 10건·묶음 내 고유 10건·서로 다른 표본을 반환했고 무Origin 403, 비어 있지 않은 body 400, blind 404를 확인했다. Windows Chrome에서 10개 카드 기본 접힘·상세 열기·재추첨·AI Hub 제한 배지·split/axis 전환을 검증했으며 10초 상태 자동 갱신은 현재 표본을 바꾸지 않았고 desktop과 390px mobile 가로 overflow는 0이었다.
+  - 남은 이슈·후속 작업: 이 표본은 데이터 탐색용 진단 UI이며 정식 평가·통계 추정·품질 Gate가 아니다. 요청 간 중복 가능성을 제거하거나 이력을 저장하는 순환 표집은 사용자의 완전 무작위 요구와 달라 도입하지 않았다.
+- 2026-08-30
   - 작업 요약: 세션별 수동 질문과 고정 20건 진단 사이에 기본 접힘 상태의 `실사용 사주 질문 20선`을 추가했다. 성향·감정, 일·진로, 재물, 연애·관계, 가족·학업, 시기 흐름, 생활 변화·건강 7개 분야를 필터링하고 첫 질문 20개와 같은 세션 후속 질문 4개를 입력창에 채울 수 있다.
   - 변경 범위: 실제 사용자·AI Hub 원문 대신 `1992-04-18 08:30`, `1993-09-07 19:30` 공개 합성 anchor의 두 명식과 고정 시기 자문값만 사용한다. 명식은 승인 정책 `d6a205…3286c`와 `lunar-python==1.4.8` artifact `3aa11c…69d6`에 묶었고 시기 값은 `advisory_consistency_only`, `runtime_approved=false`, `human_domain_review_performed=false`로 표시했다. 예시 버튼은 수동 질문 textarea만 채우며 세션·엔진·profile을 바꾸거나 `/api/generate`를 호출하지 않는다. 학습 데이터, checkpoint, 고정 20건, sealed blind와 Phase 6은 수정·실행하지 않았다.
   - 검증: catalog 20개·7개 분야·24 turn, 문맥 참조, 동일 세션 후속 4개, 합성 명식 2개의 4주·표면 오행·십신, 2026년/월/주말 간지, 모든 조합 prompt 4,000자 이하를 자동 대조했다. dashboard 28건과 저장소 전체 261건 unittest, Ruff, JavaScript syntax, JSON·diff 검증이 통과했다. live HTTP 200과 Windows Chrome에서 기본 접힘·필터·첫 질문/후속 입력·생성 POST 0건을 확인했고 desktop·390px mobile 가로 overflow는 0이었다.

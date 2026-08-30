@@ -16,6 +16,7 @@ let datasetCatalog = null;
 let selectedDatasetSplit = "ki20_train";
 let selectedDatasetAxis = "all";
 let loadedDatasetKey = null;
+let datasetSampleRequestSequence = 0;
 let promptExampleCatalog = null;
 let selectedPromptExampleCategory = "all";
 
@@ -292,7 +293,7 @@ function selectedSplit() {
 
 function renderSplitCards() {
   const target = byId("split-cards");
-  const cards = datasetCatalog.splits.map((split) => `<button type="button" class="split-card ${split.split_id === selectedDatasetSplit ? "selected" : ""}" data-split-id="${escapeHtml(split.split_id)}">
+  const cards = datasetCatalog.splits.map((split) => `<button type="button" class="split-card ${split.split_id === selectedDatasetSplit ? "selected" : ""}" data-split-id="${escapeHtml(split.split_id)}" aria-pressed="${split.split_id === selectedDatasetSplit}">
     <span class="split-kind">${escapeHtml(split.kind)}</span>
     <strong>${escapeHtml(split.label)}</strong>
     <b>${number(split.rows, 0)}행</b>
@@ -315,21 +316,26 @@ function renderAxisDistribution() {
   if (!split) return;
   byId("dataset-detail-title").textContent = `${split.label} 구성`;
   byId("dataset-total").textContent = `${number(split.rows, 0)}행`;
-  byId("axis-distribution").innerHTML = split.axes.map((axis, index) => `<div class="axis-row">
+  const axes = [{ axis: "all", label: "전체 혼합", rows: split.rows, percent: 100, restricted_local_only: false }, ...split.axes];
+  const target = byId("axis-distribution");
+  target.innerHTML = axes.map((axis, index) => `<button type="button" class="axis-row ${axis.axis === selectedDatasetAxis ? "selected" : ""} ${axis.axis === "all" ? "all-axis" : ""}" data-axis-id="${escapeHtml(axis.axis)}" aria-pressed="${axis.axis === selectedDatasetAxis}">
     <div class="axis-copy"><strong>${escapeHtml(axis.label)}</strong><span>${number(axis.rows, 0)}행 · ${number(axis.percent, 2)}%${axis.restricted_local_only ? " · 제한" : ""}</span></div>
     <div class="axis-track"><div class="axis-fill axis-color-${index % 5}" style="width:${Math.max(1, axis.percent)}%"></div></div>
-  </div>`).join("");
+  </button>`).join("");
+  target.querySelectorAll("button[data-axis-id]").forEach((button) => button.addEventListener("click", () => {
+    selectDatasetAxis(button.dataset.axisId);
+  }));
 }
 
-function renderDatasetControls() {
-  const splitSelect = byId("dataset-split-select");
-  splitSelect.innerHTML = datasetCatalog.splits.map((split) => `<option value="${escapeHtml(split.split_id)}">${escapeHtml(split.label)} · ${number(split.rows, 0)}행</option>`).join("");
-  splitSelect.value = selectedDatasetSplit;
+function renderDatasetSampleHeading() {
   const split = selectedSplit();
-  const axisSelect = byId("dataset-axis-select");
-  axisSelect.innerHTML = '<option value="all">전체 축 · 축별 1건</option>' + split.axes.map((axis) => `<option value="${escapeHtml(axis.axis)}">${escapeHtml(axis.label)} · 3건</option>`).join("");
-  if (selectedDatasetAxis !== "all" && !split.axes.some((axis) => axis.axis === selectedDatasetAxis)) selectedDatasetAxis = "all";
-  axisSelect.value = selectedDatasetAxis;
+  if (!split) return;
+  const axis = selectedDatasetAxis === "all"
+    ? { label: "전체 혼합", rows: split.rows }
+    : split.axes.find((item) => item.axis === selectedDatasetAxis);
+  if (!axis) return;
+  byId("dataset-sample-title").textContent = `${split.label} / ${axis.label}`;
+  byId("dataset-sample-meta").textContent = `${number(axis.rows, 0)}개 후보에서 매 요청 10건을 독립적으로 추출합니다.`;
 }
 
 function sampleMessages(messages) {
@@ -339,54 +345,103 @@ function sampleMessages(messages) {
   </div>`).join("");
 }
 
+function samplePreview(item) {
+  if (item.format === "messages") {
+    const message = item.messages?.find((entry) => entry.role === "user") || item.messages?.[0];
+    return message?.content || "대화 미리보기가 없습니다.";
+  }
+  return JSON.stringify(item.input ?? {}, null, 0);
+}
+
 function renderDatasetSamples(payload) {
+  if (payload.items.length !== 10 || payload.selection?.mode !== "cryptographic_random" || payload.selection?.returned !== 10) {
+    throw new Error("무작위 샘플 응답이 10건 계약과 다릅니다.");
+  }
   byId("dataset-restriction").classList.toggle("hidden", !payload.restricted_content_included);
   byId("dataset-samples").innerHTML = payload.items.map((item, index) => {
     const body = item.format === "messages"
       ? sampleMessages(item.messages)
       : `<div class="structured-sample"><div><span>INPUT</span><pre>${escapeHtml(JSON.stringify(item.input, null, 2))}</pre></div><div><span>EXPECTED</span><pre>${escapeHtml(JSON.stringify(item.expected, null, 2))}</pre></div></div>`;
-    return `<article class="dataset-sample-card">
-      <header><div><span class="sample-number">${index + 1}</span><strong>${escapeHtml(item.axis_label)}</strong></div><div class="sample-badges"><span>${escapeHtml(item.task || "sample")}</span>${item.restricted_local_only ? '<span class="restricted-badge">로컬 제한</span>' : ""}</div></header>
-      ${body}
-      <footer><code>${escapeHtml(item.sample_key)}</code>${item.reference_available === false ? " · reference 없음" : ""}</footer>
-    </article>`;
+    return `<details class="dataset-sample-card">
+      <summary class="dataset-sample-summary">
+        <span class="sample-number">${index + 1}</span>
+        <div class="dataset-sample-preview"><strong>${escapeHtml(item.axis_label)}</strong><p>${escapeHtml(samplePreview(item))}</p></div>
+        <div class="sample-badges"><span>${escapeHtml(item.task || "sample")}</span>${item.restricted_local_only ? '<span class="restricted-badge">로컬 제한</span>' : ""}</div>
+      </summary>
+      <div class="dataset-sample-body">${body}<footer><code>${escapeHtml(item.sample_key)}</code>${item.reference_available === false ? " · reference 없음" : ""}</footer></div>
+    </details>`;
   }).join("");
+  byId("dataset-random-status").textContent = "무작위 10건 · 요청 간 반복 가능";
 }
 
-async function loadDatasetSamples() {
+async function loadDatasetSamples({ force = false } = {}) {
   const key = `${selectedDatasetSplit}/${selectedDatasetAxis}`;
-  if (loadedDatasetKey === key) return;
-  loadedDatasetKey = key;
-  byId("dataset-samples").innerHTML = '<p class="empty-conversation">고정 hash와 샘플 연결을 확인하는 중입니다.</p>';
-  byId("dataset-restriction").classList.add("hidden");
+  if (!force && loadedDatasetKey === key) return;
+  const sequence = ++datasetSampleRequestSequence;
+  const preservesCurrentSamples = force && loadedDatasetKey === key;
+  const button = byId("random-dataset-samples-button");
+  button.disabled = true;
+  button.textContent = "무작위 10건 추출 중…";
+  byId("dataset-random-status").textContent = "후보 검증·추출 중";
+  if (!preservesCurrentSamples) {
+    byId("dataset-samples").innerHTML = '<p class="empty-conversation">검증된 후보 풀에서 무작위 10건을 불러오는 중입니다.</p>';
+    byId("dataset-restriction").classList.add("hidden");
+  }
   try {
-    const payload = await api(`/api/dataset-samples/${selectedDatasetSplit}/${selectedDatasetAxis}`);
-    if (`${selectedDatasetSplit}/${selectedDatasetAxis}` !== key) return;
+    const payload = await api(`/api/dataset-samples/${selectedDatasetSplit}/${selectedDatasetAxis}/random`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{}",
+    });
+    if (sequence !== datasetSampleRequestSequence || `${selectedDatasetSplit}/${selectedDatasetAxis}` !== key) return;
     renderDatasetSamples(payload);
+    loadedDatasetKey = key;
   } catch (error) {
-    if (`${selectedDatasetSplit}/${selectedDatasetAxis}` !== key) return;
-    loadedDatasetKey = null;
-    byId("dataset-samples").innerHTML = `<p class="empty-conversation">샘플 로드 실패: ${escapeHtml(error.message)}</p>`;
+    if (sequence !== datasetSampleRequestSequence || `${selectedDatasetSplit}/${selectedDatasetAxis}` !== key) return;
+    byId("dataset-random-status").textContent = `추출 실패 · ${error.message}`;
+    if (!preservesCurrentSamples) {
+      loadedDatasetKey = null;
+      byId("dataset-samples").innerHTML = `<p class="empty-conversation">샘플 로드 실패: ${escapeHtml(error.message)}</p>`;
+    }
+  } finally {
+    if (sequence === datasetSampleRequestSequence) {
+      button.disabled = false;
+      button.textContent = "다른 10개 보기";
+    }
   }
 }
 
 function selectDatasetSplit(splitId) {
   if (!datasetCatalog?.splits.some((split) => split.split_id === splitId)) return;
+  if (selectedDatasetSplit === splitId) return;
   selectedDatasetSplit = splitId;
   selectedDatasetAxis = "all";
   loadedDatasetKey = null;
   renderSplitCards();
   renderAxisDistribution();
-  renderDatasetControls();
+  renderDatasetSampleHeading();
+  loadDatasetSamples();
+}
+
+function selectDatasetAxis(axisId) {
+  const split = selectedSplit();
+  if (!split || (axisId !== "all" && !split.axes.some((axis) => axis.axis === axisId))) return;
+  if (selectedDatasetAxis === axisId) return;
+  selectedDatasetAxis = axisId;
+  loadedDatasetKey = null;
+  renderAxisDistribution();
+  renderDatasetSampleHeading();
   loadDatasetSamples();
 }
 
 function renderDatasetCatalog(payload) {
   datasetCatalog = payload;
   if (!payload.splits.some((split) => split.split_id === selectedDatasetSplit)) selectedDatasetSplit = payload.splits[0].split_id;
+  const split = selectedSplit();
+  if (selectedDatasetAxis !== "all" && !split.axes.some((axis) => axis.axis === selectedDatasetAxis)) selectedDatasetAxis = "all";
   renderSplitCards();
   renderAxisDistribution();
-  renderDatasetControls();
+  renderDatasetSampleHeading();
   loadDatasetSamples();
 }
 
@@ -612,14 +667,8 @@ byId("engine-selection-select").addEventListener("change", (event) => {
   renderEngineSelection(selectedEngineSelection, false);
 });
 
-byId("dataset-split-select").addEventListener("change", (event) => {
-  selectDatasetSplit(event.target.value);
-});
-
-byId("dataset-axis-select").addEventListener("change", (event) => {
-  selectedDatasetAxis = event.target.value;
-  loadedDatasetKey = null;
-  loadDatasetSamples();
+byId("random-dataset-samples-button").addEventListener("click", () => {
+  loadDatasetSamples({ force: true });
 });
 
 byId("prompt-example-category").addEventListener("change", (event) => {

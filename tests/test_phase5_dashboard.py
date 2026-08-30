@@ -47,7 +47,7 @@ class DashboardFixture:
         self.config = json.loads((REPO_ROOT / DEFAULT_CONFIG).read_text(encoding="utf-8"))
         self.config_path = (
             root
-            / "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.4.0.json"
+            / "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.5.0.json"
         )
         self.config_path.parent.mkdir(parents=True)
         prompt_source = REPO_ROOT / self.config["prompt_profiles"]["profiles"][
@@ -163,6 +163,24 @@ class Phase5DashboardTests(unittest.TestCase):
     def test_committed_config_and_cli_defaults_are_valid(self) -> None:
         config = json.loads((REPO_ROOT / DEFAULT_CONFIG).read_text(encoding="utf-8"))
         validate_config(config)
+        self.assertEqual(config["schema_version"], "1.5.0")
+        self.assertEqual(
+            config["dataset_browser"]["sample_selection"],
+            {
+                "mode": "cryptographic_random",
+                "samples_per_request": 10,
+                "unique_within_request": True,
+                "repeat_across_requests_possible": True,
+                "persisted": False,
+            },
+        )
+        historical = json.loads(
+            (
+                REPO_ROOT
+                / "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.4.0.json"
+            ).read_text(encoding="utf-8")
+        )
+        validate_config(historical)
         args = _parser().parse_args(
             ["--run-root", "runs/KI20/x/run-123456abcdef", "probe"]
         )
@@ -183,6 +201,12 @@ class Phase5DashboardTests(unittest.TestCase):
         ] = "0" * 64
         with self.assertRaisesRegex(Phase5DashboardError, "engine identity"):
             validate_config(invalid_engine)
+        invalid_random = json.loads(json.dumps(config))
+        invalid_random["dataset_browser"]["sample_selection"][
+            "samples_per_request"
+        ] = 9
+        with self.assertRaisesRegex(Phase5DashboardError, "무작위 샘플"):
+            validate_config(invalid_random)
         self.assertTrue(DashboardHTTPServer.allow_reuse_address)
 
     def test_prompt_hash_drift_is_rejected(self) -> None:
@@ -422,7 +446,7 @@ class Phase5DashboardTests(unittest.TestCase):
                 ],
                 "restricted_local_only": True,
             }
-            for index in range(5)
+            for index in range(20)
         ]
         first = dataset_samples_payload(
             self.fixture.context(), "ki20_train", "aihub_empathy_single", {}
@@ -431,7 +455,9 @@ class Phase5DashboardTests(unittest.TestCase):
             self.fixture.context(), "ki20_train", "aihub_empathy_single", {}
         )
         self.assertEqual(first, second)
-        self.assertEqual(len(first["items"]), 3)
+        self.assertEqual(len(first["items"]), 10)
+        self.assertEqual(first["selection"]["mode"], "deterministic_compatibility")
+        self.assertFalse(first["selection"]["repeat_across_requests_possible"])
         self.assertTrue(first["restricted_content_included"])
         self.assertTrue(first["local_only"])
         self.assertFalse(first["sealed_blind_accessed"])
@@ -439,6 +465,113 @@ class Phase5DashboardTests(unittest.TestCase):
         self.assertNotIn("private-record", encoded)
         self.assertNotIn("record_sha256", encoded)
         self.assertNotIn("leakage", encoded)
+
+    @patch("scripts.training.phase5_dashboard._dataset_candidates")
+    def test_random_dataset_samples_are_ten_unique_uncached_and_unbalanced(
+        self, candidates: object
+    ) -> None:
+        candidates.return_value = [
+            {
+                "identity": f"axis-a-{index}",
+                "axis": "nemotron_saju",
+                "task": "structured_saju_reading",
+                "format": "messages",
+                "messages": [{"role": "user", "content": f"A 질문 {index}"}],
+                "restricted_local_only": False,
+            }
+            for index in range(90)
+        ] + [
+            {
+                "identity": f"axis-b-{index}",
+                "axis": "bazi_sft",
+                "task": "grounded_rule_reading",
+                "format": "messages",
+                "messages": [{"role": "user", "content": f"B 질문 {index}"}],
+                "restricted_local_only": False,
+            }
+            for index in range(10)
+        ]
+
+        class RotatingSampler:
+            def __init__(self) -> None:
+                self.calls = 0
+                self.population_axes: list[list[str]] = []
+
+            def sample(
+                self, population: list[dict[str, object]], count: int
+            ) -> list[dict[str, object]]:
+                self.population_axes.append([str(item["axis"]) for item in population])
+                start = self.calls * count
+                self.calls += 1
+                return population[start : start + count]
+
+        sampler = RotatingSampler()
+        cache: dict[str, object] = {}
+        first = dataset_samples_payload(
+            self.fixture.context(),
+            "ki20_train",
+            "all",
+            cache,
+            randomize=True,
+            random_source=sampler,
+        )
+        second = dataset_samples_payload(
+            self.fixture.context(),
+            "ki20_train",
+            "all",
+            cache,
+            randomize=True,
+            random_source=sampler,
+        )
+        self.assertEqual(sampler.calls, 2)
+        self.assertEqual(sampler.population_axes[0].count("nemotron_saju"), 90)
+        self.assertEqual(sampler.population_axes[0].count("bazi_sft"), 10)
+        self.assertEqual(len(first["items"]), 10)
+        self.assertEqual(len({item["sample_key"] for item in first["items"]}), 10)
+        self.assertNotEqual(
+            [item["sample_key"] for item in first["items"]],
+            [item["sample_key"] for item in second["items"]],
+        )
+        self.assertEqual(first["selection"]["mode"], "cryptographic_random")
+        self.assertTrue(first["selection"]["unique_within_request"])
+        self.assertTrue(first["selection"]["repeat_across_requests_possible"])
+        self.assertFalse(first["selection"]["persisted"])
+        self.assertNotIn("sample_payload:ki20_train:all", cache)
+
+        axis_only = dataset_samples_payload(
+            self.fixture.context(),
+            "ki20_train",
+            "bazi_sft",
+            {},
+            randomize=True,
+            random_source=RotatingSampler(),
+        )
+        self.assertEqual(len(axis_only["items"]), 10)
+        self.assertEqual({item["axis"] for item in axis_only["items"]}, {"bazi_sft"})
+
+    @patch("scripts.training.phase5_dashboard._dataset_candidates")
+    def test_random_dataset_samples_fail_closed_below_ten(
+        self, candidates: object
+    ) -> None:
+        candidates.return_value = [
+            {
+                "identity": f"short-{index}",
+                "axis": "nemotron_saju",
+                "task": "sample",
+                "format": "messages",
+                "messages": [{"role": "user", "content": "질문"}],
+                "restricted_local_only": False,
+            }
+            for index in range(9)
+        ]
+        with self.assertRaisesRegex(Phase5DashboardError, "10건 미만"):
+            dataset_samples_payload(
+                self.fixture.context(),
+                "ki20_train",
+                "nemotron_saju",
+                {},
+                randomize=True,
+            )
 
     @patch("scripts.training.phase5_dashboard._generate_conversation")
     @patch("scripts.training.phase5_dashboard._generation_gate")
@@ -736,6 +869,14 @@ class Phase5DashboardTests(unittest.TestCase):
         self.assertIn("guided_diagnostic_v1", html + script)
         self.assertIn("raw_no_system", html + script)
         self.assertIn("/api/dataset-samples/", script)
+        self.assertIn('id="random-dataset-samples-button"', html)
+        self.assertNotIn('id="dataset-split-select"', html)
+        self.assertNotIn('id="dataset-axis-select"', html)
+        self.assertIn('data-axis-id="${escapeHtml(axis.axis)}"', script)
+        self.assertIn("/random", script)
+        self.assertIn('<details class="dataset-sample-card">', script)
+        self.assertNotIn('<details class="dataset-sample-card" open', script)
+        self.assertIn("dataset-sample-preview", style)
         self.assertIn("--bg: #f4efe4", style)
         dashboard_source = (REPO_ROOT / "scripts/training/phase5_dashboard.py").read_text(
             encoding="utf-8"
@@ -1063,7 +1204,7 @@ class Phase5DashboardHTTPTests(unittest.TestCase):
                 ],
                 "restricted_local_only": False,
             }
-            for index in range(3)
+            for index in range(20)
         ]
         status, _, payload = self.request(
             "GET",
@@ -1072,10 +1213,57 @@ class Phase5DashboardHTTPTests(unittest.TestCase):
         )
         self.assertEqual(status, 200)
         result = json.loads(payload)
-        self.assertEqual(len(result["items"]), 3)
+        self.assertEqual(len(result["items"]), 10)
         self.assertNotIn("hidden-", payload.decode())
         status, _, _ = self.request(
             "GET", "/api/dataset-samples/blind_source_test/all", token=True
+        )
+        self.assertEqual(status, 404)
+
+    @patch("scripts.training.phase5_dashboard._generation_gate")
+    @patch("scripts.training.phase5_dashboard._dataset_candidates")
+    def test_random_dataset_api_is_origin_protected_and_bypasses_model_gate(
+        self, candidates: object, gate: object
+    ) -> None:
+        candidates.return_value = [
+            {
+                "identity": f"random-hidden-{index}",
+                "axis": "nemotron_saju",
+                "task": "structured_saju_reading",
+                "format": "messages",
+                "messages": [
+                    {"role": "user", "content": f"질문 {index}"},
+                    {"role": "assistant", "content": f"답변 {index}"},
+                ],
+                "restricted_local_only": False,
+            }
+            for index in range(20)
+        ]
+        path = "/api/dataset-samples/ki20_train/nemotron_saju/random"
+        status, _, _ = self.request(
+            "POST", path, token=True, body=b"{}"
+        )
+        self.assertEqual(status, 403)
+        status, _, payload = self.request(
+            "POST", path, token=True, origin=True, body=b"{}"
+        )
+        self.assertEqual(status, 200)
+        result = json.loads(payload)
+        self.assertEqual(len(result["items"]), 10)
+        self.assertEqual(result["selection"]["mode"], "cryptographic_random")
+        self.assertEqual(len({item["sample_key"] for item in result["items"]}), 10)
+        self.assertNotIn("random-hidden", payload.decode())
+        gate.assert_not_called()
+        status, _, _ = self.request(
+            "POST", path, token=True, origin=True, body=b'{"unexpected":true}'
+        )
+        self.assertEqual(status, 400)
+        status, _, _ = self.request(
+            "POST",
+            "/api/dataset-samples/blind_source_test/all/random",
+            token=True,
+            origin=True,
+            body=b"{}",
         )
         self.assertEqual(status, 404)
 

@@ -140,7 +140,7 @@
 
         <article class="panel dataset-detail">
           <div class="panel-heading">
-            <div><span class="label">AXIS DISTRIBUTION</span><h2 id="dataset-detail-title">KI20 학습 구성</h2></div>
+            <div><span class="label">AXIS DISTRIBUTION · FILTER</span><h2 id="dataset-detail-title">KI20 학습 구성</h2><p class="dataset-axis-help">전체 혼합 또는 데이터 축을 눌러 샘플 범위를 선택합니다.</p></div>
             <strong id="dataset-total" class="dataset-total">20,000행</strong>
           </div>
           <div id="axis-distribution" class="axis-distribution"></div>
@@ -148,17 +148,15 @@
 
         <article class="panel dataset-samples-panel">
           <div class="panel-heading dataset-sample-heading">
-            <div><span class="label">DETERMINISTIC SAMPLES</span><h2>데이터 샘플</h2></div>
-            <div class="dataset-controls">
-              <label for="dataset-split-select">Split</label>
-              <select id="dataset-split-select"></select>
-              <label for="dataset-axis-select">축</label>
-              <select id="dataset-axis-select"></select>
+            <div><span class="label">RANDOM SAMPLE BROWSER · LOCAL ONLY</span><h2 id="dataset-sample-title">KI20 학습 / 전체 혼합</h2><p id="dataset-sample-meta">실제 후보 풀에서 무작위 10건을 불러옵니다.</p></div>
+            <div class="dataset-random-controls">
+              <span id="dataset-random-status" class="dataset-random-status" aria-live="polite">준비 중</span>
+              <button id="random-dataset-samples-button" class="secondary-button compact-button" type="button">다른 10개 보기</button>
             </div>
           </div>
           <div id="dataset-restriction" class="dataset-restriction hidden" role="note">AI Hub 제한 데이터가 포함돼 있습니다. 이 화면 밖으로 복사·공유하지 마세요.</div>
           <div id="dataset-samples" class="dataset-samples" aria-live="polite"><p class="empty-conversation">샘플을 불러오는 중입니다.</p></div>
-          <p class="footnote">샘플은 고정 seed로 선택하며 내부 ID·원천 locator·hash는 표시하지 않습니다. Blind 원문은 이 화면에서 읽지 않습니다.</p>
+          <p class="footnote">각 요청은 후보 풀에서 서로 다른 10건을 무작위로 뽑습니다. 묶음이 바뀌면 같은 행이 다시 나올 수 있으며 내부 ID·원천 locator·hash는 표시하지 않습니다. Blind 원문은 읽지 않습니다.</p>
         </article>
       </section>
 

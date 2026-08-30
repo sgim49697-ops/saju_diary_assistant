@@ -32,7 +32,7 @@ if str(REPO_ROOT) not in sys.path:
 from scripts.training.phase5_quality import score_generations
 
 DEFAULT_CONFIG = Path(
-    "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.4.0.json"
+    "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.5.0.json"
 )
 ASSET_ROOT = Path(__file__).with_name("phase5_dashboard_assets")
 RUN_BUILD_PATTERN = re.compile(r"^run-[0-9a-f]{12}$")
@@ -306,7 +306,8 @@ def validate_config(config: dict[str, Any]) -> None:
         raise Phase5DashboardError("대시보드 고정 probe 범주 계약이 다릅니다.")
     schema_version = config.get("schema_version")
     if (
-        schema_version not in {"1.0.0", "1.1.0", "1.2.0", "1.3.0", "1.4.0"}
+        schema_version
+        not in {"1.0.0", "1.1.0", "1.2.0", "1.3.0", "1.4.0", "1.5.0"}
         or config.get("dashboard_id") != "KI20-MIX-v2-dashboard"
         or config.get("allowed_run_id") != "KI20-MIX-v2"
         or config.get("refresh_seconds") != 10
@@ -359,12 +360,12 @@ def validate_config(config: dict[str, Any]) -> None:
         if dataset_browser is not None:
             raise Phase5DashboardError("과거 dashboard config에 dataset browser가 있습니다.")
     else:
-        _validate_dataset_browser(dataset_browser, governance)
-    if schema_version in {"1.3.0", "1.4.0"}:
+        _validate_dataset_browser(dataset_browser, governance, schema_version)
+    if schema_version in {"1.3.0", "1.4.0", "1.5.0"}:
         _validate_prompt_profiles(prompt_profiles, governance)
     elif prompt_profiles is not None:
         raise Phase5DashboardError("과거 dashboard config에 prompt profile이 있습니다.")
-    if schema_version == "1.4.0":
+    if schema_version in {"1.4.0", "1.5.0"}:
         _validate_inference_engines(inference_engines, governance)
     elif inference_engines is not None:
         raise Phase5DashboardError("과거 dashboard config에 inference engine이 있습니다.")
@@ -373,7 +374,9 @@ def validate_config(config: dict[str, Any]) -> None:
         raise Phase5DashboardError("대시보드 generation 계약이 다릅니다.")
 
 
-def _validate_dataset_browser(value: Any, governance: dict[str, Any]) -> None:
+def _validate_dataset_browser(
+    value: Any, governance: dict[str, Any], schema_version: str
+) -> None:
     if not isinstance(value, dict):
         raise Phase5DashboardError("Phase 5 dataset browser 계약이 없습니다.")
     splits = value.get("splits")
@@ -389,10 +392,7 @@ def _validate_dataset_browser(value: Any, governance: dict[str, Any]) -> None:
         "external_conformance",
     }
     if (
-        value.get("selection_seed") != "phase5-dashboard-v1.2.0-dataset-samples"
-        or value.get("samples_per_axis") != 3
-        or value.get("all_axis_samples_per_axis") != 1
-        or value.get("preflight_config")
+        value.get("preflight_config")
         != "configs/data_versions/saju_1b_baseline/preflight-v2.0.0.json"
         or restricted != ["aihub_empathy_single", "aihub_empathy_multiturn"]
         or not isinstance(labels, dict)
@@ -409,6 +409,31 @@ def _validate_dataset_browser(value: Any, governance: dict[str, Any]) -> None:
         or governance.get("sealed_blind_access_allowed") is not False
     ):
         raise Phase5DashboardError("Phase 5 dataset browser 계약이 다릅니다.")
+    if schema_version == "1.5.0":
+        if (
+            value.get("selection_seed")
+            != "phase5-dashboard-v1.5.0-dataset-samples"
+            or value.get("sample_selection")
+            != {
+                "mode": "cryptographic_random",
+                "samples_per_request": 10,
+                "unique_within_request": True,
+                "repeat_across_requests_possible": True,
+                "persisted": False,
+            }
+            or "samples_per_axis" in value
+            or "all_axis_samples_per_axis" in value
+            or governance.get("dataset_random_sampling_read_only") is not True
+            or governance.get("dataset_random_samples_persisted") is not False
+        ):
+            raise Phase5DashboardError("Phase 5 dashboard v1.5 무작위 샘플 계약이 다릅니다.")
+    elif (
+        value.get("selection_seed") != "phase5-dashboard-v1.2.0-dataset-samples"
+        or value.get("samples_per_axis") != 3
+        or value.get("all_axis_samples_per_axis") != 1
+        or "sample_selection" in value
+    ):
+        raise Phase5DashboardError("Phase 5 dashboard 과거 샘플 계약이 다릅니다.")
     for split_id, split in splits.items():
         axes = split.get("axes") if isinstance(split, dict) else None
         if (
@@ -422,7 +447,7 @@ def _validate_dataset_browser(value: Any, governance: dict[str, Any]) -> None:
                 axis not in labels
                 or isinstance(rows, bool)
                 or not isinstance(rows, int)
-                or rows < 1
+                or rows < (10 if schema_version == "1.5.0" else 1)
                 for axis, rows in axes.items()
             )
             or sum(axes.values()) != split["rows"]
@@ -921,42 +946,97 @@ def dataset_samples_payload(
     split_id: str,
     axis: str,
     cache: dict[str, Any] | None = None,
+    *,
+    randomize: bool = False,
+    random_source: Any | None = None,
 ) -> dict[str, Any]:
     contract = _dataset_contract(context)
+    schema_version = context["config"]["schema_version"]
     split = contract["splits"].get(split_id)
     if not isinstance(split, dict):
         raise DashboardRequestError(HTTPStatus.NOT_FOUND, "허용되지 않은 dataset split입니다.")
     if axis != "all" and axis not in split["axes"]:
         raise DashboardRequestError(HTTPStatus.NOT_FOUND, "허용되지 않은 dataset 축입니다.")
+    if randomize and schema_version != "1.5.0":
+        raise DashboardRequestError(
+            HTTPStatus.NOT_FOUND, "이 dashboard config는 무작위 샘플을 지원하지 않습니다."
+        )
     active_cache = cache if cache is not None else {}
     cache_key = f"sample_payload:{split_id}:{axis}"
-    cached = active_cache.get(cache_key)
-    if isinstance(cached, dict):
-        return cached
+    if not randomize:
+        cached = active_cache.get(cache_key)
+        if isinstance(cached, dict):
+            return cached
     candidates = _dataset_candidates(context, split_id, axis, active_cache)
-    target_axes = list(split["axes"]) if axis == "all" else [axis]
-    per_axis = (
-        contract["all_axis_samples_per_axis"]
-        if axis == "all"
-        else contract["samples_per_axis"]
-    )
     selected: list[dict[str, Any]] = []
-    for axis_id in target_axes:
-        matching = [candidate for candidate in candidates if candidate["axis"] == axis_id]
-        matching.sort(
-            key=lambda candidate: hashlib.sha256(
-                f"{contract['selection_seed']}|{split_id}|{axis_id}|{candidate['identity']}".encode()
-            ).hexdigest()
+    if schema_version == "1.5.0":
+        matching = (
+            candidates
+            if axis == "all"
+            else [candidate for candidate in candidates if candidate["axis"] == axis]
         )
-        if not matching:
-            raise Phase5DashboardError(f"dataset sample 후보가 없습니다: {split_id}/{axis_id}")
-        selected.extend(matching[:per_axis])
+        requested = contract["sample_selection"]["samples_per_request"]
+        identities = [candidate.get("identity") for candidate in matching]
+        if (
+            len(matching) < requested
+            or any(not isinstance(identity, str) or not identity for identity in identities)
+            or len(set(identities)) != len(identities)
+        ):
+            raise Phase5DashboardError(
+                f"dataset 무작위 sample 후보가 10건 미만이거나 중복입니다: {split_id}/{axis}"
+            )
+        if randomize:
+            generator = random_source if random_source is not None else secrets.SystemRandom()
+            selected = generator.sample(matching, requested)
+            selection_mode = "cryptographic_random"
+        else:
+            matching.sort(
+                key=lambda candidate: hashlib.sha256(
+                    f"{contract['selection_seed']}|{split_id}|{axis}|{candidate['identity']}".encode()
+                ).hexdigest()
+            )
+            selected = matching[:requested]
+            selection_mode = "deterministic_compatibility"
+        selected_identities = [candidate["identity"] for candidate in selected]
+        if len(selected) != requested or len(set(selected_identities)) != requested:
+            raise Phase5DashboardError("dataset 무작위 sample 결과가 10개 고유 행이 아닙니다.")
+    else:
+        target_axes = list(split["axes"]) if axis == "all" else [axis]
+        per_axis = (
+            contract["all_axis_samples_per_axis"]
+            if axis == "all"
+            else contract["samples_per_axis"]
+        )
+        for axis_id in target_axes:
+            matching = [
+                candidate for candidate in candidates if candidate["axis"] == axis_id
+            ]
+            matching.sort(
+                key=lambda candidate: hashlib.sha256(
+                    f"{contract['selection_seed']}|{split_id}|{axis_id}|{candidate['identity']}".encode()
+                ).hexdigest()
+            )
+            if not matching:
+                raise Phase5DashboardError(
+                    f"dataset sample 후보가 없습니다: {split_id}/{axis_id}"
+                )
+            selected.extend(matching[:per_axis])
+        requested = len(selected)
+        selection_mode = "deterministic_legacy"
     items = [_sample_projection(context, split_id, candidate) for candidate in selected]
     result = {
         "split_id": split_id,
         "split_label": split["label"],
         "axis": axis,
         "items": items,
+        "selection": {
+            "mode": selection_mode,
+            "requested": requested,
+            "returned": len(items),
+            "unique_within_request": True,
+            "repeat_across_requests_possible": randomize,
+            "persisted": False,
+        },
         "local_only": True,
         "restricted_content_included": any(
             item["restricted_local_only"] for item in items
@@ -964,7 +1044,8 @@ def dataset_samples_payload(
         "sealed_blind_accessed": False,
         "internal_identifiers_included": False,
     }
-    active_cache[cache_key] = result
+    if not randomize:
+        active_cache[cache_key] = result
     return result
 
 
@@ -2444,6 +2525,26 @@ class DashboardRequestHandler(BaseHTTPRequestHandler):
             path = self._guard(require_origin=True)
             if not self._authorized():
                 raise DashboardRequestError(HTTPStatus.FORBIDDEN, "CSRF 검증에 실패했습니다.")
+            random_sample_match = re.fullmatch(
+                r"/api/dataset-samples/([a-z0-9_]+)/([a-z0-9_]+)/random", path
+            )
+            if random_sample_match is not None:
+                payload = self._request_json()
+                if payload:
+                    raise DashboardRequestError(
+                        HTTPStatus.BAD_REQUEST,
+                        "무작위 dataset sample 요청은 빈 object여야 합니다.",
+                    )
+                with self.server.dataset_cache_lock:
+                    result = dataset_samples_payload(
+                        self.server.context,
+                        random_sample_match.group(1),
+                        random_sample_match.group(2),
+                        self.server.dataset_cache,
+                        randomize=True,
+                    )
+                self._send_json(HTTPStatus.OK, result)
+                return
             if path not in {"/api/generate", "/api/probe"}:
                 raise DashboardRequestError(HTTPStatus.NOT_FOUND, "API 경로를 찾을 수 없습니다.")
             payload = self._request_json()
