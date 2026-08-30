@@ -35,7 +35,7 @@ if str(REPO_ROOT) not in sys.path:
 from scripts.training.phase5_quality import score_generations
 
 DEFAULT_CONFIG = Path(
-    "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.6.0.json"
+    "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.7.0.json"
 )
 ASSET_ROOT = Path(__file__).with_name("phase5_dashboard_assets")
 RUN_BUILD_PATTERN = re.compile(r"^run-[0-9a-f]{12}$")
@@ -197,7 +197,18 @@ def _remote_access_settings(
     trusted_origin: str | None,
     basic_auth_user: str | None,
     basic_auth_password_file: Path | None,
+    allow_unauthenticated_remote: bool = False,
 ) -> tuple[str | None, tuple[str, str] | None]:
+    if allow_unauthenticated_remote:
+        if (
+            trusted_origin is None
+            or basic_auth_user is not None
+            or basic_auth_password_file is not None
+        ):
+            raise Phase5DashboardError(
+                "무인증 원격 공유에는 exact trusted origin만 함께 지정해야 합니다."
+            )
+        return _validated_trusted_origin(trusted_origin), None
     supplied = (
         trusted_origin is not None,
         basic_auth_user is not None,
@@ -423,6 +434,7 @@ def validate_config(config: dict[str, Any]) -> None:
             "1.4.0",
             "1.5.0",
             "1.6.0",
+            "1.7.0",
         }
         or config.get("dashboard_id") != "KI20-MIX-v2-dashboard"
         or config.get("allowed_run_id") != "KI20-MIX-v2"
@@ -452,7 +464,7 @@ def validate_config(config: dict[str, Any]) -> None:
         or governance.get("fixed_probe_results_private") is not True
     ):
         raise Phase5DashboardError("Phase 5 dashboard config 계약이 다릅니다.")
-    expected_remote_share = {
+    expected_authenticated_remote_share = {
         "enabled_by_default": False,
         "exact_https_origin_required": True,
         "basic_auth_required": True,
@@ -461,8 +473,20 @@ def validate_config(config: dict[str, Any]) -> None:
         "minimum_password_bytes": REMOTE_PASSWORD_MIN_BYTES,
     }
     if schema_version == "1.6.0":
-        if remote_share != expected_remote_share:
+        if remote_share != expected_authenticated_remote_share:
             raise Phase5DashboardError("Phase 5 dashboard v1.6 원격 공유 계약이 다릅니다.")
+    elif schema_version == "1.7.0":
+        expected_unauthenticated_remote_share = {
+            "enabled_by_default": False,
+            "exact_https_origin_required": True,
+            "basic_auth_supported": True,
+            "unauthenticated_remote_requires_explicit_flag": True,
+            "wildcard_origins_allowed": False,
+            "password_file_mode": "0600",
+            "minimum_password_bytes": REMOTE_PASSWORD_MIN_BYTES,
+        }
+        if remote_share != expected_unauthenticated_remote_share:
+            raise Phase5DashboardError("Phase 5 dashboard v1.7 원격 공유 계약이 다릅니다.")
     elif remote_share is not None:
         raise Phase5DashboardError("과거 dashboard config에 원격 공유 계약이 있습니다.")
     manual_session = config.get("manual_session")
@@ -490,11 +514,11 @@ def validate_config(config: dict[str, Any]) -> None:
             raise Phase5DashboardError("과거 dashboard config에 dataset browser가 있습니다.")
     else:
         _validate_dataset_browser(dataset_browser, governance, schema_version)
-    if schema_version in {"1.3.0", "1.4.0", "1.5.0", "1.6.0"}:
+    if schema_version in {"1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0"}:
         _validate_prompt_profiles(prompt_profiles, governance)
     elif prompt_profiles is not None:
         raise Phase5DashboardError("과거 dashboard config에 prompt profile이 있습니다.")
-    if schema_version in {"1.4.0", "1.5.0", "1.6.0"}:
+    if schema_version in {"1.4.0", "1.5.0", "1.6.0", "1.7.0"}:
         _validate_inference_engines(inference_engines, governance)
     elif inference_engines is not None:
         raise Phase5DashboardError("과거 dashboard config에 inference engine이 있습니다.")
@@ -538,7 +562,7 @@ def _validate_dataset_browser(
         or governance.get("sealed_blind_access_allowed") is not False
     ):
         raise Phase5DashboardError("Phase 5 dataset browser 계약이 다릅니다.")
-    if schema_version in {"1.5.0", "1.6.0"}:
+    if schema_version in {"1.5.0", "1.6.0", "1.7.0"}:
         if (
             value.get("selection_seed")
             != "phase5-dashboard-v1.5.0-dataset-samples"
@@ -578,7 +602,8 @@ def _validate_dataset_browser(
                 axis not in labels
                 or isinstance(rows, bool)
                 or not isinstance(rows, int)
-                or rows < (10 if schema_version in {"1.5.0", "1.6.0"} else 1)
+                or rows
+                < (10 if schema_version in {"1.5.0", "1.6.0", "1.7.0"} else 1)
                 for axis, rows in axes.items()
             )
             or sum(axes.values()) != split["rows"]
@@ -1088,7 +1113,7 @@ def dataset_samples_payload(
         raise DashboardRequestError(HTTPStatus.NOT_FOUND, "허용되지 않은 dataset split입니다.")
     if axis != "all" and axis not in split["axes"]:
         raise DashboardRequestError(HTTPStatus.NOT_FOUND, "허용되지 않은 dataset 축입니다.")
-    if randomize and schema_version not in {"1.5.0", "1.6.0"}:
+    if randomize and schema_version not in {"1.5.0", "1.6.0", "1.7.0"}:
         raise DashboardRequestError(
             HTTPStatus.NOT_FOUND, "이 dashboard config는 무작위 샘플을 지원하지 않습니다."
         )
@@ -1100,7 +1125,7 @@ def dataset_samples_payload(
             return cached
     candidates = _dataset_candidates(context, split_id, axis, active_cache)
     selected: list[dict[str, Any]] = []
-    if schema_version in {"1.5.0", "1.6.0"}:
+    if schema_version in {"1.5.0", "1.6.0", "1.7.0"}:
         matching = (
             candidates
             if axis == "all"
@@ -2488,9 +2513,9 @@ class DashboardHTTPServer(ThreadingHTTPServer):
         trusted_origin: str | None = None,
         basic_auth: tuple[str, str] | None = None,
     ) -> None:
-        if (trusted_origin is None) != (basic_auth is None):
+        if trusted_origin is None and basic_auth is not None:
             raise Phase5DashboardError(
-                "원격 공유 Origin과 Basic 인증은 함께 설정해야 합니다."
+                "Basic 인증에는 원격 공유 Origin이 필요합니다."
             )
         self.context = context
         self.asset_root = asset_root
@@ -2926,14 +2951,24 @@ def serve(
     trusted_origin: str | None = None,
     basic_auth_user: str | None = None,
     basic_auth_password_file: Path | None = None,
+    allow_unauthenticated_remote: bool = False,
 ) -> None:
     if host != "127.0.0.1" or not 1 <= port <= 65535:
         raise Phase5DashboardError("대시보드는 127.0.0.1의 유효한 port에만 열 수 있습니다.")
     resolved_origin, basic_auth = _remote_access_settings(
-        trusted_origin, basic_auth_user, basic_auth_password_file
+        trusted_origin,
+        basic_auth_user,
+        basic_auth_password_file,
+        allow_unauthenticated_remote,
     )
-    if resolved_origin is not None and context["config"]["schema_version"] != "1.6.0":
-        raise Phase5DashboardError("원격 공유에는 dashboard v1.6.0 계약이 필요합니다.")
+    schema_version = context["config"]["schema_version"]
+    if resolved_origin is not None and basic_auth is None and schema_version != "1.7.0":
+        raise Phase5DashboardError("무인증 원격 공유에는 dashboard v1.7.0 계약이 필요합니다.")
+    if resolved_origin is not None and basic_auth is not None and schema_version not in {
+        "1.6.0",
+        "1.7.0",
+    }:
+        raise Phase5DashboardError("인증 원격 공유에는 dashboard v1.6.0+ 계약이 필요합니다.")
     server = DashboardHTTPServer(
         (host, port),
         context,
@@ -2963,6 +2998,7 @@ def _parser() -> argparse.ArgumentParser:
     serve_parser.add_argument("--trusted-origin")
     serve_parser.add_argument("--basic-auth-user")
     serve_parser.add_argument("--basic-auth-password-file", type=Path)
+    serve_parser.add_argument("--allow-unauthenticated-remote", action="store_true")
     probe = subparsers.add_parser("probe", help="완료 모델 고정 20건 비교")
     probe.add_argument("--execute", action="store_true")
     generate = subparsers.add_parser("generate", help=argparse.SUPPRESS)
@@ -2986,6 +3022,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 args.trusted_origin,
                 args.basic_auth_user,
                 args.basic_auth_password_file,
+                args.allow_unauthenticated_remote,
             )
             return 0
         elif args.command == "probe":

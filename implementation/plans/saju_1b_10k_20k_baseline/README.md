@@ -230,6 +230,11 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
 ## 진행 기록
 
 - 2026-08-30
+  - 작업 요약: dashboard `v1.7.0`에 사용자가 명시적으로 선택한 무인증 원격 공유 모드를 추가하고, 기존 Cloudflare Quick Tunnel URL을 유지한 채 `https://scholars-greatest-biography-presidential.trycloudflare.com`을 로그인 없이 공개했다.
+  - 변경 범위: 무인증 공유는 `--allow-unauthenticated-remote`와 wildcard·경로·port가 없는 exact HTTPS Origin을 함께 지정한 경우에만 시작한다. 기본 loopback과 기존 Basic 인증 방식은 계속 지원하고 Host·CSRF·POST Origin 검사를 유지한다. 사용자가 공개 위험을 확인한 뒤 요청한 범위에 따라 AI Hub 제한 샘플과 기존 private 세션이 포함된 전체 dashboard를 URL 접근자에게 열었으며, 학습 데이터·checkpoint·sealed blind·Phase 6·승격 상태는 변경하지 않았다.
+  - 검증: dashboard 34건과 저장소 전체 267건 unittest, Ruff, JavaScript syntax, config JSON과 diff 검증을 통과했다. 실제 공개 URL에서 인증 헤더 없이 root `200`, KI20 생성 POST `200`, `status=generated`, 비어 있지 않은 답변을 확인했고 서비스 restart 횟수는 0이다.
+  - 남은 이슈·후속 작업: 이 URL은 인증·사용자별 접근 제어·rate limit 없이 전체 dashboard와 GPU 추론을 공개하므로 링크를 아는 누구나 접근할 수 있다. Quick Tunnel은 uptime·고정 URL을 보장하지 않으며, 공유 종료 시 tunnel과 dashboard 서비스를 중지해야 한다. 이전 런타임 비밀번호 파일은 서비스 참조 해제 뒤 삭제했으며 `production_promotion_allowed=false`를 유지한다.
+- 2026-08-30
   - 작업 요약: dashboard `v1.6.0`에 기본 비활성인 인증 원격 공유 계약을 추가하고 현재 Cloudflare Quick Tunnel의 정확한 HTTPS Origin에서 KI20 답변 생성을 연결했다.
   - 변경 범위: 원격 공유는 exact Origin·Basic 사용자·현재 사용자 소유 `0600` 비밀번호 파일이 모두 있어야 시작하며 정적 화면과 전체 API를 인증으로 보호한다. 기본 loopback 모드와 Host·CSRF·동일 Origin 검사는 유지했다. AI Hub 제한 샘플과 기존 private 세션을 포함한 전체 화면은 사용자가 접근 권한을 확인한 내부 팀원에게만 공유하며 비밀번호는 Git·문서·프로세스 인자에 기록하지 않는다. 학습 데이터·checkpoint·sealed blind·Phase 6·승격 상태는 변경하지 않았다.
   - 검증: dashboard 33건과 저장소 전체 266건 unittest, Ruff, JavaScript syntax, JSON·diff 검증을 통과했다. 실제 `trycloudflare.com` URL에서 무인증 local/external `401`, 인증 root·session API `200`, K0/KI20 `available=true`를 확인했고, 외부 Origin의 합성 KI20 질문은 `200`, `status=generated`, 비어 있지 않은 1 turn 답변을 반환했다.

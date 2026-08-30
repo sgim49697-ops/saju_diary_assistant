@@ -49,7 +49,7 @@ class DashboardFixture:
         self.config = json.loads((REPO_ROOT / DEFAULT_CONFIG).read_text(encoding="utf-8"))
         self.config_path = (
             root
-            / "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.6.0.json"
+            / "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.7.0.json"
         )
         self.config_path.parent.mkdir(parents=True)
         prompt_source = REPO_ROOT / self.config["prompt_profiles"]["profiles"][
@@ -165,13 +165,14 @@ class Phase5DashboardTests(unittest.TestCase):
     def test_committed_config_and_cli_defaults_are_valid(self) -> None:
         config = json.loads((REPO_ROOT / DEFAULT_CONFIG).read_text(encoding="utf-8"))
         validate_config(config)
-        self.assertEqual(config["schema_version"], "1.6.0")
+        self.assertEqual(config["schema_version"], "1.7.0")
         self.assertEqual(
             config["server"]["remote_share"],
             {
                 "enabled_by_default": False,
                 "exact_https_origin_required": True,
-                "basic_auth_required": True,
+                "basic_auth_supported": True,
+                "unauthenticated_remote_requires_explicit_flag": True,
                 "wildcard_origins_allowed": False,
                 "password_file_mode": "0600",
                 "minimum_password_bytes": 32,
@@ -190,7 +191,7 @@ class Phase5DashboardTests(unittest.TestCase):
         historical = json.loads(
             (
                 REPO_ROOT
-                / "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.5.0.json"
+                / "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.6.0.json"
             ).read_text(encoding="utf-8")
         )
         validate_config(historical)
@@ -236,6 +237,22 @@ class Phase5DashboardTests(unittest.TestCase):
         )
         self.assertEqual(trusted, origin)
         self.assertEqual(credentials, ("reviewer", "x" * 32))
+        trusted, credentials = _remote_access_settings(
+            origin, None, None, allow_unauthenticated_remote=True
+        )
+        self.assertEqual(trusted, origin)
+        self.assertIsNone(credentials)
+        with self.assertRaisesRegex(Phase5DashboardError, "exact trusted origin"):
+            _remote_access_settings(
+                None, None, None, allow_unauthenticated_remote=True
+            )
+        with self.assertRaisesRegex(Phase5DashboardError, "exact trusted origin"):
+            _remote_access_settings(
+                origin,
+                "reviewer",
+                password_path,
+                allow_unauthenticated_remote=True,
+            )
         with self.assertRaisesRegex(Phase5DashboardError, "모두 필요"):
             _remote_access_settings(origin, None, password_path)
         for invalid_origin in (
@@ -1217,6 +1234,45 @@ class Phase5DashboardHTTPTests(unittest.TestCase):
             token=True,
             origin=origin,
             authorization=authorization,
+            body=body,
+        )
+        self.assertEqual(status, 200)
+        generate.assert_called_once()
+
+    @patch("scripts.training.phase5_dashboard._manual_generation_subprocess")
+    @patch("scripts.training.phase5_dashboard._generation_gate")
+    def test_unauthenticated_remote_share_keeps_exact_origin_and_csrf(
+        self, gate: object, generate: object
+    ) -> None:
+        origin = "https://review.example.com"
+        self.server.allowed_origins.add(origin)
+        self.assertIsNone(self.server.basic_auth)
+        status, _, _ = self.request("GET", "/")
+        self.assertEqual(status, 200)
+        body = json.dumps(
+            {
+                "prompt": "무인증 원격 진단 질문",
+                "session_id": None,
+                "profile": "guided_diagnostic_v1",
+                "engine_selection": "ki20_final",
+            }
+        ).encode()
+        status, _, payload = self.request(
+            "POST",
+            "/api/generate",
+            token=True,
+            origin="https://lookalike.example.com",
+            body=body,
+        )
+        self.assertEqual(status, 403)
+        self.assertIn("Origin", payload.decode())
+        gate.return_value = {"allowed": True, "reasons": []}
+        generate.return_value = {"status": "generated", "session_id": "c" * 24}
+        status, _, _ = self.request(
+            "POST",
+            "/api/generate",
+            token=True,
+            origin=origin,
             body=body,
         )
         self.assertEqual(status, 200)
