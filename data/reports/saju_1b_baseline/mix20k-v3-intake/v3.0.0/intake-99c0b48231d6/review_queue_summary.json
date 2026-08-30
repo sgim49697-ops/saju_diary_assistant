@@ -1,0 +1,18 @@
+{
+  "external_safe_license_redistribution_approved": false,
+  "external_safe_note": "AI Hub restricted lineage는 제외했으나 제3자 재배포 전 별도 license review가 필요함",
+  "external_safe_restricted_rows": 0,
+  "external_safe_rows": 4000,
+  "internal_queue_counts": {
+    "canonical_engine": 800,
+    "expert_interpretation": 1500,
+    "policy": 375,
+    "restricted_empathy": 700,
+    "workflow_grounding": 625
+  },
+  "internal_queue_pairwise_overlap": 0,
+  "internal_queue_rows": 4000,
+  "raw_samples_in_report": false,
+  "schema_version": "1.0.0",
+  "status": "built"
+}

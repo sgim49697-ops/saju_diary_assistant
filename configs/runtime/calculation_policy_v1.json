@@ -1,0 +1,54 @@
+{
+  "_description": "기존 승인 계산 표 정책을 참조하고 미해결 역법 필드를 fail-closed로 유지하는 runtime wrapper다.",
+  "schema_version": "1.0.0",
+  "runtime_policy_version": "saju-runtime-calculation-policy-v1",
+  "parent": {
+    "path": "configs/saju_calculation_policy-v1.0.0.json",
+    "policy_id": "saju-calculation-policy-v1.0.0",
+    "sha256": "d6a20582dd52d3928674b3e6a65a586d6f71c1e22e2ab8b925ca431debf3286c"
+  },
+  "status": "workflow_preflight_only_not_birth_engine_approved",
+  "runtime_enabled": {
+    "timezone_normalization": true,
+    "relative_date_normalization": true,
+    "verified_chart_fact_serialization": true,
+    "stem_branch_identity": true,
+    "yin_yang_elements": true,
+    "surface_five_elements": true,
+    "hidden_stems": true,
+    "stem_ten_gods": true,
+    "branch_ten_gods": true
+  },
+  "runtime_blocked_fail_closed": {
+    "birth_to_pillars": "independent ephemeris·boundary Gold 미승인",
+    "solar_term_boundary": "절입 시각 source·profile 미승인",
+    "day_boundary": "자시·야자·조자 profile 미승인",
+    "true_solar_time": "경도·균시차 profile 미승인",
+    "historical_dst_application": "IANA tzdb adapter 독립 검증 미완료",
+    "luck_cycles": "대운 시작·방향 정책 미승인",
+    "period_ganzhi_relations": "월·년 경계와 관계 정책 미승인"
+  },
+  "policy_bound": {
+    "branch_ten_god_policy_id": "branch_main_hidden_stem_v1",
+    "unknown_birth_time": "hour pillar must be null and must not be guessed",
+    "timezone_source": "IANA tzdb through Python zoneinfo with a pinned environment report",
+    "solar_term_default": null,
+    "day_boundary_default": null,
+    "true_solar_time_default": null
+  },
+  "never_hard_gt": [
+    "day_strength",
+    "geukguk",
+    "yongsin",
+    "relation_priority",
+    "automatic_interpretation",
+    "remedy_advice",
+    "future_event_prediction"
+  ],
+  "training": {
+    "full_training_execution_enabled": false,
+    "diagnostic_training_execution_enabled": false,
+    "training_promotion_allowed": false,
+    "production_promotion_allowed": false
+  }
+}

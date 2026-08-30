@@ -1,0 +1,109 @@
+{
+  "schema_version": "1.0.0",
+  "dataset_name": "saju_1b_baseline",
+  "repair_version": "v3.0.1-repaired",
+  "source_package": {
+    "dataset_version": "3.0.0-review-candidate",
+    "review_file": "mix20k_v3_review_with_metadata.jsonl",
+    "review_rows": 20000,
+    "review_sha256": "b8c405df67d1a429784cdd9ea5ce10071d3c423627a43e3fba32908046fd1d26",
+    "training_file": "training_mix20k_v3_candidate.jsonl",
+    "training_rows": 20000,
+    "training_sha256": "c78f3897c4fd2bc5ab5be9e2e63f8999963ce627433bc4eed2155e6abf4cb639",
+    "build_manifest_sha256": "7c431f8a6f47d0bea422fa144952559fc6c5db60c478d37107ea8e08e193a935",
+    "sha256sums_sha256": "f6dea14385fa3c0ce0c6f3b07ad7a6a1aaf267e69e1a6bcb9b36388530585384"
+  },
+  "runtime_contract": {
+    "production_prompt": "configs/runtime/production_system_prompt_v1.txt",
+    "tool_schema": "configs/runtime/tool_schema_v1.json",
+    "session_state_schema": "configs/runtime/session_state_schema_v1.json",
+    "calculation_policy": "configs/runtime/calculation_policy_v1.json",
+    "relative_date_policy": "configs/runtime/relative_date_policy_v1.json",
+    "calculation_policy_id": "saju-calculation-policy-v1.0.0",
+    "tool_schema_version": "saju-tools-v1"
+  },
+  "model": {
+    "repo_id": "kakaocorp/kanana-2-1.3b-instruct",
+    "revision": "bf4786aa2a1908adce942d53976270132732f720",
+    "chat_template": "configs/chat_templates/kanana2_sft.jinja",
+    "chat_template_sha256": "b8ee6b31575eada17ebbe73d3f1ac65d3efde64f0a25ff922031dec7e1cae3e3",
+    "max_length": 768,
+    "assistant_only_loss": true,
+    "target_policy": "last_user_suffix",
+    "dtype": "bfloat16"
+  },
+  "serving": {
+    "primary_engine": "sglang",
+    "primary_version": "0.5.1",
+    "primary_tool_call_parser": "qwen3_coder",
+    "secondary_engine": "vllm",
+    "secondary_tool_call_parser": "qwen3_xml",
+    "secondary_is_promotion_gate": false
+  },
+  "repair": {
+    "selection_seed": "saju-mix20k-v3.0.1|20260831",
+    "uncooperative_trajectory_rows": 600,
+    "long_trajectory_rows": 600,
+    "long_trajectory_assistant_turns": 5,
+    "expected_axis_counts": {
+      "intent_routing": 1000,
+      "birth_intake": 1600,
+      "calendar_time_edge": 700,
+      "correction_conflict": 800,
+      "chart_tool_call": 1500,
+      "tool_result_interpretation": 3200,
+      "domain_consultation": 2800,
+      "stateful_followup": 2200,
+      "non_saju_empathy": 1200,
+      "optin_saju_diary_bridge": 700,
+      "completion_truthfulness": 500,
+      "invalid_unverifiable_correction": 500,
+      "verified_period_handling": 1000,
+      "hard_policy_qa": 1000,
+      "general_korean_replay": 1300
+    }
+  },
+  "restricted_sources": [
+    "AIHub-86-derived-from-MIX20K-v2",
+    "recomposed_from_MIX20K-v2_bridge"
+  ],
+  "expected_restricted_rows": 3200,
+  "review_queues": {
+    "expert_interpretation": 1500,
+    "canonical_engine": 800,
+    "workflow_grounding": 625,
+    "restricted_empathy": 700,
+    "policy": 375,
+    "total": 4000,
+    "external_safe": 4000
+  },
+  "diagnostic_2k": {
+    "intent_routing": 200,
+    "birth_intake": 400,
+    "chart_tool_call": 400,
+    "tool_result_interpretation": 400,
+    "correction_conflict": 200,
+    "calendar_time_edge": 150,
+    "verified_period_handling": 150,
+    "completion_truthfulness": 100
+  },
+  "outputs": {
+    "private_root": "data/derived/saju_1b_baseline/mix20k-v3.0.1-repaired/{build_id}",
+    "public_root": "data/reports/saju_1b_baseline/mix20k-v3-intake/v3.0.0/{intake_id}"
+  },
+  "governance": {
+    "diagnostic_training_execution_enabled": false,
+    "full_training_execution_enabled": false,
+    "training_promotion_allowed": false,
+    "production_promotion_allowed": false,
+    "expert_review_completed": false,
+    "canonical_birth_engine_approved": false,
+    "sealed_blind_payload_read_allowed": false
+  },
+  "implementation_files": [
+    "scripts/runtime/saju_contract.py",
+    "scripts/data/mix20k_v3_repair.py",
+    "scripts/training/phase5_v3_dataset.py",
+    "scripts/training/phase5_v3_preflight.py"
+  ]
+}

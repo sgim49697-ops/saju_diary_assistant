@@ -1,0 +1,53 @@
+{
+  "assistant_turn_distribution": {
+    "1": 14000,
+    "2": 3800,
+    "3": 1000,
+    "4": 800,
+    "5": 400
+  },
+  "axis_counts": {
+    "birth_intake": 1600,
+    "calendar_time_edge": 700,
+    "chart_tool_call": 1500,
+    "completion_truthfulness": 500,
+    "correction_conflict": 800,
+    "domain_consultation": 2800,
+    "general_korean_replay": 1300,
+    "hard_policy_qa": 1000,
+    "intent_routing": 1000,
+    "invalid_unverifiable_correction": 500,
+    "non_saju_empathy": 1200,
+    "optin_saju_diary_bridge": 700,
+    "stateful_followup": 2200,
+    "tool_result_interpretation": 3200,
+    "verified_period_handling": 1000
+  },
+  "heuristic_terms_in_hard_gt_rows": 80,
+  "obvious_hanja_particle_errors": 4437,
+  "obvious_hanja_particle_errors_by_axis": {
+    "domain_consultation": 2117,
+    "hard_policy_qa": 62,
+    "invalid_unverifiable_correction": 375,
+    "stateful_followup": 1193,
+    "tool_result_interpretation": 655,
+    "verified_period_handling": 35
+  },
+  "raw_samples_in_report": false,
+  "relative_period_rows_without_runtime_reference": 638,
+  "rows": 20000,
+  "schema_version": "1.0.0",
+  "stateful_why_new_evidence_rows": 918,
+  "status": "repair_required",
+  "ungrounded_chart_argument_rows": 1838,
+  "ungrounded_chart_argument_rows_by_axis": {
+    "calendar_time_edge": 213,
+    "completion_truthfulness": 400,
+    "correction_conflict": 25,
+    "tool_result_interpretation": 1200
+  },
+  "ungrounded_period_argument_rows_by_axis": {
+    "completion_truthfulness": 100,
+    "verified_period_handling": 800
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "axes": {
+    "birth_intake": {
+      "max_multiplicity": 2,
+      "participating_rows": 2,
+      "rows": 1600,
+      "unique_signatures": 1599
+    },
+    "calendar_time_edge": {
+      "max_multiplicity": 1,
+      "participating_rows": 0,
+      "rows": 700,
+      "unique_signatures": 700
+    },
+    "chart_tool_call": {
+      "max_multiplicity": 1,
+      "participating_rows": 0,
+      "rows": 1500,
+      "unique_signatures": 1500
+    },
+    "completion_truthfulness": {
+      "max_multiplicity": 1,
+      "participating_rows": 0,
+      "rows": 500,
+      "unique_signatures": 500
+    },
+    "correction_conflict": {
+      "max_multiplicity": 1,
+      "participating_rows": 0,
+      "rows": 800,
+      "unique_signatures": 800
+    },
+    "domain_consultation": {
+      "max_multiplicity": 1,
+      "participating_rows": 0,
+      "rows": 2800,
+      "unique_signatures": 2800
+    },
+    "general_korean_replay": {
+      "max_multiplicity": 1,
+      "participating_rows": 0,
+      "rows": 1300,
+      "unique_signatures": 1300
+    },
+    "hard_policy_qa": {
+      "max_multiplicity": 18,
+      "participating_rows": 175,
+      "rows": 1000,
+      "unique_signatures": 854
+    },
+    "intent_routing": {
+      "max_multiplicity": 3,
+      "participating_rows": 201,
+      "rows": 1000,
+      "unique_signatures": 897
+    },
+    "invalid_unverifiable_correction": {
+      "max_multiplicity": 1,
+      "participating_rows": 0,
+      "rows": 500,
+      "unique_signatures": 500
+    },
+    "non_saju_empathy": {
+      "max_multiplicity": 1,
+      "participating_rows": 0,
+      "rows": 1200,
+      "unique_signatures": 1200
+    },
+    "optin_saju_diary_bridge": {
+      "max_multiplicity": 1,
+      "participating_rows": 0,
+      "rows": 700,
+      "unique_signatures": 700
+    },
+    "stateful_followup": {
+      "max_multiplicity": 1,
+      "participating_rows": 0,
+      "rows": 2200,
+      "unique_signatures": 2200
+    },
+    "tool_result_interpretation": {
+      "max_multiplicity": 1,
+      "participating_rows": 0,
+      "rows": 3200,
+      "unique_signatures": 3200
+    },
+    "verified_period_handling": {
+      "max_multiplicity": 4,
+      "participating_rows": 83,
+      "rows": 1000,
+      "unique_signatures": 951
+    }
+  },
+  "raw_samples_in_report": false,
+  "schema_version": "1.0.0",
+  "signature": "normalized_messages_with_structured_tool_calls_sha256",
+  "status": "measured"
+}

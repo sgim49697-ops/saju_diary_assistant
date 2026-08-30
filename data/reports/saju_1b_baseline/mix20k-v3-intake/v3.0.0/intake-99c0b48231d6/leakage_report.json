@@ -1,0 +1,17 @@
+{
+  "blind_components_checked": 350,
+  "blind_hash_manifest_checked": true,
+  "blind_hash_manifest_sha256": "43fd009804b5a3293a1b48c902b73e19b274bde8e9d9b8869354a222c6835be4",
+  "blind_payload_read": false,
+  "blind_prompts_or_references_read": false,
+  "blind_record_ids_used": false,
+  "exact_duplicate_participating_rows": 2035,
+  "max_exact_signature_multiplicity": 102,
+  "parent_record_hash_overlap_with_blind": 0,
+  "raw_samples_in_report": false,
+  "repaired_content_hash_overlap_with_blind": 0,
+  "rows": 20000,
+  "schema_version": "1.0.0",
+  "status": "hash_api_checked",
+  "unique_normalized_message_signatures": 18594
+}

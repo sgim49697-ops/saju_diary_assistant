@@ -275,9 +275,15 @@ runs/KI20-MIX-v2/v1.2.0/run-1f5d732cae67/  # 1 epoch 본학습·최종 재로딩
 | 2026-08-29 | TRL 1.12 SFT objective | `chunked_nll`은 표준 NLL과 같은 수학이며 assistant-only mask를 지원함을 재확인 |
 | 2026-08-29 | PyTorch cross entropy reduction | ignored target을 제외한 token mean과 축별 macro를 분리 보고하기로 결정 |
 | 2026-08-29 | Transformers Mistral regex 처리 | base·KI10 tokenizer bytes는 동일하므로 현 fingerprint를 유지하고 별도 version migration으로 격리 |
+| 2026-08-31 | Kanana·TRL·SGLang·vLLM tool calling | Kanana 권장 SGLang 0.5.1/`qwen3_coder`, TRL의 messages/tools/tool role/assistant mask 계약을 채택하고 vLLM parser 이름 차이는 secondary 진단으로 격리 |
 
 ## 진행 기록
 
+- 2026-08-31
+  - 작업 요약: KI20의 알려진 상태·tool·grounding 실패를 보강하기 위한 외부 MIX20K-v3 후보를 감사하고 새 데이터 fingerprint의 비학습 기술 preflight까지 완료했다. 기존 KI20을 이어 학습하거나 새 checkpoint를 만들지 않았다.
+  - 변경 범위: 20K 보정 candidate, 2K diagnostic selection, 4K 검수 큐와 runtime 계약을 생성했다. model이 사주를 직접 계산하지 않고 strict tool을 호출하며 allowlist hard fact만 해석하도록 학습 projection을 고정했다. `assistant_target_policy=last_user_suffix`와 tool response loss 제외를 유지했다.
+  - 검증: `preflight-aea1c001126e`에서 정확한 Kanana tokenizer 기준 최대 767/768, 20K 길이 초과 0, 마지막 사용자 이전 assistant supervision·최종 EOS·serialization 오류 0, tool response supervised 0, tool XML 5,250/5,250 복원을 확인했다. `.train()`·backward·optimizer step은 모두 0이다.
+  - 남은 이슈·후속 작업: canonical engine 재검산 3,800행, 반복 target 다양화, 전체 state/grounding evaluator, 4K·expert 검수가 남아 diagnostic과 본학습 실행을 차단한다. 이후에도 K0→v3 10K와 K0→v3 20K를 독립 run으로 진행하며 기존 KI20 checkpoint에서 이어 학습하지 않는다.
 - 2026-08-30
   - 작업 요약: KI20 `run-1f5d732cae67`의 공개 학습 요약과 build manifest를 private run과 대조해 저장소에 고정하고, Phase 5 상단 상태·완료 Gate·산출물 설명을 실제 완료 상태로 갱신했다.
   - 변경 범위: 공개 보고서에는 집계 지표와 실행 환경만 포함하고 원문 샘플·checkpoint·봉인 blind는 포함하지 않았다. AI Hub 파생 원문을 포함한 81MiB `saju-mix20k-v3-review-ready`는 공개 Git에서 제외하도록 정확한 루트 경로만 `.gitignore`에 추가했으며 로컬 파일은 삭제하거나 수정하지 않았다.

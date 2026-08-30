@@ -1,0 +1,35 @@
+{
+  "_description": "상대 날짜를 LLM이 아닌 runtime이 절대 범위로 정규화하는 한국어 정책이다.",
+  "schema_version": "1.0.0",
+  "policy_version": "saju-relative-date-policy-v1",
+  "reference_datetime_required": true,
+  "timezone_required": true,
+  "calendar": "gregorian_runtime_range_not_saju_pillar_semantics",
+  "week_start": "monday",
+  "weekend": ["saturday", "sunday"],
+  "rules": {
+    "오늘": "reference local date",
+    "내일": "reference local date plus one day",
+    "이번 주": "monday through sunday containing the reference date",
+    "다음 주": "monday through sunday after the reference week",
+    "이번 주말": "next complete saturday-sunday pair; on saturday or sunday use the following weekend",
+    "다음 주말": "saturday-sunday pair after the next complete weekend",
+    "이번 달": "first through last day of the reference calendar month",
+    "다음 달": "first through last day of the next calendar month",
+    "올해": "january 1 through december 31 of the reference calendar year",
+    "내년": "january 1 through december 31 of the next calendar year"
+  },
+  "example": {
+    "reference_datetime": "2026-08-30T20:04:00+09:00",
+    "timezone": "Asia/Seoul",
+    "expression": "이번 주말",
+    "period_type": "week",
+    "start_date": "2026-09-05",
+    "end_date": "2026-09-06"
+  },
+  "failure": {
+    "missing_reference_datetime": "do_not_call_period_tool",
+    "missing_or_invalid_timezone": "do_not_call_period_tool",
+    "unsupported_expression": "request_runtime_normalization_or_explicit_dates"
+  }
+}

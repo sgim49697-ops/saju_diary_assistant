@@ -1,0 +1,15 @@
+{
+  "build_manifest_sha256": "7c431f8a6f47d0bea422fa144952559fc6c5db60c478d37107ea8e08e193a935",
+  "checksum_entries": 15,
+  "checksum_failures": 0,
+  "package_directory_name": "saju-mix20k-v3-review-ready",
+  "raw_samples_in_report": false,
+  "review_rows_expected": 20000,
+  "review_sha256": "b8c405df67d1a429784cdd9ea5ce10071d3c423627a43e3fba32908046fd1d26",
+  "schema_version": "1.0.0",
+  "sha256sums_sha256": "f6dea14385fa3c0ce0c6f3b07ad7a6a1aaf267e69e1a6bcb9b36388530585384",
+  "source_package_modified": false,
+  "status": "passed",
+  "training_rows_expected": 20000,
+  "training_sha256": "c78f3897c4fd2bc5ab5be9e2e63f8999963ce627433bc4eed2155e6abf4cb639"
+}

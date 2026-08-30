@@ -1,0 +1,23 @@
+{
+  "blocked_rows": 496,
+  "blocker_counts": {
+    "canonical_engine_recheck_pending": 496,
+    "soft_interpretation_review_pending": 474
+  },
+  "composition": {
+    "birth_intake": 400,
+    "calendar_time_edge": 150,
+    "chart_tool_call": 400,
+    "completion_truthfulness": 100,
+    "correction_conflict": 200,
+    "intent_routing": 200,
+    "tool_result_interpretation": 400,
+    "verified_period_handling": 150
+  },
+  "diagnostic_training_execution_enabled": false,
+  "promotion_eligible_rows": 1504,
+  "raw_samples_in_report": false,
+  "rows": 2000,
+  "schema_version": "1.0.0",
+  "status": "selected_not_training_ready"
+}

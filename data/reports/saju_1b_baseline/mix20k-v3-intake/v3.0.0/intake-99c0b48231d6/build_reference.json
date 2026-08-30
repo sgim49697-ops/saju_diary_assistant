@@ -1,0 +1,13 @@
+{
+  "intake_id": "intake-99c0b48231d6",
+  "intake_sha256": "99c0b48231d6fe864fdede1bad988f862d09b046c92403a35ed0c86256bac071",
+  "phase5_training_performed": false,
+  "private_build_id": "build-94eb7b543490",
+  "private_build_sha256": "94eb7b5434907539d7041fc81846169dc2e80f332e99b53d710722dcd5564454",
+  "private_manifest_sha256": "eca6a9b53f8e29501aab700e9c984071a9e800348d757c1294ea5f80e7937948",
+  "production_promotion_allowed": false,
+  "raw_samples_in_report": false,
+  "schema_version": "1.0.0",
+  "source_review_sha256": "b8c405df67d1a429784cdd9ea5ce10071d3c423627a43e3fba32908046fd1d26",
+  "training_promotion_allowed": false
+}

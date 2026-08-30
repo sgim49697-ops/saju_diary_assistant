@@ -1,0 +1,28 @@
+{
+  "artifact_sha256": {
+    "build_reference.json": "811348be7ce90c0dc032a38e9507445c777218ee27e41e48c123cb7ef2a856e4",
+    "diagnostic_summary.json": "276dc3f589ff631b80745446d12bb7214ea2c7c064ff41767078b60ceb27798a",
+    "duplicate_audit.json": "bae6748c57b7fbf826a317db210da41d5452afeb9aea92bceac4609646b13f34",
+    "leakage_report.json": "296ba254a5d3450ffb35c0bcfbe1075e1f8bd7472eb7813d35a3aef61bfae437",
+    "package_integrity.json": "ee1e397a3737583b4ee3d534618536d2ab730ecf5914c3e55e752e8255fdb913",
+    "provenance_audit.json": "8a12415a23fe6720bc3ba051e405209c458e785222e993690610cebceb002cdb",
+    "repair_summary.json": "3722fd3010f5877bcc21968cb2303be4207a0221335e167faa0a84ba71ad4b63",
+    "review_queue_summary.json": "fbdc18c0ac5ae4349e0a86daa0efd0c453c81b319a919431ac81c9c465f4ae8d",
+    "semantic_audit.json": "4690e002d27aac68dc5eaab4387204c09d3cafc0d7b5e0d346fc22ce0691d7a6",
+    "tool_audit.json": "5ca8a14070abff6954fe1da9b9255d91a6d51d7fd4a939199ded26ff9b9b2fd1"
+  },
+  "generated_at": "2026-08-30T16:36:02+00:00",
+  "intake_id": "intake-99c0b48231d6",
+  "intake_sha256": "99c0b48231d6fe864fdede1bad988f862d09b046c92403a35ed0c86256bac071",
+  "phase5_training_performed": false,
+  "private_build_id": "build-94eb7b543490",
+  "private_build_sha256": "94eb7b5434907539d7041fc81846169dc2e80f332e99b53d710722dcd5564454",
+  "production_promotion_allowed": false,
+  "public_reports_are_aggregate_only": true,
+  "raw_samples_in_report": false,
+  "report_type": "mix20k_v3_intake_and_repair",
+  "restricted_content_in_public_reports": false,
+  "schema_version": "1.0.0",
+  "status": "repaired_candidate_blocked_before_training",
+  "training_promotion_allowed": false
+}

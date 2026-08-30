@@ -1,0 +1,165 @@
+{
+  "_description": "사주 일기 assistant가 매 turn에서 앱으로부터 전달받는 세션 상태 계약이다.",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schema_version": "1.0.0",
+  "session_state_schema_version": "saju-session-state-v1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "birth_slots": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "birth_date": {"type": ["string", "null"]},
+        "calendar": {"type": ["string", "null"], "enum": ["solar", "lunar", null]},
+        "leap_month": {"type": ["boolean", "null"]},
+        "birth_time": {"type": ["string", "null"]},
+        "time_precision": {"type": ["string", "null"], "enum": ["exact", "range", "unknown", null]},
+        "time_range": {
+          "anyOf": [
+            {"type": "null"},
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "start": {"type": "string"},
+                "end": {"type": "string"}
+              },
+              "required": ["start", "end"]
+            }
+          ]
+        },
+        "birthplace": {
+          "anyOf": [
+            {"type": "null"},
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "country_code": {"type": "string"},
+                "city": {"type": "string"},
+                "timezone": {"type": "string"},
+                "longitude": {"type": ["number", "null"]},
+                "latitude": {"type": ["number", "null"]}
+              },
+              "required": ["country_code", "city", "timezone", "longitude", "latitude"]
+            }
+          ]
+        },
+        "timezone": {"type": ["string", "null"]},
+        "gender_for_daeun": {"type": ["string", "null"], "enum": ["male", "female", "unspecified", null]}
+      },
+      "required": [
+        "birth_date",
+        "calendar",
+        "leap_month",
+        "birth_time",
+        "time_precision",
+        "time_range",
+        "birthplace",
+        "timezone",
+        "gender_for_daeun"
+      ]
+    },
+    "confirmed_fields": {
+      "type": "array",
+      "items": {"type": "string"},
+      "uniqueItems": true
+    },
+    "explicit_unknown_fields": {
+      "type": "array",
+      "items": {"type": "string"},
+      "uniqueItems": true
+    },
+    "field_provenance": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "enum": [
+          "user_explicit",
+          "session_confirmed",
+          "runtime_normalized",
+          "deterministic_default",
+          "derived_from_policy",
+          "unsupported"
+        ]
+      }
+    },
+    "chart": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "chart_id": {"type": ["string", "null"]},
+        "chart_valid": {"type": "boolean"},
+        "chart_input_fingerprint": {"type": ["string", "null"]},
+        "chart_policy_version": {"type": ["string", "null"]},
+        "hard_facts": {"type": ["object", "null"]}
+      },
+      "required": [
+        "chart_id",
+        "chart_valid",
+        "chart_input_fingerprint",
+        "chart_policy_version",
+        "hard_facts"
+      ]
+    },
+    "request_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "reference_datetime": {"type": ["string", "null"]},
+        "timezone": {"type": ["string", "null"]},
+        "relative_expression": {"type": ["string", "null"]},
+        "normalized_period": {
+          "anyOf": [
+            {"type": "null"},
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "period_type": {"type": "string"},
+                "start_date": {"type": "string"},
+                "end_date": {"type": ["string", "null"]},
+                "normalizer_version": {"type": "string"}
+              },
+              "required": ["period_type", "start_date", "end_date", "normalizer_version"]
+            }
+          ]
+        }
+      },
+      "required": ["reference_datetime", "timezone", "relative_expression", "normalized_period"]
+    },
+    "evidence_by_turn": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "path": {"type": "string"},
+            "value": {}
+          },
+          "required": ["path", "value"]
+        }
+      }
+    },
+    "state_revision": {"type": "integer", "minimum": 0},
+    "last_tool_status": {"type": ["string", "null"], "enum": ["ok", "partial", "error", "blocked", null]},
+    "current_intent": {"type": ["string", "null"]},
+    "saju_opt_in": {"type": "boolean"}
+  },
+  "required": [
+    "birth_slots",
+    "confirmed_fields",
+    "explicit_unknown_fields",
+    "field_provenance",
+    "chart",
+    "request_context",
+    "evidence_by_turn",
+    "state_revision",
+    "last_tool_status",
+    "current_intent",
+    "saju_opt_in"
+  ]
+}

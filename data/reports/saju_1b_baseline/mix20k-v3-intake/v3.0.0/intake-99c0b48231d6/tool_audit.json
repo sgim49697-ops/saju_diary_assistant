@@ -1,0 +1,16 @@
+{
+  "raw_samples_in_report": false,
+  "rows_with_tool_calls": 5250,
+  "rows_with_tool_results": 2200,
+  "schema_version": "1.0.0",
+  "source_rows_with_argument_provenance": 0,
+  "source_rows_with_old_policy_argument": 5250,
+  "source_tool_schema_version": "unregistered_kr-saju-v1",
+  "status": "repair_required",
+  "target_tool_schema_version": "saju-tools-v1",
+  "tool_call_counts": {
+    "calculate_saju_chart": 4350,
+    "calculate_saju_period": 900
+  },
+  "training_projection_mismatches": 0
+}

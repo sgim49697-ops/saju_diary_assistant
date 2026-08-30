@@ -1,0 +1,136 @@
+{
+    "_description": "MIX20K-v3.0.1 학습·serving·executor·평가가 공유하는 768-token 호환 strict schema다. 형식·범위·교차 field 검증은 executor가 추가로 수행한다.",
+    "schema_version": "1.0.0",
+    "tool_schema_version": "saju-tools-v1",
+    "status": "approved_for_non_training_preflight",
+    "tools": [
+        {
+            "type": "function",
+            "function": {
+                "name": "calculate_saju_chart",
+                "strict": true,
+                "parameters": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "birth_date": {"type": "string"},
+                        "calendar": {"type": "string"},
+                        "leap_month": {"type": ["boolean", "null"]},
+                        "birth_time": {"type": ["string", "null"]},
+                        "time_precision": {"type": "string"},
+                        "time_range": {"type": ["object", "null"]},
+                        "birthplace": {"type": "object"},
+                        "gender_for_daeun": {"type": "string"}
+                    },
+                    "required": [
+                        "birth_date",
+                        "calendar",
+                        "leap_month",
+                        "birth_time",
+                        "time_precision",
+                        "time_range",
+                        "birthplace",
+                        "gender_for_daeun"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "calculate_saju_period",
+                "strict": true,
+                "parameters": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "chart_id": {"type": "string"},
+                        "period_type": {"type": "string"},
+                        "start_date": {"type": "string"},
+                        "end_date": {"type": ["string", "null"]},
+                        "timezone": {"type": "string"}
+                    },
+                    "required": [
+                        "chart_id",
+                        "period_type",
+                        "start_date",
+                        "end_date",
+                        "timezone"
+                    ]
+                }
+            }
+        }
+    ],
+    "executor_envelope": {
+        "model_must_not_generate": [
+            "request_id",
+            "tool_schema_version",
+            "calculation_policy_id",
+            "session_revision"
+        ],
+        "runtime_injected": {
+            "tool_schema_version": "saju-tools-v1",
+            "calculation_policy_id": "saju-calculation-policy-v1.0.0"
+        }
+    },
+    "model_visible_result": {
+        "allowlist": [
+            "status",
+            "hard_facts",
+            "fact_authority",
+            "code",
+            "message",
+            "limitations"
+        ],
+        "internal_only": [
+            "chart_id",
+            "period_type",
+            "request_id",
+            "session_revision",
+            "tool_schema_version",
+            "calculation_policy_id"
+        ],
+        "internal_provenance_storage": [
+            "session_state",
+            "review.repair.tool_result_provenance"
+        ],
+        "omit_empty_limitations": true
+    },
+    "executor_validation": {
+        "nested_object_contracts": {
+            "time_range": {
+                "additional_properties": false,
+                "required": ["start", "end"]
+            },
+            "birthplace": {
+                "additional_properties": false,
+                "required": [
+                    "country_code",
+                    "city",
+                    "timezone",
+                    "longitude",
+                    "latitude"
+                ]
+            }
+        },
+        "enums": {
+            "calendar": ["solar", "lunar"],
+            "time_precision": ["exact", "range", "unknown"],
+            "gender_for_daeun": ["male", "female", "unspecified"],
+            "period_type": ["day", "week", "month", "year"]
+        },
+        "country_code": "ISO-3166 alpha-2 uppercase",
+        "date": "valid Gregorian YYYY-MM-DD",
+        "time": "valid 24-hour HH:MM",
+        "timezone": "valid IANA zone",
+        "coordinates": "longitude -180..180, latitude -90..90",
+        "cross_field_rules": [
+            "solar requires leap_month=null",
+            "lunar requires leap_month boolean",
+            "exact requires birth_time only",
+            "range requires time_range only",
+            "unknown requires no time value",
+            "period end_date must not precede start_date"
+        ]
+    }
+}

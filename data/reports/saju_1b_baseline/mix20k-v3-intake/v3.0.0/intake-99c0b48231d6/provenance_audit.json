@@ -1,0 +1,44 @@
+{
+  "external_queue_must_exclude_restricted": true,
+  "fact_authority_counts": {
+    "HARD_CANDIDATE": 1800,
+    "HARD_GT": 8825,
+    "NONE": 9000,
+    "POLICY_BOUND_RULE": 375
+  },
+  "old_or_unregistered_policy_rows": 5250,
+  "promotion_status_counts": {
+    "candidate_auto_pass": 9625,
+    "canonical_engine_recheck_required": 2100,
+    "domain_review_required": 5653,
+    "empathy_review_required": 700,
+    "expert_review_required": 1547,
+    "policy_review_required": 375
+  },
+  "raw_samples_in_report": false,
+  "restricted_rows": 3200,
+  "restricted_rows_by_source": {
+    "AIHub-86-derived-from-MIX20K-v2": 2500,
+    "recomposed_from_MIX20K-v2_bridge": 700
+  },
+  "schema_version": "1.0.0",
+  "source_counts": {
+    "AIHub-86-derived-from-MIX20K-v2": 2500,
+    "MIX20K-v2-deterministic_saju_qa": 400,
+    "MIX20K-v2-yeji_shensha_derived": 248,
+    "recomposed_from_MIX20K-v2-yeji": 2,
+    "recomposed_from_MIX20K-v2_bridge": 700,
+    "recomposed_from_mix20k_v2_chart_facts": 2800,
+    "synthetic_cached_tool_result": 2000,
+    "synthetic_fixture_korean_lunar_calendar": 1200,
+    "synthetic_period_fixture_korean_lunar_calendar": 1000,
+    "synthetic_policy_guard": 500,
+    "synthetic_stateful_from_verified_chart": 2200,
+    "synthetic_v3": 6100,
+    "synthetic_v3_hard_fact": 100,
+    "synthetic_v3_policy_table": 250
+  },
+  "source_refs_missing_rows": 13652,
+  "status": "repair_required",
+  "synthetic_cached_rows_mislabeled_hard_gt": 2000
+}

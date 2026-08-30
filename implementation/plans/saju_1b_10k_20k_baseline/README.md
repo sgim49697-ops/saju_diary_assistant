@@ -229,6 +229,11 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
 
 ## 진행 기록
 
+- 2026-08-31
+  - 작업 요약: 외부 `saju-mix20k-v3-review-ready`를 원본 불변으로 감사하고 `v3.0.1-repaired` private 보정 build와 public 집계 intake, 고정 Kanana tokenizer 비학습 preflight를 생성했다. 실제 학습은 실행하지 않았다.
+  - 변경 범위: strict chart/period tool, model-facing result allowlist, session/상대 날짜, provenance·권위·restricted 계약과 4K 검수 큐를 추가했다. 기간 hard fact 유실을 고치고 cached fixture까지 포함한 3,800행을 canonical 재검산 전 `HARD_CANDIDATE`로 차단했다. 기존 v2·KI20·checkpoint·blind payload는 변경하거나 읽지 않았다.
+  - 검증: 최종 `build-94eb7b543490`, `intake-99c0b48231d6`, `preflight-aea1c001126e`에서 20K 최대 767/768, 초과·마지막 사용자 이전 mask·최종 EOS·serialization 오류 0, tool call 5,250/5,250 round-trip, 기간 grounding 오류 0, blind hash overlap 0을 확인했다.
+  - 남은 이슈·후속 작업: exact target 반복, canonical 3,800행, 전체 state/grounding, 내부 4K와 expert 1.5K 검수, 실제 serving parser 검증이 남았다. `training_promotion_allowed=false`, `production_promotion_allowed=false`를 유지하며 2K/10K/20K 재학습은 금지한다. 상세는 [MIX20K-v3 검수 후보 인수·보정 계획](../mix20k_v3_repair_plan.md)을 따른다.
 - 2026-08-30
   - 작업 요약: dashboard `v1.7.0`에 사용자가 명시적으로 선택한 무인증 원격 공유 모드를 추가하고, 기존 Cloudflare Quick Tunnel URL을 유지한 채 `https://scholars-greatest-biography-presidential.trycloudflare.com`을 로그인 없이 공개했다.
   - 변경 범위: 무인증 공유는 `--allow-unauthenticated-remote`와 wildcard·경로·port가 없는 exact HTTPS Origin을 함께 지정한 경우에만 시작한다. 기본 loopback과 기존 Basic 인증 방식은 계속 지원하고 Host·CSRF·POST Origin 검사를 유지한다. 사용자가 공개 위험을 확인한 뒤 요청한 범위에 따라 AI Hub 제한 샘플과 기존 private 세션이 포함된 전체 dashboard를 URL 접근자에게 열었으며, 학습 데이터·checkpoint·sealed blind·Phase 6·승격 상태는 변경하지 않았다.

@@ -1,0 +1,17 @@
+{
+  "duplicate_tool_tag_errors": 0,
+  "function_name_errors": 0,
+  "json_value_errors": 0,
+  "primary_parser": "qwen3_coder",
+  "primary_runtime_installed_in_training_env": false,
+  "primary_serving_engine": "sglang",
+  "primary_serving_version": "0.5.1",
+  "raw_samples_in_report": false,
+  "required_argument_errors": 0,
+  "schema_version": "1.0.0",
+  "secondary_is_promotion_gate": false,
+  "secondary_parser": "qwen3_xml",
+  "status": "passed_internal_kanana_xml_roundtrip",
+  "structured_tool_calls_roundtripped": 5250,
+  "suffix_text_errors": 0
+}

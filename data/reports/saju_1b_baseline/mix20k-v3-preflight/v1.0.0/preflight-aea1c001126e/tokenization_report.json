@@ -1,0 +1,268 @@
+{
+  "assistant_target_policy": "last_user_suffix",
+  "assistant_tokens": {
+    "count": 20000,
+    "max": 197,
+    "mean": 75.3988,
+    "median": 52,
+    "min": 6,
+    "p90": 163,
+    "p95": 187,
+    "p99": 195
+  },
+  "axes": {
+    "birth_intake": {
+      "eligible_over_max_length_rows": 0,
+      "length": {
+        "count": 1600,
+        "max": 637,
+        "mean": 236.0106,
+        "median": 124,
+        "min": 108,
+        "p90": 630,
+        "p95": 632,
+        "p99": 635
+      },
+      "over_max_length_rows": 0
+    },
+    "calendar_time_edge": {
+      "eligible_over_max_length_rows": 0,
+      "length": {
+        "count": 700,
+        "max": 641,
+        "mean": 338.2643,
+        "median": 229,
+        "min": 121,
+        "p90": 635,
+        "p95": 636,
+        "p99": 637
+      },
+      "over_max_length_rows": 0
+    },
+    "chart_tool_call": {
+      "eligible_over_max_length_rows": 0,
+      "length": {
+        "count": 1500,
+        "max": 643,
+        "mean": 632.962,
+        "median": 632,
+        "min": 629,
+        "p90": 636,
+        "p95": 636,
+        "p99": 640
+      },
+      "over_max_length_rows": 0
+    },
+    "completion_truthfulness": {
+      "eligible_over_max_length_rows": 0,
+      "length": {
+        "count": 500,
+        "max": 720,
+        "mean": 671.08,
+        "median": 684,
+        "min": 594,
+        "p90": 703,
+        "p95": 705,
+        "p99": 718
+      },
+      "over_max_length_rows": 0
+    },
+    "correction_conflict": {
+      "eligible_over_max_length_rows": 0,
+      "length": {
+        "count": 800,
+        "max": 664,
+        "mean": 604.7088,
+        "median": 656,
+        "min": 236,
+        "p90": 660,
+        "p95": 662,
+        "p99": 663
+      },
+      "over_max_length_rows": 0
+    },
+    "domain_consultation": {
+      "eligible_over_max_length_rows": 0,
+      "length": {
+        "count": 2800,
+        "max": 340,
+        "mean": 301.6543,
+        "median": 301,
+        "min": 261,
+        "p90": 319,
+        "p95": 327,
+        "p99": 333
+      },
+      "over_max_length_rows": 0
+    },
+    "general_korean_replay": {
+      "eligible_over_max_length_rows": 0,
+      "length": {
+        "count": 1300,
+        "max": 195,
+        "mean": 120.7331,
+        "median": 116,
+        "min": 85,
+        "p90": 148,
+        "p95": 154,
+        "p99": 162
+      },
+      "over_max_length_rows": 0
+    },
+    "hard_policy_qa": {
+      "eligible_over_max_length_rows": 0,
+      "length": {
+        "count": 1000,
+        "max": 201,
+        "mean": 146.993,
+        "median": 136,
+        "min": 104,
+        "p90": 192,
+        "p95": 194,
+        "p99": 197
+      },
+      "over_max_length_rows": 0
+    },
+    "intent_routing": {
+      "eligible_over_max_length_rows": 0,
+      "length": {
+        "count": 1000,
+        "max": 136,
+        "mean": 118.544,
+        "median": 117,
+        "min": 103,
+        "p90": 129,
+        "p95": 132,
+        "p99": 134
+      },
+      "over_max_length_rows": 0
+    },
+    "invalid_unverifiable_correction": {
+      "eligible_over_max_length_rows": 0,
+      "length": {
+        "count": 500,
+        "max": 301,
+        "mean": 276.248,
+        "median": 275,
+        "min": 245,
+        "p90": 291,
+        "p95": 295,
+        "p99": 298
+      },
+      "over_max_length_rows": 0
+    },
+    "non_saju_empathy": {
+      "eligible_over_max_length_rows": 0,
+      "length": {
+        "count": 1200,
+        "max": 194,
+        "mean": 120.745,
+        "median": 118,
+        "min": 88,
+        "p90": 148,
+        "p95": 155,
+        "p99": 164
+      },
+      "over_max_length_rows": 0
+    },
+    "optin_saju_diary_bridge": {
+      "eligible_over_max_length_rows": 0,
+      "length": {
+        "count": 700,
+        "max": 376,
+        "mean": 315.6771,
+        "median": 313,
+        "min": 275,
+        "p90": 341,
+        "p95": 346,
+        "p99": 355
+      },
+      "over_max_length_rows": 0
+    },
+    "stateful_followup": {
+      "eligible_over_max_length_rows": 0,
+      "length": {
+        "count": 2200,
+        "max": 430,
+        "mean": 363.8077,
+        "median": 357,
+        "min": 307,
+        "p90": 416,
+        "p95": 420,
+        "p99": 424
+      },
+      "over_max_length_rows": 0
+    },
+    "tool_result_interpretation": {
+      "eligible_over_max_length_rows": 0,
+      "length": {
+        "count": 3200,
+        "max": 767,
+        "mean": 395.0234,
+        "median": 206,
+        "min": 175,
+        "p90": 741,
+        "p95": 747,
+        "p99": 751
+      },
+      "over_max_length_rows": 0
+    },
+    "verified_period_handling": {
+      "eligible_over_max_length_rows": 0,
+      "length": {
+        "count": 1000,
+        "max": 691,
+        "mean": 506.306,
+        "median": 565,
+        "min": 110,
+        "p90": 648,
+        "p95": 679,
+        "p99": 687
+      },
+      "over_max_length_rows": 0
+    }
+  },
+  "build_id": "build-94eb7b543490",
+  "chat_template_sha256": "b8ee6b31575eada17ebbe73d3f1ac65d3efde64f0a25ff922031dec7e1cae3e3",
+  "eligible_over_max_length_rows": 0,
+  "eligible_rows": 10125,
+  "length": {
+    "count": 20000,
+    "max": 767,
+    "mean": 336.2512,
+    "median": 296,
+    "min": 85,
+    "p90": 658,
+    "p95": 719,
+    "p99": 744
+  },
+  "max_length": 768,
+  "missing_final_assistant_eos_rows": 0,
+  "missing_supervised_eos_rows": 0,
+  "model_snapshot": {
+    "model_weights_loaded": false,
+    "repo_id": "kakaocorp/kanana-2-1.3b-instruct",
+    "revision": "bf4786aa2a1908adce942d53976270132732f720",
+    "verified_file_sha256": {
+      "chat_template.jinja": "b8ee6b31575eada17ebbe73d3f1ac65d3efde64f0a25ff922031dec7e1cae3e3",
+      "config.json": "fe14b20b4b616d62ca0682312c2fcd2b90d9a836d14a1ff6448db3f533fd15a1",
+      "configuration_kanana2_tiny.py": "191fb6fbfd63968cc24b3beeb8190aaa88868d4cf1695f8c5a379fb0a077d79d",
+      "modeling_kanana2_tiny.py": "e47cd8cc99e71fc69eea9bf5ba1221526fb8c6d4fc8677177e82de997b766500",
+      "tokenizer.json": "1c4be9ecf77c926456fb82d4cf07ff1218a91907f3408f44895d2b01e0f2b5ab",
+      "tokenizer_config.json": "1cdee8fcd4f6209e07e6d9966c8a3ff2d738830d79475193e94e448e153ae2d5"
+    }
+  },
+  "over_max_length_rows": 0,
+  "pre_last_user_supervised_rows": 0,
+  "raw_samples_in_report": false,
+  "rows": 20000,
+  "schema_version": "1.0.0",
+  "serialization_mismatch_rows": 0,
+  "status": "passed",
+  "tokenizer_revision": "bf4786aa2a1908adce942d53976270132732f720",
+  "tool_call_outside_assistant_mask_rows": 0,
+  "tool_response_supervised_rows": 0,
+  "training_promotion_allowed": false,
+  "transformers_version": "4.57.6",
+  "zero_assistant_mask_rows": 0
+}

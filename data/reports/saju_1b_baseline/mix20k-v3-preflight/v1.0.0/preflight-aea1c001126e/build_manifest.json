@@ -1,0 +1,27 @@
+{
+  "artifact_sha256": {
+    "tokenization_report.json": "34c816a43fad984ca8076e94f4d0eb0578a608c7047b9bcc6a780bc996424d39",
+    "tool_roundtrip_report.json": "71c9714d8e4349feaa3feda4f59de1f5310f456ef86feb0c1d842d7f94bb5f99"
+  },
+  "backward_performed": false,
+  "generated_at": "2026-08-30T16:37:24+00:00",
+  "optimizer_step_performed": false,
+  "phase5_training_performed": false,
+  "preflight_id": "preflight-aea1c001126e",
+  "preflight_inputs": {
+    "chat_template_sha256": "b8ee6b31575eada17ebbe73d3f1ac65d3efde64f0a25ff922031dec7e1cae3e3",
+    "config_sha256": "8c5a6bcedbfe9b9c74c781788cb250a04ef64cdd22eaf1292849618ea420444e",
+    "dataset_loader_sha256": "746b72761da6b8bdaa17a42882fdd8786a7966a845d1b4b6d5c83f5ed37bcdee",
+    "preflight_implementation_sha256": "6e9cd699bddec659203e8ac78dbf58f0e5ad72757e9acad55fb647d60ead8bdc",
+    "private_build_manifest_sha256": "eca6a9b53f8e29501aab700e9c984071a9e800348d757c1294ea5f80e7937948",
+    "tokenizer_config_sha256": "1cdee8fcd4f6209e07e6d9966c8a3ff2d738830d79475193e94e448e153ae2d5",
+    "tokenizer_json_sha256": "1c4be9ecf77c926456fb82d4cf07ff1218a91907f3408f44895d2b01e0f2b5ab"
+  },
+  "preflight_sha256": "aea1c001126e5e2b0d72b2dbcd813e3b252b0fc34c43a15a920729bad13c27f0",
+  "public_aggregate_only": true,
+  "report_type": "mix20k_v3_non_training_preflight",
+  "schema_version": "1.0.0",
+  "status": "passed",
+  "training_method_called": false,
+  "training_promotion_allowed": false
+}
