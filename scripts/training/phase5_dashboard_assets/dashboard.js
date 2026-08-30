@@ -9,7 +9,9 @@ let activeSessionId = null;
 let loadedSessionUpdatedAt = null;
 let startingNewSession = false;
 let selectedPromptProfile = "guided_diagnostic_v1";
+let selectedEngineSelection = "ki20_final";
 let promptProfileCatalog = null;
+let inferenceEngineCatalog = null;
 let datasetCatalog = null;
 let selectedDatasetSplit = "ki20_train";
 let selectedDatasetAxis = "all";
@@ -277,21 +279,90 @@ function renderDatasetCatalog(payload) {
   loadDatasetSamples();
 }
 
-function renderConversation(session, context = null) {
+function sessionTurns(session) {
+  const turns = [];
+  for (const message of session.messages) {
+    if (message.role === "user") {
+      turns.push({ user: message, assistants: [] });
+    } else if (turns.length) {
+      turns[turns.length - 1].assistants.push(message);
+    }
+  }
+  return turns;
+}
+
+function engineSnapshot(session, engineId) {
+  return session.engine_snapshots?.[engineId]
+    || inferenceEngineCatalog?.items?.find((engine) => engine.engine_id === engineId)
+    || { engine_id: engineId, label: engineId, revision: "unknown", model_sha256: "" };
+}
+
+function renderDiagnostics(diagnostics) {
+  if (!diagnostics) return "";
+  const gpu = Number.isFinite(diagnostics.gpu_total_memory_used_mib) ? ` · GPU ${number(diagnostics.gpu_total_memory_used_mib, 0)} MiB` : "";
+  return `<small class="message-diagnostics">${number(diagnostics.input_tokens, 0)} input tokens · ${number(diagnostics.elapsed_seconds, 1)}초 · peak ${bytes(diagnostics.peak_allocated_bytes)}${gpu}</small>`;
+}
+
+function renderConversation(session, contexts = null) {
   const target = byId("manual-conversation");
   if (!session) {
     target.innerHTML = '<p class="empty-conversation">새 세션입니다. 첫 질문을 입력하세요.</p>';
     byId("session-meta").textContent = "새 세션에서 첫 질문을 입력하세요.";
     return;
   }
-  target.innerHTML = session.messages.map((message) => `<article class="message ${escapeHtml(message.role)}">
-    <div class="message-head"><strong>${message.role === "user" ? "사용자" : "KI20"}</strong><span>${escapeHtml(localTime(message.created_at_utc))}</span></div>
-    <p>${escapeHtml(message.content)}</p>
-  </article>`).join("");
-  const omitted = context?.omitted_turns ? ` · 오래된 ${context.omitted_turns} turn 입력 제외` : "";
+  target.innerHTML = sessionTurns(session).map((turn) => {
+    const assistants = turn.assistants.map((message) => {
+      const engineId = message.engine_id || "ki20_final";
+      const engine = engineSnapshot(session, engineId);
+      const fingerprint = `${engine.revision} · ${(engine.model_sha256 || "").slice(0, 12)}…`;
+      return `<article class="message assistant engine-${escapeHtml(engineId.replaceAll("_", "-"))}">
+        <div class="message-head"><strong>${escapeHtml(engine.label)}</strong><span>${escapeHtml(localTime(message.created_at_utc))}</span></div>
+        <p>${escapeHtml(message.content)}</p>
+        <small class="message-diagnostics">${escapeHtml(fingerprint)}</small>
+        ${renderDiagnostics(message.diagnostics)}
+      </article>`;
+    }).join("");
+    const paired = turn.assistants.length > 1 ? " paired" : "";
+    return `<section class="conversation-turn">
+      <article class="message user">
+        <div class="message-head"><strong>사용자</strong><span>${escapeHtml(localTime(turn.user.created_at_utc))}</span></div>
+        <p>${escapeHtml(turn.user.content)}</p>
+      </article>
+      <div class="assistant-response-grid${paired}">${assistants}</div>
+    </section>`;
+  }).join("");
+  const omittedCount = Math.max(0, ...Object.values(contexts || {}).map((item) => item.omitted_turns || 0));
+  const omitted = omittedCount ? ` · 오래된 ${omittedCount} turn 입력 제외` : "";
   const profile = session.prompt_profile_label || session.prompt_profile || "기존 무지시";
-  byId("session-meta").textContent = `${session.turn_count} turn · ${profile} · 최근 저장 ${localTime(session.updated_at_utc)}${omitted}`;
+  const engine = session.engine_selection_label || "KI20 단독";
+  byId("session-meta").textContent = `${session.turn_count} turn · ${engine} · ${profile} · 최근 저장 ${localTime(session.updated_at_utc)}${omitted}`;
   target.scrollTop = target.scrollHeight;
+}
+
+function engineSelectionMetadata(selectionId) {
+  return inferenceEngineCatalog?.selections?.find((selection) => selection.selection_id === selectionId) || null;
+}
+
+function renderEngineSelection(selectionId, locked) {
+  const select = byId("engine-selection-select");
+  const selections = inferenceEngineCatalog?.selections || [];
+  const engines = new Map((inferenceEngineCatalog?.items || []).map((engine) => [engine.engine_id, engine]));
+  select.innerHTML = selections.map((selection) => {
+    const available = selection.engine_ids.every((engineId) => engines.get(engineId)?.available);
+    return `<option value="${escapeHtml(selection.selection_id)}"${available ? "" : " disabled"}>${escapeHtml(selection.label)}${available ? "" : " · 사용 불가"}</option>`;
+  }).join("");
+  selectedEngineSelection = selectionId;
+  select.value = selectionId;
+  select.disabled = locked;
+  const metadata = engineSelectionMetadata(selectionId);
+  const identities = (metadata?.engine_ids || []).map((engineId) => {
+    const engine = engines.get(engineId);
+    return engine ? `${engine.label} ${engine.revision.slice(0, 12)}…` : engineId;
+  }).join(" / ");
+  const lockCopy = locked ? " 이 세션에서는 변경할 수 없습니다." : " 첫 응답 뒤에는 변경할 수 없습니다.";
+  byId("engine-selection-copy").textContent = `${metadata?.mode === "paired" ? "같은 질문을 독립 문맥으로 순차 비교합니다." : "선택한 모델만 로드합니다."} ${identities}.${lockCopy}`;
+  byId("manual-prompt-label").textContent = metadata?.mode === "paired" ? "K0와 KI20에 함께 보낼 질문" : `${metadata?.label || "선택 모델"}에 보낼 질문`;
+  if (!byId("generate-button").disabled) byId("generate-button").textContent = metadata?.mode === "paired" ? "두 모델 비교" : "답변 생성";
 }
 
 function profileMetadata(profileId) {
@@ -319,6 +390,7 @@ function renderPromptProfile(profileId, locked) {
 
 async function renderSessions(payload) {
   promptProfileCatalog = payload.prompt_profiles;
+  inferenceEngineCatalog = payload.inference_engines;
   const select = byId("session-select");
   const knownIds = new Set(payload.items.map((item) => item.session_id));
   if (activeSessionId && !knownIds.has(activeSessionId)) {
@@ -329,12 +401,14 @@ async function renderSessions(payload) {
     activeSessionId = payload.items[0].session_id;
   }
   select.innerHTML = '<option value="">새 대화</option>' + payload.items.map((item) =>
-    `<option value="${escapeHtml(item.session_id)}">${escapeHtml(item.title)} · ${item.turn_count} turn</option>`
+    `<option value="${escapeHtml(item.session_id)}">[${escapeHtml(item.engine_selection_label)}] ${escapeHtml(item.title)} · ${item.turn_count} turn</option>`
   ).join("");
   select.value = activeSessionId || "";
   if (!activeSessionId) {
     const requested = profileMetadata(selectedPromptProfile) ? selectedPromptProfile : payload.prompt_profiles.default_profile;
+    const requestedEngine = engineSelectionMetadata(selectedEngineSelection) ? selectedEngineSelection : payload.inference_engines.default_selection;
     renderPromptProfile(requested, false);
+    renderEngineSelection(requestedEngine, false);
     if (loadedSessionUpdatedAt !== null || startingNewSession || !payload.items.length) {
       loadedSessionUpdatedAt = null;
       renderConversation(null);
@@ -342,7 +416,10 @@ async function renderSessions(payload) {
     return;
   }
   const summary = payload.items.find((item) => item.session_id === activeSessionId);
-  if (summary) renderPromptProfile(summary.prompt_profile, true);
+  if (summary) {
+    renderPromptProfile(summary.prompt_profile, true);
+    renderEngineSelection(summary.engine_selection, true);
+  }
   if (summary && summary.updated_at_utc !== loadedSessionUpdatedAt) {
     const session = await api(`/api/sessions/${activeSessionId}`);
     loadedSessionUpdatedAt = session.updated_at_utc;
@@ -382,7 +459,9 @@ byId("new-session-button").addEventListener("click", () => {
   byId("session-select").value = "";
   byId("manual-prompt").value = "";
   selectedPromptProfile = promptProfileCatalog?.default_profile || "guided_diagnostic_v1";
+  selectedEngineSelection = inferenceEngineCatalog?.default_selection || "ki20_final";
   renderPromptProfile(selectedPromptProfile, false);
+  renderEngineSelection(selectedEngineSelection, false);
   renderConversation(null);
   byId("manual-prompt").focus();
 });
@@ -393,7 +472,9 @@ byId("session-select").addEventListener("change", async (event) => {
   startingNewSession = activeSessionId === null;
   if (!activeSessionId) {
     selectedPromptProfile = promptProfileCatalog?.default_profile || "guided_diagnostic_v1";
+    selectedEngineSelection = inferenceEngineCatalog?.default_selection || "ki20_final";
     renderPromptProfile(selectedPromptProfile, false);
+    renderEngineSelection(selectedEngineSelection, false);
     renderConversation(null);
     return;
   }
@@ -401,6 +482,7 @@ byId("session-select").addEventListener("change", async (event) => {
     const session = await api(`/api/sessions/${activeSessionId}`);
     loadedSessionUpdatedAt = session.updated_at_utc;
     renderPromptProfile(session.prompt_profile, true);
+    renderEngineSelection(session.engine_selection, true);
     renderConversation(session);
   } catch (error) {
     byId("session-meta").textContent = `세션 로드 실패: ${error.message}`;
@@ -411,6 +493,12 @@ byId("prompt-profile-select").addEventListener("change", (event) => {
   if (activeSessionId) return;
   selectedPromptProfile = event.target.value;
   renderPromptProfile(selectedPromptProfile, false);
+});
+
+byId("engine-selection-select").addEventListener("change", (event) => {
+  if (activeSessionId) return;
+  selectedEngineSelection = event.target.value;
+  renderEngineSelection(selectedEngineSelection, false);
 });
 
 byId("dataset-split-select").addEventListener("change", (event) => {
@@ -430,26 +518,29 @@ byId("manual-form").addEventListener("submit", async (event) => {
   const button = byId("generate-button");
   button.disabled = true;
   button.textContent = "모델 로딩 중…";
-  byId("session-meta").textContent = "final checkpoint를 별도 프로세스에서 불러오고 있습니다.";
+  const selection = engineSelectionMetadata(selectedEngineSelection);
+  byId("session-meta").textContent = selection?.mode === "paired" ? "K0와 KI20을 순서대로 불러오고 있습니다." : "선택한 모델을 별도 프로세스에서 불러오고 있습니다.";
   try {
     const result = await api("/api/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt, session_id: activeSessionId, profile: selectedPromptProfile }),
+      body: JSON.stringify({ prompt, session_id: activeSessionId, profile: selectedPromptProfile, engine_selection: selectedEngineSelection }),
     });
     activeSessionId = result.session_id;
     startingNewSession = false;
     loadedSessionUpdatedAt = result.session.updated_at_utc;
     selectedPromptProfile = result.session.prompt_profile;
+    selectedEngineSelection = result.session.engine_selection;
     renderPromptProfile(selectedPromptProfile, true);
+    renderEngineSelection(selectedEngineSelection, true);
     byId("manual-prompt").value = "";
-    renderConversation(result.session, result.context);
+    renderConversation(result.session, result.contexts);
     await renderSessions(await api("/api/sessions"));
   } catch (error) {
     byId("session-meta").textContent = `생성 실패: ${error.message}`;
   } finally {
     button.disabled = false;
-    button.textContent = "답변 생성";
+    button.textContent = engineSelectionMetadata(selectedEngineSelection)?.mode === "paired" ? "두 모델 비교" : "답변 생성";
   }
 });
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import gc
 import hashlib
 import json
 import math
@@ -31,7 +32,7 @@ if str(REPO_ROOT) not in sys.path:
 from scripts.training.phase5_quality import score_generations
 
 DEFAULT_CONFIG = Path(
-    "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.3.0.json"
+    "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.4.0.json"
 )
 ASSET_ROOT = Path(__file__).with_name("phase5_dashboard_assets")
 RUN_BUILD_PATTERN = re.compile(r"^run-[0-9a-f]{12}$")
@@ -194,6 +195,90 @@ def _validate_prompt_profiles(value: Any, governance: dict[str, Any]) -> None:
         raise Phase5DashboardError("Phase 5 prompt profile 세부 계약이 다릅니다.")
 
 
+def _validate_inference_engines(value: Any, governance: dict[str, Any]) -> None:
+    if not isinstance(value, dict):
+        raise Phase5DashboardError("Phase 5 inference engine 계약이 없습니다.")
+    engines = value.get("engines")
+    selections = value.get("selections")
+    if (
+        value.get("default_selection") != "ki20_final"
+        or value.get("sequential_load_only") is not True
+        or value.get("single_timeout_seconds") != 300
+        or value.get("paired_timeout_seconds") != 600
+        or not isinstance(engines, dict)
+        or set(engines) != {"ki20_final", "k0_instruct"}
+        or not isinstance(selections, dict)
+        or set(selections) != {"ki20_final", "k0_instruct", "k0_vs_ki20"}
+        or governance.get("manual_inference_diagnostic_only") is not True
+        or governance.get("paired_models_loaded_sequentially") is not True
+    ):
+        raise Phase5DashboardError("Phase 5 inference engine 계약이 다릅니다.")
+    ki20 = engines["ki20_final"]
+    k0 = engines["k0_instruct"]
+    if (
+        not isinstance(ki20, dict)
+        or ki20.get("label") != "KI20"
+        or ki20.get("kind") != "run_final"
+        or ki20.get("revision") != "run-1f5d732cae67"
+        or ki20.get("model_sha256")
+        != "2fae23e28471c07d7db0c338bc6370493191722180ecc502de7e1e1d5fe5872d"
+        or not isinstance(k0, dict)
+        or k0.get("label") != "K0 원본"
+        or k0.get("kind") != "fixed_snapshot"
+        or k0.get("repo_id") != "kakaocorp/kanana-2-1.3b-instruct"
+        or k0.get("revision") != "bf4786aa2a1908adce942d53976270132732f720"
+        or k0.get("path")
+        != "models/saju_1b_baseline/kanana-2-1.3b-instruct/"
+        "bf4786aa2a1908adce942d53976270132732f720"
+        or k0.get("model_sha256")
+        != "49aa6cd8686563c59321d83810731956c61ec8d5c8538a249d38007986cdc942"
+        or k0.get("snapshot_manifest_sha256")
+        != "5786d04831c93192d234651df0894a1912b974cfab96011ce0676563185cc93d"
+    ):
+        raise Phase5DashboardError("Phase 5 inference engine identity가 다릅니다.")
+    required_names = {
+        "chat_template.jinja",
+        "config.json",
+        "configuration_kanana2_tiny.py",
+        "model.safetensors",
+        "modeling_kanana2_tiny.py",
+        "tokenizer.json",
+        "tokenizer_config.json",
+    }
+    for engine_id, engine in engines.items():
+        file_hashes = engine.get("required_file_sha256")
+        if (
+            not isinstance(file_hashes, dict)
+            or set(file_hashes) != required_names
+            or file_hashes.get("model.safetensors") != engine["model_sha256"]
+            or any(
+                not isinstance(digest, str)
+                or re.fullmatch(r"[0-9a-f]{64}", digest) is None
+                for digest in file_hashes.values()
+            )
+        ):
+            raise Phase5DashboardError(
+                f"Phase 5 inference engine file hash 계약이 다릅니다: {engine_id}"
+            )
+    expected = {
+        "ki20_final": ("single", ["ki20_final"]),
+        "k0_instruct": ("single", ["k0_instruct"]),
+        "k0_vs_ki20": ("paired", ["k0_instruct", "ki20_final"]),
+    }
+    for selection_id, (mode, engine_ids) in expected.items():
+        selection = selections[selection_id]
+        if (
+            not isinstance(selection, dict)
+            or not isinstance(selection.get("label"), str)
+            or not selection["label"]
+            or selection.get("mode") != mode
+            or selection.get("engine_ids") != engine_ids
+        ):
+            raise Phase5DashboardError(
+                f"Phase 5 inference selection 계약이 다릅니다: {selection_id}"
+            )
+
+
 def validate_config(config: dict[str, Any]) -> None:
     server = config.get("server")
     training = config.get("training_contract")
@@ -217,7 +302,7 @@ def validate_config(config: dict[str, Any]) -> None:
         raise Phase5DashboardError("대시보드 고정 probe 범주 계약이 다릅니다.")
     schema_version = config.get("schema_version")
     if (
-        schema_version not in {"1.0.0", "1.1.0", "1.2.0", "1.3.0"}
+        schema_version not in {"1.0.0", "1.1.0", "1.2.0", "1.3.0", "1.4.0"}
         or config.get("dashboard_id") != "KI20-MIX-v2-dashboard"
         or config.get("allowed_run_id") != "KI20-MIX-v2"
         or config.get("refresh_seconds") != 10
@@ -265,15 +350,20 @@ def validate_config(config: dict[str, Any]) -> None:
         raise Phase5DashboardError("Phase 5 dashboard v1.1 세션 계약이 다릅니다.")
     dataset_browser = config.get("dataset_browser")
     prompt_profiles = config.get("prompt_profiles")
+    inference_engines = config.get("inference_engines")
     if schema_version in {"1.0.0", "1.1.0"}:
         if dataset_browser is not None:
             raise Phase5DashboardError("과거 dashboard config에 dataset browser가 있습니다.")
     else:
         _validate_dataset_browser(dataset_browser, governance)
-    if schema_version == "1.3.0":
+    if schema_version in {"1.3.0", "1.4.0"}:
         _validate_prompt_profiles(prompt_profiles, governance)
     elif prompt_profiles is not None:
         raise Phase5DashboardError("과거 dashboard config에 prompt profile이 있습니다.")
+    if schema_version == "1.4.0":
+        _validate_inference_engines(inference_engines, governance)
+    elif inference_engines is not None:
+        raise Phase5DashboardError("과거 dashboard config에 inference engine이 있습니다.")
     generation = model_check.get("generation")
     if generation != {"do_sample": False, "num_beams": 1, "max_new_tokens": 256}:
         raise Phase5DashboardError("대시보드 generation 계약이 다릅니다.")
@@ -410,6 +500,102 @@ def _load_prompt_profiles(repo_root: Path, config: dict[str, Any]) -> dict[str, 
     }
 
 
+def _load_inference_engines(
+    repo_root: Path, run_root: Path, config: dict[str, Any]
+) -> dict[str, Any]:
+    contract = config.get("inference_engines")
+    if contract is None:
+        return {
+            "default_selection": "ki20_final",
+            "sequential_load_only": True,
+            "single_timeout_seconds": 300,
+            "paired_timeout_seconds": 600,
+            "engines": {
+                "ki20_final": {
+                    "label": "KI20",
+                    "kind": "run_final",
+                    "revision": run_root.name,
+                    "model_sha256": None,
+                    "resolved_path": run_root / "final",
+                }
+            },
+            "selections": {
+                "ki20_final": {
+                    "label": "KI20 단독",
+                    "mode": "single",
+                    "engine_ids": ["ki20_final"],
+                }
+            },
+        }
+    engines: dict[str, dict[str, Any]] = {}
+    for engine_id, configured in contract["engines"].items():
+        if configured["kind"] == "run_final":
+            resolved_path = run_root / "final"
+        else:
+            resolved_path = _safe_under(
+                repo_root, configured["path"], f"{engine_id} model snapshot"
+            )
+        engines[engine_id] = {**configured, "resolved_path": resolved_path}
+    return {
+        "default_selection": contract["default_selection"],
+        "sequential_load_only": contract["sequential_load_only"],
+        "single_timeout_seconds": contract["single_timeout_seconds"],
+        "paired_timeout_seconds": contract["paired_timeout_seconds"],
+        "engines": engines,
+        "selections": contract["selections"],
+    }
+
+
+def _engine_availability(context: dict[str, Any], engine_id: str) -> dict[str, Any]:
+    engine = context["inference_engines"]["engines"].get(engine_id)
+    if not isinstance(engine, dict):
+        raise Phase5DashboardError("허용되지 않은 inference engine입니다.")
+    path = engine["resolved_path"]
+    reasons: list[str] = []
+    if path.is_symlink() or not path.is_dir():
+        reasons.append("model_path_unavailable")
+    else:
+        present = {child.name for child in path.iterdir() if child.is_file()}
+        if set(engine.get("required_file_sha256", REQUIRED_FINAL_FILES)) - present:
+            reasons.append("required_model_files_missing")
+    if engine["kind"] == "run_final" and not (
+        context["run_root"] / "reload_summary.json"
+    ).is_file():
+        reasons.append("final_reload_not_available")
+    return {"available": not reasons, "reasons": reasons}
+
+
+def _engine_snapshot(context: dict[str, Any], engine_id: str) -> dict[str, Any]:
+    engine = context["inference_engines"]["engines"][engine_id]
+    return {
+        "engine_id": engine_id,
+        "label": engine["label"],
+        "kind": engine["kind"],
+        "revision": engine["revision"],
+        "model_sha256": engine["model_sha256"],
+    }
+
+
+def inference_engines_payload(context: dict[str, Any]) -> dict[str, Any]:
+    contract = context["inference_engines"]
+    return {
+        "default_selection": contract["default_selection"],
+        "diagnostic_only": True,
+        "calculator_connected": False,
+        "items": [
+            {
+                **_engine_snapshot(context, engine_id),
+                **_engine_availability(context, engine_id),
+            }
+            for engine_id in contract["engines"]
+        ],
+        "selections": [
+            {"selection_id": selection_id, **selection}
+            for selection_id, selection in contract["selections"].items()
+        ],
+    }
+
+
 def prepare_context(
     repo_root: Path, config_path: Path, run_root: Path
 ) -> dict[str, Any]:
@@ -452,6 +638,7 @@ def prepare_context(
     ):
         raise Phase5DashboardError("KI20 학습 계약과 dashboard가 다릅니다.")
     prompt_profiles = _load_prompt_profiles(root, config)
+    inference_engines = _load_inference_engines(root, run_target, config)
     return {
         "repo_root": root,
         "config_path": config_target,
@@ -460,6 +647,7 @@ def prepare_context(
         "manifest": manifest,
         "resolved": resolved,
         "prompt_profiles": prompt_profiles,
+        "inference_engines": inference_engines,
     }
 
 
@@ -1256,17 +1444,32 @@ def _select_probes(context: dict[str, Any]) -> list[dict[str, Any]]:
     return selected
 
 
-def _load_model(final_root: Path) -> tuple[Any, Any, Any]:
-    try:
-        import torch
-        from transformers import AutoModelForCausalLM, AutoTokenizer
-    except Exception as exc:
-        raise Phase5DashboardError("모델 검사 runtime import가 실패했습니다.") from exc
+def _load_model(
+    final_root: Path,
+    expected_model_sha256: str | None = None,
+    required_file_sha256: dict[str, str] | None = None,
+) -> tuple[Any, Any, Any]:
     if final_root.is_symlink() or not final_root.is_dir():
         raise Phase5DashboardError("final 모델 경로가 없거나 symlink입니다.")
     missing = REQUIRED_FINAL_FILES - {path.name for path in final_root.iterdir() if path.is_file()}
     if missing:
         raise Phase5DashboardError(f"final 모델 파일이 부족합니다: {sorted(missing)}")
+    expected_files = dict(required_file_sha256 or {})
+    if expected_model_sha256 is not None:
+        if expected_files.get("model.safetensors", expected_model_sha256) != expected_model_sha256:
+            raise Phase5DashboardError("inference engine model hash 계약이 다릅니다.")
+        expected_files["model.safetensors"] = expected_model_sha256
+    for relative, expected_sha256 in expected_files.items():
+        path = final_root / relative
+        if path.is_symlink() or not path.is_file() or _sha256_file(path) != expected_sha256:
+            raise Phase5DashboardError(
+                f"inference engine {relative} SHA-256이 다릅니다."
+            )
+    try:
+        import torch
+        from transformers import AutoModelForCausalLM, AutoTokenizer
+    except Exception as exc:
+        raise Phase5DashboardError("모델 검사 runtime import가 실패했습니다.") from exc
     tokenizer = AutoTokenizer.from_pretrained(
         final_root, local_files_only=True, trust_remote_code=True
     )
@@ -1277,7 +1480,10 @@ def _load_model(final_root: Path) -> tuple[Any, Any, Any]:
         dtype=torch.bfloat16,
         attn_implementation="sdpa",
         low_cpu_mem_usage=True,
-    ).to("cuda:0")
+    )
+    torch.cuda.init()
+    torch.cuda.reset_peak_memory_stats()
+    model = model.to("cuda:0")
     model.eval()
     return torch, tokenizer, model
 
@@ -1286,15 +1492,26 @@ def _generate_many(
     final_root: Path, prompts: Sequence[list[dict[str, str]]], generation: dict[str, Any]
 ) -> list[str]:
     torch, tokenizer, model = _load_model(final_root)
-    outputs: list[str] = []
-    with torch.inference_mode():
-        for messages in prompts:
-            outputs.append(
-                _generate_loaded(
-                    torch, tokenizer, model, messages, generation, max_input_tokens=None
-                )["output"]
-            )
-    return outputs
+    try:
+        outputs: list[str] = []
+        with torch.inference_mode():
+            for messages in prompts:
+                outputs.append(
+                    _generate_loaded(
+                        torch,
+                        tokenizer,
+                        model,
+                        messages,
+                        generation,
+                        max_input_tokens=None,
+                    )["output"]
+                )
+        return outputs
+    finally:
+        del model
+        del tokenizer
+        gc.collect()
+        torch.cuda.empty_cache()
 
 
 def _generate_loaded(
@@ -1367,17 +1584,39 @@ def _generate_conversation(
     messages: Sequence[dict[str, str]],
     generation: dict[str, Any],
     max_input_tokens: int,
+    expected_model_sha256: str | None = None,
+    required_file_sha256: dict[str, str] | None = None,
+    gpu_hard_cap_mib: int = 16384,
 ) -> dict[str, Any]:
-    torch, tokenizer, model = _load_model(final_root)
-    with torch.inference_mode():
-        return _generate_loaded(
-            torch,
-            tokenizer,
-            model,
-            messages,
-            generation,
-            max_input_tokens=max_input_tokens,
-        )
+    torch, tokenizer, model = _load_model(
+        final_root, expected_model_sha256, required_file_sha256
+    )
+    try:
+        with torch.inference_mode():
+            result = _generate_loaded(
+                torch,
+                tokenizer,
+                model,
+                messages,
+                generation,
+                max_input_tokens=max_input_tokens,
+            )
+        peak_allocated = int(torch.cuda.max_memory_allocated(0))
+        gpu = _gpu_snapshot()
+        if peak_allocated > gpu_hard_cap_mib * 1024 * 1024 or (
+            gpu.get("available") and gpu.get("used_mib", gpu_hard_cap_mib + 1) > gpu_hard_cap_mib
+        ):
+            raise Phase5DashboardError("inference engine이 16GiB GPU 상한을 넘었습니다.")
+        return {
+            **result,
+            "peak_allocated_bytes": peak_allocated,
+            "gpu_total_memory_used_mib": gpu.get("used_mib"),
+        }
+    finally:
+        del model
+        del tokenizer
+        gc.collect()
+        torch.cuda.empty_cache()
 
 
 def _atomic_private_directory(target: Path, files: dict[str, bytes]) -> None:
@@ -1476,6 +1715,30 @@ def _manual_session_contract(context: dict[str, Any]) -> dict[str, Any]:
     return contract
 
 
+def _inference_selection(context: dict[str, Any], selection_id: str) -> dict[str, Any]:
+    selection = context["inference_engines"]["selections"].get(selection_id)
+    if not isinstance(selection, dict):
+        raise Phase5DashboardError("허용되지 않은 inference engine 선택입니다.")
+    return {"selection_id": selection_id, **selection}
+
+
+def _session_inference_selection(
+    context: dict[str, Any], session: dict[str, Any]
+) -> dict[str, Any]:
+    if session.get("schema_version") in {"1.0.0", "1.1.0"}:
+        return _inference_selection(context, "ki20_final")
+    return _inference_selection(context, str(session.get("engine_selection", "")))
+
+
+def _selection_snapshots(
+    context: dict[str, Any], selection: dict[str, Any]
+) -> dict[str, dict[str, Any]]:
+    return {
+        engine_id: _engine_snapshot(context, engine_id)
+        for engine_id in selection["engine_ids"]
+    }
+
+
 def _prompt_profile(
     context: dict[str, Any], profile_id: str, *, allow_legacy: bool = False
 ) -> dict[str, Any]:
@@ -1550,7 +1813,7 @@ def _validate_manual_session(
     messages = value.get("messages")
     schema_version = value.get("schema_version")
     if (
-        schema_version not in {"1.0.0", "1.1.0"}
+        schema_version not in {"1.0.0", "1.1.0", "1.2.0"}
         or value.get("session_id") != session_id
         or value.get("run_id") != context["manifest"]["run_id"]
         or value.get("run_build_id") != context["manifest"]["run_build_id"]
@@ -1561,27 +1824,99 @@ def _validate_manual_session(
         or not isinstance(value.get("updated_at_utc"), str)
         or not isinstance(messages, list)
         or not messages
-        or len(messages) % 2 != 0
-        or value.get("turn_count") != len(messages) // 2
+        or isinstance(value.get("turn_count"), bool)
+        or not isinstance(value.get("turn_count"), int)
+        or value["turn_count"] < 1
     ):
         raise Phase5DashboardError("수동 대화 세션 계약이 다릅니다.")
     profile = _session_prompt_profile(context, value)
-    if schema_version == "1.1.0" and (
+    if schema_version in {"1.1.0", "1.2.0"} and (
         value.get("prompt_profile") != profile["profile_id"]
         or value.get("system_prompt_sha256") != profile["system_prompt_sha256"]
     ):
         raise Phase5DashboardError("수동 대화 세션 prompt profile 계약이 다릅니다.")
-    for index, message in enumerate(messages):
-        expected_role = "user" if index % 2 == 0 else "assistant"
-        if (
-            not isinstance(message, dict)
-            or set(message) != {"role", "content", "created_at_utc"}
-            or message.get("role") != expected_role
-            or not isinstance(message.get("content"), str)
-            or not message["content"]
-            or not isinstance(message.get("created_at_utc"), str)
-        ):
-            raise Phase5DashboardError("수동 대화 메시지 계약이 다릅니다.")
+    if schema_version in {"1.0.0", "1.1.0"}:
+        if len(messages) % 2 != 0 or value["turn_count"] != len(messages) // 2:
+            raise Phase5DashboardError("기존 수동 대화 turn 계약이 다릅니다.")
+        for index, message in enumerate(messages):
+            expected_role = "user" if index % 2 == 0 else "assistant"
+            if (
+                not isinstance(message, dict)
+                or set(message) != {"role", "content", "created_at_utc"}
+                or message.get("role") != expected_role
+                or not isinstance(message.get("content"), str)
+                or not message["content"]
+                or not isinstance(message.get("created_at_utc"), str)
+            ):
+                raise Phase5DashboardError("수동 대화 메시지 계약이 다릅니다.")
+    else:
+        selection = _session_inference_selection(context, value)
+        snapshots = _selection_snapshots(context, selection)
+        if value.get("engine_snapshots") != snapshots:
+            raise Phase5DashboardError("수동 대화 inference engine snapshot이 다릅니다.")
+        chunk_size = 1 + len(selection["engine_ids"])
+        if len(messages) != value["turn_count"] * chunk_size:
+            raise Phase5DashboardError("수동 비교 대화 turn 계약이 다릅니다.")
+        for offset in range(0, len(messages), chunk_size):
+            user_message = messages[offset]
+            if (
+                not isinstance(user_message, dict)
+                or set(user_message) != {"role", "content", "created_at_utc"}
+                or user_message.get("role") != "user"
+                or not isinstance(user_message.get("content"), str)
+                or not user_message["content"]
+                or not isinstance(user_message.get("created_at_utc"), str)
+            ):
+                raise Phase5DashboardError("수동 비교 대화 user 메시지가 다릅니다.")
+            for index, engine_id in enumerate(selection["engine_ids"], 1):
+                assistant = messages[offset + index]
+                diagnostics = (
+                    assistant.get("diagnostics") if isinstance(assistant, dict) else None
+                )
+                if (
+                    not isinstance(assistant, dict)
+                    or set(assistant)
+                    != {"role", "engine_id", "content", "created_at_utc", "diagnostics"}
+                    or assistant.get("role") != "assistant"
+                    or assistant.get("engine_id") != engine_id
+                    or not isinstance(assistant.get("content"), str)
+                    or not assistant["content"]
+                    or not isinstance(assistant.get("created_at_utc"), str)
+                ):
+                    raise Phase5DashboardError("수동 비교 대화 assistant 메시지가 다릅니다.")
+                if diagnostics is not None and (
+                    not isinstance(diagnostics, dict)
+                    or set(diagnostics)
+                    != {
+                        "input_tokens",
+                        "omitted_turns",
+                        "elapsed_seconds",
+                        "peak_allocated_bytes",
+                        "gpu_total_memory_used_mib",
+                    }
+                    or any(
+                        isinstance(diagnostics.get(key), bool)
+                        or not isinstance(diagnostics.get(key), (int, float))
+                        or diagnostics[key] < 0
+                        for key in (
+                            "input_tokens",
+                            "omitted_turns",
+                            "elapsed_seconds",
+                            "peak_allocated_bytes",
+                        )
+                    )
+                    or (
+                        diagnostics.get("gpu_total_memory_used_mib") is not None
+                        and (
+                            isinstance(diagnostics["gpu_total_memory_used_mib"], bool)
+                            or not isinstance(
+                                diagnostics["gpu_total_memory_used_mib"], (int, float)
+                            )
+                            or diagnostics["gpu_total_memory_used_mib"] < 0
+                        )
+                    )
+                ):
+                    raise Phase5DashboardError("수동 비교 대화 진단값이 다릅니다.")
     if value["turn_count"] > _manual_session_contract(context)["max_turns_per_session"]:
         raise Phase5DashboardError("수동 대화 세션 turn 수가 계약을 넘습니다.")
     return value
@@ -1598,11 +1933,17 @@ def manual_session_payload(context: dict[str, Any], session_id: str) -> dict[str
         context, _load_json(path, "수동 대화 세션"), session_id
     )
     profile = _session_prompt_profile(context, session)
+    selection = _session_inference_selection(context, session)
     return {
         **session,
         "prompt_profile": profile["profile_id"],
         "prompt_profile_label": profile["label"],
         "system_prompt_sha256": profile["system_prompt_sha256"],
+        "engine_selection": selection["selection_id"],
+        "engine_selection_label": selection["label"],
+        "engine_mode": selection["mode"],
+        "engine_snapshots": session.get("engine_snapshots")
+        or _selection_snapshots(context, selection),
     }
 
 
@@ -1612,6 +1953,7 @@ def manual_sessions_payload(context: dict[str, Any]) -> dict[str, Any]:
         return {
             "items": [],
             "prompt_profiles": prompt_profiles_payload(context),
+            "inference_engines": inference_engines_payload(context),
             "persisted": True,
             "local_only": True,
         }
@@ -1624,6 +1966,7 @@ def manual_sessions_payload(context: dict[str, Any]) -> dict[str, Any]:
             raise Phase5DashboardError("수동 대화 세션 경로에 예상 밖 항목이 있습니다.")
         session = manual_session_payload(context, match.group(1))
         profile = _session_prompt_profile(context, session)
+        selection = _session_inference_selection(context, session)
         items.append(
             {
                 "session_id": session["session_id"],
@@ -1633,6 +1976,9 @@ def manual_sessions_payload(context: dict[str, Any]) -> dict[str, Any]:
                 "updated_at_utc": session["updated_at_utc"],
                 "prompt_profile": profile["profile_id"],
                 "prompt_profile_label": profile["label"],
+                "engine_selection": selection["selection_id"],
+                "engine_selection_label": selection["label"],
+                "engine_mode": selection["mode"],
             }
         )
     maximum = _manual_session_contract(context)["max_sessions"]
@@ -1642,6 +1988,7 @@ def manual_sessions_payload(context: dict[str, Any]) -> dict[str, Any]:
     return {
         "items": items,
         "prompt_profiles": prompt_profiles_payload(context),
+        "inference_engines": inference_engines_payload(context),
         "persisted": True,
         "local_only": True,
     }
@@ -1674,11 +2021,46 @@ def _write_manual_session(context: dict[str, Any], session: dict[str, Any]) -> N
             temporary.unlink()
 
 
+def _messages_for_engine(
+    previous_messages: Sequence[dict[str, Any]],
+    engine_id: str,
+    prompt: str,
+    system_prompt: str | None,
+) -> list[dict[str, str]]:
+    messages: list[dict[str, str]] = []
+    if system_prompt is not None:
+        messages.append({"role": "system", "content": system_prompt})
+    for message in previous_messages:
+        if message["role"] == "user" or message.get("engine_id", engine_id) == engine_id:
+            messages.append({"role": message["role"], "content": message["content"]})
+    messages.append({"role": "user", "content": prompt})
+    return messages
+
+
+def _messages_for_v12(
+    previous_messages: Sequence[dict[str, Any]], engine_id: str
+) -> list[dict[str, Any]]:
+    normalized: list[dict[str, Any]] = []
+    for message in previous_messages:
+        if message["role"] == "user" or "engine_id" in message:
+            normalized.append(dict(message))
+        else:
+            normalized.append(
+                {
+                    **message,
+                    "engine_id": engine_id,
+                    "diagnostics": None,
+                }
+            )
+    return normalized
+
+
 def execute_manual_generation(
     context: dict[str, Any],
     prompt: str,
     session_id: str | None = None,
     profile: str | None = None,
+    engine_selection: str | None = None,
 ) -> dict[str, Any]:
     gate = _generation_gate(context)
     if not gate["allowed"]:
@@ -1698,10 +2080,16 @@ def execute_manual_generation(
             raise Phase5DashboardError("수동 대화 세션 최대 개수에 도달했습니다.")
         session_id = secrets.token_hex(12)
         previous_messages: list[dict[str, Any]] = []
+        previous_turn_count = 0
         created_at = datetime.now(timezone.utc).isoformat()
         title = clean_prompt.splitlines()[0][: contract["title_max_chars"]]
         selected_profile = _prompt_profile(
             context, profile or context["prompt_profiles"]["default_profile"]
+        )
+        selected_engines = _inference_selection(
+            context,
+            engine_selection
+            or context["inference_engines"]["default_selection"],
         )
     else:
         try:
@@ -1711,35 +2099,87 @@ def execute_manual_generation(
         if current["turn_count"] >= contract["max_turns_per_session"]:
             raise Phase5DashboardError("이 수동 대화 세션은 최대 turn 수에 도달했습니다.")
         previous_messages = list(current["messages"])
+        previous_turn_count = current["turn_count"]
         created_at = current["created_at_utc"]
         title = current["title"]
         selected_profile = _session_prompt_profile(context, current)
+        selected_engines = _session_inference_selection(context, current)
         if profile is not None and profile != selected_profile["profile_id"]:
             raise Phase5DashboardError("기존 세션의 prompt profile은 변경할 수 없습니다.")
+        if (
+            engine_selection is not None
+            and engine_selection != selected_engines["selection_id"]
+        ):
+            raise Phase5DashboardError("기존 세션의 inference engine은 변경할 수 없습니다.")
+    for engine_id in selected_engines["engine_ids"]:
+        availability = _engine_availability(context, engine_id)
+        if not availability["available"]:
+            raise Phase5DashboardError(
+                f"{engine_id} 모델을 사용할 수 없습니다: "
+                + ", ".join(availability["reasons"])
+            )
     requested_at = datetime.now(timezone.utc).isoformat()
-    model_messages: list[dict[str, str]] = [
-        {"role": message["role"], "content": message["content"]}
-        for message in previous_messages
-    ] + [{"role": "user", "content": clean_prompt}]
-    if selected_profile["system_prompt_text"] is not None:
-        model_messages.insert(
-            0,
-            {"role": "system", "content": selected_profile["system_prompt_text"]},
-        )
     started = time.monotonic()
-    generated = _generate_conversation(
-        context["run_root"] / "final",
-        model_messages,
-        context["config"]["model_check"]["generation"],
-        contract["max_context_tokens"],
-    )
+    generated_by_engine: dict[str, dict[str, Any]] = {}
+    for index, engine_id in enumerate(selected_engines["engine_ids"]):
+        if index:
+            gpu = _gpu_snapshot()
+            idle_max = context["config"]["model_check"]["gpu_idle_max_used_mib"]
+            if not gpu.get("available") or gpu.get("used_mib", idle_max + 1) > idle_max:
+                raise Phase5DashboardError(
+                    "첫 모델 해제 뒤 GPU가 비교 모델 순차 로드 기준으로 복귀하지 않았습니다."
+                )
+        engine = context["inference_engines"]["engines"][engine_id]
+        model_messages = _messages_for_engine(
+            previous_messages,
+            engine_id,
+            clean_prompt,
+            selected_profile["system_prompt_text"],
+        )
+        engine_started = time.monotonic()
+        generated = _generate_conversation(
+            engine["resolved_path"],
+            model_messages,
+            context["config"]["model_check"]["generation"],
+            contract["max_context_tokens"],
+            engine["model_sha256"],
+            engine.get("required_file_sha256"),
+            context["config"]["training_contract"]["gpu_hard_cap_mib"],
+        )
+        generated_by_engine[engine_id] = {
+            **generated,
+            "elapsed_seconds": round(time.monotonic() - engine_started, 3),
+            "completed_at_utc": datetime.now(timezone.utc).isoformat(),
+        }
     completed_at = datetime.now(timezone.utc).isoformat()
-    output = generated["output"]
     stored_profile = selected_profile
     if selected_profile["profile_id"] == context["prompt_profiles"]["legacy_profile"]:
         stored_profile = _prompt_profile(context, "raw_no_system")
+    normalized_previous = _messages_for_v12(
+        previous_messages, selected_engines["engine_ids"][0]
+    )
+    assistant_messages = []
+    for engine_id in selected_engines["engine_ids"]:
+        generated = generated_by_engine[engine_id]
+        assistant_messages.append(
+            {
+                "role": "assistant",
+                "engine_id": engine_id,
+                "content": generated["output"],
+                "created_at_utc": generated["completed_at_utc"],
+                "diagnostics": {
+                    "input_tokens": generated["input_tokens"],
+                    "omitted_turns": generated["omitted_messages"] // 2,
+                    "elapsed_seconds": generated["elapsed_seconds"],
+                    "peak_allocated_bytes": generated.get("peak_allocated_bytes", 0),
+                    "gpu_total_memory_used_mib": generated.get(
+                        "gpu_total_memory_used_mib"
+                    ),
+                },
+            }
+        )
     session = {
-        "schema_version": "1.1.0",
+        "schema_version": "1.2.0",
         "session_id": session_id,
         "run_id": context["manifest"]["run_id"],
         "run_build_id": context["manifest"]["run_build_id"],
@@ -1747,29 +2187,61 @@ def execute_manual_generation(
         "title": title,
         "created_at_utc": created_at,
         "updated_at_utc": completed_at,
-        "turn_count": len(previous_messages) // 2 + 1,
+        "turn_count": previous_turn_count + 1,
         "prompt_profile": stored_profile["profile_id"],
         "system_prompt_sha256": stored_profile["system_prompt_sha256"],
-        "messages": previous_messages
+        "engine_selection": selected_engines["selection_id"],
+        "engine_snapshots": _selection_snapshots(context, selected_engines),
+        "messages": normalized_previous
         + [
             {"role": "user", "content": clean_prompt, "created_at_utc": requested_at},
-            {"role": "assistant", "content": output, "created_at_utc": completed_at},
+            *assistant_messages,
         ],
         "quality_gate_evaluated": False,
         "production_promotion_allowed": False,
     }
     _validate_manual_session(context, session, session_id)
     _write_manual_session(context, session)
+    stored_session = manual_session_payload(context, session_id)
+    outputs = {
+        engine_id: generated_by_engine[engine_id]["output"]
+        for engine_id in selected_engines["engine_ids"]
+    }
+    contexts = {
+        engine_id: {
+            "input_tokens": generated_by_engine[engine_id]["input_tokens"],
+            "omitted_turns": generated_by_engine[engine_id]["omitted_messages"] // 2,
+            "max_context_tokens": contract["max_context_tokens"],
+            "elapsed_seconds": generated_by_engine[engine_id]["elapsed_seconds"],
+            "peak_allocated_bytes": generated_by_engine[engine_id].get(
+                "peak_allocated_bytes", 0
+            ),
+            "gpu_total_memory_used_mib": generated_by_engine[engine_id].get(
+                "gpu_total_memory_used_mib"
+            ),
+        }
+        for engine_id in selected_engines["engine_ids"]
+    }
     return {
         "status": "generated",
-        "output": output,
+        **(
+            {
+                "output": outputs[selected_engines["engine_ids"][0]],
+                "context": contexts[selected_engines["engine_ids"][0]],
+            }
+            if selected_engines["mode"] == "single"
+            else {}
+        ),
+        "outputs": outputs,
         "session_id": session_id,
-        "session": session,
+        "session": stored_session,
         "elapsed_seconds": round(time.monotonic() - started, 3),
-        "context": {
-            "input_tokens": generated["input_tokens"],
-            "omitted_turns": generated["omitted_messages"] // 2,
-            "max_context_tokens": contract["max_context_tokens"],
+        "contexts": contexts,
+        "engine_selection": {
+            "selection_id": selected_engines["selection_id"],
+            "label": selected_engines["label"],
+            "mode": selected_engines["mode"],
+            "engine_ids": selected_engines["engine_ids"],
         },
         "prompt_profile": {
             "profile_id": stored_profile["profile_id"],
@@ -1979,10 +2451,9 @@ class DashboardRequestHandler(BaseHTTPRequestHandler):
             try:
                 if path == "/api/generate":
                     if (
-                        set(payload)
-                        not in (
-                            {"prompt", "session_id"},
-                            {"prompt", "session_id", "profile"},
+                        not {"prompt", "session_id"}.issubset(payload)
+                        or not set(payload).issubset(
+                            {"prompt", "session_id", "profile", "engine_selection"}
                         )
                         or not isinstance(payload["prompt"], str)
                         or (
@@ -1993,16 +2464,21 @@ class DashboardRequestHandler(BaseHTTPRequestHandler):
                             payload.get("profile") is not None
                             and not isinstance(payload.get("profile"), str)
                         )
+                        or (
+                            payload.get("engine_selection") is not None
+                            and not isinstance(payload.get("engine_selection"), str)
+                        )
                     ):
                         raise DashboardRequestError(
                             HTTPStatus.BAD_REQUEST,
-                            "prompt·profile 문자열과 session_id 문자열 또는 null만 허용됩니다.",
+                            "prompt·profile·engine_selection 문자열과 session_id 문자열 또는 null만 허용됩니다.",
                         )
                     result = _manual_generation_subprocess(
                         self.server.context,
                         payload["prompt"],
                         payload["session_id"],
                         payload.get("profile"),
+                        payload.get("engine_selection"),
                     )
                 else:
                     if payload:
@@ -2032,6 +2508,7 @@ def _manual_generation_subprocess(
     prompt: str,
     session_id: str | None,
     profile: str | None,
+    engine_selection: str | None,
 ) -> dict[str, Any]:
     command = [
         sys.executable,
@@ -2043,16 +2520,34 @@ def _manual_generation_subprocess(
         "generate",
         "--execute",
     ]
+    if session_id is not None:
+        current = manual_session_payload(context, session_id)
+        selected = _session_inference_selection(context, current)
+    else:
+        selected = _inference_selection(
+            context,
+            engine_selection or context["inference_engines"]["default_selection"],
+        )
+    timeout = (
+        context["inference_engines"]["paired_timeout_seconds"]
+        if selected["mode"] == "paired"
+        else context["inference_engines"]["single_timeout_seconds"]
+    )
     result = subprocess.run(
         command,
         input=json.dumps(
-            {"prompt": prompt, "session_id": session_id, "profile": profile},
+            {
+                "prompt": prompt,
+                "session_id": session_id,
+                "profile": profile,
+                "engine_selection": engine_selection,
+            },
             ensure_ascii=False,
         ),
         check=False,
         capture_output=True,
         text=True,
-        timeout=300,
+        timeout=timeout,
         cwd=context["repo_root"],
     )
     if result.returncode != 0:
@@ -2163,10 +2658,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             payload = json.loads(sys.stdin.read())
             if (
                 not isinstance(payload, dict)
-                or set(payload)
-                not in (
-                    {"prompt", "session_id"},
-                    {"prompt", "session_id", "profile"},
+                or not {"prompt", "session_id"}.issubset(payload)
+                or not set(payload).issubset(
+                    {"prompt", "session_id", "profile", "engine_selection"}
                 )
                 or not isinstance(payload["prompt"], str)
                 or (
@@ -2177,6 +2671,10 @@ def main(argv: Sequence[str] | None = None) -> int:
                     payload.get("profile") is not None
                     and not isinstance(payload.get("profile"), str)
                 )
+                or (
+                    payload.get("engine_selection") is not None
+                    and not isinstance(payload.get("engine_selection"), str)
+                )
             ):
                 raise Phase5DashboardError("수동 generation stdin 계약이 다릅니다.")
             result = execute_manual_generation(
@@ -2184,6 +2682,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 payload["prompt"],
                 payload["session_id"],
                 payload.get("profile"),
+                payload.get("engine_selection"),
             )
         else:
             raise Phase5DashboardError("지원하지 않는 command입니다.")

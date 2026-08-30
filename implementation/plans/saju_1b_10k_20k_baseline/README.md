@@ -230,6 +230,11 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
 ## 진행 기록
 
 - 2026-08-30
+  - 작업 요약: dashboard `v1.4.0`에 실제 SFT 시작점인 고정 Kanana Instruct K0를 추가해 `KI20 단독`, `K0 단독`, `K0 ↔ KI20 동시 비교` 수동 세션을 지원한다. 동시 비교는 같은 질문을 두 모델의 독립 문맥에 순차 입력한다.
+  - 변경 범위: 두 모델의 weight·tokenizer·chat template·custom code SHA-256을 로드 직전에 검증하고 16GiB GPU에서 하나씩 로드·해제한다. 기존 수동 세션은 KI20 단독으로 읽으며 고정 20건, 데이터, checkpoint, sealed blind와 재학습 상태는 바꾸지 않았다.
+  - 검증: strict 고정 파일 경로의 실제 BF16 비교에서 같은 337-token 입력의 출력 `2/2`, peak allocated 각각 `2,677,079,040 bytes`, 전체 GPU 최대 `4,283MiB`, 종료 후 `1,242MiB` 복귀를 확인했다. 전체 259 tests, desktop 좌우·mobile 단일열과 live HTTP를 통과했다.
+  - 남은 이슈·후속 작업: K0↔KI20 비교는 SFT 회귀 진단용이며 계산 engine이나 품질 Gate가 아니다. 상태형 동일 평가와 deterministic runtime bridge는 별도 후속 범위다.
+- 2026-08-30
   - 작업 요약: KI20 수동 대화 실패를 context 손실이 아닌 무지시 행동 제어 문제로 진단하고 dashboard `v1.3.0`, 안내 보정 prompt, 공개 합성 상태형 dev 100건, 보강 후보 2,000건을 구현했다. 실제 재학습과 Phase 6은 수행하지 않았다.
   - 변경 범위: 최종 후보 `build-0f80acfeed13`은 기존 20K를 덮어쓰지 않은 `candidate_only` build이며 실제 사용자·AI Hub 원문과 생년월일↔명식 연결을 포함하지 않는다. dashboard의 raw profile·기존 세션·고정 20건은 비교 이력으로 보존하고 새 안내 profile도 운영 품질로 표시하지 않는다.
   - 검증: 상태형 Gate `stateful-gate-f5b76dde1921`은 reference/mutation 자체검증 각 `100/100` 뒤 KI20 실제 생성 100건을 완료했으나 필수 행동 `14%`, 무조작 `84%`, 재질문 18건, 허위 완료 1건, 미지원 날짜·기간 5건으로 `guided_diagnostic_not_met`였다. 후보는 10층×200건, 중복·PII·chart/DOB 혼합 0건과 dev100 근접중복 0건을 통과했다.

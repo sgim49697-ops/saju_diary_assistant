@@ -19,6 +19,7 @@ from scripts.training.phase5_dashboard import (
     DashboardRequestError,
     Phase5DashboardError,
     _generate_loaded,
+    _load_model,
     _parser,
     _select_probes,
     _service_snapshot,
@@ -44,7 +45,7 @@ class DashboardFixture:
         self.config = json.loads((REPO_ROOT / DEFAULT_CONFIG).read_text(encoding="utf-8"))
         self.config_path = (
             root
-            / "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.3.0.json"
+            / "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.4.0.json"
         )
         self.config_path.parent.mkdir(parents=True)
         prompt_source = REPO_ROOT / self.config["prompt_profiles"]["profiles"][
@@ -55,6 +56,23 @@ class DashboardFixture:
         prompt_target.write_bytes(prompt_source.read_bytes())
         self.run_root = root / "runs/KI20-MIX-v2/v1.2.0/run-123456abcdef"
         self.run_root.mkdir(parents=True)
+        model_roots = [
+            self.run_root / "final",
+            root / self.config["inference_engines"]["engines"]["k0_instruct"]["path"],
+        ]
+        for model_root in model_roots:
+            model_root.mkdir(parents=True)
+            for name in (
+                "chat_template.jinja",
+                "config.json",
+                "configuration_kanana2_tiny.py",
+                "model.safetensors",
+                "modeling_kanana2_tiny.py",
+                "tokenizer.json",
+                "tokenizer_config.json",
+            ):
+                (model_root / name).write_bytes(b"fixture")
+        self._write_json(self.run_root / "reload_summary.json", {"status": "passed"})
         self._write_json(
             self.run_root / "run_manifest.json",
             {
@@ -157,6 +175,12 @@ class Phase5DashboardTests(unittest.TestCase):
         ] = True
         with self.assertRaisesRegex(Phase5DashboardError, "dataset browser"):
             validate_config(invalid_dataset)
+        invalid_engine = json.loads(json.dumps(config))
+        invalid_engine["inference_engines"]["engines"]["k0_instruct"][
+            "model_sha256"
+        ] = "0" * 64
+        with self.assertRaisesRegex(Phase5DashboardError, "engine identity"):
+            validate_config(invalid_engine)
         self.assertTrue(DashboardHTTPServer.allow_reuse_address)
 
     def test_prompt_hash_drift_is_rejected(self) -> None:
@@ -164,6 +188,16 @@ class Phase5DashboardTests(unittest.TestCase):
         prompt.write_text("변조된 prompt\n", encoding="utf-8")
         with self.assertRaisesRegex(Phase5DashboardError, "system prompt 파일 계약"):
             self.fixture.context()
+
+    def test_model_file_hash_drift_is_rejected_before_load(self) -> None:
+        context = self.fixture.context()
+        k0_path = context["inference_engines"]["engines"]["k0_instruct"][
+            "resolved_path"
+        ]
+        with self.assertRaisesRegex(Phase5DashboardError, "model.safetensors SHA-256"):
+            _load_model(k0_path, "0" * 64)
+        with self.assertRaisesRegex(Phase5DashboardError, "tokenizer.json SHA-256"):
+            _load_model(k0_path, required_file_sha256={"tokenizer.json": "0" * 64})
 
     def test_context_trimming_preserves_single_leading_system_message(self) -> None:
         class FakeTensor:
@@ -449,6 +483,118 @@ class Phase5DashboardTests(unittest.TestCase):
         self.assertEqual(manual_sessions_payload(self.fixture.context())["items"][0]["turn_count"], 2)
         self.assertFalse(result["production_promotion_allowed"])
 
+    @patch("scripts.training.phase5_dashboard._gpu_snapshot")
+    @patch("scripts.training.phase5_dashboard._generate_conversation")
+    @patch("scripts.training.phase5_dashboard._generation_gate")
+    def test_paired_generation_keeps_engine_contexts_independent_and_locked(
+        self, gate: object, generate: object, gpu: object
+    ) -> None:
+        gate.return_value = {"allowed": True, "reasons": []}
+        gpu.return_value = {"available": True, "used_mib": 1000}
+        generate.side_effect = [
+            {"output": "K0 첫 답변", "input_tokens": 20, "omitted_messages": 0},
+            {"output": "KI20 첫 답변", "input_tokens": 20, "omitted_messages": 0},
+            {"output": "K0 후속 답변", "input_tokens": 40, "omitted_messages": 0},
+            {"output": "KI20 후속 답변", "input_tokens": 41, "omitted_messages": 0},
+        ]
+        context = self.fixture.context()
+        first = execute_manual_generation(
+            context,
+            "같은 질문",
+            profile="raw_no_system",
+            engine_selection="k0_vs_ki20",
+        )
+        self.assertNotIn("output", first)
+        self.assertEqual(
+            first["outputs"],
+            {"k0_instruct": "K0 첫 답변", "ki20_final": "KI20 첫 답변"},
+        )
+        self.assertEqual(first["session"]["engine_mode"], "paired")
+        self.assertEqual(
+            [message.get("engine_id") for message in first["session"]["messages"]],
+            [None, "k0_instruct", "ki20_final"],
+        )
+        self.assertTrue(
+            str(generate.call_args_list[0].args[0]).endswith(
+                "kanana-2-1.3b-instruct/bf4786aa2a1908adce942d53976270132732f720"
+            )
+        )
+        self.assertTrue(str(generate.call_args_list[1].args[0]).endswith("/final"))
+        followup = execute_manual_generation(
+            context, "후속 질문", first["session_id"], engine_selection="k0_vs_ki20"
+        )
+        self.assertEqual(followup["session"]["turn_count"], 2)
+        self.assertEqual(
+            generate.call_args_list[2].args[1],
+            [
+                {"role": "user", "content": "같은 질문"},
+                {"role": "assistant", "content": "K0 첫 답변"},
+                {"role": "user", "content": "후속 질문"},
+            ],
+        )
+        self.assertEqual(
+            generate.call_args_list[3].args[1],
+            [
+                {"role": "user", "content": "같은 질문"},
+                {"role": "assistant", "content": "KI20 첫 답변"},
+                {"role": "user", "content": "후속 질문"},
+            ],
+        )
+        with self.assertRaisesRegex(Phase5DashboardError, "변경할 수 없습니다"):
+            execute_manual_generation(
+                context,
+                "엔진 변경",
+                first["session_id"],
+                engine_selection="ki20_final",
+            )
+
+    @patch("scripts.training.phase5_dashboard._gpu_snapshot")
+    @patch("scripts.training.phase5_dashboard._generate_conversation")
+    @patch("scripts.training.phase5_dashboard._generation_gate")
+    def test_paired_failure_does_not_persist_partial_turn(
+        self, gate: object, generate: object, gpu: object
+    ) -> None:
+        gate.return_value = {"allowed": True, "reasons": []}
+        gpu.return_value = {"available": True, "used_mib": 1000}
+        generate.side_effect = [
+            {"output": "K0 임시 답변", "input_tokens": 10, "omitted_messages": 0},
+            Phase5DashboardError("KI20 생성 실패"),
+        ]
+        context = self.fixture.context()
+        with self.assertRaisesRegex(Phase5DashboardError, "KI20 생성 실패"):
+            execute_manual_generation(
+                context,
+                "원자 저장 질문",
+                engine_selection="k0_vs_ki20",
+            )
+        self.assertEqual(manual_sessions_payload(context)["items"], [])
+
+    @patch("scripts.training.phase5_dashboard._generate_conversation")
+    @patch("scripts.training.phase5_dashboard._generation_gate")
+    def test_k0_single_generation_uses_fixed_snapshot_identity(
+        self, gate: object, generate: object
+    ) -> None:
+        gate.return_value = {"allowed": True, "reasons": []}
+        generate.return_value = {
+            "output": "K0 답변",
+            "input_tokens": 12,
+            "omitted_messages": 0,
+        }
+        result = execute_manual_generation(
+            self.fixture.context(), "원본 질문", engine_selection="k0_instruct"
+        )
+        self.assertEqual(result["output"], "K0 답변")
+        self.assertEqual(result["session"]["engine_selection"], "k0_instruct")
+        self.assertEqual(
+            generate.call_args.args[4],
+            self.fixture.config["inference_engines"]["engines"]["k0_instruct"][
+                "model_sha256"
+            ],
+        )
+        catalog = manual_sessions_payload(self.fixture.context())["inference_engines"]
+        self.assertEqual(len(catalog["selections"]), 3)
+        self.assertTrue(all(engine["available"] for engine in catalog["items"]))
+
     @patch("scripts.training.phase5_dashboard._generate_conversation")
     @patch("scripts.training.phase5_dashboard._generation_gate")
     def test_raw_profile_is_explicit_and_locked_per_session(
@@ -565,6 +711,9 @@ class Phase5DashboardTests(unittest.TestCase):
         self.assertNotIn("resume-training", html + script)
         self.assertEqual(html.count("__CSRF_TOKEN__"), 1)
         self.assertIn('data-tab="dataset"', html)
+        self.assertIn('id="engine-selection-select"', html)
+        self.assertIn("k0_vs_ki20", html + script)
+        self.assertIn("assistant-response-grid", style)
         self.assertLess(html.index('id="manual-panel"'), html.index('id="comparison-panel"'))
         self.assertIn('<details id="comparison-panel"', html)
         self.assertNotIn('<details id="comparison-panel" open', html)
@@ -652,6 +801,7 @@ class Phase5DashboardHTTPTests(unittest.TestCase):
                 "prompt": "진단 질문",
                 "session_id": None,
                 "profile": "guided_diagnostic_v1",
+                "engine_selection": "k0_vs_ki20",
             }
         ).encode()
         status, _, _ = self.request(
@@ -663,7 +813,11 @@ class Phase5DashboardHTTPTests(unittest.TestCase):
         )
         self.assertEqual(status, 200)
         generate.assert_called_once_with(
-            self.context, "진단 질문", None, "guided_diagnostic_v1"
+            self.context,
+            "진단 질문",
+            None,
+            "guided_diagnostic_v1",
+            "k0_vs_ki20",
         )
 
     @patch("scripts.training.phase5_dashboard._generate_conversation")

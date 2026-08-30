@@ -177,6 +177,15 @@
             <select id="session-select"><option value="">새 대화</option></select>
             <small id="session-meta">새 세션에서 첫 질문을 입력하세요.</small>
           </div>
+          <div class="engine-toolbar">
+            <label for="engine-selection-select">추론 엔진</label>
+            <select id="engine-selection-select">
+              <option value="ki20_final">KI20 단독</option>
+              <option value="k0_instruct">K0 원본 단독</option>
+              <option value="k0_vs_ki20">K0 ↔ KI20 동시 비교</option>
+            </select>
+            <small id="engine-selection-copy">새 세션에서 모델 축을 선택할 수 있습니다. 선택 후에는 변경할 수 없습니다.</small>
+          </div>
           <div class="profile-toolbar">
             <label for="prompt-profile-select">추론 프로필</label>
             <select id="prompt-profile-select">
@@ -185,11 +194,12 @@
             </select>
             <small id="prompt-profile-copy">계산 도구 미연결 경계를 고정한 안내 보정 prompt를 적용합니다. 새 세션을 만든 뒤에는 프로필을 바꿀 수 없습니다.</small>
           </div>
+          <p class="diagnostic-engine-note">K0와 KI20 모두 계산 엔진이 연결되지 않은 진단용 언어 모델입니다. 출력은 명리학적 정답이나 운영 승격 근거가 아닙니다.</p>
           <div id="manual-conversation" class="manual-conversation" aria-live="polite">
             <p class="empty-conversation">아직 저장된 대화가 없습니다.</p>
           </div>
           <form id="manual-form">
-            <label for="manual-prompt">KI20 final에 보낼 질문</label>
+            <label id="manual-prompt-label" for="manual-prompt">KI20 final에 보낼 질문</label>
             <textarea id="manual-prompt" maxlength="4000" rows="5" placeholder="예: 사주 정보가 없을 때 어떤 정보를 먼저 물어봐야 해?"></textarea>
             <div class="form-actions"><small>질문·답변은 현재 run의 Git 제외 private 폴더에만 저장됩니다.</small><button id="generate-button" type="submit">답변 생성</button></div>
           </form>
