@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64
 import hashlib
 import http.client
 import importlib.metadata
@@ -23,6 +24,7 @@ from scripts.training.phase5_dashboard import (
     _generate_loaded,
     _load_model,
     _parser,
+    _remote_access_settings,
     _select_probes,
     _service_snapshot,
     checkpoints_payload,
@@ -47,7 +49,7 @@ class DashboardFixture:
         self.config = json.loads((REPO_ROOT / DEFAULT_CONFIG).read_text(encoding="utf-8"))
         self.config_path = (
             root
-            / "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.5.0.json"
+            / "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.6.0.json"
         )
         self.config_path.parent.mkdir(parents=True)
         prompt_source = REPO_ROOT / self.config["prompt_profiles"]["profiles"][
@@ -163,7 +165,18 @@ class Phase5DashboardTests(unittest.TestCase):
     def test_committed_config_and_cli_defaults_are_valid(self) -> None:
         config = json.loads((REPO_ROOT / DEFAULT_CONFIG).read_text(encoding="utf-8"))
         validate_config(config)
-        self.assertEqual(config["schema_version"], "1.5.0")
+        self.assertEqual(config["schema_version"], "1.6.0")
+        self.assertEqual(
+            config["server"]["remote_share"],
+            {
+                "enabled_by_default": False,
+                "exact_https_origin_required": True,
+                "basic_auth_required": True,
+                "wildcard_origins_allowed": False,
+                "password_file_mode": "0600",
+                "minimum_password_bytes": 32,
+            },
+        )
         self.assertEqual(
             config["dataset_browser"]["sample_selection"],
             {
@@ -177,7 +190,7 @@ class Phase5DashboardTests(unittest.TestCase):
         historical = json.loads(
             (
                 REPO_ROOT
-                / "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.4.0.json"
+                / "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.5.0.json"
             ).read_text(encoding="utf-8")
         )
         validate_config(historical)
@@ -207,7 +220,47 @@ class Phase5DashboardTests(unittest.TestCase):
         ] = 9
         with self.assertRaisesRegex(Phase5DashboardError, "무작위 샘플"):
             validate_config(invalid_random)
+        invalid_remote = json.loads(json.dumps(config))
+        invalid_remote["server"]["remote_share"]["wildcard_origins_allowed"] = True
+        with self.assertRaisesRegex(Phase5DashboardError, "원격 공유 계약"):
+            validate_config(invalid_remote)
         self.assertTrue(DashboardHTTPServer.allow_reuse_address)
+
+    def test_remote_access_requires_exact_origin_and_private_password_file(self) -> None:
+        password_path = Path(self.temporary.name) / "share.password"
+        password_path.write_text("x" * 32 + "\n", encoding="ascii")
+        password_path.chmod(0o600)
+        origin = "https://review.example.com"
+        trusted, credentials = _remote_access_settings(
+            origin, "reviewer", password_path
+        )
+        self.assertEqual(trusted, origin)
+        self.assertEqual(credentials, ("reviewer", "x" * 32))
+        with self.assertRaisesRegex(Phase5DashboardError, "모두 필요"):
+            _remote_access_settings(origin, None, password_path)
+        for invalid_origin in (
+            "http://review.example.com",
+            "https://*.example.com",
+            "https://review.example.com/path",
+            "https://review.example.com:443",
+        ):
+            with self.subTest(origin=invalid_origin), self.assertRaisesRegex(
+                Phase5DashboardError, "Origin"
+            ):
+                _remote_access_settings(invalid_origin, "reviewer", password_path)
+        password_path.chmod(0o644)
+        with self.assertRaisesRegex(Phase5DashboardError, "0600"):
+            _remote_access_settings(origin, "reviewer", password_path)
+        password_path.chmod(0o600)
+        symlink_path = Path(self.temporary.name) / "share-link.password"
+        symlink_path.symlink_to(password_path)
+        with self.assertRaisesRegex(Phase5DashboardError, "안전하게"):
+            _remote_access_settings(origin, "reviewer", symlink_path)
+        password_path.write_text("too-short\n", encoding="ascii")
+        with self.assertRaisesRegex(Phase5DashboardError, "32자"):
+            _remote_access_settings(origin, "reviewer", password_path)
+        with self.assertRaisesRegex(Phase5DashboardError, "사용자명"):
+            _remote_access_settings(origin, "invalid user", password_path)
 
     def test_prompt_hash_drift_is_rejected(self) -> None:
         prompt = self.fixture.root / "configs/chat_prompts/saju_intake_handoff_v1.txt"
@@ -1082,7 +1135,8 @@ class Phase5DashboardHTTPTests(unittest.TestCase):
         *,
         host: str | None = None,
         token: bool = False,
-        origin: bool = False,
+        origin: bool | str = False,
+        authorization: str | None = None,
         body: bytes | None = None,
     ) -> tuple[int, dict[str, str], bytes]:
         connection = http.client.HTTPConnection("127.0.0.1", self.port, timeout=3)
@@ -1090,7 +1144,11 @@ class Phase5DashboardHTTPTests(unittest.TestCase):
         if token:
             headers["X-CSRF-Token"] = "a" * 48
         if origin:
-            headers["Origin"] = f"http://127.0.0.1:{self.port}"
+            headers["Origin"] = (
+                origin if isinstance(origin, str) else f"http://127.0.0.1:{self.port}"
+            )
+        if authorization is not None:
+            headers["Authorization"] = authorization
         if body is not None:
             headers["Content-Type"] = "application/json"
             headers["Content-Length"] = str(len(body))
@@ -1112,6 +1170,57 @@ class Phase5DashboardHTTPTests(unittest.TestCase):
         self.assertEqual(status, 421)
         status, _, _ = self.request("GET", "/api/status")
         self.assertEqual(status, 403)
+
+    @patch("scripts.training.phase5_dashboard._manual_generation_subprocess")
+    @patch("scripts.training.phase5_dashboard._generation_gate")
+    def test_remote_share_requires_basic_auth_and_exact_origin(
+        self, gate: object, generate: object
+    ) -> None:
+        origin = "https://review.example.com"
+        self.server.allowed_origins.add(origin)
+        self.server.basic_auth = ("reviewer", "x" * 32)
+        authorization = "Basic " + base64.b64encode(
+            ("reviewer:" + "x" * 32).encode("ascii")
+        ).decode("ascii")
+        status, headers, _ = self.request("GET", "/")
+        self.assertEqual(status, 401)
+        self.assertIn("Basic", headers["www-authenticate"])
+        status, _, _ = self.request(
+            "GET", "/", authorization="Basic aW52YWxpZA=="
+        )
+        self.assertEqual(status, 401)
+        status, _, _ = self.request("GET", "/", authorization=authorization)
+        self.assertEqual(status, 200)
+        body = json.dumps(
+            {
+                "prompt": "원격 진단 질문",
+                "session_id": None,
+                "profile": "guided_diagnostic_v1",
+                "engine_selection": "ki20_final",
+            }
+        ).encode()
+        status, _, payload = self.request(
+            "POST",
+            "/api/generate",
+            token=True,
+            origin="https://lookalike.example.com",
+            authorization=authorization,
+            body=body,
+        )
+        self.assertEqual(status, 403)
+        self.assertIn("Origin", payload.decode())
+        gate.return_value = {"allowed": True, "reasons": []}
+        generate.return_value = {"status": "generated", "session_id": "c" * 24}
+        status, _, _ = self.request(
+            "POST",
+            "/api/generate",
+            token=True,
+            origin=origin,
+            authorization=authorization,
+            body=body,
+        )
+        self.assertEqual(status, 200)
+        generate.assert_called_once()
 
     def test_prompt_examples_are_a_static_synthetic_catalog(self) -> None:
         status, headers, payload = self.request("GET", "/prompt-examples.json")

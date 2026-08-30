@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import argparse
+import base64
+import binascii
 import gc
 import hashlib
 import json
@@ -11,6 +13,7 @@ import os
 import re
 import secrets
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -32,7 +35,7 @@ if str(REPO_ROOT) not in sys.path:
 from scripts.training.phase5_quality import score_generations
 
 DEFAULT_CONFIG = Path(
-    "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.5.0.json"
+    "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.6.0.json"
 )
 ASSET_ROOT = Path(__file__).with_name("phase5_dashboard_assets")
 RUN_BUILD_PATTERN = re.compile(r"^run-[0-9a-f]{12}$")
@@ -45,6 +48,10 @@ CONTROL_PATTERN = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
 SESSION_ID_PATTERN = re.compile(r"^[0-9a-f]{24}$")
 PRIVATE_FILE_MODE = 0o600
 PRIVATE_DIR_MODE = 0o700
+REMOTE_BASIC_AUTH_USER_PATTERN = re.compile(r"^[A-Za-z0-9._-]{1,64}$")
+REMOTE_PASSWORD_MIN_BYTES = 32
+REMOTE_PASSWORD_MAX_BYTES = 4096
+AUTHORIZATION_HEADER_MAX_BYTES = 8192
 MAX_METRICS_BYTES = 32 * 1024 * 1024
 MAX_DATASET_BYTES = 64 * 1024 * 1024
 REQUIRED_CHECKPOINT_FILES = frozenset(
@@ -111,6 +118,106 @@ class DashboardRequestError(RuntimeError):
     def __init__(self, status: int, message: str) -> None:
         super().__init__(message)
         self.status = status
+
+
+def _validated_trusted_origin(value: str) -> str:
+    if not isinstance(value, str) or len(value) > 261:
+        raise Phase5DashboardError("원격 공유 Origin이 유효하지 않습니다.")
+    try:
+        parsed = urlsplit(value)
+        port = parsed.port
+    except ValueError as exc:
+        raise Phase5DashboardError("원격 공유 Origin이 유효하지 않습니다.") from exc
+    hostname = parsed.hostname
+    if (
+        parsed.scheme != "https"
+        or hostname is None
+        or parsed.netloc != hostname
+        or port is not None
+        or parsed.username is not None
+        or parsed.password is not None
+        or parsed.path
+        or parsed.query
+        or parsed.fragment
+        or len(hostname) > 253
+    ):
+        raise Phase5DashboardError(
+            "원격 공유 Origin은 port·경로 없는 정확한 HTTPS DNS origin이어야 합니다."
+        )
+    labels = hostname.split(".")
+    if len(labels) < 2 or any(
+        not 1 <= len(label) <= 63
+        or re.fullmatch(r"[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", label) is None
+        for label in labels
+    ):
+        raise Phase5DashboardError("원격 공유 Origin DNS 이름이 유효하지 않습니다.")
+    return value
+
+
+def _load_remote_password(path: Path) -> str:
+    if not path.is_absolute():
+        raise Phase5DashboardError("원격 공유 비밀번호 파일은 절대 경로여야 합니다.")
+    flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
+    descriptor = -1
+    try:
+        descriptor = os.open(path, flags)
+        metadata = os.fstat(descriptor)
+        if (
+            not stat.S_ISREG(metadata.st_mode)
+            or stat.S_IMODE(metadata.st_mode) != PRIVATE_FILE_MODE
+            or metadata.st_uid != os.getuid()
+            or not 1 <= metadata.st_size <= REMOTE_PASSWORD_MAX_BYTES
+        ):
+            raise Phase5DashboardError(
+                "원격 공유 비밀번호 파일은 현재 사용자 소유의 0600 일반 파일이어야 합니다."
+            )
+        with os.fdopen(descriptor, "rb") as stream:
+            descriptor = -1
+            payload = stream.read(REMOTE_PASSWORD_MAX_BYTES + 1)
+    except OSError as exc:
+        raise Phase5DashboardError("원격 공유 비밀번호 파일을 안전하게 읽을 수 없습니다.") from exc
+    finally:
+        if descriptor >= 0:
+            os.close(descriptor)
+    if payload.endswith(b"\n"):
+        payload = payload[:-1]
+        if payload.endswith(b"\r"):
+            payload = payload[:-1]
+    if (
+        not REMOTE_PASSWORD_MIN_BYTES <= len(payload) <= REMOTE_PASSWORD_MAX_BYTES
+        or any(byte < 0x21 or byte > 0x7E for byte in payload)
+    ):
+        raise Phase5DashboardError(
+            "원격 공유 비밀번호는 32자 이상의 한 줄 ASCII 값이어야 합니다."
+        )
+    return payload.decode("ascii")
+
+
+def _remote_access_settings(
+    trusted_origin: str | None,
+    basic_auth_user: str | None,
+    basic_auth_password_file: Path | None,
+) -> tuple[str | None, tuple[str, str] | None]:
+    supplied = (
+        trusted_origin is not None,
+        basic_auth_user is not None,
+        basic_auth_password_file is not None,
+    )
+    if not any(supplied):
+        return None, None
+    if not all(supplied):
+        raise Phase5DashboardError(
+            "원격 공유에는 trusted origin·사용자·비밀번호 파일이 모두 필요합니다."
+        )
+    assert trusted_origin is not None
+    assert basic_auth_user is not None
+    assert basic_auth_password_file is not None
+    if REMOTE_BASIC_AUTH_USER_PATTERN.fullmatch(basic_auth_user) is None:
+        raise Phase5DashboardError("원격 공유 Basic 인증 사용자명이 유효하지 않습니다.")
+    return (
+        _validated_trusted_origin(trusted_origin),
+        (basic_auth_user, _load_remote_password(basic_auth_password_file)),
+    )
 
 
 def _json_bytes(value: Any) -> bytes:
@@ -285,6 +392,7 @@ def _validate_inference_engines(value: Any, governance: dict[str, Any]) -> None:
 
 def validate_config(config: dict[str, Any]) -> None:
     server = config.get("server")
+    remote_share = server.get("remote_share") if isinstance(server, dict) else None
     training = config.get("training_contract")
     model_check = config.get("model_check")
     governance = config.get("governance")
@@ -307,7 +415,15 @@ def validate_config(config: dict[str, Any]) -> None:
     schema_version = config.get("schema_version")
     if (
         schema_version
-        not in {"1.0.0", "1.1.0", "1.2.0", "1.3.0", "1.4.0", "1.5.0"}
+        not in {
+            "1.0.0",
+            "1.1.0",
+            "1.2.0",
+            "1.3.0",
+            "1.4.0",
+            "1.5.0",
+            "1.6.0",
+        }
         or config.get("dashboard_id") != "KI20-MIX-v2-dashboard"
         or config.get("allowed_run_id") != "KI20-MIX-v2"
         or config.get("refresh_seconds") != 10
@@ -336,6 +452,19 @@ def validate_config(config: dict[str, Any]) -> None:
         or governance.get("fixed_probe_results_private") is not True
     ):
         raise Phase5DashboardError("Phase 5 dashboard config 계약이 다릅니다.")
+    expected_remote_share = {
+        "enabled_by_default": False,
+        "exact_https_origin_required": True,
+        "basic_auth_required": True,
+        "wildcard_origins_allowed": False,
+        "password_file_mode": "0600",
+        "minimum_password_bytes": REMOTE_PASSWORD_MIN_BYTES,
+    }
+    if schema_version == "1.6.0":
+        if remote_share != expected_remote_share:
+            raise Phase5DashboardError("Phase 5 dashboard v1.6 원격 공유 계약이 다릅니다.")
+    elif remote_share is not None:
+        raise Phase5DashboardError("과거 dashboard config에 원격 공유 계약이 있습니다.")
     manual_session = config.get("manual_session")
     if schema_version == "1.0.0":
         if governance.get("manual_prompts_persisted") is not False or manual_session is not None:
@@ -361,11 +490,11 @@ def validate_config(config: dict[str, Any]) -> None:
             raise Phase5DashboardError("과거 dashboard config에 dataset browser가 있습니다.")
     else:
         _validate_dataset_browser(dataset_browser, governance, schema_version)
-    if schema_version in {"1.3.0", "1.4.0", "1.5.0"}:
+    if schema_version in {"1.3.0", "1.4.0", "1.5.0", "1.6.0"}:
         _validate_prompt_profiles(prompt_profiles, governance)
     elif prompt_profiles is not None:
         raise Phase5DashboardError("과거 dashboard config에 prompt profile이 있습니다.")
-    if schema_version in {"1.4.0", "1.5.0"}:
+    if schema_version in {"1.4.0", "1.5.0", "1.6.0"}:
         _validate_inference_engines(inference_engines, governance)
     elif inference_engines is not None:
         raise Phase5DashboardError("과거 dashboard config에 inference engine이 있습니다.")
@@ -409,7 +538,7 @@ def _validate_dataset_browser(
         or governance.get("sealed_blind_access_allowed") is not False
     ):
         raise Phase5DashboardError("Phase 5 dataset browser 계약이 다릅니다.")
-    if schema_version == "1.5.0":
+    if schema_version in {"1.5.0", "1.6.0"}:
         if (
             value.get("selection_seed")
             != "phase5-dashboard-v1.5.0-dataset-samples"
@@ -426,7 +555,9 @@ def _validate_dataset_browser(
             or governance.get("dataset_random_sampling_read_only") is not True
             or governance.get("dataset_random_samples_persisted") is not False
         ):
-            raise Phase5DashboardError("Phase 5 dashboard v1.5 무작위 샘플 계약이 다릅니다.")
+            raise Phase5DashboardError(
+                "Phase 5 dashboard v1.5+ 무작위 샘플 계약이 다릅니다."
+            )
     elif (
         value.get("selection_seed") != "phase5-dashboard-v1.2.0-dataset-samples"
         or value.get("samples_per_axis") != 3
@@ -447,7 +578,7 @@ def _validate_dataset_browser(
                 axis not in labels
                 or isinstance(rows, bool)
                 or not isinstance(rows, int)
-                or rows < (10 if schema_version == "1.5.0" else 1)
+                or rows < (10 if schema_version in {"1.5.0", "1.6.0"} else 1)
                 for axis, rows in axes.items()
             )
             or sum(axes.values()) != split["rows"]
@@ -957,7 +1088,7 @@ def dataset_samples_payload(
         raise DashboardRequestError(HTTPStatus.NOT_FOUND, "허용되지 않은 dataset split입니다.")
     if axis != "all" and axis not in split["axes"]:
         raise DashboardRequestError(HTTPStatus.NOT_FOUND, "허용되지 않은 dataset 축입니다.")
-    if randomize and schema_version != "1.5.0":
+    if randomize and schema_version not in {"1.5.0", "1.6.0"}:
         raise DashboardRequestError(
             HTTPStatus.NOT_FOUND, "이 dashboard config는 무작위 샘플을 지원하지 않습니다."
         )
@@ -969,7 +1100,7 @@ def dataset_samples_payload(
             return cached
     candidates = _dataset_candidates(context, split_id, axis, active_cache)
     selected: list[dict[str, Any]] = []
-    if schema_version == "1.5.0":
+    if schema_version in {"1.5.0", "1.6.0"}:
         matching = (
             candidates
             if axis == "all"
@@ -2354,10 +2485,17 @@ class DashboardHTTPServer(ThreadingHTTPServer):
         context: dict[str, Any],
         asset_root: Path,
         csrf_token: str,
+        trusted_origin: str | None = None,
+        basic_auth: tuple[str, str] | None = None,
     ) -> None:
+        if (trusted_origin is None) != (basic_auth is None):
+            raise Phase5DashboardError(
+                "원격 공유 Origin과 Basic 인증은 함께 설정해야 합니다."
+            )
         self.context = context
         self.asset_root = asset_root
         self.csrf_token = csrf_token
+        self.basic_auth = basic_auth
         self.generation_lock = threading.Lock()
         self.dataset_cache: dict[str, Any] = {}
         self.dataset_cache_lock = threading.Lock()
@@ -2365,6 +2503,8 @@ class DashboardHTTPServer(ThreadingHTTPServer):
         port = self.server_address[1]
         self.allowed_hosts = {f"127.0.0.1:{port}", f"localhost:{port}"}
         self.allowed_origins = {f"http://{value}" for value in self.allowed_hosts}
+        if trusted_origin is not None:
+            self.allowed_origins.add(_validated_trusted_origin(trusted_origin))
 
 
 class DashboardRequestHandler(BaseHTTPRequestHandler):
@@ -2377,7 +2517,14 @@ class DashboardRequestHandler(BaseHTTPRequestHandler):
         del format, args
         sys.stderr.write(f"phase5-dashboard {self.command} {urlsplit(self.path).path}\n")
 
-    def _headers(self, status: int, content_type: str, length: int) -> None:
+    def _headers(
+        self,
+        status: int,
+        content_type: str,
+        length: int,
+        *,
+        basic_challenge: bool = False,
+    ) -> None:
         self.send_response(status)
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(length))
@@ -2394,10 +2541,26 @@ class DashboardRequestHandler(BaseHTTPRequestHandler):
         self.send_header("Referrer-Policy", "no-referrer")
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("X-Frame-Options", "DENY")
+        if basic_challenge:
+            self.send_header(
+                "WWW-Authenticate", 'Basic realm="KI20 dashboard", charset="UTF-8"'
+            )
         self.end_headers()
 
-    def _send_bytes(self, status: int, payload: bytes, content_type: str) -> None:
-        self._headers(status, content_type, len(payload))
+    def _send_bytes(
+        self,
+        status: int,
+        payload: bytes,
+        content_type: str,
+        *,
+        basic_challenge: bool = False,
+    ) -> None:
+        self._headers(
+            status,
+            content_type,
+            len(payload),
+            basic_challenge=basic_challenge,
+        )
         self.wfile.write(payload)
 
     def _send_json(self, status: int, value: Any) -> None:
@@ -2406,9 +2569,22 @@ class DashboardRequestHandler(BaseHTTPRequestHandler):
         ).encode()
         self._send_bytes(status, payload, "application/json; charset=utf-8")
 
-    def _error(self, status: int, message: str) -> None:
+    def _error(
+        self, status: int, message: str, *, basic_challenge: bool = False
+    ) -> None:
         self.close_connection = True
-        self._send_json(status, {"status": status, "error": message})
+        payload = json.dumps(
+            {"status": status, "error": message},
+            ensure_ascii=False,
+            separators=(",", ":"),
+            allow_nan=False,
+        ).encode()
+        self._send_bytes(
+            status,
+            payload,
+            "application/json; charset=utf-8",
+            basic_challenge=basic_challenge,
+        )
 
     def _guard(self, *, require_origin: bool = False) -> str:
         if self.headers.get("Host") not in self.server.allowed_hosts:
@@ -2424,6 +2600,35 @@ class DashboardRequestHandler(BaseHTTPRequestHandler):
         return secrets.compare_digest(
             self.headers.get("X-CSRF-Token", ""), self.server.csrf_token
         )
+
+    def _basic_authenticated(self) -> bool:
+        credentials = self.server.basic_auth
+        if credentials is None:
+            return True
+        header = self.headers.get("Authorization", "")
+        if not header or len(header) > AUTHORIZATION_HEADER_MAX_BYTES:
+            return False
+        scheme, separator, encoded = header.partition(" ")
+        if separator != " " or scheme.lower() != "basic" or not encoded:
+            return False
+        try:
+            decoded = base64.b64decode(encoded, validate=True)
+        except (ValueError, binascii.Error):
+            return False
+        expected = f"{credentials[0]}:{credentials[1]}".encode("ascii")
+        return len(decoded) <= AUTHORIZATION_HEADER_MAX_BYTES and secrets.compare_digest(
+            decoded, expected
+        )
+
+    def _require_basic_auth(self) -> bool:
+        if self._basic_authenticated():
+            return True
+        self._error(
+            HTTPStatus.UNAUTHORIZED,
+            "원격 공유 인증이 필요합니다.",
+            basic_challenge=True,
+        )
+        return False
 
     def _static(self, path: str) -> tuple[bytes, str]:
         asset = STATIC_ASSETS.get(path)
@@ -2444,6 +2649,8 @@ class DashboardRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         try:
             path = self._guard()
+            if not self._require_basic_auth():
+                return
             if path.startswith("/api/"):
                 if not self._authorized():
                     raise DashboardRequestError(HTTPStatus.FORBIDDEN, "CSRF 검증에 실패했습니다.")
@@ -2523,6 +2730,8 @@ class DashboardRequestHandler(BaseHTTPRequestHandler):
     def do_POST(self) -> None:
         try:
             path = self._guard(require_origin=True)
+            if not self._require_basic_auth():
+                return
             if not self._authorized():
                 raise DashboardRequestError(HTTPStatus.FORBIDDEN, "CSRF 검증에 실패했습니다.")
             random_sample_match = re.fullmatch(
@@ -2710,11 +2919,28 @@ def _fixed_probe_subprocess(context: dict[str, Any]) -> dict[str, Any]:
     return value
 
 
-def serve(context: dict[str, Any], host: str, port: int) -> None:
+def serve(
+    context: dict[str, Any],
+    host: str,
+    port: int,
+    trusted_origin: str | None = None,
+    basic_auth_user: str | None = None,
+    basic_auth_password_file: Path | None = None,
+) -> None:
     if host != "127.0.0.1" or not 1 <= port <= 65535:
         raise Phase5DashboardError("대시보드는 127.0.0.1의 유효한 port에만 열 수 있습니다.")
+    resolved_origin, basic_auth = _remote_access_settings(
+        trusted_origin, basic_auth_user, basic_auth_password_file
+    )
+    if resolved_origin is not None and context["config"]["schema_version"] != "1.6.0":
+        raise Phase5DashboardError("원격 공유에는 dashboard v1.6.0 계약이 필요합니다.")
     server = DashboardHTTPServer(
-        (host, port), context, ASSET_ROOT, secrets.token_hex(24)
+        (host, port),
+        context,
+        ASSET_ROOT,
+        secrets.token_hex(24),
+        resolved_origin,
+        basic_auth,
     )
     actual_port = server.server_address[1]
     print(f"Phase 5 dashboard: http://127.0.0.1:{actual_port}", flush=True)
@@ -2734,6 +2960,9 @@ def _parser() -> argparse.ArgumentParser:
     serve_parser = subparsers.add_parser("serve", help="loopback dashboard 실행")
     serve_parser.add_argument("--host", default="127.0.0.1")
     serve_parser.add_argument("--port", type=int, default=8765)
+    serve_parser.add_argument("--trusted-origin")
+    serve_parser.add_argument("--basic-auth-user")
+    serve_parser.add_argument("--basic-auth-password-file", type=Path)
     probe = subparsers.add_parser("probe", help="완료 모델 고정 20건 비교")
     probe.add_argument("--execute", action="store_true")
     generate = subparsers.add_parser("generate", help=argparse.SUPPRESS)
@@ -2750,7 +2979,14 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.command == "status":
             result = status_payload(context)
         elif args.command == "serve":
-            serve(context, args.host, args.port)
+            serve(
+                context,
+                args.host,
+                args.port,
+                args.trusted_origin,
+                args.basic_auth_user,
+                args.basic_auth_password_file,
+            )
             return 0
         elif args.command == "probe":
             if not args.execute:

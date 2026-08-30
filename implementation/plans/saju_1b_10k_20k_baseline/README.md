@@ -230,6 +230,11 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
 ## 진행 기록
 
 - 2026-08-30
+  - 작업 요약: dashboard `v1.6.0`에 기본 비활성인 인증 원격 공유 계약을 추가하고 현재 Cloudflare Quick Tunnel의 정확한 HTTPS Origin에서 KI20 답변 생성을 연결했다.
+  - 변경 범위: 원격 공유는 exact Origin·Basic 사용자·현재 사용자 소유 `0600` 비밀번호 파일이 모두 있어야 시작하며 정적 화면과 전체 API를 인증으로 보호한다. 기본 loopback 모드와 Host·CSRF·동일 Origin 검사는 유지했다. AI Hub 제한 샘플과 기존 private 세션을 포함한 전체 화면은 사용자가 접근 권한을 확인한 내부 팀원에게만 공유하며 비밀번호는 Git·문서·프로세스 인자에 기록하지 않는다. 학습 데이터·checkpoint·sealed blind·Phase 6·승격 상태는 변경하지 않았다.
+  - 검증: dashboard 33건과 저장소 전체 266건 unittest, Ruff, JavaScript syntax, JSON·diff 검증을 통과했다. 실제 `trycloudflare.com` URL에서 무인증 local/external `401`, 인증 root·session API `200`, K0/KI20 `available=true`를 확인했고, 외부 Origin의 합성 KI20 질문은 `200`, `status=generated`, 비어 있지 않은 1 turn 답변을 반환했다.
+  - 남은 이슈·후속 작업: Quick Tunnel은 uptime과 고정 URL을 보장하지 않는다. 공유 종료 시 tunnel과 인증 dashboard 서비스를 중지하고 런타임 비밀번호 파일을 제거해야 하며 `production_promotion_allowed=false`를 유지한다.
+- 2026-08-30
   - 작업 요약: dashboard `v1.5.0`의 데이터 스플릿 탐색 화면을 분할 카드와 축 행 자체를 선택하는 단일 흐름으로 정리하고, 선택한 후보 풀에서 접힌 샘플 카드 10건을 한 번에 표시하도록 확장했다. `다른 10개 보기`는 클릭할 때마다 새 난수 표본을 요청한다.
   - 변경 범위: 각 요청은 OS 보안 난수로 후보 10건을 비복원 추출해 묶음 내부 중복을 금지하되, 요청 사이 재등장은 허용한다. `전체 혼합`은 축별 균등화 없이 실제 전체 후보 풀의 비율을 그대로 반영한다. 무작위 요청은 loopback·CSRF·Origin 보호 POST이며 표본을 cache·세션·파일에 저장하지 않는다. 학습 데이터 membership·모델·checkpoint·고정 20건·sealed blind는 수정하거나 열람하지 않았고 AI Hub 축의 로컬 제한 경고와 최소 투영을 유지했다.
   - 검증: dashboard 31건과 저장소 전체 264건 unittest, Ruff, JavaScript syntax, JSON·diff 검증을 통과했다. 실제 서비스에서 연속 두 표본이 각각 10건·묶음 내 고유 10건이며 재추첨 결과가 바뀌는 것을 확인했다. Windows Chrome에서 기본 전체 접힘, 상세 열기, 분할·축 전환, 10초 상태 갱신 중 표본 유지, desktop·390px mobile 가로 overflow 0을 확인했고 blind sample 요청은 404로 닫혔다.
