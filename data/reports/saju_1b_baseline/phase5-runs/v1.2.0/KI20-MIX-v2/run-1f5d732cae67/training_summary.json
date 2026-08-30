@@ -1,0 +1,62 @@
+{
+  "blind_source_test_inspected": false,
+  "elapsed_seconds": 4002.182,
+  "expected_optimizer_steps": 2500,
+  "final_reload_passed": true,
+  "gradient_probe": {
+    "element_count": 1291478272,
+    "finite": true,
+    "nonzero": true,
+    "observed_after_gradient_clip": true,
+    "tensor_count": 354
+  },
+  "loss_summary": {
+    "final_loss": 0.5895,
+    "grad_norms_finite": true,
+    "logged_train_losses": 251,
+    "losses_finite": true,
+    "maximum_loss": 3.1051,
+    "minimum_loss": 0.4192
+  },
+  "manifest_sha256": "731ace0ac5584fd97fc38f157a4ecdb1babedefd79e2ec5b2d755fa26e48a550",
+  "optimizer_steps": 2500,
+  "peak_vram_bytes": 6918075904,
+  "phase5_training_performed": true,
+  "production_promotion_allowed": false,
+  "raw_samples_in_report": false,
+  "resumed_from_checkpoint": false,
+  "rows": 20000,
+  "run_build_id": "run-1f5d732cae67",
+  "run_id": "KI20-MIX-v2",
+  "run_sha256": "1f5d732cae67c9d0988d587b8a6354967b69c1ad6436c90b9a93bb73fdb1d174",
+  "runtime": {
+    "attention_backend": "sdpa",
+    "bitsandbytes": "0.50.2",
+    "datasets": "4.7.0",
+    "gpu_capability": [
+      12,
+      0
+    ],
+    "gpu_name": "NVIDIA GeForce RTX 5070 Ti",
+    "parameter_count": 1291478272,
+    "parameter_dtype": "torch.bfloat16",
+    "python": "/usr/bin/python3.10",
+    "torch": "2.13.0+cu130",
+    "torch_cuda": "13.0",
+    "trainable_parameter_count": 1291478272,
+    "transformers": "4.57.6",
+    "trl": "1.12.0",
+    "vram_total_bytes": 17094475776
+  },
+  "schema_version": "1.2.0",
+  "status": "trained_and_reloaded",
+  "system_ram": {
+    "available_bytes": 6823239680,
+    "swap_free_bytes": 7514292224,
+    "swap_total_bytes": 8589934592,
+    "total_bytes": 16769019904
+  },
+  "training_loss": 0.6871544816970825,
+  "vram_free_bytes_at_finish": 15274606592,
+  "workspace_commit": "9ad00a283ce64ff222a54c41f743ae378ce12fe4"
+}

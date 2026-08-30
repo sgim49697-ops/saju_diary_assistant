@@ -2,7 +2,7 @@
 
 | 항목 | 값 |
 |---|---|
-| 실행 상태 | 진행 중 — KI20 `run-1f5d732cae67` 1 epoch 본학습 실행 중 |
+| 실행 상태 | KI20 `run-1f5d732cae67` 1 epoch 학습·최종 재로딩 완료, production 승격 금지 유지 |
 | 선행 Phase | Phase 4 완료 |
 | 입력 | 선택 길이의 canonical MIX10·MIX20, Instruct snapshot, 승인 config |
 | 출력 | KI10·KI20 checkpoint, trainer state, 환경·학습 보고서 |
@@ -219,7 +219,7 @@ handoff 행동 7/50                      미달
 외국어 문장 14/1,045·입력 사실 위반 0   통과
 ```
 
-결론은 `experiment_continuation_allowed=true`, `quality_target_status=not_met`, `production_promotion_allowed=false`다. KI20 preflight는 허용되지만 본학습은 별도 명시 확인 전까지 비활성이다.
+결론은 `experiment_continuation_allowed=true`, `quality_target_status=not_met`, `production_promotion_allowed=false`다. 별도 명시 확인에 따라 KI20 본학습과 최종 재로딩까지 완료했지만, 이는 품질 인증이나 production 승격을 뜻하지 않는다.
 
 ## 완료 Gate
 
@@ -230,7 +230,7 @@ handoff 행동 7/50                      미달
 - [x] KI20의 forward/backward/optimizer·batch/worker/eval 비학습 preflight를 완료했다.
 - [x] 사용자의 별도 명시 확인을 v1.2 실행 계약과 registry 승인 포인터로 고정했다.
 - [x] 별도 명시 확인 뒤 KI20을 같은 Instruct snapshot에서 독립 시작하고 첫 정상 step을 확인했다.
-- [ ] 실행된 KI20은 KI10과 manifest·output 경로 외 설정이 같고 재로딩 가능하다.
+- [x] 실행된 KI20은 승인된 처리량 설정 차이와 manifest·output 경로 외 학습 계약을 유지했고 최종 모델을 새 process에서 재로딩했다.
 - [x] 모델·checkpoint를 공개 저장소나 Hub에 올리지 않았다.
 
 ## 산출물
@@ -253,7 +253,7 @@ runs/KI10-MIX-v2/v1.0.0/run-<fingerprint>/
 ├── reload_fixtures.jsonl
 └── ki10_diagnostic_generations.jsonl
 
-runs/KI20-MIX-v2/v1.2.0/run-1f5d732cae67/  # 1 epoch 본학습 실행 중
+runs/KI20-MIX-v2/v1.2.0/run-1f5d732cae67/  # 1 epoch 본학습·최종 재로딩 완료
 └── <동일 구조>
 ```
 
@@ -278,6 +278,11 @@ runs/KI20-MIX-v2/v1.2.0/run-1f5d732cae67/  # 1 epoch 본학습 실행 중
 
 ## 진행 기록
 
+- 2026-08-30
+  - 작업 요약: KI20 `run-1f5d732cae67`의 공개 학습 요약과 build manifest를 private run과 대조해 저장소에 고정하고, Phase 5 상단 상태·완료 Gate·산출물 설명을 실제 완료 상태로 갱신했다.
+  - 변경 범위: 공개 보고서에는 집계 지표와 실행 환경만 포함하고 원문 샘플·checkpoint·봉인 blind는 포함하지 않았다. AI Hub 파생 원문을 포함한 81MiB `saju-mix20k-v3-review-ready`는 공개 Git에서 제외하도록 정확한 루트 경로만 `.gitignore`에 추가했으며 로컬 파일은 삭제하거나 수정하지 않았다.
+  - 검증: 공개 `training_summary.json` SHA-256이 build manifest의 `66792fcb…8109`와 일치했고, 전용 KI20 `verify`로 private/public summary 동일성·2,500 optimizer step·새 process reload·run artifact hash를 재검증했다. JSON parse, `git diff --check`와 비밀값 패턴 검사도 통과했다.
+  - 남은 이슈·후속 작업: `production_promotion_allowed=false`를 유지한다. sealed blind 전에 동일한 비봉인 전체 Gate v2 범위 평가와 checkpoint 보존·재현 계약을 별도 검증해야 한다.
 - 2026-08-30
   - 작업 요약: 사용자의 명시적 공개 요청에 따라 dashboard `v1.7.0`에 opt-in 무인증 원격 공유 계약을 추가했다. 기존 cloudflared process는 재시작하지 않고 dashboard systemd service만 교체해 `https://scholars-greatest-biography-presidential.trycloudflare.com` URL을 보존했다.
   - 변경 범위: `serve --trusted-origin <exact-https-origin> --allow-unauthenticated-remote` 조합만 무인증 원격 모드를 허용하며 Basic 옵션과 혼용하거나 exact Origin을 생략하면 fail-closed한다. 기존 `v1.6.0` Basic 인증 경로, loopback Host allowlist, CSRF token, POST exact-Origin 검사와 기본 원격 비활성 상태는 유지한다. 공개 범위는 모델 채팅을 포함한 전체 dashboard이므로 AI Hub 제한 최소 투영 샘플과 기존 private 수동 세션도 URL 접근자에게 보인다. 사용자가 이 위험을 확인하고 무인증 공개를 선택했으며 run·모델 fingerprint·dataset membership·sealed blind는 수정하지 않았다.
