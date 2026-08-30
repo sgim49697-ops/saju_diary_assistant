@@ -1,0 +1,32 @@
+{
+  "baseline_training_allowed": true,
+  "blind_components": 350,
+  "blind_rows": 500,
+  "blind_source_test_inspected": false,
+  "build_id": "build-e325f16096dd",
+  "build_sha256": "e325f16096dd135b08c3c6e7219c1a7e285841b8ddee27e059bb76b12fbf7775",
+  "canonical_training_data_modified": false,
+  "dataset_mutation_required_before_ki10": false,
+  "dev_diagnostic_rows": 930,
+  "dev_monitor_rows": 70,
+  "evaluation_split_build_id": "build-d2f9e1623e96",
+  "human_domain_review_performed": false,
+  "ki20_promotion_allowed": false,
+  "ki20_requires_ki10_automated_gate": true,
+  "manifest_rows": {
+    "ki10": 10000,
+    "ki20": 20000
+  },
+  "parent_readiness_build_id": "build-201010b37e40",
+  "persona_guard_rows": 50,
+  "phase4_smoke_reexecution_required": false,
+  "phase5_training_performed": false,
+  "pretraining_audit_build_id": "build-c38926f86a3d",
+  "production_quality_claim_allowed": false,
+  "quality_certification_claimed": false,
+  "raw_or_restricted_samples_in_report": false,
+  "readiness_version": "v1.2.0",
+  "schema_version": "1.2.0",
+  "status": "ready_for_ki10_execution_with_automated_promotion_gate",
+  "training_runner_version": "v1.0.0"
+}

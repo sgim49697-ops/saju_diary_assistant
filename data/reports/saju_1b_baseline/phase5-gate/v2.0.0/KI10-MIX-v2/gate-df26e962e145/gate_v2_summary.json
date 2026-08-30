@@ -1,0 +1,184 @@
+{
+  "additional_generations_sha256": "bc0df36d823fd07f81400feb19829b055e7644fe318ce79ba99c8c7f9ab4d5c3",
+  "blind_source_test_accessed": false,
+  "evaluation_split_build_id": "build-e885b47cae74",
+  "existing_generation_cases": 1000,
+  "existing_generations_sha256": "e68f115686561d296c7cf616bca404a61735a0330bb71ed7783f1c78c54b1779",
+  "experiment_continuation_allowed": true,
+  "failed_hard_gates": [],
+  "failed_quality_targets": [
+    "branch_policy",
+    "deterministic.branch_ten_gods",
+    "deterministic.hidden_stems",
+    "deterministic.stem_ten_gods",
+    "deterministic.yin_yang_elements_and_surface_counts",
+    "handoff_action",
+    "shensha",
+    "unsupported_full_date_zero"
+  ],
+  "gate_build_id": "gate-df26e962e145",
+  "gate_build_sha256": "df26e962e1450b5b2c956b3b0f96531fa567c0c7ac897be233d5375879d878f4",
+  "gate_version": "v2.0.0",
+  "generation_elapsed_seconds": 16.859,
+  "hard_gates": {
+    "artifact_identity_and_hashes": true,
+    "checkpoint_reload": true,
+    "exact_optimizer_steps": true,
+    "fabricated_four_pillars_zero": true,
+    "finite_loss_and_gradient": true,
+    "generation_clean": true,
+    "scorer_reference_and_mutation_validation": true,
+    "sensitive_entity_zero": true,
+    "severe_safety_zero": true,
+    "special_or_control_zero": true
+  },
+  "historical_gate_v1": {
+    "ki20_promotion_allowed": false,
+    "preserved_as_history": true,
+    "status": "failed"
+  },
+  "human_domain_review_performed": false,
+  "metrics": {
+    "branch_policy": {
+      "passed": 0,
+      "percent": 0.0,
+      "total": 40,
+      "wilson_95_high_percent": 8.76216,
+      "wilson_95_low_percent": 0.0
+    },
+    "branch_policy.main_hidden_stem_application": {
+      "passed": 0,
+      "percent": 0.0,
+      "total": 40,
+      "wilson_95_high_percent": 8.76216,
+      "wilson_95_low_percent": 0.0
+    },
+    "branch_policy.surface_policy_rejection": {
+      "passed": 20,
+      "percent": 50.0,
+      "total": 40,
+      "wilson_95_high_percent": 64.800473,
+      "wilson_95_low_percent": 35.199527
+    },
+    "deterministic.branch_ten_gods": {
+      "passed": 1,
+      "percent": 8.333333,
+      "total": 12,
+      "wilson_95_high_percent": 35.387991,
+      "wilson_95_low_percent": 1.486509
+    },
+    "deterministic.hidden_stems": {
+      "passed": 7,
+      "percent": 58.333333,
+      "total": 12,
+      "wilson_95_high_percent": 80.673969,
+      "wilson_95_low_percent": 31.951131
+    },
+    "deterministic.stem_branch_identity": {
+      "passed": 12,
+      "percent": 100.0,
+      "total": 12,
+      "wilson_95_high_percent": 100.0,
+      "wilson_95_low_percent": 75.750599
+    },
+    "deterministic.stem_ten_gods": {
+      "passed": 0,
+      "percent": 0.0,
+      "total": 12,
+      "wilson_95_high_percent": 24.249401,
+      "wilson_95_low_percent": 0.0
+    },
+    "deterministic.yin_yang_elements_and_surface_counts": {
+      "passed": 4,
+      "percent": 33.333333,
+      "total": 12,
+      "wilson_95_high_percent": 60.937791,
+      "wilson_95_low_percent": 13.812009
+    },
+    "empathy_no_task_confusion": {
+      "passed": 20,
+      "percent": 100.0,
+      "total": 20,
+      "wilson_95_high_percent": 100.0,
+      "wilson_95_low_percent": 83.887484
+    },
+    "foreign_sentence_free": {
+      "passed": 1031,
+      "percent": 98.660287,
+      "total": 1045,
+      "wilson_95_high_percent": 99.200305,
+      "wilson_95_low_percent": 97.763825
+    },
+    "foreign_sentence_outputs": 14,
+    "generation_clean": {
+      "passed": 1045,
+      "percent": 100.0,
+      "total": 1045,
+      "wilson_95_high_percent": 100.0,
+      "wilson_95_low_percent": 99.633743
+    },
+    "handoff_action": {
+      "passed": 7,
+      "percent": 14.0,
+      "total": 50,
+      "wilson_95_high_percent": 26.186194,
+      "wilson_95_low_percent": 6.950833
+    },
+    "handoff_no_fabrication": {
+      "passed": 50,
+      "percent": 100.0,
+      "total": 50,
+      "wilson_95_high_percent": 100.0,
+      "wilson_95_low_percent": 92.86524
+    },
+    "input_fact_preserved": {
+      "passed": 775,
+      "percent": 100.0,
+      "total": 775,
+      "wilson_95_high_percent": 100.0,
+      "wilson_95_low_percent": 99.506773
+    },
+    "input_fact_violations": 0,
+    "persona_no_causalization": {
+      "passed": 50,
+      "percent": 100.0,
+      "total": 50,
+      "wilson_95_high_percent": 100.0,
+      "wilson_95_low_percent": 92.86524
+    },
+    "sensitive_entity_outputs": 0,
+    "severe_safety_outputs": 0,
+    "shensha": {
+      "passed": 9,
+      "percent": 36.0,
+      "total": 25,
+      "wilson_95_high_percent": 55.481502,
+      "wilson_95_low_percent": 20.247881
+    },
+    "special_or_control_outputs": 0,
+    "unsupported_full_date_outputs": 1
+  },
+  "new_handoff_generation_cases": 45,
+  "production_promotion_allowed": false,
+  "quality_target_status": "not_met",
+  "quality_targets": {
+    "branch_policy": false,
+    "deterministic.branch_ten_gods": false,
+    "deterministic.hidden_stems": false,
+    "deterministic.stem_branch_identity": true,
+    "deterministic.stem_ten_gods": false,
+    "deterministic.yin_yang_elements_and_surface_counts": false,
+    "empathy_no_task_confusion": true,
+    "foreign_sentence": true,
+    "handoff_action": false,
+    "input_fact_violation_zero": true,
+    "persona_no_causalization": true,
+    "shensha": false,
+    "unsupported_full_date_zero": false
+  },
+  "raw_outputs_in_public_report": false,
+  "run_build_id": "run-e6b712f0d45e",
+  "run_id": "KI10-MIX-v2",
+  "schema_version": "2.0.0",
+  "status": "experiment_continuation_allowed"
+}

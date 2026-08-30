@@ -26,13 +26,16 @@ class ProjectStatusTests(unittest.TestCase):
         result = validate_contract(config, REPO_ROOT)
         context = prepare_context(REPO_ROOT, CONFIG_PATH)
         self.assertEqual(result["status"], "valid")
-        self.assertEqual(context["build_id"], "build-f3ae22a8860e")
+        self.assertEqual(context["build_id"], "build-e23e3501a200")
 
     def test_html_is_self_contained_and_carries_governance(self) -> None:
         context = prepare_context(REPO_ROOT, CONFIG_PATH)
         payload = render_html(context)
         text = payload.decode("utf-8")
-        self.assertIn("KI10만 허용", text)
+        self.assertIn("KI20 PREFLIGHT READY", text)
+        self.assertIn("실제 학습은 아직 실행하지 않았습니다.", text)
+        self.assertIn("train peak 10,634 MiB·eval peak 11,802 MiB", text)
+        self.assertIn("full_training_execution_enabled=false", text)
         self.assertIn("sealed blind", text)
         self.assertNotIn("<script", text)
         self.assertNotIn("src=\"http", text)

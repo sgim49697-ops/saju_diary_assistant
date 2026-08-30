@@ -1,0 +1,725 @@
+{
+  "batch_candidates": [
+    {
+      "effective_batch_size": 8,
+      "finite_loss_and_gradient": true,
+      "gradient_accumulation_steps": 8,
+      "median_supervised_tokens_per_second": 408.790264,
+      "memory_safe": true,
+      "peak_total_gpu_memory_used_mib": 10219,
+      "per_device_train_batch_size": 1,
+      "status": "passed",
+      "stress": {
+        "dataloader_num_workers": 0,
+        "effective_batch_size": 8,
+        "elapsed_seconds": 28.019175,
+        "gradient_accumulation_steps": 8,
+        "gradient_finite": true,
+        "gradient_nonzero": true,
+        "label": "batch1-stress",
+        "loss_finite": true,
+        "median_supervised_tokens_per_second": null,
+        "memory": {
+          "gpu_total_mib": 16303,
+          "maximum_swap_used_bytes": 1042558976,
+          "minimum_system_ram_available_bytes": 9151238144,
+          "monitor_error": null,
+          "peak_total_gpu_memory_used_mib": 9982,
+          "swap_growth_bytes": 0,
+          "swap_used_at_start_bytes": 1042558976
+        },
+        "memory_safe": true,
+        "optimizer_steps": 8,
+        "per_device_train_batch_size": 1,
+        "runtime": {
+          "attention_backend": "sdpa",
+          "bitsandbytes": "0.50.2",
+          "datasets": "4.7.0",
+          "gpu_capability": [
+            12,
+            0
+          ],
+          "gpu_name": "NVIDIA GeForce RTX 5070 Ti",
+          "parameter_count": 1291478272,
+          "parameter_dtype": "torch.bfloat16",
+          "python": "/usr/bin/python3.10",
+          "torch": "2.13.0+cu130",
+          "torch_cuda": "13.0",
+          "trainable_parameter_count": 1291478272,
+          "transformers": "4.57.6",
+          "trl": "1.12.0",
+          "vram_total_bytes": 17094475776
+        },
+        "status": "passed",
+        "temporary_output_retained": false,
+        "torch_peak_memory_allocated_bytes": 6754364416,
+        "training_loss": 2.651449680328369,
+        "window_supervised_tokens_per_second": []
+      },
+      "timed": {
+        "dataloader_num_workers": 0,
+        "effective_batch_size": 8,
+        "elapsed_seconds": 144.016191,
+        "gradient_accumulation_steps": 8,
+        "gradient_finite": true,
+        "gradient_nonzero": true,
+        "label": "batch1-timed",
+        "loss_finite": true,
+        "median_supervised_tokens_per_second": 408.790264,
+        "memory": {
+          "gpu_total_mib": 16303,
+          "maximum_swap_used_bytes": 1044746240,
+          "minimum_system_ram_available_bytes": 4954959872,
+          "monitor_error": null,
+          "peak_total_gpu_memory_used_mib": 10219,
+          "swap_growth_bytes": 3235840,
+          "swap_used_at_start_bytes": 1041510400
+        },
+        "memory_safe": true,
+        "optimizer_steps": 60,
+        "per_device_train_batch_size": 1,
+        "runtime": {
+          "attention_backend": "sdpa",
+          "bitsandbytes": "0.50.2",
+          "datasets": "4.7.0",
+          "gpu_capability": [
+            12,
+            0
+          ],
+          "gpu_name": "NVIDIA GeForce RTX 5070 Ti",
+          "parameter_count": 1291478272,
+          "parameter_dtype": "torch.bfloat16",
+          "python": "/usr/bin/python3.10",
+          "torch": "2.13.0+cu130",
+          "torch_cuda": "13.0",
+          "trainable_parameter_count": 1291478272,
+          "transformers": "4.57.6",
+          "trl": "1.12.0",
+          "vram_total_bytes": 17094475776
+        },
+        "status": "passed",
+        "temporary_output_retained": false,
+        "torch_peak_memory_allocated_bytes": 7079570944,
+        "training_loss": 1.9743773142496746,
+        "window_supervised_tokens_per_second": [
+          420.868282,
+          408.790264,
+          387.540616,
+          403.623737,
+          427.722123
+        ]
+      }
+    },
+    {
+      "effective_batch_size": 8,
+      "finite_loss_and_gradient": true,
+      "gradient_accumulation_steps": 4,
+      "median_supervised_tokens_per_second": 603.327827,
+      "memory_safe": true,
+      "peak_total_gpu_memory_used_mib": 10422,
+      "per_device_train_batch_size": 2,
+      "status": "passed",
+      "stress": {
+        "dataloader_num_workers": 0,
+        "effective_batch_size": 8,
+        "elapsed_seconds": 26.573411,
+        "gradient_accumulation_steps": 4,
+        "gradient_finite": true,
+        "gradient_nonzero": true,
+        "label": "batch2-stress",
+        "loss_finite": true,
+        "median_supervised_tokens_per_second": null,
+        "memory": {
+          "gpu_total_mib": 16303,
+          "maximum_swap_used_bytes": 1042386944,
+          "minimum_system_ram_available_bytes": 9170247680,
+          "monitor_error": null,
+          "peak_total_gpu_memory_used_mib": 10169,
+          "swap_growth_bytes": 0,
+          "swap_used_at_start_bytes": 1042386944
+        },
+        "memory_safe": true,
+        "optimizer_steps": 8,
+        "per_device_train_batch_size": 2,
+        "runtime": {
+          "attention_backend": "sdpa",
+          "bitsandbytes": "0.50.2",
+          "datasets": "4.7.0",
+          "gpu_capability": [
+            12,
+            0
+          ],
+          "gpu_name": "NVIDIA GeForce RTX 5070 Ti",
+          "parameter_count": 1291478272,
+          "parameter_dtype": "torch.bfloat16",
+          "python": "/usr/bin/python3.10",
+          "torch": "2.13.0+cu130",
+          "torch_cuda": "13.0",
+          "trainable_parameter_count": 1291478272,
+          "transformers": "4.57.6",
+          "trl": "1.12.0",
+          "vram_total_bytes": 17094475776
+        },
+        "status": "passed",
+        "temporary_output_retained": false,
+        "torch_peak_memory_allocated_bytes": 6822204416,
+        "training_loss": 2.6524550914764404,
+        "window_supervised_tokens_per_second": []
+      },
+      "timed": {
+        "dataloader_num_workers": 0,
+        "effective_batch_size": 8,
+        "elapsed_seconds": 99.838349,
+        "gradient_accumulation_steps": 4,
+        "gradient_finite": true,
+        "gradient_nonzero": true,
+        "label": "batch2-timed",
+        "loss_finite": true,
+        "median_supervised_tokens_per_second": 603.327827,
+        "memory": {
+          "gpu_total_mib": 16303,
+          "maximum_swap_used_bytes": 1361747968,
+          "minimum_system_ram_available_bytes": 5297541120,
+          "monitor_error": null,
+          "peak_total_gpu_memory_used_mib": 10422,
+          "swap_growth_bytes": 319885312,
+          "swap_used_at_start_bytes": 1041862656
+        },
+        "memory_safe": true,
+        "optimizer_steps": 60,
+        "per_device_train_batch_size": 2,
+        "runtime": {
+          "attention_backend": "sdpa",
+          "bitsandbytes": "0.50.2",
+          "datasets": "4.7.0",
+          "gpu_capability": [
+            12,
+            0
+          ],
+          "gpu_name": "NVIDIA GeForce RTX 5070 Ti",
+          "parameter_count": 1291478272,
+          "parameter_dtype": "torch.bfloat16",
+          "python": "/usr/bin/python3.10",
+          "torch": "2.13.0+cu130",
+          "torch_cuda": "13.0",
+          "trainable_parameter_count": 1291478272,
+          "transformers": "4.57.6",
+          "trl": "1.12.0",
+          "vram_total_bytes": 17094475776
+        },
+        "status": "passed",
+        "temporary_output_retained": false,
+        "torch_peak_memory_allocated_bytes": 7117584384,
+        "training_loss": 1.9736610412597657,
+        "window_supervised_tokens_per_second": [
+          605.907073,
+          608.678476,
+          563.049738,
+          595.126667,
+          603.327827
+        ]
+      }
+    },
+    {
+      "effective_batch_size": 8,
+      "finite_loss_and_gradient": true,
+      "gradient_accumulation_steps": 2,
+      "median_supervised_tokens_per_second": 645.059395,
+      "memory_safe": true,
+      "peak_total_gpu_memory_used_mib": 10634,
+      "per_device_train_batch_size": 4,
+      "status": "passed",
+      "stress": {
+        "dataloader_num_workers": 0,
+        "effective_batch_size": 8,
+        "elapsed_seconds": 25.792298,
+        "gradient_accumulation_steps": 2,
+        "gradient_finite": true,
+        "gradient_nonzero": true,
+        "label": "batch4-stress",
+        "loss_finite": true,
+        "median_supervised_tokens_per_second": null,
+        "memory": {
+          "gpu_total_mib": 16303,
+          "maximum_swap_used_bytes": 1359388672,
+          "minimum_system_ram_available_bytes": 9487650816,
+          "monitor_error": null,
+          "peak_total_gpu_memory_used_mib": 10634,
+          "swap_growth_bytes": 0,
+          "swap_used_at_start_bytes": 1359388672
+        },
+        "memory_safe": true,
+        "optimizer_steps": 8,
+        "per_device_train_batch_size": 4,
+        "runtime": {
+          "attention_backend": "sdpa",
+          "bitsandbytes": "0.50.2",
+          "datasets": "4.7.0",
+          "gpu_capability": [
+            12,
+            0
+          ],
+          "gpu_name": "NVIDIA GeForce RTX 5070 Ti",
+          "parameter_count": 1291478272,
+          "parameter_dtype": "torch.bfloat16",
+          "python": "/usr/bin/python3.10",
+          "torch": "2.13.0+cu130",
+          "torch_cuda": "13.0",
+          "trainable_parameter_count": 1291478272,
+          "transformers": "4.57.6",
+          "trl": "1.12.0",
+          "vram_total_bytes": 17094475776
+        },
+        "status": "passed",
+        "temporary_output_retained": false,
+        "torch_peak_memory_allocated_bytes": 6964236288,
+        "training_loss": 2.651746988296509,
+        "window_supervised_tokens_per_second": []
+      },
+      "timed": {
+        "dataloader_num_workers": 0,
+        "effective_batch_size": 8,
+        "elapsed_seconds": 93.405629,
+        "gradient_accumulation_steps": 2,
+        "gradient_finite": true,
+        "gradient_nonzero": true,
+        "label": "batch4-timed",
+        "loss_finite": true,
+        "median_supervised_tokens_per_second": 645.059395,
+        "memory": {
+          "gpu_total_mib": 16303,
+          "maximum_swap_used_bytes": 1357553664,
+          "minimum_system_ram_available_bytes": 5290057728,
+          "monitor_error": null,
+          "peak_total_gpu_memory_used_mib": 10609,
+          "swap_growth_bytes": 0,
+          "swap_used_at_start_bytes": 1357553664
+        },
+        "memory_safe": true,
+        "optimizer_steps": 60,
+        "per_device_train_batch_size": 4,
+        "runtime": {
+          "attention_backend": "sdpa",
+          "bitsandbytes": "0.50.2",
+          "datasets": "4.7.0",
+          "gpu_capability": [
+            12,
+            0
+          ],
+          "gpu_name": "NVIDIA GeForce RTX 5070 Ti",
+          "parameter_count": 1291478272,
+          "parameter_dtype": "torch.bfloat16",
+          "python": "/usr/bin/python3.10",
+          "torch": "2.13.0+cu130",
+          "torch_cuda": "13.0",
+          "trainable_parameter_count": 1291478272,
+          "transformers": "4.57.6",
+          "trl": "1.12.0",
+          "vram_total_bytes": 17094475776
+        },
+        "status": "passed",
+        "temporary_output_retained": false,
+        "torch_peak_memory_allocated_bytes": 7244871168,
+        "training_loss": 1.9743687947591146,
+        "window_supervised_tokens_per_second": [
+          645.059395,
+          660.439381,
+          601.741795,
+          672.265196,
+          639.260359
+        ]
+      }
+    }
+  ],
+  "blind_source_test_inspected": false,
+  "eval_batch_candidates": [
+    {
+      "active_tokens": 5412,
+      "elapsed_seconds": 2.925249,
+      "loss": 3.303015787,
+      "memory": {
+        "gpu_total_mib": 16303,
+        "maximum_swap_used_bytes": 1320067072,
+        "minimum_system_ram_available_bytes": 14265606144,
+        "monitor_error": null,
+        "peak_total_gpu_memory_used_mib": 4846,
+        "swap_growth_bytes": 0,
+        "swap_used_at_start_bytes": 1320067072
+      },
+      "memory_safe": true,
+      "per_device_eval_batch_size": 1,
+      "status": "passed",
+      "supervised_tokens_per_second": 1850.098768,
+      "token_accuracy": 0.422209904,
+      "torch_peak_memory_allocated_bytes": 3226421760
+    },
+    {
+      "active_tokens": 5412,
+      "elapsed_seconds": 1.806061,
+      "loss": 3.304198315,
+      "memory": {
+        "gpu_total_mib": 16303,
+        "maximum_swap_used_bytes": 1319542784,
+        "minimum_system_ram_available_bytes": 14261952512,
+        "monitor_error": null,
+        "peak_total_gpu_memory_used_mib": 5842,
+        "swap_growth_bytes": 0,
+        "swap_used_at_start_bytes": 1319542784
+      },
+      "memory_safe": true,
+      "per_device_eval_batch_size": 2,
+      "status": "passed",
+      "supervised_tokens_per_second": 2996.577342,
+      "token_accuracy": 0.423872875,
+      "torch_peak_memory_allocated_bytes": 3619923456
+    },
+    {
+      "active_tokens": 5412,
+      "elapsed_seconds": 1.734498,
+      "loss": 3.302780505,
+      "memory": {
+        "gpu_total_mib": 16303,
+        "maximum_swap_used_bytes": 1319542784,
+        "minimum_system_ram_available_bytes": 14260359168,
+        "monitor_error": null,
+        "peak_total_gpu_memory_used_mib": 7830,
+        "swap_growth_bytes": 0,
+        "swap_used_at_start_bytes": 1319542784
+      },
+      "memory_safe": true,
+      "per_device_eval_batch_size": 4,
+      "status": "passed",
+      "supervised_tokens_per_second": 3120.211629,
+      "token_accuracy": 0.423872875,
+      "torch_peak_memory_allocated_bytes": 4407975424
+    },
+    {
+      "active_tokens": 5412,
+      "elapsed_seconds": 2.010578,
+      "loss": 3.303018651,
+      "memory": {
+        "gpu_total_mib": 16303,
+        "maximum_swap_used_bytes": 1319542784,
+        "minimum_system_ram_available_bytes": 14261411840,
+        "monitor_error": null,
+        "peak_total_gpu_memory_used_mib": 11802,
+        "swap_growth_bytes": 0,
+        "swap_used_at_start_bytes": 1319542784
+      },
+      "memory_safe": true,
+      "per_device_eval_batch_size": 8,
+      "status": "passed",
+      "supervised_tokens_per_second": 2691.76264,
+      "token_accuracy": 0.424427199,
+      "torch_peak_memory_allocated_bytes": 5980933632
+    }
+  ],
+  "forward_backward_optimizer_preflight_passed": true,
+  "forward_only_axis_metrics": {
+    "base_snapshot": {
+      "active_tokens": 5412,
+      "axis_metrics": {
+        "aihub_empathy_multiturn": {
+          "active_tokens": 143,
+          "nll": 4.602160634,
+          "token_accuracy": 0.335664336
+        },
+        "aihub_empathy_single": {
+          "active_tokens": 128,
+          "nll": 4.473197758,
+          "token_accuracy": 0.3984375
+        },
+        "bazi_sft": {
+          "active_tokens": 1507,
+          "nll": 2.936955888,
+          "token_accuracy": 0.484406105
+        },
+        "deterministic_saju_qa": {
+          "active_tokens": 384,
+          "nll": 1.319020403,
+          "token_accuracy": 0.768229167
+        },
+        "nemotron_saju": {
+          "active_tokens": 1935,
+          "nll": 3.051317003,
+          "token_accuracy": 0.42377261
+        },
+        "saju_diary_bridge": {
+          "active_tokens": 619,
+          "nll": 3.852716843,
+          "token_accuracy": 0.340872375
+        },
+        "yeji_shensha_derived": {
+          "active_tokens": 696,
+          "nll": 4.919011741,
+          "token_accuracy": 0.204022989
+        }
+      },
+      "elapsed_seconds": 2.005304,
+      "loss": 3.303018651,
+      "macro": {
+        "nll": 3.593482896,
+        "token_accuracy": 0.422200726
+      },
+      "micro": {
+        "active_tokens": 5412,
+        "nll": 3.303018651,
+        "token_accuracy": 0.424427199
+      },
+      "supervised_tokens_per_second": 2698.842544,
+      "token_accuracy": 0.424427199,
+      "torch_peak_memory_allocated_bytes": 5980933632
+    },
+    "comparison_role": "diagnostic_only_not_strict_causal_10k_vs_20k",
+    "future_ki20_final": null,
+    "historical_ki10_final": {
+      "active_tokens": 5412,
+      "axis_metrics": {
+        "aihub_empathy_multiturn": {
+          "active_tokens": 143,
+          "nll": 2.387964089,
+          "token_accuracy": 0.468531469
+        },
+        "aihub_empathy_single": {
+          "active_tokens": 128,
+          "nll": 1.979492843,
+          "token_accuracy": 0.59375
+        },
+        "bazi_sft": {
+          "active_tokens": 1507,
+          "nll": 0.015250317,
+          "token_accuracy": 0.99469144
+        },
+        "deterministic_saju_qa": {
+          "active_tokens": 384,
+          "nll": 0.133046839,
+          "token_accuracy": 0.953125
+        },
+        "nemotron_saju": {
+          "active_tokens": 1935,
+          "nll": 0.894958023,
+          "token_accuracy": 0.762790698
+        },
+        "saju_diary_bridge": {
+          "active_tokens": 619,
+          "nll": 0.447139339,
+          "token_accuracy": 0.878836834
+        },
+        "yeji_shensha_derived": {
+          "active_tokens": 696,
+          "nll": 0.787542527,
+          "token_accuracy": 0.863505747
+        }
+      },
+      "elapsed_seconds": 2.0295,
+      "loss": 0.596004949,
+      "macro": {
+        "nll": 0.949341997,
+        "token_accuracy": 0.78789017
+      },
+      "micro": {
+        "active_tokens": 5412,
+        "nll": 0.596004949,
+        "token_accuracy": 0.855321508
+      },
+      "supervised_tokens_per_second": 2666.666731,
+      "token_accuracy": 0.855321508,
+      "torch_peak_memory_allocated_bytes": 5980933632
+    }
+  },
+  "gate_v2": {
+    "experiment_continuation_allowed": true,
+    "gate_build_id": "gate-df26e962e145",
+    "gate_build_sha256": "df26e962e1450b5b2c956b3b0f96531fa567c0c7ac897be233d5375879d878f4",
+    "path": "data/reports/saju_1b_baseline/phase5-gate/v2.0.0/KI10-MIX-v2/gate-df26e962e145/gate_v2_summary.json",
+    "production_promotion_allowed": false,
+    "quality_target_status": "not_met",
+    "sha256": "6fbd520ca369e152eb89eee150bc583840a9e6ddfff92e994e5b0b6b17e16314",
+    "version": "v2.0.0"
+  },
+  "ki10_rerun_performed": false,
+  "ki20_full_training_performed": false,
+  "objective": {
+    "absolute_loss_is_quality_gate": false,
+    "dft": false,
+    "name": "assistant_only_token_nll",
+    "token_weighting": "uniform_over_supervised_assistant_tokens",
+    "trainer_loss_type": "chunked_nll",
+    "weighted_sampler": false
+  },
+  "preflight_build_id": "preflight-b47fe12f03a4",
+  "preflight_build_sha256": "b47fe12f03a4114a8b9c30bb39b1cc57c12bcfc0525747209b50d0113fcbcd2e",
+  "production_promotion_allowed": false,
+  "raw_rows_or_ids_in_public_report": false,
+  "resume_cache_reused": [],
+  "run_id": "KI20-MIX-v2-THROUGHPUT",
+  "runtime": {
+    "attention_backend": "sdpa",
+    "bitsandbytes": "0.50.2",
+    "datasets": "4.7.0",
+    "gpu_capability": [
+      12,
+      0
+    ],
+    "gpu_name": "NVIDIA GeForce RTX 5070 Ti",
+    "parameter_count": 1291478272,
+    "parameter_dtype": "torch.bfloat16",
+    "python": "/usr/bin/python3.10",
+    "torch": "2.13.0+cu130",
+    "torch_cuda": "13.0",
+    "trainable_parameter_count": 1291478272,
+    "transformers": "4.57.6",
+    "trl": "1.12.0",
+    "vram_total_bytes": 17094475776
+  },
+  "schema_version": "1.1.0",
+  "selected_batch": {
+    "gradient_accumulation_steps": 2,
+    "median_supervised_tokens_per_second": 645.059395,
+    "peak_total_gpu_memory_used_mib": 10634,
+    "per_device_train_batch_size": 4
+  },
+  "selected_eval_batch_size": 8,
+  "selected_training": {
+    "dataloader_num_workers": 0,
+    "dataloader_persistent_workers": false,
+    "dataloader_pin_memory": true,
+    "dataloader_prefetch_factor": null,
+    "effective_batch_size": 8,
+    "expected_optimizer_steps": 2500,
+    "gradient_accumulation_steps": 2,
+    "group_by_length": false,
+    "packing": false,
+    "padding_free": false,
+    "per_device_eval_batch_size": 8,
+    "per_device_train_batch_size": 4
+  },
+  "selected_workers": 0,
+  "status": "ki20_preflight_ready",
+  "subset": {
+    "representative_axis_counts": {
+      "aihub_empathy_multiturn": 36,
+      "aihub_empathy_single": 36,
+      "bazi_sft": 96,
+      "deterministic_saju_qa": 48,
+      "nemotron_saju": 163,
+      "saju_diary_bridge": 77,
+      "yeji_shensha_derived": 24
+    },
+    "representative_rows": 480,
+    "selection_sha256": "f73890e71574b4ed5a36d58ccd88e57534b28b805bbd8e11fdee6cae3203b7ad",
+    "stress_max_total_tokens": 638,
+    "stress_min_total_tokens": 570,
+    "stress_rows": 64
+  },
+  "temporary_models_and_optimizer_states_retained": false,
+  "training_version": "v1.1.0",
+  "worker_candidates": [
+    {
+      "dataloader_num_workers": 0,
+      "effective_batch_size": 8,
+      "elapsed_seconds": 93.405629,
+      "gradient_accumulation_steps": 2,
+      "gradient_finite": true,
+      "gradient_nonzero": true,
+      "label": "batch4-timed",
+      "loss_finite": true,
+      "median_supervised_tokens_per_second": 645.059395,
+      "memory": {
+        "gpu_total_mib": 16303,
+        "maximum_swap_used_bytes": 1357553664,
+        "minimum_system_ram_available_bytes": 5290057728,
+        "monitor_error": null,
+        "peak_total_gpu_memory_used_mib": 10609,
+        "swap_growth_bytes": 0,
+        "swap_used_at_start_bytes": 1357553664
+      },
+      "memory_safe": true,
+      "optimizer_steps": 60,
+      "per_device_train_batch_size": 4,
+      "runtime": {
+        "attention_backend": "sdpa",
+        "bitsandbytes": "0.50.2",
+        "datasets": "4.7.0",
+        "gpu_capability": [
+          12,
+          0
+        ],
+        "gpu_name": "NVIDIA GeForce RTX 5070 Ti",
+        "parameter_count": 1291478272,
+        "parameter_dtype": "torch.bfloat16",
+        "python": "/usr/bin/python3.10",
+        "torch": "2.13.0+cu130",
+        "torch_cuda": "13.0",
+        "trainable_parameter_count": 1291478272,
+        "transformers": "4.57.6",
+        "trl": "1.12.0",
+        "vram_total_bytes": 17094475776
+      },
+      "status": "passed",
+      "temporary_output_retained": false,
+      "torch_peak_memory_allocated_bytes": 7244871168,
+      "training_loss": 1.9743687947591146,
+      "window_supervised_tokens_per_second": [
+        645.059395,
+        660.439381,
+        601.741795,
+        672.265196,
+        639.260359
+      ]
+    },
+    {
+      "dataloader_num_workers": 2,
+      "effective_batch_size": 8,
+      "elapsed_seconds": 99.945615,
+      "gradient_accumulation_steps": 2,
+      "gradient_finite": true,
+      "gradient_nonzero": true,
+      "label": "workers2-timed",
+      "loss_finite": true,
+      "median_supervised_tokens_per_second": 654.198448,
+      "memory": {
+        "gpu_total_mib": 16303,
+        "maximum_swap_used_bytes": 1355980800,
+        "minimum_system_ram_available_bytes": 8518000640,
+        "monitor_error": null,
+        "peak_total_gpu_memory_used_mib": 10215,
+        "swap_growth_bytes": 0,
+        "swap_used_at_start_bytes": 1355980800
+      },
+      "memory_safe": true,
+      "optimizer_steps": 60,
+      "per_device_train_batch_size": 4,
+      "runtime": {
+        "attention_backend": "sdpa",
+        "bitsandbytes": "0.50.2",
+        "datasets": "4.7.0",
+        "gpu_capability": [
+          12,
+          0
+        ],
+        "gpu_name": "NVIDIA GeForce RTX 5070 Ti",
+        "parameter_count": 1291478272,
+        "parameter_dtype": "torch.bfloat16",
+        "python": "/usr/bin/python3.10",
+        "torch": "2.13.0+cu130",
+        "torch_cuda": "13.0",
+        "trainable_parameter_count": 1291478272,
+        "transformers": "4.57.6",
+        "trl": "1.12.0",
+        "vram_total_bytes": 17094475776
+      },
+      "status": "passed",
+      "temporary_output_retained": false,
+      "torch_peak_memory_allocated_bytes": 6912259584,
+      "training_loss": 1.9743687947591146,
+      "window_supervised_tokens_per_second": [
+        657.052014,
+        654.198448,
+        604.570273,
+        668.08486,
+        615.952335
+      ]
+    }
+  ]
+}

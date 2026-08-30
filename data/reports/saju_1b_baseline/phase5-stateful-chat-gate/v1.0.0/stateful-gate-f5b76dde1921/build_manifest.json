@@ -1,0 +1,38 @@
+{
+  "gate_build_id": "stateful-gate-f5b76dde1921",
+  "gate_build_sha256": "f5b76dde19214e0e0eb761712440c614002e8c1c0a8883033ef5eebfc9b43e8d",
+  "private_files": {
+    "dev_cases.jsonl": {
+      "bytes": 112583,
+      "sha256": "a153801f4b81af1e78ae7608c30212d389c23f972a3c4c07630c1a6d64e5a763"
+    },
+    "dev_suite_metadata.json": {
+      "bytes": 1440,
+      "sha256": "808f095bacac4eda7be057bca9652057c8538eee1ea38a5496894adc49712642"
+    },
+    "evaluation_detailed.json": {
+      "bytes": 54411,
+      "sha256": "fa67e81330e06c7feb97232424006b43d466e529228b1a8f77b4f8b9008fa86d"
+    },
+    "generation_metadata.json": {
+      "bytes": 1000,
+      "sha256": "494cf08034e89331cff7daaa66957bbab509dd3a32582c335ad436ffb2f1c034"
+    },
+    "raw_generations.jsonl": {
+      "bytes": 45318,
+      "sha256": "3ed92ebbfe13560acf0f0186a37b0b6c4264d7e2c4e74da750cc12504edc6b67"
+    }
+  },
+  "public_files": {
+    "dev_suite_summary.json": {
+      "bytes": 906,
+      "sha256": "e02cbfa5bb5934e31b4296d49c0ccb69b3eb9c2f637e3b3f686cdae17765b38f"
+    },
+    "evaluation_summary.json": {
+      "bytes": 5948,
+      "sha256": "861d81b4dadb5870306ccbb6a95cc7bafb0b71cbb5d67f5eabcccdb50add8bdb"
+    }
+  },
+  "raw_outputs_private_only": true,
+  "schema_version": "1.0.0"
+}

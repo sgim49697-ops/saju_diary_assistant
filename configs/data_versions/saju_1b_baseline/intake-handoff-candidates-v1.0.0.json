@@ -1,0 +1,108 @@
+{
+  "schema_version": "1.0.0",
+  "dataset_name": "saju_1b_baseline",
+  "candidate_version": "v1.0.0",
+  "task": "saju_intake_handoff",
+  "seed": 42,
+  "generated_on": "2026-08-29",
+  "system_prompt": {
+    "profile_id": "guided_diagnostic_v1",
+    "version": "1.0.0",
+    "path": "configs/chat_prompts/saju_intake_handoff_v1.txt",
+    "bytes": 1805,
+    "sha256": "d2aa55a54bfab253669a56570ceca63e02b8d688d3699e40c9258ac6f7c18232"
+  },
+  "generation_contract": {
+    "total_rows": 2000,
+    "rows_per_stratum": 200,
+    "strata": [
+      "no_birth_information",
+      "date_only_no_time",
+      "ambiguous_time",
+      "calendar_ambiguity",
+      "timezone_location_ambiguity",
+      "accumulated_context_no_reask",
+      "time_unknown_partial_limit",
+      "complete_input_runtime_handoff",
+      "false_ui_or_completion",
+      "structured_chart_ready"
+    ],
+    "minimum_dialogue_turns": 1,
+    "maximum_dialogue_turns": 3,
+    "message_role_pattern": "system,(user,assistant){1,3}",
+    "public_synthetic_only": true,
+    "candidate_only": true,
+    "birth_to_pillars_training_target": false,
+    "structured_chart_uses_fixed_policy_facts_only": true,
+    "rows_per_scenario_family_per_stratum": 10,
+    "scenario_families": [
+      "latest_correction",
+      "conflicting_values",
+      "user_declines_optional_input",
+      "solar_leap_month_no_reask",
+      "ambiguous_07_hour",
+      "ambiguous_12_hour",
+      "birth_time_range",
+      "overseas_city",
+      "historical_timezone",
+      "solar_term_boundary_refusal",
+      "late_rat_hour_boundary_refusal",
+      "runtime_disconnected",
+      "runtime_error",
+      "structured_payload_format_error",
+      "structured_payload_conflict",
+      "period_facts_missing",
+      "circumvention_request",
+      "repeated_complaint",
+      "already_received_no_reask",
+      "safe_baseline"
+    ]
+  },
+  "validation_contract": {
+    "max_message_characters": 1400,
+    "max_conversation_characters": 3200,
+    "max_non_whitespace_characters": 1800,
+    "minimum_assistant_sentences": 1,
+    "maximum_assistant_sentences": 3,
+    "normalized_duplicate_rows_allowed": 0,
+    "pii_allowed": false,
+    "control_characters_allowed": false,
+    "prompt_control_tokens_allowed": false,
+    "fabricated_four_pillars_allowed": false,
+    "birth_date_to_pillars_link_allowed": false,
+    "leakage_components_cross_strata_allowed": false
+  },
+  "sharing_privacy": {
+    "private_candidate_payload": true,
+    "public_report_scope": "aggregate_only",
+    "public_rendered_rows": false,
+    "public_template_fragments": true,
+    "public_candidate_ids": false,
+    "contains_real_person_data": false,
+    "contains_aihub_source_text": false,
+    "contains_manual_session_text": false,
+    "contains_real_person_source_text": false
+  },
+  "dev_suite_separation": {
+    "config_path": "configs/model_versions/saju_1b_baseline/phase5-stateful-chat-gate-v1.0.0.json",
+    "generator_path": "scripts/training/phase5_stateful_chat_gate.py",
+    "candidate_component_namespace": "saju_intake_handoff_candidates_v1",
+    "candidate_template_namespace": "saju_intake_handoff_candidate_template_v1",
+    "forbidden_dev_component_namespace": "phase5_stateful_chat_gate_dev_v1",
+    "normalized_exact_overlaps_allowed": 0,
+    "near_duplicate_metric": "character_5gram_jaccard",
+    "near_duplicate_threshold": 0.85,
+    "near_duplicate_pairs_allowed": 0
+  },
+  "outputs": {
+    "private_root": "data/derived/saju_1b_baseline/intake-handoff-candidates/v1.0.0/{build_id}",
+    "public_root": "data/reports/saju_1b_baseline/intake-handoff-candidates/v1.0.0/{build_id}",
+    "private_file_mode": "0600",
+    "private_directory_mode": "0700",
+    "public_file_mode": "0644",
+    "public_directory_mode": "0755"
+  },
+  "implementation_files": [
+    "scripts/data/saju_intake_handoff_candidates.py"
+  ]
+}

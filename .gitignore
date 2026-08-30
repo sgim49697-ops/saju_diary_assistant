@@ -12,6 +12,8 @@
 /data/eval/
 /runs/
 /models/
+# AI Hub 파생 원문이 포함된 외부 검수 패키지
+/saju-mix20k-v3-review-ready/
 /.venv/
 /.venv-data/
 __pycache__/

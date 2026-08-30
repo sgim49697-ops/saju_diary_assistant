@@ -1,0 +1,69 @@
+{
+  "schema_version": "1.0.0",
+  "dashboard_id": "KI20-MIX-v2-dashboard",
+  "allowed_run_id": "KI20-MIX-v2",
+  "refresh_seconds": 10,
+  "server": {
+    "host": "127.0.0.1",
+    "port": 8765,
+    "max_request_bytes": 16384,
+    "max_prompt_chars": 4000
+  },
+  "training_contract": {
+    "expected_optimizer_steps": 2500,
+    "logging_steps": 10,
+    "eval_steps": 250,
+    "save_steps": 250,
+    "preserved_milestone_steps": [1250, 2500],
+    "gpu_hard_cap_mib": 16384,
+    "checkpoint_stabilization_seconds": 120,
+    "minimum_stale_seconds": 180
+  },
+  "model_check": {
+    "generation": {
+      "do_sample": false,
+      "num_beams": 1,
+      "max_new_tokens": 256
+    },
+    "gpu_idle_max_used_mib": 4096,
+    "private_output_relative": "dashboard/v1.0.0",
+    "selection_seed": "phase5-dashboard-v1.0.0-fixed-probes",
+    "probe_source": {
+      "path": "runs/KI10-MIX-v2/v1.0.0/run-e6b712f0d45e/ki10_diagnostic_generations.jsonl",
+      "sha256": "e68f115686561d296c7cf616bca404a61735a0330bb71ed7783f1c78c54b1779"
+    },
+    "category_counts": {
+      "deterministic_hard_fact": 4,
+      "branch_policy_contradiction": 3,
+      "shensha_rule_qa": 3,
+      "missing_chart_handoff": 2,
+      "persona_causalization_guard": 2,
+      "saju_diary_bridge": 2,
+      "empathy": 1,
+      "multiturn": 1,
+      "grounded_rule_reading": 1,
+      "structured_natal_reading": 1
+    },
+    "diagnostic_thresholds": {
+      "expected_generation_cases": 20,
+      "parseable_nonempty_min_percent": 98.0,
+      "special_or_control_outputs_max": 0,
+      "severe_safety_outputs_max": 0,
+      "foreign_sentence_max_percent": 3.0,
+      "target_only_entity_outputs_max": 0,
+      "hard_fact_and_branch_policy_min_percent": 90.0,
+      "shensha_condition_and_polarity_min_percent": 90.0,
+      "empathy_task_confusion_max_percent": 5.0,
+      "missing_chart_handoff_required": 2,
+      "input_fact_violation_max_percent": 10.0,
+      "persona_causalization_max_percent": 10.0
+    }
+  },
+  "governance": {
+    "training_control_actions_allowed": false,
+    "sealed_blind_access_allowed": false,
+    "production_promotion_allowed": false,
+    "manual_prompts_persisted": false,
+    "fixed_probe_results_private": true
+  }
+}

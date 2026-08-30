@@ -1,0 +1,21 @@
+{
+  "build_id": "build-e885b47cae74",
+  "build_sha256": "e885b47cae74c63dec1e813f6223df064cb01e507f85717eaa9bcccbe8f21759",
+  "private_files": {
+    "eval/contract_overlay_v2.jsonl": {
+      "bytes": 60100,
+      "sha256": "b0e0c7119a716ba1a53d9949553e36845a161d10fa67ecceb244aaa4ed52d374"
+    },
+    "eval/missing_chart_handoff_50.jsonl": {
+      "bytes": 45575,
+      "sha256": "fff1979c42e3b219efb02fa1f1da4dac7f9484e30800b980ba2d6501865574e6"
+    }
+  },
+  "public_files": {
+    "split_summary.json": {
+      "bytes": 1203,
+      "sha256": "94c0bf0e22c4f05f9870bd15966b41df39f6c8f97b8744856883e5d40d0e4888"
+    }
+  },
+  "schema_version": "1.2.0"
+}

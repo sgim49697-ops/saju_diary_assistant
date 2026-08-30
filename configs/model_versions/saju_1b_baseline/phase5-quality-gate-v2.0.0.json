@@ -1,0 +1,93 @@
+{
+  "schema_version": "2.0.0",
+  "canonical_plan_version": "3.2.0",
+  "dataset_name": "saju_1b_baseline",
+  "gate_version": "v2.0.0",
+  "run_id": "KI10-MIX-v2",
+  "run_build_id": "run-e6b712f0d45e",
+  "evaluation_split": {
+    "version": "v1.2.0",
+    "config": "configs/data_versions/saju_1b_baseline/evaluation-split-v1.2.0.json",
+    "config_sha256": "4ab7e4d9737ae794d256589a5e7a5aff06d0536ba5c22f7fcef43f026cd3802a",
+    "build_id": "build-e885b47cae74",
+    "build_sha256": "e885b47cae74c63dec1e813f6223df064cb01e507f85717eaa9bcccbe8f21759",
+    "parent_membership_modified": false,
+    "blind_source_test_inspected": false
+  },
+  "inputs": {
+    "existing_generations": {
+      "path": "runs/KI10-MIX-v2/v1.0.0/run-e6b712f0d45e/ki10_diagnostic_generations.jsonl",
+      "sha256": "e68f115686561d296c7cf616bca404a61735a0330bb71ed7783f1c78c54b1779"
+    },
+    "training_summary": {
+      "path": "runs/KI10-MIX-v2/v1.0.0/run-e6b712f0d45e/training_summary.json",
+      "sha256": "1cbec50cdce5b913a9ae1e49628376457f456dd318f41fe6212544d5f9e80a53"
+    },
+    "reload_summary": {
+      "path": "runs/KI10-MIX-v2/v1.0.0/run-e6b712f0d45e/reload_summary.json",
+      "sha256": "7235fa4407905c3c63a473878df20bcdd71399e4f27d94d1a08e60a1af20f17c"
+    },
+    "historical_gate_v1": {
+      "path": "data/reports/saju_1b_baseline/phase5-runs/v1.0.0/KI10-MIX-v2/run-e6b712f0d45e/ki10_quality_gate.json",
+      "sha256": "96e7b412009259e261b77eb429ffdcdfc9470b3f030ed53cba105f31ba2b304d"
+    },
+    "model_checkpoint": {
+      "path": "runs/KI10-MIX-v2/v1.0.0/run-e6b712f0d45e/final",
+      "sha256": "6f4f6d5b22bed64c4bd4e3c5c50ffba6bcf365a75f40e6acdbf61180c628f7b6"
+    }
+  },
+  "generation": {
+    "confirmation_variable": "PHASE5_GATE_V2",
+    "confirmation_value": "KI10-MIX-v2",
+    "new_handoff_cases": 45,
+    "batch_size": 4,
+    "max_new_tokens": 128,
+    "do_sample": false,
+    "blind_source_test_access_allowed": false
+  },
+  "thresholds": {
+    "expected_generation_cases": 1045,
+    "expected_denominators": {
+      "deterministic.stem_branch_identity": 12,
+      "deterministic.yin_yang_elements_and_surface_counts": 12,
+      "deterministic.hidden_stems": 12,
+      "deterministic.stem_ten_gods": 12,
+      "deterministic.branch_ten_gods": 12,
+      "branch_policy": 40,
+      "branch_policy.main_hidden_stem_application": 40,
+      "branch_policy.surface_policy_rejection": 40,
+      "shensha": 25,
+      "handoff_action": 50,
+      "handoff_no_fabrication": 50,
+      "empathy_no_task_confusion": 20,
+      "persona_no_causalization": 50
+    },
+    "hard": {
+      "generation_clean_min_percent": 98.0
+    },
+    "quality": {
+      "typed_deterministic_min_percent": 90.0,
+      "branch_policy_min_percent": 90.0,
+      "shensha_min_percent": 90.0,
+      "handoff_action_min_percent": 95.0,
+      "foreign_sentence_max_percent": 3.0,
+      "empathy_confusion_max_percent": 5.0,
+      "persona_confusion_max_percent": 5.0
+    }
+  },
+  "governance": {
+    "gate_v1_preserved_as_history": true,
+    "experiment_continuation_and_quality_split": true,
+    "production_promotion_allowed": false,
+    "blind_source_test_inspected": false,
+    "full_ki20_training_allowed_by_this_command": false
+  },
+  "outputs": {
+    "private_root": "runs/KI10-MIX-v2/gate-v2.0.0/{gate_build_id}",
+    "public_root": "data/reports/saju_1b_baseline/phase5-gate/v2.0.0/KI10-MIX-v2/{gate_build_id}"
+  },
+  "implementation_files": [
+    "scripts/training/phase5_quality_v2.py",
+    "scripts/training/phase5_gate_v2.py"
+  ]
+}

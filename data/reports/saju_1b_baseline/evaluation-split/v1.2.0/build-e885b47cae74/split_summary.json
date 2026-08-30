@@ -1,0 +1,34 @@
+{
+  "blind_payload_copied": false,
+  "blind_source_test_inspected": false,
+  "build_id": "build-e885b47cae74",
+  "build_sha256": "e885b47cae74c63dec1e813f6223df064cb01e507f85717eaa9bcccbe8f21759",
+  "contract_overlay_rows": 130,
+  "contract_overlay_sha256": "b0e0c7119a716ba1a53d9949553e36845a161d10fa67ecceb244aaa4ed52d374",
+  "handoff_50_sha256": "fff1979c42e3b219efb02fa1f1da4dac7f9484e30800b980ba2d6501865574e6",
+  "handoff_cases": 50,
+  "handoff_new_cases": 45,
+  "handoff_strata": {
+    "ambiguous_time": 10,
+    "calendar_ambiguity": 10,
+    "date_only_no_time": 10,
+    "no_birth_information": 10,
+    "timezone_location_ambiguity": 10
+  },
+  "parent_membership_modified": false,
+  "parent_split_build_id": "build-d2f9e1623e96",
+  "parent_split_version": "v1.1.0",
+  "raw_prompts_in_public_report": false,
+  "schema_version": "1.2.0",
+  "scorer_validation": {
+    "deliberate_mutations": 175,
+    "deliberate_mutations_failed": 175,
+    "mutation_reject_percent": 100.0,
+    "reference_cases": 175,
+    "reference_pass_percent": 100.0,
+    "reference_passed": 175
+  },
+  "split_version": "v1.2.0",
+  "status": "gate_v2_contracts_ready_with_expanded_handoff",
+  "training_data_modified": false
+}

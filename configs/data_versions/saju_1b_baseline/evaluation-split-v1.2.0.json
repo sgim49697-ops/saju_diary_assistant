@@ -1,0 +1,71 @@
+{
+  "schema_version": "1.2.0",
+  "canonical_plan_version": "3.2.0",
+  "dataset_name": "saju_1b_baseline",
+  "split_version": "v1.2.0",
+  "seed": 42,
+  "parent_split": {
+    "version": "v1.1.0",
+    "config": "configs/data_versions/saju_1b_baseline/evaluation-split-v1.1.0.json",
+    "config_sha256": "6471290d144e56494fbabd6493a16311e4d8954585e0a99631c8c1923fa6fcf7",
+    "build_id": "build-d2f9e1623e96",
+    "build_sha256": "d2f9e1623e96699bcec57b0e583bfaf779e365f27ccf0907b855f02558494703",
+    "parent_membership_modified": false,
+    "blind_source_test_inspected": false
+  },
+  "inputs": {
+    "dev_diagnostic": {
+      "path": "data/derived/saju_1b_baseline/evaluation-split/v1.0.0/build-a5a04ab96594/eval/dev_diagnostic_930.jsonl",
+      "rows": 930,
+      "cases": 950,
+      "sha256": "0b6f62ad9f5849e24bf96f613f173be922aeaf1b9d149f72b2d37abf19a74676"
+    },
+    "persona_guard": {
+      "path": "data/derived/saju_1b_baseline/evaluation-split/v1.1.0/build-d2f9e1623e96/eval/persona_causalization_guard_50.jsonl",
+      "rows": 50,
+      "cases": 50,
+      "sha256": "cb5d2f6548d8ca2721c29dec59575c0e98532084fa3c0fe7a432c23a680f82b2"
+    }
+  },
+  "typed_contracts": {
+    "deterministic_hard_fact": {
+      "stem_branch_identity": 12,
+      "yin_yang_elements_and_surface_counts": 12,
+      "hidden_stems": 12,
+      "stem_ten_gods": 12,
+      "branch_ten_gods": 12
+    },
+    "branch_policy_contradiction": 40,
+    "shensha_rule_qa": 25
+  },
+  "handoff_expansion": {
+    "total_cases": 50,
+    "existing_cases_reused": 5,
+    "new_cases": 45,
+    "cases_per_stratum": 10,
+    "strata": [
+      "no_birth_information",
+      "date_only_no_time",
+      "ambiguous_time",
+      "calendar_ambiguity",
+      "timezone_location_ambiguity"
+    ],
+    "public_synthetic_only": true
+  },
+  "sealing": {
+    "parent_membership_modified": false,
+    "blind_source_test_inspected": false,
+    "blind_payload_copied": false,
+    "training_data_modified": false,
+    "private_file_mode": "0600",
+    "private_directory_mode": "0700"
+  },
+  "outputs": {
+    "private_root": "data/derived/saju_1b_baseline/evaluation-split/v1.2.0/{build_id}",
+    "public_root": "data/reports/saju_1b_baseline/evaluation-split/v1.2.0/{build_id}"
+  },
+  "implementation_files": [
+    "scripts/training/phase5_quality_v2.py",
+    "scripts/evaluation/phase5_split_v1_2.py"
+  ]
+}

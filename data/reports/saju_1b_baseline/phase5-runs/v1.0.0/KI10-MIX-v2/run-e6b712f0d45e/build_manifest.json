@@ -1,0 +1,14 @@
+{
+  "artifact_sha256": {
+    "training_summary.json": "1cbec50cdce5b913a9ae1e49628376457f456dd318f41fe6212544d5f9e80a53"
+  },
+  "phase5_training_performed": true,
+  "quality_gate_evaluated": false,
+  "raw_samples_in_report": false,
+  "report_type": "phase5_full_ft_public_manifest",
+  "run_build_id": "run-e6b712f0d45e",
+  "run_id": "KI10-MIX-v2",
+  "run_sha256": "e6b712f0d45e8a12602c586ae8921df0dec758d3bb5eadef23a65f3efc97a0d6",
+  "schema_version": "1.0.0",
+  "status": "trained_and_reloaded"
+}

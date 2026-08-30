@@ -1,0 +1,25 @@
+{
+  "cases": 100,
+  "component_namespace": "phase5_stateful_chat_gate_dev_v1",
+  "dev_cases_sha256": "a153801f4b81af1e78ae7608c30212d389c23f972a3c4c07630c1a6d64e5a763",
+  "gate_build_id": "stateful-gate-f5b76dde1921",
+  "gate_build_sha256": "f5b76dde19214e0e0eb761712440c614002e8c1c0a8883033ef5eebfc9b43e8d",
+  "mutation_reject_percent": 100.0,
+  "raw_cases_in_public_report": false,
+  "reference_pass_percent": 100.0,
+  "schema_version": "1.0.0",
+  "strata": {
+    "accumulated_context_no_reask": 10,
+    "ambiguous_time": 10,
+    "calendar_ambiguity": 10,
+    "complete_input_runtime_handoff": 10,
+    "date_only_no_time": 10,
+    "false_ui_or_completion": 10,
+    "no_birth_information": 10,
+    "structured_chart_ready": 10,
+    "time_unknown_partial_limit": 10,
+    "timezone_location_ambiguity": 10
+  },
+  "template_namespace": "phase5_stateful_chat_gate_template_v1",
+  "training_eligible": false
+}

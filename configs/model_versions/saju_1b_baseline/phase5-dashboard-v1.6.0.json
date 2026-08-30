@@ -1,0 +1,316 @@
+{
+  "schema_version": "1.6.0",
+  "dashboard_id": "KI20-MIX-v2-dashboard",
+  "allowed_run_id": "KI20-MIX-v2",
+  "refresh_seconds": 10,
+  "server": {
+    "host": "127.0.0.1",
+    "port": 8765,
+    "max_request_bytes": 16384,
+    "max_prompt_chars": 4000,
+    "remote_share": {
+      "enabled_by_default": false,
+      "exact_https_origin_required": true,
+      "basic_auth_required": true,
+      "wildcard_origins_allowed": false,
+      "password_file_mode": "0600",
+      "minimum_password_bytes": 32
+    }
+  },
+  "training_contract": {
+    "expected_optimizer_steps": 2500,
+    "logging_steps": 10,
+    "eval_steps": 250,
+    "save_steps": 250,
+    "preserved_milestone_steps": [1250, 2500],
+    "gpu_hard_cap_mib": 16384,
+    "checkpoint_stabilization_seconds": 120,
+    "minimum_stale_seconds": 180
+  },
+  "model_check": {
+    "generation": {
+      "do_sample": false,
+      "num_beams": 1,
+      "max_new_tokens": 256
+    },
+    "gpu_idle_max_used_mib": 4096,
+    "private_output_relative": "dashboard/v1.0.0",
+    "selection_seed": "phase5-dashboard-v1.0.0-fixed-probes",
+    "probe_source": {
+      "path": "runs/KI10-MIX-v2/v1.0.0/run-e6b712f0d45e/ki10_diagnostic_generations.jsonl",
+      "sha256": "e68f115686561d296c7cf616bca404a61735a0330bb71ed7783f1c78c54b1779"
+    },
+    "category_counts": {
+      "deterministic_hard_fact": 4,
+      "branch_policy_contradiction": 3,
+      "shensha_rule_qa": 3,
+      "missing_chart_handoff": 2,
+      "persona_causalization_guard": 2,
+      "saju_diary_bridge": 2,
+      "empathy": 1,
+      "multiturn": 1,
+      "grounded_rule_reading": 1,
+      "structured_natal_reading": 1
+    },
+    "diagnostic_thresholds": {
+      "expected_generation_cases": 20,
+      "parseable_nonempty_min_percent": 98.0,
+      "special_or_control_outputs_max": 0,
+      "severe_safety_outputs_max": 0,
+      "foreign_sentence_max_percent": 3.0,
+      "target_only_entity_outputs_max": 0,
+      "hard_fact_and_branch_policy_min_percent": 90.0,
+      "shensha_condition_and_polarity_min_percent": 90.0,
+      "empathy_task_confusion_max_percent": 5.0,
+      "missing_chart_handoff_required": 2,
+      "input_fact_violation_max_percent": 10.0,
+      "persona_causalization_max_percent": 10.0
+    }
+  },
+  "manual_session": {
+    "private_output_relative": "dashboard/v1.1.0/manual_sessions",
+    "max_sessions": 100,
+    "max_turns_per_session": 50,
+    "max_context_tokens": 3584,
+    "max_session_bytes": 2000000,
+    "title_max_chars": 60
+  },
+  "inference_engines": {
+    "default_selection": "ki20_final",
+    "sequential_load_only": true,
+    "single_timeout_seconds": 300,
+    "paired_timeout_seconds": 600,
+    "engines": {
+      "ki20_final": {
+        "label": "KI20",
+        "kind": "run_final",
+        "revision": "run-1f5d732cae67",
+        "model_sha256": "2fae23e28471c07d7db0c338bc6370493191722180ecc502de7e1e1d5fe5872d",
+        "required_file_sha256": {
+          "chat_template.jinja": "b8ee6b31575eada17ebbe73d3f1ac65d3efde64f0a25ff922031dec7e1cae3e3",
+          "config.json": "e02848aa87656f5b33faee0d7354b26c1ff579a60042aa37c7ba204445cf76b7",
+          "configuration_kanana2_tiny.py": "191fb6fbfd63968cc24b3beeb8190aaa88868d4cf1695f8c5a379fb0a077d79d",
+          "model.safetensors": "2fae23e28471c07d7db0c338bc6370493191722180ecc502de7e1e1d5fe5872d",
+          "modeling_kanana2_tiny.py": "e47cd8cc99e71fc69eea9bf5ba1221526fb8c6d4fc8677177e82de997b766500",
+          "tokenizer.json": "1c4be9ecf77c926456fb82d4cf07ff1218a91907f3408f44895d2b01e0f2b5ab",
+          "tokenizer_config.json": "1cdee8fcd4f6209e07e6d9966c8a3ff2d738830d79475193e94e448e153ae2d5"
+        }
+      },
+      "k0_instruct": {
+        "label": "K0 원본",
+        "kind": "fixed_snapshot",
+        "repo_id": "kakaocorp/kanana-2-1.3b-instruct",
+        "revision": "bf4786aa2a1908adce942d53976270132732f720",
+        "path": "models/saju_1b_baseline/kanana-2-1.3b-instruct/bf4786aa2a1908adce942d53976270132732f720",
+        "model_sha256": "49aa6cd8686563c59321d83810731956c61ec8d5c8538a249d38007986cdc942",
+        "snapshot_manifest_sha256": "5786d04831c93192d234651df0894a1912b974cfab96011ce0676563185cc93d",
+        "required_file_sha256": {
+          "chat_template.jinja": "b8ee6b31575eada17ebbe73d3f1ac65d3efde64f0a25ff922031dec7e1cae3e3",
+          "config.json": "fe14b20b4b616d62ca0682312c2fcd2b90d9a836d14a1ff6448db3f533fd15a1",
+          "configuration_kanana2_tiny.py": "191fb6fbfd63968cc24b3beeb8190aaa88868d4cf1695f8c5a379fb0a077d79d",
+          "model.safetensors": "49aa6cd8686563c59321d83810731956c61ec8d5c8538a249d38007986cdc942",
+          "modeling_kanana2_tiny.py": "e47cd8cc99e71fc69eea9bf5ba1221526fb8c6d4fc8677177e82de997b766500",
+          "tokenizer.json": "1c4be9ecf77c926456fb82d4cf07ff1218a91907f3408f44895d2b01e0f2b5ab",
+          "tokenizer_config.json": "1cdee8fcd4f6209e07e6d9966c8a3ff2d738830d79475193e94e448e153ae2d5"
+        }
+      }
+    },
+    "selections": {
+      "ki20_final": {
+        "label": "KI20 단독",
+        "mode": "single",
+        "engine_ids": ["ki20_final"]
+      },
+      "k0_instruct": {
+        "label": "K0 원본 단독",
+        "mode": "single",
+        "engine_ids": ["k0_instruct"]
+      },
+      "k0_vs_ki20": {
+        "label": "K0 ↔ KI20 동시 비교",
+        "mode": "paired",
+        "engine_ids": ["k0_instruct", "ki20_final"]
+      }
+    }
+  },
+  "prompt_profiles": {
+    "default_profile": "guided_diagnostic_v1",
+    "legacy_profile": "raw_legacy",
+    "profiles": {
+      "guided_diagnostic_v1": {
+        "label": "안내 보정 진단",
+        "description": "계산 도구 미연결 상태에서 구조화 명식과 필수 입력 경계를 고정한 진단 prompt",
+        "system_prompt": {
+          "path": "configs/chat_prompts/saju_intake_handoff_v1.txt",
+          "bytes": 1805,
+          "sha256": "d2aa55a54bfab253669a56570ceca63e02b8d688d3699e40c9258ac6f7c18232"
+        },
+        "production_like": false,
+        "diagnostic_only": true
+      },
+      "raw_no_system": {
+        "label": "무지시 원출력",
+        "description": "system message가 없는 checkpoint 원출력 비교용",
+        "system_prompt": null,
+        "production_like": false,
+        "diagnostic_only": true
+      }
+    }
+  },
+  "dataset_browser": {
+    "selection_seed": "phase5-dashboard-v1.5.0-dataset-samples",
+    "sample_selection": {
+      "mode": "cryptographic_random",
+      "samples_per_request": 10,
+      "unique_within_request": true,
+      "repeat_across_requests_possible": true,
+      "persisted": false
+    },
+    "preflight_config": "configs/data_versions/saju_1b_baseline/preflight-v2.0.0.json",
+    "restricted_axes": ["aihub_empathy_single", "aihub_empathy_multiturn"],
+    "axis_labels": {
+      "nemotron_saju": "Nemotron 사주",
+      "bazi_sft": "bazi-sft 규칙 해석",
+      "aihub_empathy_single": "AI Hub 단일대화",
+      "aihub_empathy_multiturn": "AI Hub 멀티턴",
+      "yeji_shensha_derived": "YEJI 신살",
+      "deterministic_saju_qa": "결정론적 사주 QA",
+      "saju_diary_bridge": "사주 일기 브리지",
+      "synthetic_public": "공개 합성 진단",
+      "general_instruction": "일반 한국어 지시",
+      "kasi_lunar": "KASI 음양력",
+      "policy_cases": "계산 정책 경계"
+    },
+    "splits": {
+      "ki10_train": {
+        "label": "KI10 학습",
+        "role": "assistant-only SFT",
+        "kind": "training",
+        "path": "data/derived/saju_1b_baseline/v2.0.0/build-6f32d52c2868/manifests/mix10k_v2.jsonl",
+        "sha256": "7863270e5a16fe9f92b52e82d45ae0b60f0b68ee3f0003955d662eb0392472e9",
+        "rows": 10000,
+        "axes": {
+          "nemotron_saju": 3400,
+          "bazi_sft": 2000,
+          "aihub_empathy_single": 750,
+          "aihub_empathy_multiturn": 750,
+          "yeji_shensha_derived": 500,
+          "deterministic_saju_qa": 1000,
+          "saju_diary_bridge": 1600
+        }
+      },
+      "ki20_train": {
+        "label": "KI20 학습",
+        "role": "assistant-only SFT · 현재 모델",
+        "kind": "training",
+        "path": "data/derived/saju_1b_baseline/v2.0.0/build-6f32d52c2868/manifests/mix20k_v2.jsonl",
+        "sha256": "731ace0ac5584fd97fc38f157a4ecdb1babedefd79e2ec5b2d755fa26e48a550",
+        "rows": 20000,
+        "axes": {
+          "nemotron_saju": 6800,
+          "bazi_sft": 4000,
+          "aihub_empathy_single": 1500,
+          "aihub_empathy_multiturn": 1500,
+          "yeji_shensha_derived": 1000,
+          "deterministic_saju_qa": 2000,
+          "saju_diary_bridge": 3200
+        }
+      },
+      "dev_monitor": {
+        "label": "Dev monitor",
+        "role": "loss·token accuracy 감시 전용",
+        "kind": "evaluation",
+        "path": "data/derived/saju_1b_baseline/phase5-readiness/v1.2.0/build-e325f16096dd/eval/dev_monitor_70.jsonl",
+        "sha256": "aa61d2a763e3194e3a25561a3030c74bebb002c702ef8469c27a1bc22a2bcb31",
+        "rows": 70,
+        "axes": {
+          "nemotron_saju": 10,
+          "bazi_sft": 10,
+          "aihub_empathy_single": 10,
+          "aihub_empathy_multiturn": 10,
+          "yeji_shensha_derived": 10,
+          "deterministic_saju_qa": 10,
+          "saju_diary_bridge": 10
+        }
+      },
+      "dev_diagnostic": {
+        "label": "Dev diagnostic",
+        "role": "반복 오류 분석 전용",
+        "kind": "evaluation",
+        "path": "data/derived/saju_1b_baseline/evaluation-split/v1.0.0/build-a5a04ab96594/eval/dev_diagnostic_930.jsonl",
+        "sha256": "0b6f62ad9f5849e24bf96f613f173be922aeaf1b9d149f72b2d37abf19a74676",
+        "rows": 930,
+        "axes": {
+          "nemotron_saju": 130,
+          "bazi_sft": 120,
+          "aihub_empathy_single": 110,
+          "aihub_empathy_multiturn": 105,
+          "yeji_shensha_derived": 115,
+          "deterministic_saju_qa": 190,
+          "saju_diary_bridge": 130,
+          "synthetic_public": 10,
+          "general_instruction": 20
+        }
+      },
+      "persona_guard": {
+        "label": "Persona guard",
+        "role": "비인과 표현 회귀 진단",
+        "kind": "evaluation",
+        "path": "data/derived/saju_1b_baseline/evaluation-split/v1.1.0/build-d2f9e1623e96/eval/persona_causalization_guard_50.jsonl",
+        "sha256": "cb5d2f6548d8ca2721c29dec59575c0e98532084fa3c0fe7a432c23a680f82b2",
+        "rows": 50,
+        "axes": {"nemotron_saju": 50}
+      },
+      "external_conformance": {
+        "label": "외부 정합성",
+        "role": "학습·blind와 분리 채점",
+        "kind": "external",
+        "rows": 220,
+        "axes": {"kasi_lunar": 200, "policy_cases": 20},
+        "fixtures": {
+          "kasi_lunar": {
+            "path": "tests/fixtures/saju_external_conformance/kasi_lunar_200.json",
+            "sha256": "d651d5a77d7970cde4b36f414995b6ea833b4d50760f23fe0f462c96fdf8ca1a"
+          },
+          "policy_cases": {
+            "path": "tests/fixtures/saju_external_conformance/policy_cases_20.jsonl",
+            "sha256": "5a424a7bf7f31cc9bb8505317a8674213fc7ec26eaee72f4062bed5b82cb94e6"
+          }
+        }
+      }
+    },
+    "sealed_blind": {
+      "label": "Blind source test",
+      "role": "final checkpoint 고정 후 단회 평가",
+      "rows": 500,
+      "components": 350,
+      "sample_access_allowed": false,
+      "inspected": false,
+      "axes": {
+        "nemotron_saju": 50,
+        "bazi_sft": 200,
+        "aihub_empathy_single": 50,
+        "aihub_empathy_multiturn": 50,
+        "yeji_shensha_derived": 50,
+        "deterministic_saju_qa": 50,
+        "saju_diary_bridge": 50
+      }
+    }
+  },
+  "governance": {
+    "training_control_actions_allowed": false,
+    "sealed_blind_access_allowed": false,
+    "production_promotion_allowed": false,
+    "manual_prompts_persisted": true,
+    "manual_sessions_local_only": true,
+    "manual_default_profile_guided": true,
+    "manual_inference_diagnostic_only": true,
+    "paired_models_loaded_sequentially": true,
+    "raw_profile_diagnostic_only": true,
+    "dataset_samples_local_only": true,
+    "dataset_random_sampling_read_only": true,
+    "dataset_random_samples_persisted": false,
+    "restricted_samples_visible": true,
+    "fixed_probe_results_private": true
+  }
+}

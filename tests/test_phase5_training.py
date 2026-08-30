@@ -2,12 +2,18 @@
 
 from __future__ import annotations
 
+import inspect
 import json
 import unittest
 from pathlib import Path
 
 from scripts.training.phase5_quality import score_generations
-from scripts.training.phase5_train import RUN_IDS, _parser, validate_contract
+from scripts.training.phase5_train import (
+    RUN_IDS,
+    _parser,
+    preflight_run,
+    validate_contract,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CONFIG_PATH = (
@@ -91,6 +97,13 @@ class Phase5TrainingTests(unittest.TestCase):
             encoding="utf-8"
         )
         self.assertNotIn("blind_source_test_500.jsonl", source)
+
+    def test_preflight_supplies_trl_train_dataset_without_training(self) -> None:
+        source = inspect.getsource(preflight_run)
+        self.assertIn("train_dataset=dataset", source)
+        self.assertIn("metrics = trainer.evaluate()", source)
+        self.assertNotIn("trainer.train(", source)
+        self.assertIn('"train_method_called": False', source)
 
 
 if __name__ == "__main__":

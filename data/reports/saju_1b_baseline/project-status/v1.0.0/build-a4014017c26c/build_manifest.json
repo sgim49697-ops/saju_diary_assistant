@@ -1,0 +1,29 @@
+{
+  "artifact_sha256": {
+    "index.html": "4d81927fdc9ee22757ae098e9ca4e5c9431f1d279641a55ce3d808422d1f732e"
+  },
+  "build_id": "build-a4014017c26c",
+  "build_inputs": {
+    "as_of": "2026-08-29",
+    "components_sha256": "9f15170d6d54fe2c9024d6b266471caa0ce733d5945fc6060114e307dd48a360",
+    "dataset_axes_sha256": "e6e3136f5d8e6bad9d14daaf479d086f06186bc7c2a48e4bc3090434d11c4021",
+    "decision_sha256": "4014356c5b2572386f004871fe699d73c63ce8f649d9f52bd99d99692800cba4",
+    "evidence_sha256": "9998a5b99826f5595d2a483660db3bb9ce8ab5fddfe6caffc4fb064a237359ea",
+    "gates_sha256": "7c6a19d25d08bf7e594108d9c7e1682b8eef9160c984aec8545b454e9e8d1712",
+    "implementation_hashes": {
+      "configs/data_versions/saju_1b_baseline/project-status-v1.0.0.json": "73e5b1a46eef7908ad3cf39340f6aba9814379d4e43b7c6df42c422e92ee914b",
+      "scripts/status/project_status.py": "1f428d1ba702d39431c9c733d82007e84e88c9122215a08c5a34f7ccb0f4d406"
+    },
+    "phases_sha256": "05393e58caeb85bc15c46483c5485bc6855db543c722b4847b94215a63d1cf14",
+    "risks_sha256": "0aa1cd4ab8eb813e6acb58af8619a6d996a4ebcd3388c7b34f8d93a370d74c14",
+    "stage": "ki10_gate_failed",
+    "status_version": "v1.0.0",
+    "web_sources_sha256": "1e8cb014e3305b78d9cd653cdb857ae6bec7f404f921058a95c08d5821e7bf44"
+  },
+  "build_sha256": "a4014017c26c445f93ded456ebc8cfa2cecafcdc82e578c49dc7251fc3a5a8e4",
+  "report_type": "project_status_public_manifest",
+  "restricted_content_included": false,
+  "root_html_byte_identical": true,
+  "schema_version": "1.0.0",
+  "status_version": "v1.0.0"
+}

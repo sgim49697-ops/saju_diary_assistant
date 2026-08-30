@@ -29,7 +29,7 @@ DEFAULT_CONFIG = Path(
     "configs/data_versions/saju_1b_baseline/project-status-v1.0.0.json"
 )
 PUBLIC_FILE_MODE = 0o644
-BUILD_PATTERN = re.compile(r"^(?:build|run)-[0-9a-f]{12}$")
+BUILD_PATTERN = re.compile(r"^(?:build|run|gate|preflight)-[0-9a-f]{12}$")
 
 
 class ProjectStatusError(RuntimeError):
@@ -53,11 +53,12 @@ def _json_bytes(value: Any) -> bytes:
 def validate_contract(config: dict[str, Any], repo_root: Path) -> dict[str, Any]:
     if (
         config.get("schema_version") != "1.0.0"
-        or config.get("canonical_plan_version") != "3.2.0"
+        or config.get("canonical_plan_version") != "3.3.0"
         or config.get("dataset_name") != "saju_1b_baseline"
         or config.get("status_version") != "v1.0.0"
         or config.get("as_of") != "2026-08-29"
-        or config.get("stage") != "pre_ki10"
+        or config.get("stage")
+        not in {"pre_ki10", "ki10_gate_failed", "ki20_preflight_ready"}
     ):
         raise ProjectStatusError("project status identity가 다릅니다.")
     components = config.get("components")
@@ -95,6 +96,38 @@ def validate_contract(config: dict[str, Any], repo_root: Path) -> dict[str, Any]
         raise ProjectStatusError("project status Gate가 없습니다.")
     if not isinstance(config.get("known_risks"), list) or not config["known_risks"]:
         raise ProjectStatusError("project status 위험 목록이 없습니다.")
+    decision = config.get("decision")
+    decision_keys = {
+        "stage_label",
+        "stage_status",
+        "signal",
+        "signal_tone",
+        "headline",
+        "headline_accent",
+        "summary",
+        "ki10_baseline",
+        "ki20_promotion",
+        "expert_quality",
+        "sealed_blind",
+        "phase4_rerun",
+    }
+    if (
+        not isinstance(decision, dict)
+        or set(decision) != decision_keys
+        or any(not isinstance(decision[key], str) or not decision[key] for key in decision_keys)
+        or decision["signal_tone"] not in {"ok", "stop", "wait"}
+        or any(
+            decision[key] not in {"완료", "허용", "금지", "차단", "대기"}
+            for key in (
+                "stage_status",
+                "ki10_baseline",
+                "ki20_promotion",
+                "expert_quality",
+                "sealed_blind",
+            )
+        )
+    ):
+        raise ProjectStatusError("project status 현재 결정 형식이 다릅니다.")
     outputs = config.get("outputs")
     if outputs != {
         "root_html": "PROJECT_STATUS.html",
@@ -122,6 +155,7 @@ def prepare_context(repo_root: Path, config_path: Path) -> dict[str, Any]:
         "status_version": config["status_version"],
         "as_of": config["as_of"],
         "stage": config["stage"],
+        "decision_sha256": sha256_json(config["decision"]),
         "components_sha256": sha256_json(config["components"]),
         "phases_sha256": sha256_json(config["phases"]),
         "dataset_axes_sha256": sha256_json(config["dataset_axes"]),
@@ -168,6 +202,7 @@ def _badge(value: str) -> str:
 
 def render_html(context: dict[str, Any]) -> bytes:
     config = context["config"]
+    decision = config["decision"]
     phases = "".join(
         f"""
         <li class="phase {_esc(value['status'])}">
@@ -232,21 +267,21 @@ def render_html(context: dict[str, Any]) -> bytes:
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="dark">
-<title>사주 일기 도우미 · 학습 준비 현황</title>
+<title>사주 일기 도우미 · 학습·품질 현황</title>
 <style>
-:root{{--ink:#edf5f0;--muted:#9ab0a7;--bg:#07110f;--panel:#0d1c18;--line:#1f3a32;--mint:#59e5b2;--cyan:#55c8e8;--amber:#f5bd5c;--red:#ff7c78;--violet:#aa91ff}}*{{box-sizing:border-box}}body{{margin:0;background:radial-gradient(circle at 12% 0,#12352b 0,transparent 33%),radial-gradient(circle at 88% 12%,#172b45 0,transparent 30%),var(--bg);color:var(--ink);font:15px/1.58 ui-sans-serif,system-ui,-apple-system,"Noto Sans KR",sans-serif}}a{{color:var(--cyan)}}code{{font:12px ui-monospace,SFMono-Regular,Consolas,monospace;color:#bceee0}}main{{width:min(1180px,calc(100% - 32px));margin:auto;padding:44px 0 72px}}.hero{{display:grid;grid-template-columns:1.5fr .9fr;gap:22px;align-items:stretch}}.hero>div,.panel{{background:linear-gradient(145deg,rgba(16,38,32,.96),rgba(10,24,21,.92));border:1px solid var(--line);border-radius:22px;box-shadow:0 18px 60px #0006}}.intro{{padding:36px}}.eyebrow{{color:var(--mint);font-weight:800;letter-spacing:.13em;text-transform:uppercase}}h1{{font-size:clamp(34px,6vw,66px);line-height:1.02;margin:.25em 0}}h1 span{{display:block;color:transparent;background:linear-gradient(90deg,var(--mint),var(--cyan));background-clip:text}}.lede{{color:var(--muted);font-size:17px;max-width:70ch}}.decision{{padding:28px;display:flex;flex-direction:column;justify-content:space-between}}.decision .signal{{font-size:52px;font-weight:900;color:var(--mint)}}.decision p{{color:var(--muted)}}.meta{{display:grid;grid-template-columns:1fr 1fr;gap:10px}}.meta div{{background:#071510;border:1px solid var(--line);border-radius:12px;padding:12px}}.meta small{{display:block;color:var(--muted)}}section{{margin-top:22px}}.panel{{padding:26px}}h2{{margin:0 0 18px;font-size:22px}}.grid-2{{display:grid;grid-template-columns:1fr 1fr;gap:22px}}.timeline{{list-style:none;padding:0;margin:0;display:grid;gap:9px}}.phase{{display:grid;grid-template-columns:36px 1fr auto;gap:12px;align-items:center;padding:11px;border:1px solid var(--line);border-radius:13px;background:#081713}}.phase-index{{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:#17382f;color:var(--mint);font-weight:900}}.phase small{{display:block;color:var(--muted)}}.badge{{display:inline-flex;align-items:center;padding:3px 9px;border-radius:999px;border:1px solid #ffffff1c;font-size:11px;font-weight:800;white-space:nowrap}}.badge.ok{{background:#163b2f;color:#7cf0c2}}.badge.live{{background:#14364c;color:#77d9f2}}.badge.warn{{background:#493815;color:#ffd382}}.badge.wait,.badge.neutral{{background:#242d2a;color:#b3c1bc}}.badge.stop{{background:#482321;color:#ffaaa6}}.chain{{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}}.node{{min-width:0;padding:15px;border:1px solid var(--line);border-radius:14px;background:#071510;position:relative}}.node:after{{content:"→";position:absolute;right:-12px;top:45%;color:var(--mint);z-index:2}}.node:nth-child(4n):after,.node:last-child:after{{display:none}}.node span,.node small,.node code{{display:block;overflow:hidden;text-overflow:ellipsis}}.node span,.node small{{color:var(--muted)}}.node strong{{font-size:17px}}table{{border-collapse:collapse;width:100%}}th,td{{border-bottom:1px solid var(--line);text-align:left;padding:11px 9px;vertical-align:middle}}th{{color:#dff8ee}}td{{color:var(--muted)}}.bar{{min-width:160px;height:9px;background:#06100d;border-radius:99px;overflow:hidden}}.bar i{{display:block;height:100%;background:linear-gradient(90deg,var(--mint),var(--cyan));border-radius:inherit}}.evidence-grid,.risk-grid{{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}}.evidence,.risk{{border:1px solid var(--line);border-radius:15px;padding:16px;background:#081713}}.evidence span{{font:800 12px ui-monospace;color:var(--mint)}}.evidence h3,.risk h3{{margin:8px 0}}.evidence p,.risk p,.risk small{{color:var(--muted)}}.risk-grid{{grid-template-columns:repeat(2,1fr)}}.risk>div{{display:flex;justify-content:space-between;gap:8px}}.checks{{display:grid;grid-template-columns:repeat(2,1fr);list-style:none;padding:0;gap:8px}}.checks li{{padding:11px;border:1px solid var(--line);border-radius:12px;background:#081713}}.checks span{{color:var(--mint);margin-right:9px}}footer{{margin-top:28px;padding:22px;color:var(--muted);text-align:center}}@media(max-width:850px){{.hero,.grid-2{{grid-template-columns:1fr}}.chain{{grid-template-columns:repeat(2,1fr)}}.node:nth-child(2n):after{{display:none}}.evidence-grid{{grid-template-columns:repeat(2,1fr)}}}}@media(max-width:560px){{main{{width:min(100% - 20px,1180px);padding-top:20px}}.intro,.panel,.decision{{padding:18px}}.chain,.evidence-grid,.risk-grid,.checks{{grid-template-columns:1fr}}.node:after{{display:none}}.table-wrap{{overflow:auto}}}}
+:root{{--ink:#edf5f0;--muted:#9ab0a7;--bg:#07110f;--panel:#0d1c18;--line:#1f3a32;--mint:#59e5b2;--cyan:#55c8e8;--amber:#f5bd5c;--red:#ff7c78;--violet:#aa91ff}}*{{box-sizing:border-box}}body{{margin:0;background:radial-gradient(circle at 12% 0,#12352b 0,transparent 33%),radial-gradient(circle at 88% 12%,#172b45 0,transparent 30%),var(--bg);color:var(--ink);font:15px/1.58 ui-sans-serif,system-ui,-apple-system,"Noto Sans KR",sans-serif}}a{{color:var(--cyan)}}code{{font:12px ui-monospace,SFMono-Regular,Consolas,monospace;color:#bceee0}}main{{width:min(1180px,calc(100% - 32px));margin:auto;padding:44px 0 72px}}.hero{{display:grid;grid-template-columns:1.5fr .9fr;gap:22px;align-items:stretch}}.hero>div,.panel{{background:linear-gradient(145deg,rgba(16,38,32,.96),rgba(10,24,21,.92));border:1px solid var(--line);border-radius:22px;box-shadow:0 18px 60px #0006}}.intro{{padding:36px}}.eyebrow{{color:var(--mint);font-weight:800;letter-spacing:.13em;text-transform:uppercase}}h1{{font-size:clamp(34px,6vw,66px);line-height:1.02;margin:.25em 0}}h1 span{{display:block;color:transparent;background:linear-gradient(90deg,var(--mint),var(--cyan));background-clip:text}}.lede{{color:var(--muted);font-size:17px;max-width:70ch}}.decision{{padding:28px;display:flex;flex-direction:column;justify-content:space-between}}.decision .signal{{font-size:52px;font-weight:900}}.decision .signal.ok{{color:var(--mint)}}.decision .signal.stop{{color:var(--red)}}.decision .signal.wait{{color:var(--amber)}}.decision p{{color:var(--muted)}}.meta{{display:grid;grid-template-columns:1fr 1fr;gap:10px}}.meta div{{background:#071510;border:1px solid var(--line);border-radius:12px;padding:12px}}.meta small{{display:block;color:var(--muted)}}section{{margin-top:22px}}.panel{{padding:26px}}h2{{margin:0 0 18px;font-size:22px}}.grid-2{{display:grid;grid-template-columns:1fr 1fr;gap:22px}}.timeline{{list-style:none;padding:0;margin:0;display:grid;gap:9px}}.phase{{display:grid;grid-template-columns:36px 1fr auto;gap:12px;align-items:center;padding:11px;border:1px solid var(--line);border-radius:13px;background:#081713}}.phase-index{{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:#17382f;color:var(--mint);font-weight:900}}.phase small{{display:block;color:var(--muted)}}.badge{{display:inline-flex;align-items:center;padding:3px 9px;border-radius:999px;border:1px solid #ffffff1c;font-size:11px;font-weight:800;white-space:nowrap}}.badge.ok{{background:#163b2f;color:#7cf0c2}}.badge.live{{background:#14364c;color:#77d9f2}}.badge.warn{{background:#493815;color:#ffd382}}.badge.wait,.badge.neutral{{background:#242d2a;color:#b3c1bc}}.badge.stop{{background:#482321;color:#ffaaa6}}.chain{{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}}.node{{min-width:0;padding:15px;border:1px solid var(--line);border-radius:14px;background:#071510;position:relative}}.node:after{{content:"→";position:absolute;right:-12px;top:45%;color:var(--mint);z-index:2}}.node:nth-child(4n):after,.node:last-child:after{{display:none}}.node span,.node small,.node code{{display:block;overflow:hidden;text-overflow:ellipsis}}.node span,.node small{{color:var(--muted)}}.node strong{{font-size:17px}}table{{border-collapse:collapse;width:100%}}th,td{{border-bottom:1px solid var(--line);text-align:left;padding:11px 9px;vertical-align:middle}}th{{color:#dff8ee}}td{{color:var(--muted)}}.bar{{min-width:160px;height:9px;background:#06100d;border-radius:99px;overflow:hidden}}.bar i{{display:block;height:100%;background:linear-gradient(90deg,var(--mint),var(--cyan));border-radius:inherit}}.evidence-grid,.risk-grid{{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}}.evidence,.risk{{border:1px solid var(--line);border-radius:15px;padding:16px;background:#081713}}.evidence span{{font:800 12px ui-monospace;color:var(--mint)}}.evidence h3,.risk h3{{margin:8px 0}}.evidence p,.risk p,.risk small{{color:var(--muted)}}.risk-grid{{grid-template-columns:repeat(2,1fr)}}.risk>div{{display:flex;justify-content:space-between;gap:8px}}.checks{{display:grid;grid-template-columns:repeat(2,1fr);list-style:none;padding:0;gap:8px}}.checks li{{padding:11px;border:1px solid var(--line);border-radius:12px;background:#081713}}.checks span{{color:var(--mint);margin-right:9px}}footer{{margin-top:28px;padding:22px;color:var(--muted);text-align:center}}@media(max-width:850px){{.hero,.grid-2{{grid-template-columns:1fr}}.chain{{grid-template-columns:repeat(2,1fr)}}.node:nth-child(2n):after{{display:none}}.evidence-grid{{grid-template-columns:repeat(2,1fr)}}}}@media(max-width:560px){{main{{width:min(100% - 20px,1180px);padding-top:20px}}.intro,.panel,.decision{{padding:18px}}.chain,.evidence-grid,.risk-grid,.checks{{grid-template-columns:1fr}}.node:after{{display:none}}.table-wrap{{overflow:auto}}}}
 </style>
 </head>
 <body><main>
 <header class="hero">
-  <div class="intro"><div class="eyebrow">Saju Diary Assistant · {_esc(config['status_version'])}</div><h1>학습 직전,<span>근거부터 잠갔습니다.</span></h1><p class="lede">20K 데이터·모델·평가·실행 환경을 하나의 hash chain으로 묶었습니다. 현재 승인은 전문가 정답 인증이 아니라 KI10 baseline을 안전하게 실행해도 된다는 기술적 허용입니다.</p></div>
-  <div class="decision"><div><span class="badge ok">PRE-KI10</span><div class="signal">GO</div><p>KI10만 허용 · KI20은 자동 품질 Gate 통과 전 금지</p></div><div class="meta"><div><small>기준일</small><strong>{_esc(config['as_of'])}</strong></div><div><small>현황 build</small><code>{_esc(context['build_id'])}</code></div><div><small>계획 버전</small><strong>{_esc(config['canonical_plan_version'])}</strong></div><div><small>품질 주장</small><strong>금지</strong></div></div></div>
+  <div class="intro"><div class="eyebrow">Saju Diary Assistant · {_esc(config['status_version'])}</div><h1>{_esc(decision['headline'])}<span>{_esc(decision['headline_accent'])}</span></h1><p class="lede">{_esc(decision['summary'])}</p></div>
+  <div class="decision"><div><span class="badge {_esc(decision['signal_tone'])}">{_esc(decision['stage_label'])}</span><div class="signal {_esc(decision['signal_tone'])}">{_esc(decision['signal'])}</div><p>{_esc(decision['summary'])}</p></div><div class="meta"><div><small>기준일</small><strong>{_esc(config['as_of'])}</strong></div><div><small>현황 build</small><code>{_esc(context['build_id'])}</code></div><div><small>계획 버전</small><strong>{_esc(config['canonical_plan_version'])}</strong></div><div><small>현재 상태</small><strong>{_esc(decision['stage_status'])}</strong></div></div></div>
 </header>
-<section class="grid-2"><div class="panel"><h2>Phase 타임라인</h2><ol class="timeline">{phases}</ol></div><div class="panel"><h2>현재 결정</h2><table><tbody><tr><th>KI10 baseline</th><td>{_badge('허용')}</td></tr><tr><th>KI20 promotion</th><td>{_badge('금지')}</td></tr><tr><th>전문가 품질 인증</th><td>{_badge('금지')}</td></tr><tr><th>sealed blind 접근</th><td>{_badge('금지')}</td></tr><tr><th>Phase 4 재실행</th><td>불필요 · 데이터 fingerprint 불변</td></tr></tbody></table></div></section>
+<section class="grid-2"><div class="panel"><h2>Phase 타임라인</h2><ol class="timeline">{phases}</ol></div><div class="panel"><h2>현재 결정</h2><table><tbody><tr><th>KI10 baseline</th><td>{_badge(decision['ki10_baseline'])}</td></tr><tr><th>KI20 promotion</th><td>{_badge(decision['ki20_promotion'])}</td></tr><tr><th>전문가 품질 인증</th><td>{_badge(decision['expert_quality'])}</td></tr><tr><th>sealed blind 접근</th><td>{_badge(decision['sealed_blind'])}</td></tr><tr><th>Phase 4 재실행</th><td>{_esc(decision['phase4_rerun'])}</td></tr></tbody></table></div></section>
 <section class="panel"><h2>버전·해시 연결</h2><div class="chain" aria-label="모델과 데이터 버전 hash chain">{components}</div></section>
 <section class="panel"><h2>20K 구성 — 행보다 supervised token을 함께 봅니다</h2><div class="table-wrap"><table><thead><tr><th>축</th><th>행</th><th>assistant token 분포</th><th>비율</th><th>근거</th></tr></thead><tbody>{axes}</tbody></table></div></section>
 <section class="panel"><h2>근거 등급</h2><div class="evidence-grid">{evidence}</div></section>
-<section class="panel"><h2>학습 전 Gate</h2><div class="table-wrap"><table><thead><tr><th>Gate</th><th>상태</th><th>기준</th><th>결과</th></tr></thead><tbody>{gates}</tbody></table></div></section>
+<section class="panel"><h2>학습·품질 Gate</h2><div class="table-wrap"><table><thead><tr><th>Gate</th><th>상태</th><th>기준</th><th>결과</th></tr></thead><tbody>{gates}</tbody></table></div></section>
 <section class="panel"><h2>남은 위험과 처리</h2><div class="risk-grid">{risks}</div></section>
 <section class="panel"><h2>웹·외부 구현 비교</h2><div class="table-wrap"><table><thead><tr><th>근거</th><th>확인 revision</th><th>역할</th><th>판정</th></tr></thead><tbody>{sources}</tbody></table></div></section>
 <section class="panel"><h2>재현 검증</h2><ul class="checks">{checks}</ul></section>
@@ -324,7 +359,7 @@ def verify_status(context: dict[str, Any], *, require_registry: bool) -> dict[st
         "버전·해시 연결",
         "20K 구성",
         "근거 등급",
-        "학습 전 Gate",
+        "학습·품질 Gate",
         "남은 위험과 처리",
         "웹·외부 구현 비교",
         "재현 검증",

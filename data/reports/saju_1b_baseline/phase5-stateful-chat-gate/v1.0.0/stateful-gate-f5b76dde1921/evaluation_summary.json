@@ -1,0 +1,221 @@
+{
+  "cases": 100,
+  "dev_cases_sha256": "a153801f4b81af1e78ae7608c30212d389c23f972a3c4c07630c1a6d64e5a763",
+  "gate_build_id": "stateful-gate-f5b76dde1921",
+  "gate_build_sha256": "f5b76dde19214e0e0eb761712440c614002e8c1c0a8883033ef5eebfc9b43e8d",
+  "gate_version": "v1.0.0",
+  "generation_elapsed_seconds": 105.577,
+  "metrics": {
+    "consecutive_normalized_duplicate": {
+      "maximum_count": 0,
+      "percent": 0.0,
+      "total": 100,
+      "violation_wilson_95_percent": {
+        "lower": 0.0,
+        "upper": 3.69935
+      },
+      "violations": 0
+    },
+    "false_ui_or_completion": {
+      "maximum_count": 0,
+      "percent": 1.0,
+      "total": 100,
+      "violation_wilson_95_percent": {
+        "lower": 0.176743,
+        "upper": 5.44862
+      },
+      "violations": 1
+    },
+    "no_fabricated_four_pillars": {
+      "minimum_percent": 100.0,
+      "passed": 84,
+      "percent": 84.0,
+      "total": 100,
+      "wilson_95_percent": {
+        "lower": 75.579731,
+        "upper": 89.904712
+      }
+    },
+    "nonempty_output": {
+      "minimum_percent": 100.0,
+      "passed": 100,
+      "percent": 100.0,
+      "total": 100,
+      "wilson_95_percent": {
+        "lower": 96.30065,
+        "upper": 100.0
+      }
+    },
+    "provided_field_reask": {
+      "maximum_percent": 0.0,
+      "percent": 18.0,
+      "total": 100,
+      "violation_wilson_95_percent": {
+        "lower": 11.700225,
+        "upper": 26.667358
+      },
+      "violations": 18
+    },
+    "required_handoff_action": {
+      "by_stratum": {
+        "accumulated_context_no_reask": {
+          "passed": 1,
+          "percent": 10.0,
+          "total": 10,
+          "wilson_95_percent": {
+            "lower": 1.787621,
+            "upper": 40.415003
+          }
+        },
+        "ambiguous_time": {
+          "passed": 2,
+          "percent": 20.0,
+          "total": 10,
+          "wilson_95_percent": {
+            "lower": 5.668215,
+            "upper": 50.983753
+          }
+        },
+        "calendar_ambiguity": {
+          "passed": 0,
+          "percent": 0.0,
+          "total": 10,
+          "wilson_95_percent": {
+            "lower": 0.0,
+            "upper": 27.75328
+          }
+        },
+        "complete_input_runtime_handoff": {
+          "passed": 0,
+          "percent": 0.0,
+          "total": 10,
+          "wilson_95_percent": {
+            "lower": 0.0,
+            "upper": 27.75328
+          }
+        },
+        "date_only_no_time": {
+          "passed": 0,
+          "percent": 0.0,
+          "total": 10,
+          "wilson_95_percent": {
+            "lower": 0.0,
+            "upper": 27.75328
+          }
+        },
+        "false_ui_or_completion": {
+          "passed": 0,
+          "percent": 0.0,
+          "total": 10,
+          "wilson_95_percent": {
+            "lower": 0.0,
+            "upper": 27.75328
+          }
+        },
+        "no_birth_information": {
+          "passed": 1,
+          "percent": 10.0,
+          "total": 10,
+          "wilson_95_percent": {
+            "lower": 1.787621,
+            "upper": 40.415003
+          }
+        },
+        "structured_chart_ready": {
+          "passed": 0,
+          "percent": 0.0,
+          "total": 10,
+          "wilson_95_percent": {
+            "lower": 0.0,
+            "upper": 27.75328
+          }
+        },
+        "time_unknown_partial_limit": {
+          "passed": 0,
+          "percent": 0.0,
+          "total": 10,
+          "wilson_95_percent": {
+            "lower": 0.0,
+            "upper": 27.75328
+          }
+        },
+        "timezone_location_ambiguity": {
+          "passed": 10,
+          "percent": 100.0,
+          "total": 10,
+          "wilson_95_percent": {
+            "lower": 72.24672,
+            "upper": 100.0
+          }
+        }
+      },
+      "minimum_passed_per_stratum": 9,
+      "minimum_percent": 95.0,
+      "passed": 14,
+      "percent": 14.0,
+      "total": 100,
+      "wilson_95_percent": {
+        "lower": 8.526344,
+        "upper": 22.137188
+      }
+    },
+    "severe_safety": {
+      "maximum_count": 0,
+      "percent": 0.0,
+      "total": 100,
+      "violation_wilson_95_percent": {
+        "lower": 0.0,
+        "upper": 3.69935
+      },
+      "violations": 0
+    },
+    "unsupported_date_or_period_fact": {
+      "maximum_count": 0,
+      "percent": 5.0,
+      "total": 100,
+      "violation_wilson_95_percent": {
+        "lower": 2.154368,
+        "upper": 11.175047
+      },
+      "violations": 5
+    }
+  },
+  "model_sha256": "2fae23e28471c07d7db0c338bc6370493191722180ecc502de7e1e1d5fe5872d",
+  "production_promotion_allowed": false,
+  "public_report_aggregate_and_hash_only": true,
+  "quality_target_status": "not_met",
+  "raw_cases_in_public_report": false,
+  "raw_generations_sha256": "3ed92ebbfe13560acf0f0186a37b0b6c4264d7e2c4e74da750cc12504edc6b67",
+  "raw_outputs_in_public_report": false,
+  "restricted_final_evaluation_accessed": false,
+  "run_build_id": "run-1f5d732cae67",
+  "run_id": "KI20-MIX-v2",
+  "schema_version": "1.0.0",
+  "status": "guided_diagnostic_not_met",
+  "strata": {
+    "accumulated_context_no_reask": 10,
+    "ambiguous_time": 10,
+    "calendar_ambiguity": 10,
+    "complete_input_runtime_handoff": 10,
+    "date_only_no_time": 10,
+    "false_ui_or_completion": 10,
+    "no_birth_information": 10,
+    "structured_chart_ready": 10,
+    "time_unknown_partial_limit": 10,
+    "timezone_location_ambiguity": 10
+  },
+  "system_prompt_messages_per_conversation": 1,
+  "system_prompt_sha256": "d2aa55a54bfab253669a56570ceca63e02b8d688d3699e40c9258ac6f7c18232",
+  "threshold_checks": {
+    "consecutive_normalized_duplicate": true,
+    "false_ui_or_completion": false,
+    "no_fabricated_four_pillars": false,
+    "nonempty_output": true,
+    "provided_field_reask": false,
+    "required_handoff_action": false,
+    "severe_safety": true,
+    "unsupported_date_or_period_fact": false
+  },
+  "training_execution_performed": false,
+  "training_manifest_registered": false
+}

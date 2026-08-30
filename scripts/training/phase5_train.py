@@ -674,6 +674,8 @@ def _preflight_manifest(context: dict[str, Any], summary: bytes) -> bytes:
             "run_sha256": context["run_sha256"],
             "artifact_sha256": {"summary.json": hashlib.sha256(summary).hexdigest()},
             "status": "passed",
+            "train_dataset_supplied_for_trl_preprocessing": True,
+            "train_method_called": False,
             "backward_performed": False,
             "optimizer_step_performed": False,
             "phase5_training_performed": False,
@@ -712,6 +714,7 @@ def preflight_run(context: dict[str, Any], repo_root: Path) -> dict[str, Any]:
         trainer = sft_trainer(
             model=model,
             args=args,
+            train_dataset=dataset,
             eval_dataset=dataset,
             processing_class=tokenizer,
         )
@@ -733,6 +736,8 @@ def preflight_run(context: dict[str, Any], repo_root: Path) -> dict[str, Any]:
             "elapsed_seconds": round(time.monotonic() - started, 3),
             "assistant_only_loss": True,
             "max_length": 768,
+            "train_dataset_supplied_for_trl_preprocessing": True,
+            "train_method_called": False,
             "backward_performed": False,
             "optimizer_step_performed": False,
             "phase5_training_performed": False,

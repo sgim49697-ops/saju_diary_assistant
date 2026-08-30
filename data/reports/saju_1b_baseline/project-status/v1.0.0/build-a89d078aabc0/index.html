@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>사주 일기 도우미 · 학습 준비 현황</title>
+<style>
+:root{--ink:#edf5f0;--muted:#9ab0a7;--bg:#07110f;--panel:#0d1c18;--line:#1f3a32;--mint:#59e5b2;--cyan:#55c8e8;--amber:#f5bd5c;--red:#ff7c78;--violet:#aa91ff}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 12% 0,#12352b 0,transparent 33%),radial-gradient(circle at 88% 12%,#172b45 0,transparent 30%),var(--bg);color:var(--ink);font:15px/1.58 ui-sans-serif,system-ui,-apple-system,"Noto Sans KR",sans-serif}a{color:var(--cyan)}code{font:12px ui-monospace,SFMono-Regular,Consolas,monospace;color:#bceee0}main{width:min(1180px,calc(100% - 32px));margin:auto;padding:44px 0 72px}.hero{display:grid;grid-template-columns:1.5fr .9fr;gap:22px;align-items:stretch}.hero>div,.panel{background:linear-gradient(145deg,rgba(16,38,32,.96),rgba(10,24,21,.92));border:1px solid var(--line);border-radius:22px;box-shadow:0 18px 60px #0006}.intro{padding:36px}.eyebrow{color:var(--mint);font-weight:800;letter-spacing:.13em;text-transform:uppercase}h1{font-size:clamp(34px,6vw,66px);line-height:1.02;margin:.25em 0}h1 span{display:block;color:transparent;background:linear-gradient(90deg,var(--mint),var(--cyan));background-clip:text}.lede{color:var(--muted);font-size:17px;max-width:70ch}.decision{padding:28px;display:flex;flex-direction:column;justify-content:space-between}.decision .signal{font-size:52px;font-weight:900;color:var(--mint)}.decision p{color:var(--muted)}.meta{display:grid;grid-template-columns:1fr 1fr;gap:10px}.meta div{background:#071510;border:1px solid var(--line);border-radius:12px;padding:12px}.meta small{display:block;color:var(--muted)}section{margin-top:22px}.panel{padding:26px}h2{margin:0 0 18px;font-size:22px}.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:22px}.timeline{list-style:none;padding:0;margin:0;display:grid;gap:9px}.phase{display:grid;grid-template-columns:36px 1fr auto;gap:12px;align-items:center;padding:11px;border:1px solid var(--line);border-radius:13px;background:#081713}.phase-index{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:#17382f;color:var(--mint);font-weight:900}.phase small{display:block;color:var(--muted)}.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:999px;border:1px solid #ffffff1c;font-size:11px;font-weight:800;white-space:nowrap}.badge.ok{background:#163b2f;color:#7cf0c2}.badge.live{background:#14364c;color:#77d9f2}.badge.warn{background:#493815;color:#ffd382}.badge.wait,.badge.neutral{background:#242d2a;color:#b3c1bc}.badge.stop{background:#482321;color:#ffaaa6}.chain{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.node{min-width:0;padding:15px;border:1px solid var(--line);border-radius:14px;background:#071510;position:relative}.node:after{content:"→";position:absolute;right:-12px;top:45%;color:var(--mint);z-index:2}.node:nth-child(4n):after,.node:last-child:after{display:none}.node span,.node small,.node code{display:block;overflow:hidden;text-overflow:ellipsis}.node span,.node small{color:var(--muted)}.node strong{font-size:17px}table{border-collapse:collapse;width:100%}th,td{border-bottom:1px solid var(--line);text-align:left;padding:11px 9px;vertical-align:middle}th{color:#dff8ee}td{color:var(--muted)}.bar{min-width:160px;height:9px;background:#06100d;border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--mint),var(--cyan));border-radius:inherit}.evidence-grid,.risk-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.evidence,.risk{border:1px solid var(--line);border-radius:15px;padding:16px;background:#081713}.evidence span{font:800 12px ui-monospace;color:var(--mint)}.evidence h3,.risk h3{margin:8px 0}.evidence p,.risk p,.risk small{color:var(--muted)}.risk-grid{grid-template-columns:repeat(2,1fr)}.risk>div{display:flex;justify-content:space-between;gap:8px}.checks{display:grid;grid-template-columns:repeat(2,1fr);list-style:none;padding:0;gap:8px}.checks li{padding:11px;border:1px solid var(--line);border-radius:12px;background:#081713}.checks span{color:var(--mint);margin-right:9px}footer{margin-top:28px;padding:22px;color:var(--muted);text-align:center}@media(max-width:850px){.hero,.grid-2{grid-template-columns:1fr}.chain{grid-template-columns:repeat(2,1fr)}.node:nth-child(2n):after{display:none}.evidence-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:560px){main{width:min(100% - 20px,1180px);padding-top:20px}.intro,.panel,.decision{padding:18px}.chain,.evidence-grid,.risk-grid,.checks{grid-template-columns:1fr}.node:after{display:none}.table-wrap{overflow:auto}}
+</style>
+</head>
+<body><main>
+<header class="hero">
+  <div class="intro"><div class="eyebrow">Saju Diary Assistant · v1.0.0</div><h1>학습 직전,<span>근거부터 잠갔습니다.</span></h1><p class="lede">20K 데이터·모델·평가·실행 환경을 하나의 hash chain으로 묶었습니다. 현재 승인은 전문가 정답 인증이 아니라 KI10 baseline을 안전하게 실행해도 된다는 기술적 허용입니다.</p></div>
+  <div class="decision"><div><span class="badge ok">PRE-KI10</span><div class="signal">GO</div><p>KI10만 허용 · KI20은 자동 품질 Gate 통과 전 금지</p></div><div class="meta"><div><small>기준일</small><strong>2026-08-29</strong></div><div><small>현황 build</small><code>build-a89d078aabc0</code></div><div><small>계획 버전</small><strong>3.2.0</strong></div><div><small>품질 주장</small><strong>금지</strong></div></div></div>
+</header>
+<section class="grid-2"><div class="panel"><h2>Phase 타임라인</h2><ol class="timeline">
+        <li class="phase 완료">
+          <span class="phase-index">0</span>
+          <div><strong>범위 고정</strong><small>1.3B·10K/20K baseline과 비공개 경계를 고정</small></div>
+          <span class="badge ok">완료</span>
+        </li>
+        <li class="phase 완료">
+          <span class="phase-index">1</span>
+          <div><strong>원천 수집·감사</strong><small>고정 revision·라이선스·AI Hub 로컬 경계 고정</small></div>
+          <span class="badge ok">완료</span>
+        </li>
+        <li class="phase 완료">
+          <span class="phase-index">2</span>
+          <div><strong>품질 보정 전처리</strong><small>7축 24K staging과 로컬 reservoir 완결</small></div>
+          <span class="badge ok">완료</span>
+        </li>
+        <li class="phase 완료">
+          <span class="phase-index">3</span>
+          <div><strong>모델·CUDA 환경</strong><small>Kanana BF16·torch 2.13.0+cu130 smoke 통과</small></div>
+          <span class="badge ok">완료</span>
+        </li>
+        <li class="phase 완료">
+          <span class="phase-index">4</span>
+          <div><strong>학습 전 기술 검증</strong><small>768 Full FT 200-step resume와 canonical v2 승인</small></div>
+          <span class="badge ok">완료</span>
+        </li>
+        <li class="phase 미시작">
+          <span class="phase-index">5</span>
+          <div><strong>10K·조건부 20K 학습</strong><small>KI10 실행 대기, KI20은 자동 품질 Gate 전 금지</small></div>
+          <span class="badge wait">미시작</span>
+        </li>
+        <li class="phase 미시작">
+          <span class="phase-index">6</span>
+          <div><strong>봉인 평가·다음 결정</strong><small>모델 고정 전 blind 접근 금지</small></div>
+          <span class="badge wait">미시작</span>
+        </li></ol></div><div class="panel"><h2>현재 결정</h2><table><tbody><tr><th>KI10 baseline</th><td><span class="badge ok">허용</span></td></tr><tr><th>KI20 promotion</th><td><span class="badge stop">금지</span></td></tr><tr><th>전문가 품질 인증</th><td><span class="badge stop">금지</span></td></tr><tr><th>sealed blind 접근</th><td><span class="badge stop">금지</span></td></tr><tr><th>Phase 4 재실행</th><td>불필요 · 데이터 fingerprint 불변</td></tr></tbody></table></div></section>
+<section class="panel"><h2>버전·해시 연결</h2><div class="chain" aria-label="모델과 데이터 버전 hash chain">
+        <div class="node">
+          <span>원천 bundle</span>
+          <strong>v1.1.0</strong>
+          <code>build-9462ec148dcd</code>
+          <small>9462ec148dcd…</small>
+          <span class="badge ok">완료</span>
+        </div>
+        <div class="node">
+          <span>승인 audit</span>
+          <strong>v1.2.0</strong>
+          <code>build-ca756f3eb89f</code>
+          <small>ca756f3eb89f…</small>
+          <span class="badge ok">완료</span>
+        </div>
+        <div class="node">
+          <span>품질 보정 staging</span>
+          <strong>v1.0.0</strong>
+          <code>build-a5a9e76d6a8c</code>
+          <small>a5a9e76d6a8c…</small>
+          <span class="badge ok">완료</span>
+        </div>
+        <div class="node">
+          <span>고정 모델·환경</span>
+          <strong>v1.0.0</strong>
+          <code>build-32e2c84af3d3</code>
+          <small>32e2c84af3d3…</small>
+          <span class="badge ok">완료</span>
+        </div>
+        <div class="node">
+          <span>Phase 4 preflight</span>
+          <strong>v2.0.0</strong>
+          <code>build-2feaee353252</code>
+          <small>2feaee353252…</small>
+          <span class="badge ok">완료</span>
+        </div>
+        <div class="node">
+          <span>canonical MIX20</span>
+          <strong>v2.0.0</strong>
+          <code>build-6f32d52c2868</code>
+          <small>6f32d52c2868…</small>
+          <span class="badge ok">완료</span>
+        </div>
+        <div class="node">
+          <span>학습 전 의미 감사</span>
+          <strong>v1.0.0</strong>
+          <code>build-c38926f86a3d</code>
+          <small>c38926f86a3d…</small>
+          <span class="badge ok">완료</span>
+        </div>
+        <div class="node">
+          <span>평가 역할 계약</span>
+          <strong>v1.1.0</strong>
+          <code>build-d2f9e1623e96</code>
+          <small>d2f9e1623e96…</small>
+          <span class="badge ok">완료</span>
+        </div>
+        <div class="node">
+          <span>Phase 5 readiness</span>
+          <strong>v1.2.0</strong>
+          <code>build-e325f16096dd</code>
+          <small>e325f16096dd…</small>
+          <span class="badge ok">완료</span>
+        </div>
+        <div class="node">
+          <span>Phase 5 runner 계약</span>
+          <strong>v1.0.0</strong>
+          <code>build-752f792ae6f6</code>
+          <small>752f792ae6f6…</small>
+          <span class="badge ok">완료</span>
+        </div></div></section>
+<section class="panel"><h2>20K 구성 — 행보다 supervised token을 함께 봅니다</h2><div class="table-wrap"><table><thead><tr><th>축</th><th>행</th><th>assistant token 분포</th><th>비율</th><th>근거</th></tr></thead><tbody>
+        <tr>
+          <th scope="row">Nemotron 사주 해석</th>
+          <td>6,800</td>
+          <td><div class="bar" role="img" aria-label="Nemotron 사주 해석 assistant token 비율 58.080955%"><i style="width:58.080955%"></i></div></td>
+          <td>58.081%</td>
+          <td><span class="badge neutral">SOFT_GT</span></td>
+        </tr>
+        <tr>
+          <th scope="row">bazi-sft 규칙 파생</th>
+          <td>4,000</td>
+          <td><div class="bar" role="img" aria-label="bazi-sft 규칙 파생 assistant token 비율 25.218343%"><i style="width:25.218343%"></i></div></td>
+          <td>25.218%</td>
+          <td><span class="badge neutral">RULE_GT</span></td>
+        </tr>
+        <tr>
+          <th scope="row">AI Hub 단일턴</th>
+          <td>1,500</td>
+          <td><div class="bar" role="img" aria-label="AI Hub 단일턴 assistant token 비율 0.861964%"><i style="width:0.861964%"></i></div></td>
+          <td>0.862%</td>
+          <td><span class="badge neutral">HUMAN_REF</span></td>
+        </tr>
+        <tr>
+          <th scope="row">AI Hub 멀티턴</th>
+          <td>1,500</td>
+          <td><div class="bar" role="img" aria-label="AI Hub 멀티턴 assistant token 비율 0.906623%"><i style="width:0.906623%"></i></div></td>
+          <td>0.907%</td>
+          <td><span class="badge neutral">HUMAN_REF</span></td>
+        </tr>
+        <tr>
+          <th scope="row">YEJI 신살 파생</th>
+          <td>1,000</td>
+          <td><div class="bar" role="img" aria-label="YEJI 신살 파생 assistant token 비율 2.890489%"><i style="width:2.890489%"></i></div></td>
+          <td>2.890%</td>
+          <td><span class="badge neutral">RULE_GT</span></td>
+        </tr>
+        <tr>
+          <th scope="row">deterministic 사주 QA</th>
+          <td>2,000</td>
+          <td><div class="bar" role="img" aria-label="deterministic 사주 QA assistant token 비율 3.589891%"><i style="width:3.589891%"></i></div></td>
+          <td>3.590%</td>
+          <td><span class="badge neutral">HARD_GT</span></td>
+        </tr>
+        <tr>
+          <th scope="row">사주 일기 브리지</th>
+          <td>3,200</td>
+          <td><div class="bar" role="img" aria-label="사주 일기 브리지 assistant token 비율 8.451735%"><i style="width:8.451735%"></i></div></td>
+          <td>8.452%</td>
+          <td><span class="badge neutral">GROUNDED_BRIDGE</span></td>
+        </tr></tbody></table></div></section>
+<section class="panel"><h2>근거 등급</h2><div class="evidence-grid">
+        <article class="evidence hard">
+          <span>HARD_GT</span><h3>결정론적 사실</h3>
+          <p>고정 계산 정책으로 독립 재계산 가능한 원국 글자·오행·지장간·십신</p>
+        </article>
+        <article class="evidence rule">
+          <span>RULE_GT</span><h3>검산 규칙 파생</h3>
+          <p>고정 조건·긍부정 계약을 통과한 규칙형 답변</p>
+        </article>
+        <article class="evidence human">
+          <span>HUMAN_REF</span><h3>사람 대화 참조</h3>
+          <p>AI Hub 승인 범위의 로컬 전용 공감·대화 문체</p>
+        </article>
+        <article class="evidence soft">
+          <span>SOFT_GT</span><h3>합성 해석 참조</h3>
+          <p>전문가 Gold가 아닌 소프트 해석·문체 자료이며 최종 품질 주장을 금지</p>
+        </article></div></section>
+<section class="panel"><h2>학습 전 Gate</h2><div class="table-wrap"><table><thead><tr><th>Gate</th><th>상태</th><th>기준</th><th>결과</th></tr></thead><tbody>
+        <tr><th scope="row">원천 revision</th><td><span class="badge ok">통과</span></td><td>고정 SHA drift 0</td><td>Kanana·Nemotron·bazi·비교 엔진 revision 일치</td></tr>
+        <tr><th scope="row">Phase 4 hash chain</th><td><span class="badge ok">통과</span></td><td>A~E·768·Full FT smoke 재검증</td><td>canonical build-6f32d52c2868</td></tr>
+        <tr><th scope="row">20K 의미·출처 감사</th><td><span class="badge ok">통과</span></td><td>hard blocker·critical/high·mask 오류 0</td><td>수정 없이 KI10 baseline 허용</td></tr>
+        <tr><th scope="row">평가 봉인</th><td><span class="badge ok">통과</span></td><td>v1.0 bytes 보존·blind 미열람</td><td>dev 930+guard 50만 사전 사용</td></tr>
+        <tr><th scope="row">Phase 5 readiness</th><td><span class="badge ok">통과</span></td><td>모델·환경·data·runner exact hash</td><td>KI10만 실행 허용</td></tr>
+        <tr><th scope="row">KI10 forward preflight</th><td><span class="badge wait">대기</span></td><td>BF16 forward·assistant-only eval loss finite</td><td>clean commit 뒤 GPU 실행</td></tr>
+        <tr><th scope="row">KI10 1,000case Gate</th><td><span class="badge wait">대기</span></td><td>고정 자동 기준 전부 통과</td><td>학습 뒤 판정</td></tr>
+        <tr><th scope="row">KI20</th><td><span class="badge stop">금지</span></td><td>KI10 모든 품질 기준 통과</td><td>현재 promotion false</td></tr>
+        <tr><th scope="row">sealed blind</th><td><span class="badge stop">금지</span></td><td>final checkpoint 고정 뒤 단회</td><td>현재 미열람</td></tr></tbody></table></div></section>
+<section class="panel"><h2>남은 위험과 처리</h2><div class="risk-grid">
+        <article class="risk"><div><span class="badge warn">주의</span><code>R-TOKEN-DOMINANCE</code></div><h3>지식축 token 편중</h3><p>Nemotron+bazi가 assistant loss token의 83.299298%를 차지합니다.</p><small>행 비율이 아닌 token 비율을 공개하고 KI10 행동 Gate에서 공감·handoff 회귀를 검사합니다.</small></article>
+        <article class="risk"><div><span class="badge warn">주의</span><code>R-PERSONA-ALIGNMENT</code></div><h3>페르소나 연결 문구</h3><p>Nemotron 6,800행 중 5,170행(76.029412%)에 광범위한 일치·연결 표현이 있습니다. 이는 인과 오류율이 아닙니다.</p><small>별도 50case 비인과 guard로 실제 인과 단정만 측정합니다.</small></article>
+        <article class="risk"><div><span class="badge warn">주의</span><code>R-TEMPLATE-DUP</code></div><h3>정형 답변 반복</h3><p>YEJI 95.5%, deterministic QA 7.8%가 정규화 중복에 참여하지만 축간 중복 group은 0입니다.</p><small>reference 유사도를 최종 품질 점수에서 제외하고 조건·입력별 계약을 채점합니다.</small></article>
+        <article class="risk"><div><span class="badge warn">주의</span><code>R-DEV-REFERENCE-OVERLAP</code></div><h3>개발 reference 학습 답변 중복</h3><p>dev diagnostic 940case 중 137, monitor 70case 중 12가 학습 assistant와 exact 일치합니다.</p><small>개발용 누수 진단으로 공개하고 blind 일반화 주장에 사용하지 않습니다.</small></article>
+        <article class="risk"><div><span class="badge warn">주의</span><code>R-NO-EXPERT-GOLD</code></div><h3>전문가 Gold 부재</h3><p>사람 전문 항목 검수와 품질 인증을 수행하지 않았습니다.</p><small>KI10은 baseline 기술 실험으로만 취급하고 배포·전문가 정확성 주장을 금지합니다.</small></article></div></section>
+<section class="panel"><h2>웹·외부 구현 비교</h2><div class="table-wrap"><table><thead><tr><th>근거</th><th>확인 revision</th><th>역할</th><th>판정</th></tr></thead><tbody>
+        <tr><th scope="row"><a href="https://huggingface.co/kakaocorp/kanana-2-1.3b-instruct">Kanana 2 1.3B Instruct</a></th><td><code>bf4786aa2a1908adce942d53976270132732f720</code></td><td>학습 시작 모델</td><td>고정 BF16 snapshot만 사용</td></tr>
+        <tr><th scope="row"><a href="https://huggingface.co/datasets/rayraykim/Nemotron-Personas-Korea-Saju">Nemotron-Personas-Korea-Saju</a></th><td><code>ffb934248746a2dea64ef771c0d86e1743d25702</code></td><td>합성 해석 원천</td><td>SOFT_GT·페르소나 비인과 검사</td></tr>
+        <tr><th scope="row"><a href="https://huggingface.co/datasets/AmareshHebbar/bazi-sft">bazi-sft</a></th><td><code>fad87063b317612e4164dfb0e0e08572c3831df4</code></td><td>규칙 구조 원천</td><td>원문 답변 대신 검산 파생만 사용</td></tr>
+        <tr><th scope="row"><a href="https://github.com/golbin/ssaju">ssaju</a></th><td><code>07b608a778be6dac8669e04b9ab794c441959208</code></td><td>runtime 정책 비교</td><td>정기 십신 참고·휴리스틱 Gold 금지</td></tr>
+        <tr><th scope="row"><a href="https://github.com/yhj1024/manseryeok">manseryeok</a></th><td><code>fba3253d7305b8b61189bd78318a7a27ed8c9b09</code></td><td>runtime 정책 비교</td><td>복수 경계 구현 교차 확인</td></tr>
+        <tr><th scope="row"><a href="https://github.com/HAE-RAE/NOLLI">NOLLI</a></th><td><code>ce60156b92f2b8bcc23e27c69144d22721abc899</code></td><td>runtime 계산 비교</td><td>모델 SFT 최종 품질 점수에서 제외</td></tr>
+        <tr><th scope="row"><a href="https://www.data.go.kr/data/15012679/openapi.do">KASI 음양력 정보</a></th><td><code>2026-08-29 정책 확인</code></td><td>달력 field 기준</td><td>전체 사주 원국 oracle로 확대 금지</td></tr>
+        <tr><th scope="row"><a href="https://huggingface.co/docs/trl/v1.12.0/en/sft_trainer">TRL SFTTrainer</a></th><td><code>v1.12.0</code></td><td>Full FT 실행 계약</td><td>generation marker 기반 assistant-only loss</td></tr></tbody></table></div></section>
+<section class="panel"><h2>재현 검증</h2><ul class="checks"><li><span aria-hidden="true">✓</span>canonical MIX20 20,000행·7축 수량·record hash 재검증</li><li><span aria-hidden="true">✓</span>assistant loss mask 0행·special/control 0행·foreign CJK 0행</li><li><span aria-hidden="true">✓</span>critical/high 위험 0행·target-only entity 0행·중대 단정 0행</li><li><span aria-hidden="true">✓</span>모델 revision·chat template·package lock·BF16·단일 GPU 계약 고정</li><li><span aria-hidden="true">✓</span>평가 v1.0 membership·blind bytes 보존, blind payload 미열람</li><li><span aria-hidden="true">✓</span>AI Hub 원문·ID·개별 hash·checkpoint를 공개 산출물에서 제외</li><li><span aria-hidden="true">✓</span>KI10과 KI20을 base snapshot에서 독립 시작하도록 runner 고정</li><li><span aria-hidden="true">✓</span>KI20은 KI10 1,000case 자동 Gate 전까지 fail-closed</li></ul></section>
+<footer>이 파일은 <code>a89d078aabc07ad927224245c9ed94247b5f026817f5d89ca3c84cbb58622017</code>에서 결정적으로 생성됐습니다. AI Hub 원문·개별 ID·checkpoint는 포함하지 않습니다.</footer>
+</main></body></html>
