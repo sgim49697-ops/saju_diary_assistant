@@ -16,6 +16,8 @@ let datasetCatalog = null;
 let selectedDatasetSplit = "ki20_train";
 let selectedDatasetAxis = "all";
 let loadedDatasetKey = null;
+let promptExampleCatalog = null;
+let selectedPromptExampleCategory = "all";
 
 const byId = (id) => document.getElementById(id);
 const number = (value, digits = 4) => Number.isFinite(value) ? value.toLocaleString("ko-KR", { maximumFractionDigits: digits }) : "—";
@@ -29,6 +31,114 @@ const bytes = (value) => {
 };
 const localTime = (value) => value ? new Date(value).toLocaleString("ko-KR", { hour12: false }) : "—";
 const escapeHtml = (value) => String(value ?? "").replace(/[&<>'"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[character]);
+
+function validatePromptExampleCatalog(value) {
+  if (!value || value.schema_version !== "1.0.0" || value.catalog_id !== "phase5-realistic-saju-manual-v1") {
+    throw new Error("질문 예시 카탈로그 식별자가 올바르지 않습니다.");
+  }
+  if (!value.diagnostic_only || value.formal_gate !== false || value.calculator_connected !== false) {
+    throw new Error("질문 예시의 진단 경계가 올바르지 않습니다.");
+  }
+  if (typeof value.common_preamble !== "string" || !Array.isArray(value.categories) || value.categories.length !== 7 || !Array.isArray(value.items) || value.items.length !== 20) {
+    throw new Error("질문 예시는 20개와 분야 목록을 포함해야 합니다.");
+  }
+  const fixtures = value.fixtures || {};
+  const fixtureIds = new Set(Object.keys(fixtures));
+  if (!fixtureIds.size || Object.values(fixtures).some((fixture) => typeof fixture?.label !== "string" || typeof fixture?.prompt_text !== "string")) {
+    throw new Error("질문 예시의 합성 fixture가 올바르지 않습니다.");
+  }
+  const categoryIds = new Set();
+  value.categories.forEach((category) => {
+    if (typeof category?.category_id !== "string" || typeof category?.label !== "string" || !Number.isInteger(category?.expected_items) || category.expected_items < 1 || categoryIds.has(category.category_id)) {
+      throw new Error("질문 예시의 분야 계약이 올바르지 않습니다.");
+    }
+    categoryIds.add(category.category_id);
+  });
+  if ([...value.categories].reduce((count, category) => count + category.expected_items, 0) !== 20) {
+    throw new Error("질문 예시의 분야별 수량이 올바르지 않습니다.");
+  }
+  const exampleIds = new Set();
+  const actualCategoryCounts = new Map(value.categories.map((category) => [category.category_id, 0]));
+  value.items.forEach((item) => {
+    if (typeof item?.example_id !== "string" || exampleIds.has(item.example_id) || typeof item?.title !== "string" || typeof item?.review_hint !== "string" || !categoryIds.has(item.category) || !Array.isArray(item.turns) || !item.turns.length) {
+      throw new Error("질문 예시의 분야 또는 turn이 올바르지 않습니다.");
+    }
+    exampleIds.add(item.example_id);
+    actualCategoryCounts.set(item.category, actualCategoryCounts.get(item.category) + 1);
+    item.turns.forEach((turn, turnIndex) => {
+      if (turn?.turn !== turnIndex + 1 || typeof turn?.label !== "string" || typeof turn?.question !== "string" || !turn.question.trim() || !Array.isArray(turn.context_refs) || turn.context_refs.some((ref) => !fixtureIds.has(ref)) || typeof turn.same_session_required !== "boolean") {
+        throw new Error("질문 예시의 문맥 참조가 올바르지 않습니다.");
+      }
+      if ((turnIndex === 0 && (!turn.context_refs.length || turn.same_session_required)) || (turnIndex > 0 && (turn.context_refs.length || !turn.same_session_required))) {
+        throw new Error("질문 예시의 첫 질문·후속 질문 경계가 올바르지 않습니다.");
+      }
+      const contexts = turn.context_refs.map((ref) => fixtures[ref].prompt_text.trim());
+      const composed = contexts.length ? [value.common_preamble.trim(), ...contexts, `[사용자 질문]\n${turn.question.trim()}`].join("\n\n") : turn.question.trim();
+      if (composed.length > 4000) throw new Error("질문 예시가 입력 길이 상한을 넘습니다.");
+    });
+  });
+  if (value.categories.some((category) => actualCategoryCounts.get(category.category_id) !== category.expected_items)) {
+    throw new Error("질문 예시의 실제 분야별 수량이 계약과 다릅니다.");
+  }
+  return value;
+}
+
+function composePromptExample(turn) {
+  if (!turn.context_refs.length) return turn.question.trim();
+  const contexts = turn.context_refs.map((ref) => promptExampleCatalog.fixtures[ref].prompt_text.trim());
+  return [promptExampleCatalog.common_preamble.trim(), ...contexts, `[사용자 질문]\n${turn.question.trim()}`].join("\n\n");
+}
+
+function fillPromptFromExample(itemIndex, turnIndex) {
+  const item = promptExampleCatalog?.items[itemIndex];
+  const turn = item?.turns[turnIndex];
+  if (!turn) return;
+  const textarea = byId("manual-prompt");
+  textarea.value = composePromptExample(turn);
+  textarea.dispatchEvent(new Event("input", { bubbles: true }));
+  textarea.focus({ preventScroll: true });
+  textarea.scrollIntoView({ behavior: "smooth", block: "center" });
+  const followupWarning = turn.same_session_required && !activeSessionId
+    ? " 먼저 이 예시의 첫 질문을 실행해 세션을 만든 뒤 같은 세션에서 사용하세요."
+    : "";
+  byId("prompt-example-status").textContent = `${item.title} · ${turn.label}을 입력창에 채웠습니다. 아직 모델에는 보내지 않았습니다.${followupWarning}`;
+}
+
+function renderPromptExamples() {
+  if (!promptExampleCatalog) return;
+  const category = selectedPromptExampleCategory;
+  const visible = promptExampleCatalog.items
+    .map((item, itemIndex) => ({ item, itemIndex }))
+    .filter(({ item }) => category === "all" || item.category === category);
+  const categoryLabels = new Map(promptExampleCatalog.categories.map((item) => [item.category_id, item.label]));
+  const totalTurns = visible.reduce((count, entry) => count + entry.item.turns.length, 0);
+  byId("prompt-example-count").textContent = `${visible.length}개 예시 · ${totalTurns}개 질문 버튼`;
+  byId("prompt-example-list").innerHTML = visible.map(({ item, itemIndex }) => `<article class="prompt-example-card">
+    <header><span class="prompt-example-number">${itemIndex + 1}</span><div><small>${escapeHtml(categoryLabels.get(item.category))}</small><h3>${escapeHtml(item.title)}</h3></div></header>
+    <p class="prompt-example-hint">${escapeHtml(item.review_hint)}</p>
+    <div class="prompt-example-turns">${item.turns.map((turn, turnIndex) => `<div class="prompt-example-turn">
+      <div class="prompt-example-turn-head"><span>${escapeHtml(turn.label)}</span>${turn.same_session_required ? '<b class="followup-badge">같은 세션</b>' : '<b>합성 문맥 포함</b>'}</div>
+      <p>${escapeHtml(turn.question)}</p>
+      <button class="prompt-example-button ${turn.same_session_required ? "followup" : ""}" type="button" data-example-index="${itemIndex}" data-turn-index="${turnIndex}">${turn.same_session_required ? "후속 질문만 입력창에 넣기" : "합성 명식과 함께 입력창에 넣기"}</button>
+    </div>`).join("")}</div>
+  </article>`).join("");
+  byId("prompt-example-list").querySelectorAll("button[data-example-index]").forEach((button) => button.addEventListener("click", () => {
+    fillPromptFromExample(Number(button.dataset.exampleIndex), Number(button.dataset.turnIndex));
+  }));
+}
+
+async function loadPromptExamples() {
+  try {
+    const response = await fetch("/prompt-examples.json", { cache: "no-store" });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    promptExampleCatalog = validatePromptExampleCatalog(await response.json());
+    byId("prompt-example-category").innerHTML = '<option value="all">전체 20개</option>' + promptExampleCatalog.categories.map((category) => `<option value="${escapeHtml(category.category_id)}">${escapeHtml(category.label)} ${escapeHtml(category.expected_items)}개</option>`).join("");
+    renderPromptExamples();
+  } catch (error) {
+    byId("prompt-example-count").textContent = "카탈로그 로드 실패";
+    byId("prompt-example-list").innerHTML = `<p class="empty-conversation">질문 예시를 불러오지 못했습니다: ${escapeHtml(error.message)}</p>`;
+  }
+}
 
 async function api(path, options = {}) {
   const response = await fetch(path, {
@@ -157,6 +267,7 @@ function renderModelChecks(payload) {
   lock.querySelector("h2").textContent = unlocked ? "final 모델 검사 사용 가능" : "학습 중에는 모델을 추가로 로드하지 않습니다.";
   byId("model-lock-copy").textContent = unlocked ? "GPU가 비어 있으며 학습 서비스가 종료됐습니다." : `차단 조건: ${gate.reasons.join(", ") || "확인 중"}`;
   byId("manual-panel").classList.toggle("hidden", !unlocked);
+  byId("prompt-example-panel").classList.toggle("hidden", !unlocked);
   byId("run-probe-button").classList.toggle("hidden", !unlocked || payload.status === "available");
   byId("comparison-panel").classList.toggle("hidden", payload.status !== "available");
   if (payload.status !== "available") return;
@@ -511,6 +622,11 @@ byId("dataset-axis-select").addEventListener("change", (event) => {
   loadDatasetSamples();
 });
 
+byId("prompt-example-category").addEventListener("change", (event) => {
+  selectedPromptExampleCategory = event.target.value;
+  renderPromptExamples();
+});
+
 byId("manual-form").addEventListener("submit", async (event) => {
   event.preventDefault();
   const prompt = byId("manual-prompt").value.trim();
@@ -563,5 +679,6 @@ byId("run-probe-button").addEventListener("click", async () => {
   }
 });
 
+loadPromptExamples();
 refresh();
 setInterval(refresh, refreshMilliseconds);

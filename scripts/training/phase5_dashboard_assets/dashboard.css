@@ -217,6 +217,36 @@ button.split-card:hover, button.split-card:focus-visible { border-color: rgba(11
 pre { overflow-x: auto; margin: 9px 0 0; color: var(--text); font: 0.78rem/1.6 "SFMono-Regular", Consolas, monospace; white-space: pre-wrap; }
 .dataset-sample-card > footer { justify-content: flex-end; padding: 8px 14px; border-top: 1px solid var(--line); background: #faf5ec; }
 
+.prompt-example-disclosure { margin-top: 14px; padding: 0 !important; overflow: hidden; border-color: rgba(164, 119, 67, 0.26); }
+.prompt-example-summary { display: flex; justify-content: space-between; gap: 18px; align-items: center; padding: 20px 22px; cursor: pointer; list-style: none; background: linear-gradient(135deg, rgba(249, 242, 230, 0.78), rgba(232, 238, 227, 0.46)); }
+.prompt-example-summary::-webkit-details-marker { display: none; }
+.prompt-example-summary::after { content: "펼치기"; flex: 0 0 auto; padding: 6px 9px; border-radius: 999px; background: #e6ddcd; color: #6f604e; font-size: 0.72rem; font-weight: 800; }
+.prompt-example-disclosure[open] .prompt-example-summary::after { content: "접기"; }
+.prompt-example-glance { display: block; margin-top: 7px; color: var(--muted); font-size: 0.76rem; }
+.prompt-example-content { padding: 20px 22px 22px; border-top: 1px solid var(--line); }
+.prompt-example-notice { margin: 0; padding: 13px 15px; border: 1px solid rgba(164, 119, 67, 0.23); border-radius: 14px; background: #f7efe1; color: #6f604e; font-size: 0.8rem; line-height: 1.6; }
+.prompt-example-notice strong { color: var(--text); }
+.prompt-example-toolbar { display: grid; grid-template-columns: auto minmax(190px, 320px) 1fr; gap: 10px; align-items: center; margin-top: 16px; }
+.prompt-example-toolbar small { color: var(--muted); text-align: right; }
+.prompt-example-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 16px; }
+.prompt-example-card { min-width: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 17px; background: #fffdf7; }
+.prompt-example-card > header { display: flex; gap: 11px; align-items: center; padding: 15px 16px; border-bottom: 1px solid rgba(83, 68, 52, 0.12); background: rgba(232, 238, 227, 0.52); }
+.prompt-example-card h3 { margin: 2px 0 0; color: var(--mint-soft); font-size: 1rem; }
+.prompt-example-card header small { color: var(--muted); font-size: 0.7rem; font-weight: 750; }
+.prompt-example-number { display: grid; flex: 0 0 auto; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--earth); color: #fffdf7; font-size: 0.75rem; font-weight: 850; }
+.prompt-example-hint { margin: 0; padding: 12px 16px; border-bottom: 1px solid rgba(83, 68, 52, 0.1); color: var(--muted); font-size: 0.75rem; line-height: 1.55; }
+.prompt-example-turns { display: grid; }
+.prompt-example-turn { display: grid; gap: 10px; padding: 14px 16px 16px; border-bottom: 1px dashed rgba(83, 68, 52, 0.16); }
+.prompt-example-turn:last-child { border-bottom: 0; }
+.prompt-example-turn-head { display: flex; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 0.69rem; font-weight: 800; }
+.prompt-example-turn-head b { padding: 3px 7px; border-radius: 999px; background: #ebe6da; color: #79664e; font-size: 0.65rem; }
+.prompt-example-turn-head .followup-badge { background: #e4e9e8; color: #566b71; }
+.prompt-example-turn p { margin: 0; color: var(--text); line-height: 1.65; }
+.prompt-example-button { justify-self: start; border: 1px solid rgba(113, 129, 108, 0.38); border-radius: 11px; padding: 9px 12px; background: rgba(113, 129, 108, 0.1); color: var(--mint-soft); font: inherit; font-size: 0.78rem; font-weight: 800; cursor: pointer; }
+.prompt-example-button:hover, .prompt-example-button:focus-visible { outline: 2px solid rgba(113, 129, 108, 0.18); border-color: rgba(113, 129, 108, 0.62); background: rgba(113, 129, 108, 0.16); }
+.prompt-example-button.followup { border-color: rgba(102, 121, 136, 0.38); background: rgba(102, 121, 136, 0.09); color: #526970; }
+.prompt-example-status { margin: 15px 2px 0; color: var(--muted); font-size: 0.76rem; line-height: 1.5; }
+
 .diagnostic-disclosure { margin-top: 14px; padding: 0 !important; overflow: hidden; }
 .diagnostic-summary { display: flex; justify-content: space-between; gap: 18px; align-items: center; padding: 20px 22px; cursor: pointer; list-style: none; }
 .diagnostic-summary::-webkit-details-marker { display: none; }
@@ -234,6 +264,7 @@ footer { display: flex; gap: 18px; justify-content: center; color: var(--muted);
   .split-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .dataset-sample-heading { align-items: flex-start; flex-direction: column; }
   .dataset-controls { width: 100%; }
+  .prompt-example-list { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 640px) {
@@ -257,6 +288,9 @@ footer { display: flex; gap: 18px; justify-content: center; color: var(--muted);
   .structured-sample { grid-template-columns: 1fr; }
   .sample-message { grid-template-columns: 1fr; }
   .sample-message > p { border-left: 0; border-top: 1px solid rgba(83, 68, 52, 0.1); }
+  .prompt-example-summary { align-items: flex-start; flex-direction: column; }
+  .prompt-example-toolbar { grid-template-columns: 1fr; }
+  .prompt-example-toolbar small { text-align: left; }
   .diagnostic-summary { align-items: flex-start; flex-direction: column; }
   .message { max-width: 95%; }
   .form-actions { align-items: stretch; flex-direction: column; }

@@ -230,6 +230,11 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
 ## 진행 기록
 
 - 2026-08-30
+  - 작업 요약: 수동 모델 검사와 고정 20건 진단 사이에 기본 접힘 상태의 실사용 사주 질문 20선(7개 분야·같은 세션 후속 4개)을 추가했다. 예시 선택은 합성 명식이 포함된 prompt 또는 자연어 후속 질문을 입력창에만 채우며 자동 생성을 하지 않는다.
+  - 변경 범위: 두 공개 합성 명식은 승인 계산 정책과 고정 `lunar-python==1.4.8`로 재현하고, 2026년 시기 간지는 자문용·runtime 미승인·전문가 미검수로 명시했다. 실제 사용자·AI Hub 원문, 학습 20K, checkpoint, 고정 진단 결과, sealed blind와 Phase 6은 건드리지 않았다.
+  - 검증: 20개·24 turn·4,000자 상한과 명식·십신·시기 간지를 자동 대조했고 dashboard 28건·전체 261건, Ruff, JavaScript·JSON·diff 검증을 통과했다. live Chrome에서 분야 필터, 입력 채우기, 생성 POST 0건, desktop/mobile overflow 0을 확인했다.
+  - 남은 이슈·후속 작업: 예시와 모델 출력은 진단 전용이며 계산 engine 또는 품질 Gate가 아니다. 답변 개선용 재학습은 새 데이터·평가 계약 승인 뒤 별도로 결정한다.
+- 2026-08-30
   - 작업 요약: dashboard `v1.4.0`에 실제 SFT 시작점인 고정 Kanana Instruct K0를 추가해 `KI20 단독`, `K0 단독`, `K0 ↔ KI20 동시 비교` 수동 세션을 지원한다. 동시 비교는 같은 질문을 두 모델의 독립 문맥에 순차 입력한다.
   - 변경 범위: 두 모델의 weight·tokenizer·chat template·custom code SHA-256을 로드 직전에 검증하고 16GiB GPU에서 하나씩 로드·해제한다. 기존 수동 세션은 KI20 단독으로 읽으며 고정 20건, 데이터, checkpoint, sealed blind와 재학습 상태는 바꾸지 않았다.
   - 검증: strict 고정 파일 경로의 실제 BF16 비교에서 같은 337-token 입력의 출력 `2/2`, peak allocated 각각 `2,677,079,040 bytes`, 전체 GPU 최대 `4,283MiB`, 종료 후 `1,242MiB` 복귀를 확인했다. 전체 259 tests, desktop 좌우·mobile 단일열과 live HTTP를 통과했다.

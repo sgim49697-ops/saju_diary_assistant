@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import hashlib
 import http.client
+import importlib.metadata
 import json
 import tempfile
 import threading
@@ -714,9 +716,22 @@ class Phase5DashboardTests(unittest.TestCase):
         self.assertIn('id="engine-selection-select"', html)
         self.assertIn("k0_vs_ki20", html + script)
         self.assertIn("assistant-response-grid", style)
-        self.assertLess(html.index('id="manual-panel"'), html.index('id="comparison-panel"'))
+        self.assertLess(
+            html.index('id="manual-panel"'), html.index('id="prompt-example-panel"')
+        )
+        self.assertLess(
+            html.index('id="prompt-example-panel"'),
+            html.index('id="comparison-panel"'),
+        )
+        self.assertIn('<details id="prompt-example-panel"', html)
+        self.assertNotIn('<details id="prompt-example-panel" open', html)
         self.assertIn('<details id="comparison-panel"', html)
         self.assertNotIn('<details id="comparison-panel" open', html)
+        self.assertIn('/prompt-examples.json', script)
+        self.assertIn('id="prompt-example-category"', html)
+        self.assertIn("fillPromptFromExample", script)
+        self.assertIn("아직 모델에는 보내지 않았습니다", script)
+        self.assertIn("prompt-example-list", style)
         self.assertIn('id="prompt-profile-select"', html)
         self.assertIn("guided_diagnostic_v1", html + script)
         self.assertIn("raw_no_system", html + script)
@@ -726,6 +741,179 @@ class Phase5DashboardTests(unittest.TestCase):
             encoding="utf-8"
         )
         self.assertNotIn("blind_source_test_500.jsonl", dashboard_source)
+
+    def test_realistic_prompt_catalog_is_synthetic_reproducible_and_bounded(
+        self,
+    ) -> None:
+        from lunar_python import Solar
+
+        from scripts.data.ssaju_policy_review import (
+            BRANCH_ELEMENT,
+            MAIN_HIDDEN_STEM,
+            STEM_ELEMENT,
+            hidden_stem_branch_ten_god,
+            stem_ten_god,
+        )
+
+        catalog_path = ASSET_ROOT / "prompt-examples.json"
+        catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
+        self.assertEqual(catalog["schema_version"], "1.0.0")
+        self.assertEqual(catalog["catalog_id"], "phase5-realistic-saju-manual-v1")
+        self.assertTrue(catalog["diagnostic_only"])
+        self.assertFalse(catalog["formal_gate"])
+        self.assertFalse(catalog["calculator_connected"])
+        self.assertIn("공개 합성 테스트 fixture", catalog["common_preamble"])
+
+        provenance = catalog["fixture_provenance"]
+        policy_path = REPO_ROOT / provenance["calculation_policy"]
+        self.assertEqual(
+            hashlib.sha256(policy_path.read_bytes()).hexdigest(),
+            provenance["calculation_policy_sha256"],
+        )
+        self.assertEqual(provenance["calendar_adapter"], "lunar-python")
+        self.assertEqual(
+            importlib.metadata.version("lunar-python"),
+            provenance["calendar_adapter_version"],
+        )
+        requirements = (REPO_ROOT / "requirements-data.txt").read_text(encoding="utf-8")
+        self.assertIn(provenance["calendar_adapter_artifact_sha256"], requirements)
+        self.assertEqual(provenance["calendar_oracle_role"], "advisory_consistency_only")
+        self.assertFalse(provenance["runtime_approved"])
+        self.assertFalse(provenance["human_domain_review_performed"])
+
+        expected_counts = {
+            "traits_emotion": 3,
+            "career_work": 4,
+            "money": 2,
+            "love_relationships": 4,
+            "family_study": 2,
+            "timing": 3,
+            "life_health": 2,
+        }
+        self.assertEqual(
+            {item["category_id"]: item["expected_items"] for item in catalog["categories"]},
+            expected_counts,
+        )
+        self.assertEqual(len(catalog["items"]), 20)
+        self.assertEqual(
+            len({item["example_id"] for item in catalog["items"]}), 20
+        )
+        actual_counts = {category: 0 for category in expected_counts}
+        fixture_ids = set(catalog["fixtures"])
+        followup_ids: set[str] = set()
+        composed_prompts: list[str] = []
+        for item in catalog["items"]:
+            actual_counts[item["category"]] += 1
+            self.assertGreaterEqual(len(item["turns"]), 1)
+            self.assertTrue(item["turns"][0]["context_refs"])
+            self.assertFalse(item["turns"][0]["same_session_required"])
+            self.assertEqual(
+                [turn["turn"] for turn in item["turns"]],
+                list(range(1, len(item["turns"]) + 1)),
+            )
+            for turn_index, turn in enumerate(item["turns"]):
+                self.assertTrue(set(turn["context_refs"]).issubset(fixture_ids))
+                if turn_index:
+                    self.assertTrue(turn["same_session_required"])
+                    self.assertEqual(turn["context_refs"], [])
+                    followup_ids.add(item["example_id"])
+                if turn["context_refs"]:
+                    context = [
+                        catalog["fixtures"][ref]["prompt_text"]
+                        for ref in turn["context_refs"]
+                    ]
+                    prompt = "\n\n".join(
+                        [
+                            catalog["common_preamble"],
+                            *context,
+                            f"[사용자 질문]\n{turn['question']}",
+                        ]
+                    )
+                else:
+                    prompt = turn["question"]
+                self.assertLessEqual(len(prompt), 4000)
+                composed_prompts.append(prompt)
+        self.assertEqual(actual_counts, expected_counts)
+        self.assertEqual(len(composed_prompts), 24)
+        self.assertEqual(
+            followup_ids,
+            {"realistic-05", "realistic-12", "realistic-16", "realistic-18"},
+        )
+        joined_catalog = json.dumps(catalog, ensure_ascii=False)
+        for private_field in (
+            '"session_id"',
+            '"source_locator"',
+            '"restricted_local_only"',
+        ):
+            self.assertNotIn(private_field, joined_catalog)
+
+        def pillars(values: tuple[int, int, int, int, int, int]) -> list[str]:
+            eight_char = Solar.fromYmdHms(*values).getLunar().getEightChar()
+            return [
+                eight_char.getYear(),
+                eight_char.getMonth(),
+                eight_char.getDay(),
+                eight_char.getTime(),
+            ]
+
+        fixture_cases = (
+            (
+                "primary_natal",
+                (1992, 4, 18, 8, 30, 0),
+                ["壬申", "甲辰", "甲子", "戊辰"],
+                "甲",
+                "표면 오행: 목 2, 화 0, 토 3, 금 1, 수 2",
+            ),
+            (
+                "partner_natal",
+                (1993, 9, 7, 19, 30, 0),
+                ["癸酉", "庚申", "辛卯", "戊戌"],
+                "辛",
+                "표면 오행: 목 1, 화 0, 토 2, 금 4, 수 1",
+            ),
+        )
+        pillar_names = ("년", "월", "일", "시")
+        for fixture_id, values, expected_pillars, day_stem, element_line in fixture_cases:
+            self.assertEqual(pillars(values), expected_pillars)
+            prompt_text = catalog["fixtures"][fixture_id]["prompt_text"]
+            self.assertIn(element_line, prompt_text)
+            for name, pillar in zip(pillar_names, expected_pillars, strict=True):
+                stem, branch = pillar
+                expected_stem_god = (
+                    "본원" if name == "일" else stem_ten_god(day_stem, stem)
+                )
+                self.assertIn(f"{name}간 {stem} {expected_stem_god}", prompt_text)
+                self.assertIn(
+                    f"{name}지 {branch}(정기 {MAIN_HIDDEN_STEM[branch]}) "
+                    f"{hidden_stem_branch_ten_god(day_stem, branch)}",
+                    prompt_text,
+                )
+            element_counts = {element: 0 for element in ("목", "화", "토", "금", "수")}
+            for stem, branch in expected_pillars:
+                element_counts[STEM_ELEMENT[stem]] += 1
+                element_counts[BRANCH_ELEMENT[branch]] += 1
+            self.assertEqual(
+                element_line,
+                "표면 오행: "
+                + ", ".join(f"{element} {element_counts[element]}" for element in element_counts),
+            )
+
+        self.assertEqual(pillars((2026, 8, 30, 12, 0, 0))[:3], ["丙午", "丙申", "丙子"])
+        self.assertEqual(pillars((2026, 9, 5, 12, 0, 0))[:3], ["丙午", "丙申", "壬午"])
+        self.assertEqual(pillars((2026, 9, 6, 12, 0, 0))[:3], ["丙午", "丙申", "癸未"])
+        self.assertEqual(pillars((2026, 9, 15, 12, 0, 0))[1], "丁酉")
+        self.assertEqual(pillars((2026, 10, 15, 12, 0, 0))[1], "戊戌")
+        self.assertEqual(pillars((2026, 11, 15, 12, 0, 0))[1], "己亥")
+        self.assertIn(
+            "2026년 세운 간지: 丙午",
+            catalog["fixtures"]["period_year"]["prompt_text"],
+        )
+        weekend_text = catalog["fixtures"]["period_weekend"]["prompt_text"]
+        self.assertIn("2026-09-05: 년 丙午 / 월 丙申 / 일 壬午", weekend_text)
+        self.assertIn("2026-09-06: 년 丙午 / 월 丙申 / 일 癸未", weekend_text)
+        months_text = catalog["fixtures"]["period_months"]["prompt_text"]
+        for snapshot in ("2026-09-15 대표 월주 丁酉", "2026-10-15 대표 월주 戊戌", "2026-11-15 대표 월주 己亥"):
+            self.assertIn(snapshot, months_text)
 
 
 class Phase5DashboardHTTPTests(unittest.TestCase):
@@ -783,6 +971,14 @@ class Phase5DashboardHTTPTests(unittest.TestCase):
         self.assertEqual(status, 421)
         status, _, _ = self.request("GET", "/api/status")
         self.assertEqual(status, 403)
+
+    def test_prompt_examples_are_a_static_synthetic_catalog(self) -> None:
+        status, headers, payload = self.request("GET", "/prompt-examples.json")
+        self.assertEqual(status, 200)
+        self.assertEqual(headers["content-type"], "application/json; charset=utf-8")
+        catalog = json.loads(payload)
+        self.assertEqual(len(catalog["items"]), 20)
+        self.assertTrue(catalog["diagnostic_only"])
 
     @patch("scripts.training.phase5_dashboard._manual_generation_subprocess")
     @patch("scripts.training.phase5_dashboard._generation_gate")

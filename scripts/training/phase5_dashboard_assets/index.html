@@ -204,6 +204,22 @@
             <div class="form-actions"><small>질문·답변은 현재 run의 Git 제외 private 폴더에만 저장됩니다.</small><button id="generate-button" type="submit">답변 생성</button></div>
           </form>
         </article>
+        <details id="prompt-example-panel" class="panel prompt-example-disclosure hidden">
+          <summary class="prompt-example-summary">
+            <div><span class="label">REAL USER 20 · MANUAL TEST</span><h2>실사용 사주 질문 20선</h2><span class="prompt-example-glance">7개 분야 · 질문 카드 보기</span></div>
+            <span class="cap-label">진단용 · 정식 Gate 아님</span>
+          </summary>
+          <div class="prompt-example-content">
+            <p class="prompt-example-notice" role="note"><strong>공개 합성 명식만 사용합니다.</strong> 현재 대시보드에는 만세력 계산기가 연결되지 않았고, 시기 간지는 고정 라이브러리와 맞춰 본 자문값일 뿐 runtime·전문가 Gold가 아닙니다.</p>
+            <div class="prompt-example-toolbar">
+              <label for="prompt-example-category">관심 분야</label>
+              <select id="prompt-example-category"><option value="all">전체 20개</option></select>
+              <small id="prompt-example-count">카탈로그를 불러오는 중입니다.</small>
+            </div>
+            <div id="prompt-example-list" class="prompt-example-list" aria-live="polite"></div>
+            <p id="prompt-example-status" class="prompt-example-status" aria-live="polite">예시를 누르면 위 수동 질문 입력창만 채워집니다. 자동으로 답변을 생성하지 않습니다.</p>
+          </div>
+        </details>
         <details id="comparison-panel" class="panel diagnostic-disclosure hidden">
           <summary class="diagnostic-summary">
             <div><span class="label">FIXED 20 · DIAGNOSTIC ONLY</span><h2>고정 20건 진단 비교</h2><span id="comparison-glance" class="diagnostic-glance">KI10 ↔ KI20 결과 보기</span></div>

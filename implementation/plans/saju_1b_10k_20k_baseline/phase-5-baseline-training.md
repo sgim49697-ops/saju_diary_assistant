@@ -279,6 +279,11 @@ runs/KI20-MIX-v2/v1.2.0/run-1f5d732cae67/  # 1 epoch 본학습 실행 중
 ## 진행 기록
 
 - 2026-08-30
+  - 작업 요약: 세션별 수동 질문과 고정 20건 진단 사이에 기본 접힘 상태의 `실사용 사주 질문 20선`을 추가했다. 성향·감정, 일·진로, 재물, 연애·관계, 가족·학업, 시기 흐름, 생활 변화·건강 7개 분야를 필터링하고 첫 질문 20개와 같은 세션 후속 질문 4개를 입력창에 채울 수 있다.
+  - 변경 범위: 실제 사용자·AI Hub 원문 대신 `1992-04-18 08:30`, `1993-09-07 19:30` 공개 합성 anchor의 두 명식과 고정 시기 자문값만 사용한다. 명식은 승인 정책 `d6a205…3286c`와 `lunar-python==1.4.8` artifact `3aa11c…69d6`에 묶었고 시기 값은 `advisory_consistency_only`, `runtime_approved=false`, `human_domain_review_performed=false`로 표시했다. 예시 버튼은 수동 질문 textarea만 채우며 세션·엔진·profile을 바꾸거나 `/api/generate`를 호출하지 않는다. 학습 데이터, checkpoint, 고정 20건, sealed blind와 Phase 6은 수정·실행하지 않았다.
+  - 검증: catalog 20개·7개 분야·24 turn, 문맥 참조, 동일 세션 후속 4개, 합성 명식 2개의 4주·표면 오행·십신, 2026년/월/주말 간지, 모든 조합 prompt 4,000자 이하를 자동 대조했다. dashboard 28건과 저장소 전체 261건 unittest, Ruff, JavaScript syntax, JSON·diff 검증이 통과했다. live HTTP 200과 Windows Chrome에서 기본 접힘·필터·첫 질문/후속 입력·생성 POST 0건을 확인했고 desktop·390px mobile 가로 overflow는 0이었다.
+  - 남은 이슈·후속 작업: 이 목록은 현재 모델의 실사용 실패를 찾는 진단 편의 기능이며 정식 품질 Gate나 학습 Gold가 아니다. 계산 engine은 여전히 미연결이고 자문용 시기값도 전문가 해석이 아니므로, 답변 정확도 개선은 별도 runtime bridge와 승인된 새 데이터·평가 fingerprint 뒤에 판단한다.
+- 2026-08-30
   - 작업 요약: dashboard `v1.4.0`에 실제 Full FT 시작점인 고정 `kanana-2-1.3b-instruct@bf4786aa…` K0 원본 축을 추가했다. 새 세션은 `KI20 단독`, `K0 원본 단독`, `K0 ↔ KI20 동시 비교` 중 하나를 고르며, 비교 모드는 같은 prompt profile·greedy 설정을 적용하되 각 모델이 상대 답변을 보지 않는 독립 문맥으로 동작한다.
   - 변경 범위: K0 `model.safetensors` SHA-256 `49aa6c…c942`, KI20 final `2fae23…872d`와 각 tokenizer·chat template·검토된 custom model code의 고정 SHA-256을 로드 직전에 확인하고 모델을 순차 로드·해제한다. 세션 `1.2.0`은 선택 축·모델 fingerprint·엔진별 응답 진단을 Git 제외 private JSON에 원자 저장하며 기존 `1.0/1.1` 세션은 KI20 단독으로 읽고 실제 후속 입력이 있을 때만 지연 변환한다. 기존 고정 20건 KI10↔KI20 산출물, 학습데이터, checkpoint, sealed blind는 수정하지 않았다.
   - 검증: 최종 고정 파일 검증 경로에서 공개 합성 한 문장을 두 모델에 같은 337-token 입력으로 실행해 non-empty `2/2`, K0/KI20 소요 `9.833/3.007초`, peak allocated 각각 `2,677,079,040 bytes`, 전체 GPU 사용 `4,272/4,283MiB`를 확인했고 종료 후 `1,242MiB`로 복귀했다. dashboard targeted 26건과 저장소 전체 259건, Ruff, JavaScript syntax, JSON·diff 검증, desktop `1440×1200` 좌우 비교·mobile `390×844` 단일열 렌더링을 통과했으며 가로 overflow는 없었다. 합성 세션은 사용자 세션 목록에서 분리한 Git 제외 `dashboard/v1.4.0/smoke_sessions`에 보존했다.

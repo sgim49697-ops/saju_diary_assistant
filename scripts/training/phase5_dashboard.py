@@ -94,6 +94,10 @@ STATIC_ASSETS = {
     "/index.html": ("index.html", "text/html; charset=utf-8"),
     "/dashboard.css": ("dashboard.css", "text/css; charset=utf-8"),
     "/dashboard.js": ("dashboard.js", "text/javascript; charset=utf-8"),
+    "/prompt-examples.json": (
+        "prompt-examples.json",
+        "application/json; charset=utf-8",
+    ),
 }
 
 
