@@ -8,10 +8,12 @@
 - 생시 미상·범위 입력은 단일 chart로 확정하지 않는다.
 - DST gap은 차단하고 fold는 후보를 유지한다.
 - 음양력 provider와 절입 provider는 공식 전수 Gate 전 후보 상태다.
-- KASI 자격 증명은 저장소에 없으며 공식 전수 수집은 아직 실행하지 않았다.
-- 1964년 백로 1건은 Astronomy Engine과 Skyfield가 서로 다른 한국 날짜를 반환한다. 해당 KASI 24절기 공식 행이 아직 없어 어느 쪽도 판정자로 삼지 않고 미해결 Gate로 차단한다.
+- KASI 자격 증명은 저장소 밖 0600 runtime 파일로만 사용했다. 음양력 54,787일 수집은 완료했지만 key 값이나 hash는 기록하지 않았다.
+- KASI 24절기 OpenAPI는 1900~2049년을 모두 조회한 2026-08-31 snapshot에서 2000~2028년 696건만 반환했다. 121개 0건 연도를 계산 provider로 채우지 않으므로 공식 전수 Gate는 계속 차단된다.
+- 1964년 백로 1건은 Astronomy Engine과 Skyfield가 서로 다른 한국 날짜를 반환한다. KASI 디지털 역서의 `9월 7일 24시 00분`을 `9월 8일 00:00`으로 정규화한 civil date 판정은 Astronomy Engine과 일치한다. 다만 분 정밀도 원문으로 sub-minute 물리 정확도를 판정하지 않는다.
 - KASI 달력자료는 초를 공개하지 않는 분 표기다. v1.2는 84건에서 Skyfield가 84/84 일치한 관측을 근거로 KST 최근접 분·30초 half-up을 프로젝트 등가 규칙으로 쓰며, 이를 KASI 공식 반올림 규정이라고 주장하지 않는다.
 - 이 등가 규칙에서 Astronomy Engine은 84건 중 16건이 표시 분과 다르므로 현재 production 절입 provider로 승인되지 않았다.
+- Skyfield는 표시 분 84/84를 통과하지만 1964년 공식 역서의 normalized civil date와 다르므로 production 절입 provider로 승인되지 않았다. v5 provider 선택 결과는 `null`이다.
 - Astronomy Engine과 Skyfield/JPL DE440s의 1,800건 차이는 최대 80.666231초다. ΔT 모델을 맞춘 진단 뒤에도 평균 절대 차이가 100.11913% 남아 ΔT는 주원인이 아니며, 나머지는 천문 모델 차이와 일치하지만 완전히 분리·입증하지 못했다.
 - 120초 기준은 공식 정답이나 물리적 오차 예산이 아니라 고정 회귀 가드다. 날짜·사용 가능한 분 표기의 정확성은 공식 KASI 근거가 판정한다.
 - `internal_profile_boundary_assignment_checks` 5,400건은 runtime이 만든 경계 순간 전후의 배정 로직만 검증하며 그 순간 자체의 천문 정확성을 검증하지 않는다.

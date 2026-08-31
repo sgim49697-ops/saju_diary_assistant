@@ -15,7 +15,9 @@
 - 신강약·격국·용신·대운·자동 해석은 runtime fact payload에 넣지 않는다.
 - 새 출생 파생 ID는 32바이트 0600 key 파일의 domain-separated HMAC-SHA256과 v2 prefix를 사용한다. production key가 없으면 fail-closed하며, 고정 test signer는 conformance에만 쓴다.
 - KASI 분 표기는 KST 최근접 분·30초 half-up으로 비교한다. 이는 84건 실측 기반 프로젝트 규칙이지 KASI 공식 반올림 규정이 아니다.
-- 엔진 간 한국 날짜 차이는 KASI 공식 행이 없으면 미해결로 차단한다. Skyfield나 Astronomy Engine이 서로를 판정하지 않는다.
+- KASI 역서의 `24시 00분` 표기는 다음 civil day의 `00:00`으로 정규화하되, 해당 원문 정밀도보다 작은 초 단위 정확도를 주장하지 않는다.
+- 엔진 간 한국 날짜 차이는 KASI 공식 행이 없으면 미해결로 차단한다. Skyfield나 Astronomy Engine이 서로를 판정하지 않는다. 1964년 백로는 KASI 공식 역서로 civil date만 판정했다.
+- 공식 API가 0건을 반환한 연도는 계산 provider 값으로 채우지 않는다. provider 선택에는 공식 1,800개 12절 날짜, 1964 공식 판정, 표시 분 84건, identity·순서·회귀 가드를 모두 요구한다.
 - 120초 독립 엔진 차이 기준은 비권위 회귀 가드다.
 - 활성 intake 계약은 `intake_registry-v1.1.0.json`이 고정한 session v2.1·FSM v1.1·Gate v1.1이다. 중복 `period` key가 있는 과거 session v2는 이력 보존용이며 앱에서 읽지 않는다.
 - 구조화 intake FSM은 자유문을 파싱하지 않는다. 앱 계층이 검증된 event를 넘기며 release·production key·FSM 100/100·저장 암호화·보존 정책이 모두 준비돼야 계산 action을 낸다.
