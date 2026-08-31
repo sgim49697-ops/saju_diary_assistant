@@ -387,5 +387,5 @@ release가 생긴 뒤에만 v3.1 생성과 비학습 preflight를 순서대로 �
 - 2026-08-31
   - 작업 요약: R4~R7 구현과 산출물의 경계 조건을 다시 감사해 release 보고서, v3.1 데이터 이관, dashboard runtime binding의 fail-closed 검증을 보강했다.
   - 변경 범위: conformance report의 canonical build ID·manifest governance·공식 snapshot·구현 파일 집합을 release 시 재검증한다. v3.0.1 원본 manifest SHA-256을 고정하고, v3.1 build preimage·artifact 집합·runtime release·5,250개 tool trajectory 수량을 preflight에서 다시 결합한다. dashboard는 runtime canary가 꺼진 상태에서 새 세션과 기존 결합 세션 모두 계산 사실을 모델 prompt에 넣지 못하게 했으며 내부 generation subprocess에도 명시 flag를 전달한다. 기존 데이터·모델·checkpoint·실행 중 dashboard process는 변경하지 않았다.
-  - 검증: 변경 구현 hash로 새 conformance 보고서 `build-333036eb7024`를 생성했다. 이전 `build-2702394cde89`와 구현 hash를 제외한 집계 값이 byte-equivalent JSON 의미로 일치하며, KASI 표시 분 84건·독립 절입 1,800건·경계 5,400건은 계속 통과한다. 회귀 표적 57건, Ruff, 계약·환경 검증과 실제 v3.0.1 manifest·20,000행 identity 재검증을 통과했다.
-  - 남은 이슈·후속 작업: KASI 인증 snapshot 세 Gate는 계속 미충족이므로 `runtime_gate_passed=false`, release·v3.1 생성·학습 차단 상태를 유지한다. 전체 테스트는 Git 제외 모델·원천·파생물이 있는 원래 worktree에 통합한 뒤 다시 실행한다.
+  - 검증: 변경 구현 hash로 새 conformance 보고서 `build-333036eb7024`를 생성했다. 이전 `build-2702394cde89`와 구현 hash를 제외한 집계 값이 byte-equivalent JSON 의미로 일치하며, KASI 표시 분 84건·독립 절입 1,800건·경계 5,400건은 계속 통과한다. 회귀 표적 57건, Ruff, 계약·환경 검증, 실제 v3.0.1 manifest·20,000행 identity 재검증과 Git 제외 모델·원천·파생물을 포함한 저장소 전체 unittest 335건(43.545초)을 통과했다.
+  - 남은 이슈·후속 작업: KASI 인증 snapshot 세 Gate는 계속 미충족이므로 `runtime_gate_passed=false`, release·v3.1 생성·학습 차단 상태를 유지한다.
