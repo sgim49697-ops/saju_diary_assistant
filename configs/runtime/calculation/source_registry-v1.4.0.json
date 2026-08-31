@@ -1,0 +1,165 @@
+{
+  "_description": "KASI 공식 현재 계산 24기 다운로드를 hard evidence로 추가하고, 비공식 달력자료와 과거 역서의 provider 판정 권한을 advisory로 분리한다.",
+  "schema_version": "1.4.0",
+  "registry_version": "saju-runtime-sources-v1.4.0",
+  "reviewed_at": "2026-09-01",
+  "parent": {
+    "path": "configs/runtime/calculation/source_registry-v1.3.1.json",
+    "sha256": "cfcb9ced0830a1817fab13f0450eefb3492cab8f964ca82b07f06efa52ba69cd"
+  },
+  "official_sources": {
+    "kasi_lunisolar_openapi": {
+      "source_page": "https://www.data.go.kr/data/15012679/openapi.do",
+      "endpoint": "https://apis.data.go.kr/B090041/openapi/service/LrsrCldInfoService/getLunCalInfo",
+      "requested_range": [
+        1900,
+        2049
+      ],
+      "collector_path": "scripts/evaluation/saju_runtime/kasi_collector_v1_1.py",
+      "evidence_class": "SOURCE_HARD_FACT"
+    },
+    "kasi_24_divisions_openapi": {
+      "source_page": "https://www.data.go.kr/data/15012690/openapi.do",
+      "endpoint": "https://apis.data.go.kr/B090041/openapi/service/SpcdeInfoService/get24DivisionsInfo",
+      "requested_range": [
+        1900,
+        2049
+      ],
+      "observed_supported_range": [
+        2000,
+        2028
+      ],
+      "observed_rows": 696,
+      "known_cross_source_conflicts": [
+        {
+          "year": 2011,
+          "term_index": 1,
+          "term_name": "대한",
+          "openapi_locdate": "2011-01-21",
+          "openapi_kst": "19:18",
+          "official_current_download": "2011-01-20T19:19+09:00",
+          "availability_blocking": false,
+          "provider_evidence_precedence": "kasi_official_solar_terms_download"
+        }
+      ],
+      "accepted_snapshot_origins": [
+        {
+          "snapshot_root_version": "v1.2.0",
+          "collector_version": "kasi-term-coverage-collector-v1.2.0",
+          "collector_sha256": "c7ce32d04a5498a2d42dccda5d2408980d49ee158e59eda615b82d7b70347865"
+        },
+        {
+          "snapshot_root_version": "v1.2.1",
+          "collector_version": "kasi-term-coverage-collector-v1.2.1",
+          "collector_sha256": "8cf4e36903025c530b22d19cdf370f8da3b082feb267fa8b008860aa70a7bda1"
+        }
+      ],
+      "origin_transport_collector_sha256": "819b909acf4933f567ee930405aa8c09001f852e6c51751805290eb816a1b3f2",
+      "validator_path": "scripts/evaluation/saju_runtime/kasi_term_coverage_collector_v1_2.py",
+      "coverage_policy": "record_every_requested_year_and_never_fill_zero_row_years_from_a_calculation_provider",
+      "evidence_class": "SOURCE_HARD_FACT_WHERE_RETURNED"
+    },
+    "kasi_official_solar_terms_download": {
+      "source_page": "https://astro.kasi.re.kr/kor/life/post/almanac",
+      "download_endpoint": "https://astro.kasi.re.kr/kor/almanac/solarTerms/download",
+      "published_range": [
+        1920,
+        2100
+      ],
+      "expected_rows_before_upstream_omission": 4344,
+      "observed_rows": 4343,
+      "known_upstream_omissions": [
+        {
+          "year": 2030,
+          "source_kind": 2,
+          "term_name": "우수",
+          "affects_jie": false
+        }
+      ],
+      "jie_rows": 2172,
+      "runtime_range_jie_rows": 1560,
+      "timezone": "KST_UTC_PLUS_09_FIXED",
+      "precision": "minute",
+      "rounding_policy": "nearest_minute_half_up_preserve_date_as_24_00",
+      "collector_path": "scripts/evaluation/saju_runtime/kasi_official_solar_terms_collector.py",
+      "collector_version": "kasi-official-solar-terms-collector-v1.0.0",
+      "collector_sha256": "cd4556ad762e6fbc97f71f9a4271682c338932ee8055624c18643c8d9175ec25",
+      "snapshot_root_version": "v1.3.0",
+      "evidence_class": "SOURCE_HARD_FACT",
+      "provider_values_used": false
+    },
+    "kasi_digitized_almanac_1964": {
+      "source_page": "https://astro.kasi.re.kr/kor/almanac/pageView/26",
+      "archive_id": "KASI_A188_Z_001",
+      "page_sequence": 20,
+      "recorded_fact": "baengno_printed_as_1964_09_07_24_00_kst",
+      "normalized_reference": "1964-09-08T00:00+09:00",
+      "precision": "minute",
+      "document_fact_evidence_class": "SOURCE_HARD_FACT",
+      "provider_adjudication_evidence_class": "INSTITUTIONAL_ADVISORY",
+      "advisory_reason": "kasi_current_calculation_notice_explicitly_allows_historic_almanac_difference"
+    },
+    "kasi_calendar_display_minutes": {
+      "source_page": "https://astro.kasi.re.kr/kor/life/post/calendarData",
+      "range": [
+        2021,
+        2027
+      ],
+      "rows": 84,
+      "evidence_class": "INSTITUTIONAL_ADVISORY",
+      "hard_blocking": false,
+      "authority": "not_formal_almanac"
+    }
+  },
+  "coverage_policy": {
+    "data_availability_question": "whether_all_accessible_official_rows_were_collected_and_validated",
+    "provider_eligibility_question": "whether_a_candidate_matches_all_available_hard_evidence",
+    "target_without_official_coverage": {
+      "year_ranges": [
+        [
+          1900,
+          1919
+        ]
+      ],
+      "jie_rows": 240,
+      "evidence_class": "PROFILE_DETERMINISTIC"
+    },
+    "missing_official_evidence_may_be_filled_by_generated_values": false,
+    "provider_use_outside_official_coverage_implies_official_fact": false
+  },
+  "provider_candidates": {
+    "astronomy_engine": {
+      "package": "astronomy-engine",
+      "version": "2.1.19",
+      "current_runtime_provider": true
+    },
+    "skyfield_de440s": {
+      "package": "skyfield",
+      "version": "1.55",
+      "ephemeris": "de440s.bsp",
+      "ephemeris_sha256": "c1c7feeab882263fc493a9d5a5b2ddd71b54826cdf65d8d17a76126b260a49f2",
+      "timescale": "builtin_no_network",
+      "root_bracket": "fixed_calendar_center_plus_minus_5_days",
+      "astronomy_engine_result_used_as_bracket_center": false
+    }
+  },
+  "validation": {
+    "nested_duplicate_json_keys": "reject",
+    "canonical_snapshot_bytes_required": true,
+    "snapshot_origin_collector_hash_required": true,
+    "same_origin_redirects_only": true,
+    "stored_response_reparsed": true,
+    "known_upstream_omission_must_match_exactly": true,
+    "official_snapshot_values_filled_from_provider": false
+  },
+  "interpretation": {
+    "fixed_kst_for_official_labels": "UTC+09:00",
+    "profile_timezone_for_runtime": "Asia/Seoul@tzdb-2026c",
+    "formal_minute_source_adjudicates_subminute_physical_accuracy": false,
+    "institutional_advisory_can_block_provider": false,
+    "official_source_conflict_means_data_unavailable": false,
+    "current_calculation_minute_download_precedes_openapi_date_on_conflict": true,
+    "no_eligible_provider_means_runtime_provider_unchanged": true,
+    "release_and_app_binding_in_scope": false
+  }
+}

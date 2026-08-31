@@ -1,0 +1,74 @@
+{
+  "_description": "가용한 KASI 공식 절기 수집 완료 여부와 계산 provider 적격성을 분리하고, 현재 계산 분 라벨만 provider hard evidence로 사용한다.",
+  "schema_version": "1.4.0",
+  "gate_version": "saju-runtime-gate-v1.4.0",
+  "suite_version": "saju-runtime-conformance-v6.0.0",
+  "status": "candidate_evidence_only_release_out_of_scope",
+  "profile_id": "KR_CIVIL_MIDNIGHT_V1",
+  "parent": {
+    "path": "configs/runtime/calculation/conformance_gate-v1.3.1.json",
+    "sha256": "c8fbd682e54a5c0a1e9590029d0ad2da0587e239783aaac0d0c9a7eac8ec9278"
+  },
+  "minimum_cases": {
+    "kasi_lunar_days": 54787,
+    "kasi_term_api_years_scanned": 150,
+    "kasi_term_api_rows_observed": 696,
+    "kasi_official_download_rows": 4343,
+    "kasi_official_download_expected_rows_before_known_omission": 4344,
+    "kasi_official_download_known_non_jie_omissions": 1,
+    "kasi_official_download_jie_rows": 2172,
+    "kasi_official_runtime_range_jie_rows": 1560,
+    "profile_deterministic_jie_rows": 240,
+    "institutional_advisory_minute_rows": 84,
+    "historical_1964_baengno_rows": 1,
+    "provider_jie_instants_each": 1800,
+    "selected_provider_boundary_assignment": 5400,
+    "unknown_range": 500,
+    "hmac_id_vectors": 200,
+    "unsupported_foreign": 20
+  },
+  "data_availability_gate": {
+    "openapi_requested_range_scan_complete": true,
+    "official_download_snapshot_collected": true,
+    "official_download_known_omission_exact": true,
+    "official_download_jie_coverage_complete": true,
+    "all_accessible_official_data_collected": true,
+    "official_snapshot_values_filled_from_provider": false,
+    "target_without_official_rows_classified_profile_deterministic": true
+  },
+  "provider_eligibility_gate": {
+    "available_official_current_jie_complete": true,
+    "available_official_current_date_mismatch_zero": true,
+    "available_official_current_minute_label_mismatch_zero": true,
+    "provider_rows_complete": true,
+    "term_identity_failure_zero": true,
+    "provider_chronological_order_failure_zero": true,
+    "fixed_120_second_regression_guard": true,
+    "institutional_advisory_can_block": false
+  },
+  "evidence_authority": {
+    "kasi_official_current_calculation": "SOURCE_HARD_FACT",
+    "target_without_official_source_coverage": "PROFILE_DETERMINISTIC",
+    "kasi_nonformal_calendar_data": "INSTITUTIONAL_ADVISORY",
+    "historical_almanac_document_fact": "SOURCE_HARD_FACT",
+    "historical_almanac_as_current_physical_instant_adjudicator": "INSTITUTIONAL_ADVISORY",
+    "subminute_physical_accuracy": "not_adjudicated_by_minute_precision_sources"
+  },
+  "selection_rule": {
+    "none_eligible": "block_provider_selection_but_do_not_fail_data_availability",
+    "one_eligible": "record_candidate_selection_without_release",
+    "both_eligible": "retain_astronomy_engine_by_dependency_tie_break",
+    "selected_candidate_boundary_checks": "before_exact_after_for_5400_cases",
+    "runtime_change_in_this_scope": false
+  },
+  "promotion_effects": {
+    "runtime_approved": false,
+    "release_approval_performed": false,
+    "runtime_feature_flag_default": false,
+    "app_binding_performed": false,
+    "mix20k_v3_1_regeneration_allowed": false,
+    "training_promotion_allowed": false,
+    "phase5_training_performed": false,
+    "sealed_blind_access_allowed": false
+  }
+}

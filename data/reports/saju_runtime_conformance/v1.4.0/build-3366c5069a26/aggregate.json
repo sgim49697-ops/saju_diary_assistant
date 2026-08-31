@@ -1,0 +1,1920 @@
+{
+  "app_binding_performed": false,
+  "baengno_1964_evidence": {
+    "current_kasi_calculation": {
+      "evidence_class": "SOURCE_HARD_FACT",
+      "printed_local_date": "1964-09-07",
+      "reference_local_minute": "1964-09-07T23:59+09:00"
+    },
+    "historical_kasi_almanac": {
+      "document_fact_evidence_class": "SOURCE_HARD_FACT",
+      "normalized_reference_local_minute": "1964-09-08T00:00+09:00",
+      "printed_label": "1964-09-07 24:00 KST",
+      "provider_adjudication_evidence_class": "INSTITUTIONAL_ADVISORY",
+      "subminute_instant_claimed": false
+    },
+    "interpretation": "historic_printed_fact_and_current_calculation_are_distinct_vintages",
+    "labels_equal": false
+  },
+  "baseline_conformance_blocking_reasons": [],
+  "baseline_conformance_checks": {
+    "baseline_internal_boundary_cases_complete": true,
+    "baseline_internal_boundary_mismatch_zero": true,
+    "dst_fold_auto_pick_zero": true,
+    "dst_gap_auto_shift_zero": true,
+    "guessed_unknown_hour_zero": true,
+    "heuristic_fact_leak_zero": true,
+    "hmac_id_mismatch_zero": true,
+    "hmac_id_vectors_complete": true,
+    "host_timezone_or_locale_drift_zero": true,
+    "kasi_day_ganzhi_mismatch_zero": true,
+    "kasi_lunar_conversion_mismatch_zero": true,
+    "policy_fixture_mismatch_zero": true,
+    "profile_id_failure_zero": true,
+    "provider_chronological_order_failure_zero": true,
+    "provider_fixed_120_second_regression_guard": true,
+    "provider_rows_complete": true,
+    "provider_term_identity_failure_zero": true,
+    "source_version_id_failure_zero": true,
+    "time_scale_diagnostic_completed": true,
+    "unknown_range_complete": true,
+    "unsupported_foreign_complete": true,
+    "unsupported_foreign_failure_zero": true
+  },
+  "baseline_conformance_gate_passed": true,
+  "baseline_internal_boundary_assignment_checks": {
+    "cases": 5400,
+    "mismatch_details_truncated": false,
+    "mismatch_rows": 0,
+    "mismatches": [],
+    "reporting_label": "internal_profile_boundary_assignment_checks",
+    "scope": "internal_assignment_around_runtime_generated_boundary_instants",
+    "validates_assignment_logic": true,
+    "validates_boundary_instant_accuracy": false
+  },
+  "comparison_version": "saju-solar-term-provider-comparison-v2.0.0",
+  "data_availability_blocking_reasons": [],
+  "data_availability_checks": {
+    "historical_1964_document_collected": true,
+    "institutional_advisory_rows_collected": true,
+    "kasi_lunar_snapshot_complete": true,
+    "official_download_jie_coverage_complete": true,
+    "official_download_known_omission_exact": true,
+    "official_download_snapshot_collected": true,
+    "official_snapshot_values_not_provider_filled": true,
+    "openapi_and_official_download_crosscheck_completed": true,
+    "openapi_observed_rows_complete": true,
+    "openapi_requested_range_scan_complete": true,
+    "target_without_official_rows_classified_profile_deterministic": true
+  },
+  "data_availability_gate_passed": true,
+  "engine_version": "saju-runtime-python-v1.2.0",
+  "hmac_id_invariants": {
+    "domain_collisions": 0,
+    "id_kinds_per_vector": 5,
+    "key_separation_failures": 0,
+    "key_value_recorded": false,
+    "prefix_failures": 0,
+    "production_signer_accepted": false,
+    "reproducibility_mismatches": 0,
+    "signer_kind": "fixed_non_production_injected",
+    "vectors": 200
+  },
+  "host_invariance": {
+    "byte_drift": 0,
+    "runs": 2,
+    "tested_locales": [
+      "C",
+      "C.UTF-8"
+    ]
+  },
+  "id_contract_version": "saju-runtime-id-hmac-v2.0.0",
+  "inputs": {
+    "gate_sha256": "7353131db05abc3c66783e88bc8df100852048b32b69cf6681c6d623fcd8e154",
+    "implementation_sha256": {
+      "configs/runtime/calculation/conformance_gate-v1.4.0.json": "7353131db05abc3c66783e88bc8df100852048b32b69cf6681c6d623fcd8e154",
+      "configs/runtime/calculation/source_registry-v1.4.0.json": "83d2c6e168d1e45166622ff9462a130fd25594395ce8102de384892652f401e9",
+      "scripts/evaluation/saju_runtime/conformance_v5.py": "3543b130c2684c5cc9d337aa138cd91fc0b551865eaef6b260d7bcfb70c498d8",
+      "scripts/evaluation/saju_runtime/conformance_v6.py": "c3ac8c60a8bee3c4f05bcf2240a1e19e4475e89df60e22168ceac007436d0392",
+      "scripts/evaluation/saju_runtime/kasi_almanac_1964_collector.py": "cb11263e13f204f39fbd6404232995a84ed10a69724aef174acf2191c8103d5c",
+      "scripts/evaluation/saju_runtime/kasi_official_solar_terms_collector.py": "cd4556ad762e6fbc97f71f9a4271682c338932ee8055624c18643c8d9175ec25",
+      "scripts/evaluation/saju_runtime/kasi_term_coverage_collector_v1_2.py": "8cf4e36903025c530b22d19cdf370f8da3b082feb267fa8b008860aa70a7bda1",
+      "scripts/evaluation/saju_runtime/solar_term_provider_comparison_v1.py": "417647fe74e3f83821188331a988f7a9c60b304edaca15f29d126cb569ad5680",
+      "scripts/evaluation/saju_runtime/solar_term_provider_comparison_v2.py": "ad5b84c51adc728b5832166e79e0f9de0821be19b278569bac8fa8e880067d1b",
+      "scripts/evaluation/saju_runtime/strict_json.py": "d805220721a27edbcd2e66f4954aab0bea97779665cdd9b78ed78dd6487018a1",
+      "scripts/runtime/calculation/engine_v1_2.py": "353523bd50924372c551bc3be9efc8467dfe4c03f0da53e8da08745d9368c529",
+      "scripts/runtime/calculation/solar_terms.py": "5ca5ae0e9303ee626be8276fae329142625acc44443eb6a7cc8d7aa54a232ce4"
+    },
+    "official_snapshots": {
+      "kasi_1964_historical_almanac": {
+        "archive_id": "KASI_A188_Z_001",
+        "complete": true,
+        "document_fact_evidence_class": "SOURCE_HARD_FACT",
+        "hard_blocking": false,
+        "image_sha256": "553f0734a32191c394b34c95773d34bb4fd2348f0c325761ec8f511121e49010",
+        "kind": "private_official_kasi_digitized_almanac",
+        "manifest_sha256": "4adf8c2892d1e717ec669cddeeee941e3edf1f786a864dfb5bb93bfd4a40fb9f",
+        "origin_collector_sha256": "b1002a4ebeba07a6f283d623220b57e431be4e23ae6a7eba1372de6c24182efb",
+        "origin_collector_version": "kasi-almanac-1964-collector-v1.0.0",
+        "page_sequence": 20,
+        "private_path_recorded": false,
+        "provided": true,
+        "provider_adjudication_evidence_class": "INSTITUTIONAL_ADVISORY",
+        "sha256": "5fafbb8dfd3e7d43e5a5ce59619195061beaac76c2f1dc94fe32d1205c4138a5"
+      },
+      "kasi_24_divisions_openapi_observed_coverage": {
+        "api_range_scan_complete": true,
+        "contract_coverage_complete": false,
+        "expected_rows": 3600,
+        "kind": "private_official_24_divisions_observed_api_coverage",
+        "manifest_sha256": "30c104c9a01d00abb902380d4917d009dafa46e08864c261c1abca443b1c6bcf",
+        "origin_collector_sha256": "c7ce32d04a5498a2d42dccda5d2408980d49ee158e59eda615b82d7b70347865",
+        "origin_collector_version": "kasi-term-coverage-collector-v1.2.0",
+        "private_path_recorded": false,
+        "provided": true,
+        "requested_years": [
+          1900,
+          2049
+        ],
+        "rows": 696,
+        "scan_sha256": "5bf0e5d8540bd09b36dce56a4d7c1a995f84d1c5225ba40ac9cd33887062d389",
+        "sha256": "eabaa07271529c08ecc02c3886775b39d069ee9db3f7522242ccad95ec51bb4c",
+        "supported_year_ranges": [
+          [
+            2000,
+            2028
+          ]
+        ],
+        "supported_years": [
+          2000,
+          2001,
+          2002,
+          2003,
+          2004,
+          2005,
+          2006,
+          2007,
+          2008,
+          2009,
+          2010,
+          2011,
+          2012,
+          2013,
+          2014,
+          2015,
+          2016,
+          2017,
+          2018,
+          2019,
+          2020,
+          2021,
+          2022,
+          2023,
+          2024,
+          2025,
+          2026,
+          2027,
+          2028
+        ],
+        "unsupported_years_filled_from_provider": false,
+        "years_scanned": 150
+      },
+      "kasi_lunisolar": {
+        "complete": true,
+        "kind": "private_official_full_lunisolar",
+        "manifest_sha256": "824bd313dcced2b15bda75c9c5d136e06b6cb1c2330c3f47dc0ffab007b30b48",
+        "private_path_recorded": false,
+        "provided": true,
+        "sha256": "276de1729cbec4ecba013c9a9f92d80f14fcac0440bc86565047c29ac341ef04",
+        "supported_rows": 54787
+      },
+      "kasi_nonformal_minute_reference": {
+        "complete": true,
+        "evidence_class": "INSTITUTIONAL_ADVISORY",
+        "hard_blocking": false,
+        "kind": "private_institutional_minute_reference",
+        "manifest_sha256": "47f3952f266ab471270d8a0e9a2d83fb97e477e7e112702750c704559199a4d2",
+        "private_path_recorded": false,
+        "provided": true,
+        "rows": 84,
+        "sha256": "5c1c12a7a3821a330a04b0b2e10117a4c2f28af748211d163bf9a4631d8940bf",
+        "source_tier": "institutional_minute_display_reference_not_formal_almanac"
+      },
+      "kasi_official_current_solar_terms": {
+        "evidence_class": "SOURCE_HARD_FACT",
+        "expected_jie_rows": 2172,
+        "expected_rows_before_known_omission": 4344,
+        "jie_coverage_complete": true,
+        "jie_rows": 2172,
+        "kind": "private_official_current_calculation_solar_terms",
+        "known_upstream_omissions": [
+          {
+            "source_kind": 2,
+            "year": 2030
+          }
+        ],
+        "manifest_sha256": "6d3c45f469e5f16fafea6e4d2eeec75f9880c39f5cca85983201143a9f0d60d8",
+        "origin_collector_sha256": "cd4556ad762e6fbc97f71f9a4271682c338932ee8055624c18643c8d9175ec25",
+        "origin_collector_version": "kasi-official-solar-terms-collector-v1.0.0",
+        "private_path_recorded": false,
+        "provided": true,
+        "provider_values_used": false,
+        "response_sha256": "ef0c15acc7e673e6aba3c194b5681ac49e54387dd170a21d33c506eac70592e7",
+        "snapshot_sha256": "57ae1e017e7632f1fa5a1ab3966977c512503c4fdd828f504d1103e61d8a3213",
+        "source_range": [
+          1920,
+          2100
+        ],
+        "source_rows": 4343
+      }
+    },
+    "policy_fixture": {
+      "path": "tests/fixtures/saju_external_conformance/policy_cases_20.jsonl",
+      "sha256": "5a424a7bf7f31cc9bb8505317a8674213fc7ec26eaee72f4062bed5b82cb94e6"
+    },
+    "public_fallback_fixture": {
+      "path": "tests/fixtures/saju_external_conformance/kasi_lunar_200.json",
+      "sha256": "d651d5a77d7970cde4b36f414995b6ea833b4d50760f23fe0f462c96fdf8ca1a"
+    },
+    "source_registry_sha256": "83d2c6e168d1e45166622ff9462a130fd25594395ce8102de384892652f401e9",
+    "source_registry_version": "saju-runtime-sources-v1.4.0",
+    "test_signer": {
+      "accepted_for_production": false,
+      "key_value_recorded": false,
+      "kind": "fixed_non_production_injected"
+    }
+  },
+  "kasi_solar_term_source_crosscheck": {
+    "mismatch_details_truncated": false,
+    "normalized_date_mismatch_rows": [
+      {
+        "official_download_normalized_date": "2011-01-20",
+        "openapi_date": "2011-01-21",
+        "term_index": 1,
+        "year": 2011
+      }
+    ],
+    "normalized_date_mismatches": 1,
+    "official_download_missing_row_details": [],
+    "official_download_missing_rows": 0,
+    "openapi_jie_rows": 348,
+    "openapi_rows": 696,
+    "printed_date_convention_difference_rows": [],
+    "printed_date_convention_differences": 0
+  },
+  "mix20k_v3_1_generated": false,
+  "mix20k_v3_1_regeneration_allowed": false,
+  "official_kasi_lunisolar": {
+    "day_ganzhi_mismatches": 0,
+    "official_hard_mismatches": 0,
+    "rows": 54787,
+    "solar_lunar_mismatches": 0
+  },
+  "official_kasi_solar_term_availability": {
+    "official_download_jie_rows": 2172,
+    "official_download_known_upstream_omissions": [
+      {
+        "source_kind": 2,
+        "year": 2030
+      }
+    ],
+    "official_download_rows": 4343,
+    "official_download_source_range": [
+      1920,
+      2100
+    ],
+    "official_runtime_range_jie_rows": 1560,
+    "official_snapshot_values_filled_from_provider": false,
+    "openapi_rows": 696,
+    "openapi_supported_year_ranges": [
+      [
+        2000,
+        2028
+      ]
+    ],
+    "openapi_years_scanned": 150,
+    "profile_deterministic_jie_rows": 240
+  },
+  "phase5_training_performed": false,
+  "policy_comparison": {
+    "comparable_rows": 16,
+    "excluded_non_profile_cases": [
+      "day-boundary-jasi-20240310-2330",
+      "day-boundary-split-jasi-20240310-2330",
+      "true-solar-seoul-19900515-0705",
+      "void-branches-gyeongjin"
+    ],
+    "fixture_rows": 20,
+    "mismatch_rows": 0,
+    "mismatches": [],
+    "passed_rows": 16
+  },
+  "profile_id": "KR_CIVIL_MIDNIGHT_V1",
+  "provider_eligibility_blocking_reasons": [
+    "at_least_one_provider_matches_all_hard_evidence",
+    "eligible_provider_selected",
+    "selected_provider_boundary_cases_complete",
+    "selected_provider_boundary_mismatch_zero"
+  ],
+  "provider_eligibility_checks": {
+    "at_least_one_provider_matches_all_hard_evidence": false,
+    "eligible_provider_selected": false,
+    "selected_provider_boundary_cases_complete": false,
+    "selected_provider_boundary_mismatch_zero": false
+  },
+  "provider_eligibility_gate_passed": false,
+  "public_diagnostics": {
+    "provider_delta_by_year_svg": {
+      "bytes": 223170,
+      "sha256": "7e166fee2bcb8ef2a3b370755bb6023c5b6087f1b3a2c66b7ff1644bd3cab290"
+    },
+    "provider_records": {
+      "bytes": 1719810,
+      "contains_birth_or_session_data": false,
+      "rows": 1800,
+      "sha256": "83e6c936f658d859e0d9f046f6e1ca2a06169aa723f014b4a8babd13a4ef4a3b"
+    },
+    "provider_time_scale_scatter_svg": {
+      "bytes": 476031,
+      "sha256": "02ca6f3ff18cb2319ea90641b65f1eaf8102e0babb694e2df91be8a14ac11040"
+    }
+  },
+  "raw_restricted_samples_in_report": false,
+  "release_approval_performed": false,
+  "release_registry_creation_allowed": false,
+  "runtime_approved": false,
+  "runtime_feature_flag_default": false,
+  "runtime_gate_passed": false,
+  "runtime_provider_changed": false,
+  "schema_version": "1.4.0",
+  "sealed_blind_accessed": false,
+  "selected_provider_boundary_assignment_checks": {
+    "cases": 0,
+    "expected_cases": 5400,
+    "mismatch_rows": null,
+    "reason": "provider_selection_blocked",
+    "status": "not_run_no_selected_provider"
+  },
+  "solar_term_provider_comparison": {
+    "astronomy_chronological_order_failures": 0,
+    "comparison_version": "saju-solar-term-provider-comparison-v2.0.0",
+    "delta_convention": "astronomy_instant_utc_minus_skyfield_instant_utc",
+    "delta_distribution": {
+      "maximum_absolute_seconds": 80.666231,
+      "mean_absolute_seconds": 17.130844,
+      "p99_absolute_seconds": 57.56609,
+      "rows": 1800
+    },
+    "evidence_classes": {
+      "INSTITUTIONAL_ADVISORY": "institutional_but_nonblocking_reference",
+      "PROFILE_DETERMINISTIC": "provider_generated_target_rows_without_official_source_coverage",
+      "SOURCE_HARD_FACT": "official_source_rows_that_may_block_provider_eligibility"
+    },
+    "expected_rows": 1800,
+    "fixed_regression_guard": {
+      "failures": 0,
+      "maximum_seconds": 120.0,
+      "role": "non_authoritative_regression_guard_not_accuracy_oracle"
+    },
+    "institutional_advisory_evidence": {
+      "evidence_class": "INSTITUTIONAL_ADVISORY",
+      "hard_blocking": false,
+      "providers": {
+        "astronomy_engine": {
+          "historical_1964_display_minute_match": true,
+          "historical_1964_normalized_reference": "1964-09-08T00:00+09:00",
+          "historical_1964_printed_label": "1964-09-07 24:00 KST",
+          "nonformal_calendar_expected_rows": 84,
+          "nonformal_calendar_minute_label_mismatches": 16,
+          "nonformal_calendar_minute_mismatch_rows": [
+            {
+              "actual": "2021-01-05T12:24+09:00",
+              "expected": "2021-01-05T12:23+09:00",
+              "term_index": 0,
+              "year": 2021
+            },
+            {
+              "actual": "2022-10-08T16:23+09:00",
+              "expected": "2022-10-08T16:22+09:00",
+              "term_index": 18,
+              "year": 2022
+            },
+            {
+              "actual": "2022-11-07T19:46+09:00",
+              "expected": "2022-11-07T19:45+09:00",
+              "term_index": 20,
+              "year": 2022
+            },
+            {
+              "actual": "2023-02-04T11:42+09:00",
+              "expected": "2023-02-04T11:43+09:00",
+              "term_index": 2,
+              "year": 2023
+            },
+            {
+              "actual": "2023-07-07T17:30+09:00",
+              "expected": "2023-07-07T17:31+09:00",
+              "term_index": 12,
+              "year": 2023
+            },
+            {
+              "actual": "2024-03-05T11:22+09:00",
+              "expected": "2024-03-05T11:23+09:00",
+              "term_index": 4,
+              "year": 2024
+            },
+            {
+              "actual": "2024-08-07T09:10+09:00",
+              "expected": "2024-08-07T09:09+09:00",
+              "term_index": 14,
+              "year": 2024
+            },
+            {
+              "actual": "2024-09-07T12:12+09:00",
+              "expected": "2024-09-07T12:11+09:00",
+              "term_index": 16,
+              "year": 2024
+            },
+            {
+              "actual": "2025-08-07T14:51+09:00",
+              "expected": "2025-08-07T14:52+09:00",
+              "term_index": 14,
+              "year": 2025
+            },
+            {
+              "actual": "2026-06-06T00:49+09:00",
+              "expected": "2026-06-06T00:48+09:00",
+              "term_index": 10,
+              "year": 2026
+            },
+            {
+              "actual": "2026-09-07T23:42+09:00",
+              "expected": "2026-09-07T23:41+09:00",
+              "term_index": 16,
+              "year": 2026
+            },
+            {
+              "actual": "2026-10-08T15:30+09:00",
+              "expected": "2026-10-08T15:29+09:00",
+              "term_index": 18,
+              "year": 2026
+            },
+            {
+              "actual": "2026-11-07T18:53+09:00",
+              "expected": "2026-11-07T18:52+09:00",
+              "term_index": 20,
+              "year": 2026
+            },
+            {
+              "actual": "2027-03-06T04:39+09:00",
+              "expected": "2027-03-06T04:40+09:00",
+              "term_index": 4,
+              "year": 2027
+            },
+            {
+              "actual": "2027-06-06T06:25+09:00",
+              "expected": "2027-06-06T06:26+09:00",
+              "term_index": 10,
+              "year": 2027
+            },
+            {
+              "actual": "2027-08-08T02:26+09:00",
+              "expected": "2027-08-08T02:27+09:00",
+              "term_index": 14,
+              "year": 2027
+            }
+          ],
+          "nonformal_calendar_rows": 84
+        },
+        "skyfield_de440s": {
+          "historical_1964_display_minute_match": false,
+          "historical_1964_normalized_reference": "1964-09-08T00:00+09:00",
+          "historical_1964_printed_label": "1964-09-07 24:00 KST",
+          "nonformal_calendar_expected_rows": 84,
+          "nonformal_calendar_minute_label_mismatches": 0,
+          "nonformal_calendar_minute_mismatch_rows": [],
+          "nonformal_calendar_rows": 84
+        }
+      },
+      "reason": "calendarData_is_not_formal_and_historic_almanac_may_differ_from_current_kasi_calculation"
+    },
+    "maximum_signed_delta_seconds": 80.666231,
+    "minimum_signed_delta_seconds": -44.512186,
+    "official_hard_evidence": {
+      "astronomy_engine": {
+        "blocking_reasons": [
+          "available_official_current_date_mismatch_zero",
+          "available_official_current_minute_label_mismatch_zero"
+        ],
+        "current_calculation_1964_baengno": {
+          "display_minute_match": false,
+          "provider_display_minute_fixed_kst": "1964-09-08T00:00+09:00",
+          "reference_local_minute": "1964-09-07T23:59+09:00"
+        },
+        "eligibility_checks": {
+          "available_official_current_date_mismatch_zero": false,
+          "available_official_current_jie_complete": true,
+          "available_official_current_minute_label_mismatch_zero": false,
+          "fixed_120_second_regression_guard": true,
+          "provider_chronological_order_failure_zero": true,
+          "provider_rows_complete": true,
+          "term_identity_failure_zero": true
+        },
+        "eligible": false,
+        "evidence_class": "SOURCE_HARD_FACT",
+        "hard_blocking": true,
+        "official_current_date_mismatch_details_truncated": false,
+        "official_current_date_mismatch_rows": [
+          {
+            "actual": "1964-09-08",
+            "expected": "1964-09-07",
+            "term_index": 16,
+            "year": 1964
+          }
+        ],
+        "official_current_date_mismatches": 1,
+        "official_current_jie_expected_rows": 1560,
+        "official_current_jie_rows": 1560,
+        "official_current_minute_label_mismatches": 303,
+        "official_current_minute_mismatch_details_truncated": true,
+        "official_current_minute_mismatch_rows": [
+          {
+            "actual": "1920-06-06T09:51+09:00",
+            "expected": "1920-06-06T09:50+09:00",
+            "term_index": 10,
+            "year": 1920
+          },
+          {
+            "actual": "1920-12-07T18:31+09:00",
+            "expected": "1920-12-07T18:30+09:00",
+            "term_index": 22,
+            "year": 1920
+          },
+          {
+            "actual": "1921-08-08T11:44+09:00",
+            "expected": "1921-08-08T11:43+09:00",
+            "term_index": 14,
+            "year": 1921
+          },
+          {
+            "actual": "1921-12-08T00:12+09:00",
+            "expected": "1921-12-08T00:11+09:00",
+            "term_index": 22,
+            "year": 1921
+          },
+          {
+            "actual": "1922-03-06T17:33+09:00",
+            "expected": "1922-03-06T17:34+09:00",
+            "term_index": 4,
+            "year": 1922
+          },
+          {
+            "actual": "1922-12-08T06:10+09:00",
+            "expected": "1922-12-08T06:11+09:00",
+            "term_index": 22,
+            "year": 1922
+          },
+          {
+            "actual": "1923-03-06T23:25+09:00",
+            "expected": "1923-03-06T23:24+09:00",
+            "term_index": 4,
+            "year": 1923
+          },
+          {
+            "actual": "1923-06-07T03:15+09:00",
+            "expected": "1923-06-07T03:14+09:00",
+            "term_index": 10,
+            "year": 1923
+          },
+          {
+            "actual": "1923-07-08T13:43+09:00",
+            "expected": "1923-07-08T13:42+09:00",
+            "term_index": 12,
+            "year": 1923
+          },
+          {
+            "actual": "1923-08-08T23:25+09:00",
+            "expected": "1923-08-08T23:24+09:00",
+            "term_index": 14,
+            "year": 1923
+          },
+          {
+            "actual": "1923-10-09T17:04+09:00",
+            "expected": "1923-10-09T17:03+09:00",
+            "term_index": 18,
+            "year": 1923
+          },
+          {
+            "actual": "1923-11-08T19:41+09:00",
+            "expected": "1923-11-08T19:40+09:00",
+            "term_index": 20,
+            "year": 1923
+          },
+          {
+            "actual": "1924-03-06T05:13+09:00",
+            "expected": "1924-03-06T05:12+09:00",
+            "term_index": 4,
+            "year": 1924
+          },
+          {
+            "actual": "1924-06-06T09:01+09:00",
+            "expected": "1924-06-06T09:02+09:00",
+            "term_index": 10,
+            "year": 1924
+          },
+          {
+            "actual": "1926-01-06T10:55+09:00",
+            "expected": "1926-01-06T10:54+09:00",
+            "term_index": 0,
+            "year": 1926
+          },
+          {
+            "actual": "1927-06-07T02:24+09:00",
+            "expected": "1927-06-07T02:25+09:00",
+            "term_index": 10,
+            "year": 1927
+          },
+          {
+            "actual": "1928-04-05T09:54+09:00",
+            "expected": "1928-04-05T09:55+09:00",
+            "term_index": 6,
+            "year": 1928
+          },
+          {
+            "actual": "1928-08-08T04:27+09:00",
+            "expected": "1928-08-08T04:28+09:00",
+            "term_index": 14,
+            "year": 1928
+          },
+          {
+            "actual": "1929-06-06T14:10+09:00",
+            "expected": "1929-06-06T14:11+09:00",
+            "term_index": 10,
+            "year": 1929
+          },
+          {
+            "actual": "1929-12-07T22:57+09:00",
+            "expected": "1929-12-07T22:56+09:00",
+            "term_index": 22,
+            "year": 1929
+          },
+          {
+            "actual": "1930-03-06T16:16+09:00",
+            "expected": "1930-03-06T16:17+09:00",
+            "term_index": 4,
+            "year": 1930
+          },
+          {
+            "actual": "1930-09-08T18:29+09:00",
+            "expected": "1930-09-08T18:28+09:00",
+            "term_index": 16,
+            "year": 1930
+          },
+          {
+            "actual": "1930-10-09T09:38+09:00",
+            "expected": "1930-10-09T09:37+09:00",
+            "term_index": 18,
+            "year": 1930
+          },
+          {
+            "actual": "1930-12-08T04:50+09:00",
+            "expected": "1930-12-08T04:51+09:00",
+            "term_index": 22,
+            "year": 1930
+          },
+          {
+            "actual": "1931-01-06T15:55+09:00",
+            "expected": "1931-01-06T15:56+09:00",
+            "term_index": 0,
+            "year": 1931
+          },
+          {
+            "actual": "1932-12-07T16:19+09:00",
+            "expected": "1932-12-07T16:18+09:00",
+            "term_index": 22,
+            "year": 1932
+          },
+          {
+            "actual": "1933-03-06T09:32+09:00",
+            "expected": "1933-03-06T09:31+09:00",
+            "term_index": 4,
+            "year": 1933
+          },
+          {
+            "actual": "1933-04-05T14:51+09:00",
+            "expected": "1933-04-05T14:50+09:00",
+            "term_index": 6,
+            "year": 1933
+          },
+          {
+            "actual": "1933-08-08T09:25+09:00",
+            "expected": "1933-08-08T09:26+09:00",
+            "term_index": 14,
+            "year": 1933
+          },
+          {
+            "actual": "1933-10-09T03:03+09:00",
+            "expected": "1933-10-09T03:04+09:00",
+            "term_index": 18,
+            "year": 1933
+          },
+          {
+            "actual": "1933-11-08T05:42+09:00",
+            "expected": "1933-11-08T05:43+09:00",
+            "term_index": 20,
+            "year": 1933
+          },
+          {
+            "actual": "1934-01-06T09:17+09:00",
+            "expected": "1934-01-06T09:16+09:00",
+            "term_index": 0,
+            "year": 1934
+          },
+          {
+            "actual": "1934-02-04T21:03+09:00",
+            "expected": "1934-02-04T21:04+09:00",
+            "term_index": 2,
+            "year": 1934
+          },
+          {
+            "actual": "1934-04-05T20:43+09:00",
+            "expected": "1934-04-05T20:44+09:00",
+            "term_index": 6,
+            "year": 1934
+          },
+          {
+            "actual": "1934-12-08T03:56+09:00",
+            "expected": "1934-12-08T03:57+09:00",
+            "term_index": 22,
+            "year": 1934
+          },
+          {
+            "actual": "1935-07-08T11:05+09:00",
+            "expected": "1935-07-08T11:06+09:00",
+            "term_index": 12,
+            "year": 1935
+          },
+          {
+            "actual": "1935-10-09T14:35+09:00",
+            "expected": "1935-10-09T14:36+09:00",
+            "term_index": 18,
+            "year": 1935
+          },
+          {
+            "actual": "1935-11-08T17:17+09:00",
+            "expected": "1935-11-08T17:18+09:00",
+            "term_index": 20,
+            "year": 1935
+          },
+          {
+            "actual": "1936-04-05T08:06+09:00",
+            "expected": "1936-04-05T08:07+09:00",
+            "term_index": 6,
+            "year": 1936
+          },
+          {
+            "actual": "1936-06-06T06:30+09:00",
+            "expected": "1936-06-06T06:31+09:00",
+            "term_index": 10,
+            "year": 1936
+          },
+          {
+            "actual": "1936-10-08T20:33+09:00",
+            "expected": "1936-10-08T20:32+09:00",
+            "term_index": 18,
+            "year": 1936
+          },
+          {
+            "actual": "1937-05-06T07:50+09:00",
+            "expected": "1937-05-06T07:51+09:00",
+            "term_index": 8,
+            "year": 1937
+          },
+          {
+            "actual": "1937-08-08T08:26+09:00",
+            "expected": "1937-08-08T08:25+09:00",
+            "term_index": 14,
+            "year": 1937
+          },
+          {
+            "actual": "1937-09-08T11:00+09:00",
+            "expected": "1937-09-08T10:59+09:00",
+            "term_index": 16,
+            "year": 1937
+          },
+          {
+            "actual": "1938-04-05T19:48+09:00",
+            "expected": "1938-04-05T19:49+09:00",
+            "term_index": 6,
+            "year": 1938
+          },
+          {
+            "actual": "1938-10-09T08:02+09:00",
+            "expected": "1938-10-09T08:01+09:00",
+            "term_index": 18,
+            "year": 1938
+          },
+          {
+            "actual": "1938-11-08T10:49+09:00",
+            "expected": "1938-11-08T10:48+09:00",
+            "term_index": 20,
+            "year": 1938
+          },
+          {
+            "actual": "1939-02-05T02:11+09:00",
+            "expected": "1939-02-05T02:10+09:00",
+            "term_index": 2,
+            "year": 1939
+          },
+          {
+            "actual": "1939-06-06T23:51+09:00",
+            "expected": "1939-06-06T23:52+09:00",
+            "term_index": 10,
+            "year": 1939
+          },
+          {
+            "actual": "1939-11-08T16:43+09:00",
+            "expected": "1939-11-08T16:44+09:00",
+            "term_index": 20,
+            "year": 1939
+          },
+          {
+            "actual": "1940-01-06T20:23+09:00",
+            "expected": "1940-01-06T20:24+09:00",
+            "term_index": 0,
+            "year": 1940
+          },
+          {
+            "actual": "1940-02-05T08:07+09:00",
+            "expected": "1940-02-05T08:08+09:00",
+            "term_index": 2,
+            "year": 1940
+          },
+          {
+            "actual": "1940-03-06T02:23+09:00",
+            "expected": "1940-03-06T02:24+09:00",
+            "term_index": 4,
+            "year": 1940
+          },
+          {
+            "actual": "1940-04-05T07:34+09:00",
+            "expected": "1940-04-05T07:35+09:00",
+            "term_index": 6,
+            "year": 1940
+          },
+          {
+            "actual": "1940-08-08T01:52+09:00",
+            "expected": "1940-08-08T01:51+09:00",
+            "term_index": 14,
+            "year": 1940
+          },
+          {
+            "actual": "1942-01-06T08:03+09:00",
+            "expected": "1942-01-06T08:02+09:00",
+            "term_index": 0,
+            "year": 1942
+          },
+          {
+            "actual": "1942-04-05T19:23+09:00",
+            "expected": "1942-04-05T19:24+09:00",
+            "term_index": 6,
+            "year": 1942
+          },
+          {
+            "actual": "1942-06-06T17:32+09:00",
+            "expected": "1942-06-06T17:33+09:00",
+            "term_index": 10,
+            "year": 1942
+          },
+          {
+            "actual": "1943-03-06T19:58+09:00",
+            "expected": "1943-03-06T19:59+09:00",
+            "term_index": 4,
+            "year": 1943
+          },
+          {
+            "actual": "1943-08-08T19:18+09:00",
+            "expected": "1943-08-08T19:19+09:00",
+            "term_index": 14,
+            "year": 1943
+          },
+          {
+            "actual": "1944-05-06T00:39+09:00",
+            "expected": "1944-05-06T00:40+09:00",
+            "term_index": 8,
+            "year": 1944
+          },
+          {
+            "actual": "1944-09-08T03:55+09:00",
+            "expected": "1944-09-08T03:56+09:00",
+            "term_index": 16,
+            "year": 1944
+          },
+          {
+            "actual": "1945-01-06T01:35+09:00",
+            "expected": "1945-01-06T01:34+09:00",
+            "term_index": 0,
+            "year": 1945
+          },
+          {
+            "actual": "1945-02-04T13:20+09:00",
+            "expected": "1945-02-04T13:19+09:00",
+            "term_index": 2,
+            "year": 1945
+          },
+          {
+            "actual": "1945-06-06T11:06+09:00",
+            "expected": "1945-06-06T11:05+09:00",
+            "term_index": 10,
+            "year": 1945
+          },
+          {
+            "actual": "1946-03-06T13:24+09:00",
+            "expected": "1946-03-06T13:25+09:00",
+            "term_index": 4,
+            "year": 1946
+          },
+          {
+            "actual": "1946-04-05T18:38+09:00",
+            "expected": "1946-04-05T18:39+09:00",
+            "term_index": 6,
+            "year": 1946
+          },
+          {
+            "actual": "1946-05-06T12:22+09:00",
+            "expected": "1946-05-06T12:21+09:00",
+            "term_index": 8,
+            "year": 1946
+          },
+          {
+            "actual": "1946-08-08T12:51+09:00",
+            "expected": "1946-08-08T12:52+09:00",
+            "term_index": 14,
+            "year": 1946
+          },
+          {
+            "actual": "1947-02-05T00:51+09:00",
+            "expected": "1947-02-05T00:50+09:00",
+            "term_index": 2,
+            "year": 1947
+          },
+          {
+            "actual": "1947-06-06T22:32+09:00",
+            "expected": "1947-06-06T22:31+09:00",
+            "term_index": 10,
+            "year": 1947
+          },
+          {
+            "actual": "1947-10-09T12:38+09:00",
+            "expected": "1947-10-09T12:37+09:00",
+            "term_index": 18,
+            "year": 1947
+          },
+          {
+            "actual": "1947-11-08T15:25+09:00",
+            "expected": "1947-11-08T15:24+09:00",
+            "term_index": 20,
+            "year": 1947
+          },
+          {
+            "actual": "1948-07-07T14:43+09:00",
+            "expected": "1948-07-07T14:44+09:00",
+            "term_index": 12,
+            "year": 1948
+          },
+          {
+            "actual": "1949-12-07T19:34+09:00",
+            "expected": "1949-12-07T19:33+09:00",
+            "term_index": 22,
+            "year": 1949
+          },
+          {
+            "actual": "1950-12-08T01:21+09:00",
+            "expected": "1950-12-08T01:22+09:00",
+            "term_index": 22,
+            "year": 1950
+          },
+          {
+            "actual": "1951-06-06T21:32+09:00",
+            "expected": "1951-06-06T21:33+09:00",
+            "term_index": 10,
+            "year": 1951
+          },
+          {
+            "actual": "1951-08-08T17:38+09:00",
+            "expected": "1951-08-08T17:37+09:00",
+            "term_index": 14,
+            "year": 1951
+          },
+          {
+            "actual": "1951-10-09T11:37+09:00",
+            "expected": "1951-10-09T11:36+09:00",
+            "term_index": 18,
+            "year": 1951
+          },
+          {
+            "actual": "1951-12-08T07:03+09:00",
+            "expected": "1951-12-08T07:02+09:00",
+            "term_index": 22,
+            "year": 1951
+          },
+          {
+            "actual": "1952-10-08T17:33+09:00",
+            "expected": "1952-10-08T17:32+09:00",
+            "term_index": 18,
+            "year": 1952
+          },
+          {
+            "actual": "1953-03-06T06:03+09:00",
+            "expected": "1953-03-06T06:02+09:00",
+            "term_index": 4,
+            "year": 1953
+          },
+          {
+            "actual": "1953-10-08T23:11+09:00",
+            "expected": "1953-10-08T23:10+09:00",
+            "term_index": 18,
+            "year": 1953
+          },
+          {
+            "actual": "1954-01-06T05:46+09:00",
+            "expected": "1954-01-06T05:45+09:00",
+            "term_index": 0,
+            "year": 1954
+          },
+          {
+            "actual": "1954-03-06T11:48+09:00",
+            "expected": "1954-03-06T11:49+09:00",
+            "term_index": 4,
+            "year": 1954
+          },
+          {
+            "actual": "1954-10-09T04:58+09:00",
+            "expected": "1954-10-09T04:57+09:00",
+            "term_index": 18,
+            "year": 1954
+          },
+          {
+            "actual": "1954-12-08T00:28+09:00",
+            "expected": "1954-12-08T00:29+09:00",
+            "term_index": 22,
+            "year": 1954
+          },
+          {
+            "actual": "1955-06-06T20:44+09:00",
+            "expected": "1955-06-06T20:43+09:00",
+            "term_index": 10,
+            "year": 1955
+          },
+          {
+            "actual": "1955-11-08T13:46+09:00",
+            "expected": "1955-11-08T13:45+09:00",
+            "term_index": 20,
+            "year": 1955
+          },
+          {
+            "actual": "1956-01-06T17:31+09:00",
+            "expected": "1956-01-06T17:30+09:00",
+            "term_index": 0,
+            "year": 1956
+          },
+          {
+            "actual": "1956-02-05T05:13+09:00",
+            "expected": "1956-02-05T05:12+09:00",
+            "term_index": 2,
+            "year": 1956
+          },
+          {
+            "actual": "1956-03-05T23:25+09:00",
+            "expected": "1956-03-05T23:24+09:00",
+            "term_index": 4,
+            "year": 1956
+          },
+          {
+            "actual": "1956-04-05T04:32+09:00",
+            "expected": "1956-04-05T04:31+09:00",
+            "term_index": 6,
+            "year": 1956
+          },
+          {
+            "actual": "1956-08-07T22:41+09:00",
+            "expected": "1956-08-07T22:40+09:00",
+            "term_index": 14,
+            "year": 1956
+          },
+          {
+            "actual": "1957-01-05T23:11+09:00",
+            "expected": "1957-01-05T23:10+09:00",
+            "term_index": 0,
+            "year": 1957
+          },
+          {
+            "actual": "1958-01-06T05:05+09:00",
+            "expected": "1958-01-06T05:04+09:00",
+            "term_index": 0,
+            "year": 1958
+          },
+          {
+            "actual": "1959-01-06T10:59+09:00",
+            "expected": "1959-01-06T10:58+09:00",
+            "term_index": 0,
+            "year": 1959
+          },
+          {
+            "actual": "1959-05-06T15:38+09:00",
+            "expected": "1959-05-06T15:39+09:00",
+            "term_index": 8,
+            "year": 1959
+          },
+          {
+            "actual": "1959-12-08T05:38+09:00",
+            "expected": "1959-12-08T05:37+09:00",
+            "term_index": 22,
+            "year": 1959
+          },
+          {
+            "actual": "1960-01-06T16:43+09:00",
+            "expected": "1960-01-06T16:42+09:00",
+            "term_index": 0,
+            "year": 1960
+          }
+        ],
+        "provider": "astronomy_engine",
+        "published_minute_center_is_exact_instant": false,
+        "published_minute_center_residual": {
+          "maximum_absolute_seconds": 71.82907,
+          "mean_absolute_seconds": 18.801835,
+          "p99_absolute_seconds": 54.950594,
+          "rows": 1560
+        }
+      },
+      "skyfield_de440s": {
+        "blocking_reasons": [
+          "available_official_current_minute_label_mismatch_zero"
+        ],
+        "current_calculation_1964_baengno": {
+          "display_minute_match": true,
+          "provider_display_minute_fixed_kst": "1964-09-07T23:59+09:00",
+          "reference_local_minute": "1964-09-07T23:59+09:00"
+        },
+        "eligibility_checks": {
+          "available_official_current_date_mismatch_zero": true,
+          "available_official_current_jie_complete": true,
+          "available_official_current_minute_label_mismatch_zero": false,
+          "fixed_120_second_regression_guard": true,
+          "provider_chronological_order_failure_zero": true,
+          "provider_rows_complete": true,
+          "term_identity_failure_zero": true
+        },
+        "eligible": false,
+        "evidence_class": "SOURCE_HARD_FACT",
+        "hard_blocking": true,
+        "official_current_date_mismatch_details_truncated": false,
+        "official_current_date_mismatch_rows": [],
+        "official_current_date_mismatches": 0,
+        "official_current_jie_expected_rows": 1560,
+        "official_current_jie_rows": 1560,
+        "official_current_minute_label_mismatches": 157,
+        "official_current_minute_mismatch_details_truncated": true,
+        "official_current_minute_mismatch_rows": [
+          {
+            "actual": "1920-01-06T23:40+09:00",
+            "expected": "1920-01-06T23:41+09:00",
+            "term_index": 0,
+            "year": 1920
+          },
+          {
+            "actual": "1920-07-07T20:18+09:00",
+            "expected": "1920-07-07T20:19+09:00",
+            "term_index": 12,
+            "year": 1920
+          },
+          {
+            "actual": "1920-09-08T08:26+09:00",
+            "expected": "1920-09-08T08:27+09:00",
+            "term_index": 16,
+            "year": 1920
+          },
+          {
+            "actual": "1921-01-06T05:33+09:00",
+            "expected": "1921-01-06T05:34+09:00",
+            "term_index": 0,
+            "year": 1921
+          },
+          {
+            "actual": "1921-04-05T17:08+09:00",
+            "expected": "1921-04-05T17:09+09:00",
+            "term_index": 6,
+            "year": 1921
+          },
+          {
+            "actual": "1921-07-08T02:06+09:00",
+            "expected": "1921-07-08T02:07+09:00",
+            "term_index": 12,
+            "year": 1921
+          },
+          {
+            "actual": "1921-09-08T14:09+09:00",
+            "expected": "1921-09-08T14:10+09:00",
+            "term_index": 16,
+            "year": 1921
+          },
+          {
+            "actual": "1921-10-09T05:10+09:00",
+            "expected": "1921-10-09T05:11+09:00",
+            "term_index": 18,
+            "year": 1921
+          },
+          {
+            "actual": "1921-11-08T07:45+09:00",
+            "expected": "1921-11-08T07:46+09:00",
+            "term_index": 20,
+            "year": 1921
+          },
+          {
+            "actual": "1922-03-06T17:33+09:00",
+            "expected": "1922-03-06T17:34+09:00",
+            "term_index": 4,
+            "year": 1922
+          },
+          {
+            "actual": "1922-12-08T06:10+09:00",
+            "expected": "1922-12-08T06:11+09:00",
+            "term_index": 22,
+            "year": 1922
+          },
+          {
+            "actual": "1923-04-06T04:45+09:00",
+            "expected": "1923-04-06T04:46+09:00",
+            "term_index": 6,
+            "year": 1923
+          },
+          {
+            "actual": "1923-12-08T12:04+09:00",
+            "expected": "1923-12-08T12:05+09:00",
+            "term_index": 22,
+            "year": 1923
+          },
+          {
+            "actual": "1924-01-06T23:05+09:00",
+            "expected": "1924-01-06T23:06+09:00",
+            "term_index": 0,
+            "year": 1924
+          },
+          {
+            "actual": "1924-02-05T10:49+09:00",
+            "expected": "1924-02-05T10:50+09:00",
+            "term_index": 2,
+            "year": 1924
+          },
+          {
+            "actual": "1924-05-06T04:25+09:00",
+            "expected": "1924-05-06T04:26+09:00",
+            "term_index": 8,
+            "year": 1924
+          },
+          {
+            "actual": "1924-06-06T09:01+09:00",
+            "expected": "1924-06-06T09:02+09:00",
+            "term_index": 10,
+            "year": 1924
+          },
+          {
+            "actual": "1924-09-08T07:45+09:00",
+            "expected": "1924-09-08T07:46+09:00",
+            "term_index": 16,
+            "year": 1924
+          },
+          {
+            "actual": "1925-02-04T16:36+09:00",
+            "expected": "1925-02-04T16:37+09:00",
+            "term_index": 2,
+            "year": 1925
+          },
+          {
+            "actual": "1926-03-06T16:59+09:00",
+            "expected": "1926-03-06T17:00+09:00",
+            "term_index": 4,
+            "year": 1926
+          },
+          {
+            "actual": "1926-06-06T20:41+09:00",
+            "expected": "1926-06-06T20:42+09:00",
+            "term_index": 10,
+            "year": 1926
+          },
+          {
+            "actual": "1926-07-08T07:05+09:00",
+            "expected": "1926-07-08T07:06+09:00",
+            "term_index": 12,
+            "year": 1926
+          },
+          {
+            "actual": "1926-11-08T13:07+09:00",
+            "expected": "1926-11-08T13:08+09:00",
+            "term_index": 20,
+            "year": 1926
+          },
+          {
+            "actual": "1926-12-08T05:38+09:00",
+            "expected": "1926-12-08T05:39+09:00",
+            "term_index": 22,
+            "year": 1926
+          },
+          {
+            "actual": "1927-01-06T16:44+09:00",
+            "expected": "1927-01-06T16:45+09:00",
+            "term_index": 0,
+            "year": 1927
+          },
+          {
+            "actual": "1927-06-07T02:24+09:00",
+            "expected": "1927-06-07T02:25+09:00",
+            "term_index": 10,
+            "year": 1927
+          },
+          {
+            "actual": "1928-04-05T09:54+09:00",
+            "expected": "1928-04-05T09:55+09:00",
+            "term_index": 6,
+            "year": 1928
+          },
+          {
+            "actual": "1928-08-08T04:27+09:00",
+            "expected": "1928-08-08T04:28+09:00",
+            "term_index": 14,
+            "year": 1928
+          },
+          {
+            "actual": "1928-09-08T07:01+09:00",
+            "expected": "1928-09-08T07:02+09:00",
+            "term_index": 16,
+            "year": 1928
+          },
+          {
+            "actual": "1928-11-08T00:49+09:00",
+            "expected": "1928-11-08T00:50+09:00",
+            "term_index": 20,
+            "year": 1928
+          },
+          {
+            "actual": "1929-02-04T16:08+09:00",
+            "expected": "1929-02-04T16:09+09:00",
+            "term_index": 2,
+            "year": 1929
+          },
+          {
+            "actual": "1929-07-08T00:31+09:00",
+            "expected": "1929-07-08T00:32+09:00",
+            "term_index": 12,
+            "year": 1929
+          },
+          {
+            "actual": "1929-08-08T10:08+09:00",
+            "expected": "1929-08-08T10:09+09:00",
+            "term_index": 14,
+            "year": 1929
+          },
+          {
+            "actual": "1929-09-08T12:39+09:00",
+            "expected": "1929-09-08T12:40+09:00",
+            "term_index": 16,
+            "year": 1929
+          },
+          {
+            "actual": "1930-01-06T10:02+09:00",
+            "expected": "1930-01-06T10:03+09:00",
+            "term_index": 0,
+            "year": 1930
+          },
+          {
+            "actual": "1930-03-06T16:16+09:00",
+            "expected": "1930-03-06T16:17+09:00",
+            "term_index": 4,
+            "year": 1930
+          },
+          {
+            "actual": "1930-07-08T06:19+09:00",
+            "expected": "1930-07-08T06:20+09:00",
+            "term_index": 12,
+            "year": 1930
+          },
+          {
+            "actual": "1930-12-08T04:50+09:00",
+            "expected": "1930-12-08T04:51+09:00",
+            "term_index": 22,
+            "year": 1930
+          },
+          {
+            "actual": "1931-01-06T15:55+09:00",
+            "expected": "1931-01-06T15:56+09:00",
+            "term_index": 0,
+            "year": 1931
+          },
+          {
+            "actual": "1931-02-05T03:40+09:00",
+            "expected": "1931-02-05T03:41+09:00",
+            "term_index": 2,
+            "year": 1931
+          },
+          {
+            "actual": "1931-05-06T21:09+09:00",
+            "expected": "1931-05-06T21:10+09:00",
+            "term_index": 8,
+            "year": 1931
+          },
+          {
+            "actual": "1931-06-07T01:41+09:00",
+            "expected": "1931-06-07T01:42+09:00",
+            "term_index": 10,
+            "year": 1931
+          },
+          {
+            "actual": "1931-07-08T12:05+09:00",
+            "expected": "1931-07-08T12:06+09:00",
+            "term_index": 12,
+            "year": 1931
+          },
+          {
+            "actual": "1932-06-06T07:27+09:00",
+            "expected": "1932-06-06T07:28+09:00",
+            "term_index": 10,
+            "year": 1932
+          },
+          {
+            "actual": "1932-10-08T21:09+09:00",
+            "expected": "1932-10-08T21:10+09:00",
+            "term_index": 18,
+            "year": 1932
+          },
+          {
+            "actual": "1932-11-07T23:49+09:00",
+            "expected": "1932-11-07T23:50+09:00",
+            "term_index": 20,
+            "year": 1932
+          },
+          {
+            "actual": "1933-05-06T08:41+09:00",
+            "expected": "1933-05-06T08:42+09:00",
+            "term_index": 8,
+            "year": 1933
+          },
+          {
+            "actual": "1933-08-08T09:25+09:00",
+            "expected": "1933-08-08T09:26+09:00",
+            "term_index": 14,
+            "year": 1933
+          },
+          {
+            "actual": "1934-02-04T21:03+09:00",
+            "expected": "1934-02-04T21:04+09:00",
+            "term_index": 2,
+            "year": 1934
+          },
+          {
+            "actual": "1934-04-05T20:43+09:00",
+            "expected": "1934-04-05T20:44+09:00",
+            "term_index": 6,
+            "year": 1934
+          },
+          {
+            "actual": "1934-05-06T14:30+09:00",
+            "expected": "1934-05-06T14:31+09:00",
+            "term_index": 8,
+            "year": 1934
+          },
+          {
+            "actual": "1934-08-08T15:03+09:00",
+            "expected": "1934-08-08T15:04+09:00",
+            "term_index": 14,
+            "year": 1934
+          },
+          {
+            "actual": "1934-11-08T11:26+09:00",
+            "expected": "1934-11-08T11:27+09:00",
+            "term_index": 20,
+            "year": 1934
+          },
+          {
+            "actual": "1934-12-08T03:56+09:00",
+            "expected": "1934-12-08T03:57+09:00",
+            "term_index": 22,
+            "year": 1934
+          },
+          {
+            "actual": "1935-02-05T02:48+09:00",
+            "expected": "1935-02-05T02:49+09:00",
+            "term_index": 2,
+            "year": 1935
+          },
+          {
+            "actual": "1935-06-07T00:41+09:00",
+            "expected": "1935-06-07T00:42+09:00",
+            "term_index": 10,
+            "year": 1935
+          },
+          {
+            "actual": "1935-07-08T11:05+09:00",
+            "expected": "1935-07-08T11:06+09:00",
+            "term_index": 12,
+            "year": 1935
+          },
+          {
+            "actual": "1935-10-09T14:35+09:00",
+            "expected": "1935-10-09T14:36+09:00",
+            "term_index": 18,
+            "year": 1935
+          },
+          {
+            "actual": "1935-11-08T17:17+09:00",
+            "expected": "1935-11-08T17:18+09:00",
+            "term_index": 20,
+            "year": 1935
+          },
+          {
+            "actual": "1936-01-06T20:46+09:00",
+            "expected": "1936-01-06T20:47+09:00",
+            "term_index": 0,
+            "year": 1936
+          },
+          {
+            "actual": "1936-04-05T08:06+09:00",
+            "expected": "1936-04-05T08:07+09:00",
+            "term_index": 6,
+            "year": 1936
+          },
+          {
+            "actual": "1936-06-06T06:30+09:00",
+            "expected": "1936-06-06T06:31+09:00",
+            "term_index": 10,
+            "year": 1936
+          },
+          {
+            "actual": "1936-09-08T05:20+09:00",
+            "expected": "1936-09-08T05:21+09:00",
+            "term_index": 16,
+            "year": 1936
+          },
+          {
+            "actual": "1936-11-07T23:14+09:00",
+            "expected": "1936-11-07T23:15+09:00",
+            "term_index": 20,
+            "year": 1936
+          },
+          {
+            "actual": "1937-01-06T02:43+09:00",
+            "expected": "1937-01-06T02:44+09:00",
+            "term_index": 0,
+            "year": 1937
+          },
+          {
+            "actual": "1937-02-04T14:25+09:00",
+            "expected": "1937-02-04T14:26+09:00",
+            "term_index": 2,
+            "year": 1937
+          },
+          {
+            "actual": "1937-05-06T07:50+09:00",
+            "expected": "1937-05-06T07:51+09:00",
+            "term_index": 8,
+            "year": 1937
+          },
+          {
+            "actual": "1938-03-06T14:33+09:00",
+            "expected": "1938-03-06T14:34+09:00",
+            "term_index": 4,
+            "year": 1938
+          },
+          {
+            "actual": "1938-04-05T19:48+09:00",
+            "expected": "1938-04-05T19:49+09:00",
+            "term_index": 6,
+            "year": 1938
+          },
+          {
+            "actual": "1938-06-06T18:06+09:00",
+            "expected": "1938-06-06T18:07+09:00",
+            "term_index": 10,
+            "year": 1938
+          },
+          {
+            "actual": "1938-08-08T14:12+09:00",
+            "expected": "1938-08-08T14:13+09:00",
+            "term_index": 14,
+            "year": 1938
+          },
+          {
+            "actual": "1939-06-06T23:51+09:00",
+            "expected": "1939-06-06T23:52+09:00",
+            "term_index": 10,
+            "year": 1939
+          },
+          {
+            "actual": "1939-10-09T13:56+09:00",
+            "expected": "1939-10-09T13:57+09:00",
+            "term_index": 18,
+            "year": 1939
+          },
+          {
+            "actual": "1939-11-08T16:43+09:00",
+            "expected": "1939-11-08T16:44+09:00",
+            "term_index": 20,
+            "year": 1939
+          },
+          {
+            "actual": "1940-01-06T20:23+09:00",
+            "expected": "1940-01-06T20:24+09:00",
+            "term_index": 0,
+            "year": 1940
+          },
+          {
+            "actual": "1940-02-05T08:07+09:00",
+            "expected": "1940-02-05T08:08+09:00",
+            "term_index": 2,
+            "year": 1940
+          },
+          {
+            "actual": "1940-04-05T07:34+09:00",
+            "expected": "1940-04-05T07:35+09:00",
+            "term_index": 6,
+            "year": 1940
+          },
+          {
+            "actual": "1940-11-07T22:26+09:00",
+            "expected": "1940-11-07T22:27+09:00",
+            "term_index": 20,
+            "year": 1940
+          },
+          {
+            "actual": "1941-02-04T13:49+09:00",
+            "expected": "1941-02-04T13:50+09:00",
+            "term_index": 2,
+            "year": 1941
+          },
+          {
+            "actual": "1942-02-04T19:48+09:00",
+            "expected": "1942-02-04T19:49+09:00",
+            "term_index": 2,
+            "year": 1942
+          },
+          {
+            "actual": "1942-06-06T17:32+09:00",
+            "expected": "1942-06-06T17:33+09:00",
+            "term_index": 10,
+            "year": 1942
+          },
+          {
+            "actual": "1942-07-08T03:51+09:00",
+            "expected": "1942-07-08T03:52+09:00",
+            "term_index": 12,
+            "year": 1942
+          },
+          {
+            "actual": "1942-10-09T07:21+09:00",
+            "expected": "1942-10-09T07:22+09:00",
+            "term_index": 18,
+            "year": 1942
+          },
+          {
+            "actual": "1943-03-06T19:58+09:00",
+            "expected": "1943-03-06T19:59+09:00",
+            "term_index": 4,
+            "year": 1943
+          },
+          {
+            "actual": "1943-08-08T19:18+09:00",
+            "expected": "1943-08-08T19:19+09:00",
+            "term_index": 14,
+            "year": 1943
+          },
+          {
+            "actual": "1943-11-08T15:58+09:00",
+            "expected": "1943-11-08T15:59+09:00",
+            "term_index": 20,
+            "year": 1943
+          },
+          {
+            "actual": "1944-05-06T00:39+09:00",
+            "expected": "1944-05-06T00:40+09:00",
+            "term_index": 8,
+            "year": 1944
+          },
+          {
+            "actual": "1944-09-08T03:55+09:00",
+            "expected": "1944-09-08T03:56+09:00",
+            "term_index": 16,
+            "year": 1944
+          },
+          {
+            "actual": "1944-10-08T19:08+09:00",
+            "expected": "1944-10-08T19:09+09:00",
+            "term_index": 18,
+            "year": 1944
+          },
+          {
+            "actual": "1944-11-07T21:54+09:00",
+            "expected": "1944-11-07T21:55+09:00",
+            "term_index": 20,
+            "year": 1944
+          },
+          {
+            "actual": "1944-12-07T14:27+09:00",
+            "expected": "1944-12-07T14:28+09:00",
+            "term_index": 22,
+            "year": 1944
+          },
+          {
+            "actual": "1945-05-06T06:36+09:00",
+            "expected": "1945-05-06T06:37+09:00",
+            "term_index": 8,
+            "year": 1945
+          },
+          {
+            "actual": "1945-12-07T20:07+09:00",
+            "expected": "1945-12-07T20:08+09:00",
+            "term_index": 22,
+            "year": 1945
+          },
+          {
+            "actual": "1946-03-06T13:24+09:00",
+            "expected": "1946-03-06T13:25+09:00",
+            "term_index": 4,
+            "year": 1946
+          },
+          {
+            "actual": "1946-04-05T18:38+09:00",
+            "expected": "1946-04-05T18:39+09:00",
+            "term_index": 6,
+            "year": 1946
+          },
+          {
+            "actual": "1946-06-06T16:48+09:00",
+            "expected": "1946-06-06T16:49+09:00",
+            "term_index": 10,
+            "year": 1946
+          },
+          {
+            "actual": "1946-08-08T12:51+09:00",
+            "expected": "1946-08-08T12:52+09:00",
+            "term_index": 14,
+            "year": 1946
+          },
+          {
+            "actual": "1948-07-07T14:43+09:00",
+            "expected": "1948-07-07T14:44+09:00",
+            "term_index": 12,
+            "year": 1948
+          },
+          {
+            "actual": "1948-11-07T21:06+09:00",
+            "expected": "1948-11-07T21:07+09:00",
+            "term_index": 20,
+            "year": 1948
+          },
+          {
+            "actual": "1948-12-07T13:37+09:00",
+            "expected": "1948-12-07T13:38+09:00",
+            "term_index": 22,
+            "year": 1948
+          }
+        ],
+        "provider": "skyfield_de440s",
+        "published_minute_center_is_exact_instant": false,
+        "published_minute_center_residual": {
+          "maximum_absolute_seconds": 50.105989,
+          "mean_absolute_seconds": 16.088826,
+          "p99_absolute_seconds": 45.777084,
+          "rows": 1560
+        }
+      }
+    },
+    "official_source_values_filled_from_provider": false,
+    "providers": {
+      "astronomy_engine": {
+        "ephemeris": "embedded_truncated_vsop87_novas_lineage",
+        "package": "astronomy-engine",
+        "production_selected": false,
+        "provider_id": "astronomy-engine-2.1.19",
+        "version": "2.1.19"
+      },
+      "skyfield_de440s": {
+        "astronomy_engine_center_used": false,
+        "automatic_download_or_fallback": false,
+        "ephemeris": {
+          "bytes": 32726016,
+          "coverage_years": [
+            1849,
+            2150
+          ],
+          "filename": "de440s.bsp",
+          "local_path_recorded": false,
+          "sha256": "c1c7feeab882263fc493a9d5a5b2ddd71b54826cdf65d8d17a76126b260a49f2"
+        },
+        "ephemeris_expected_sha256": "c1c7feeab882263fc493a9d5a5b2ddd71b54826cdf65d8d17a76126b260a49f2",
+        "packages": {
+          "jplephem": "2.24",
+          "numpy": "2.2.6",
+          "skyfield": "1.55"
+        },
+        "production_selected": false,
+        "provider_id": "skyfield-1.55-jpl-de440s",
+        "root_bracket": "fixed_calendar_center_plus_minus_5_days",
+        "timescale": "skyfield_builtin_no_network"
+      }
+    },
+    "range": {
+      "end_year": 2049,
+      "start_year": 1900
+    },
+    "records_in_report": false,
+    "records_sha256": "0473ca8e7077bfed4ace031cd9708de0481f731a97367e33d1822683ac317bba",
+    "rows": 1800,
+    "schema_version": "2.0.0",
+    "selected_provider_boundary_assignment_checks": {
+      "cases": 0,
+      "expected_cases": 5400,
+      "mismatch_rows": null,
+      "reason": "provider_selection_blocked",
+      "status": "not_run_no_selected_provider"
+    },
+    "selection": {
+      "runtime_provider_changed": false,
+      "selected_provider": null,
+      "status": "blocked_no_eligible_provider",
+      "tie_break_applied": false
+    },
+    "skyfield_chronological_order_failures": 0,
+    "target_without_official_rows": {
+      "evidence_class": "PROFILE_DETERMINISTIC",
+      "jie_rows": 240,
+      "year_ranges": [
+        [
+          1900,
+          1919
+        ]
+      ]
+    },
+    "term_identity_failures": 0,
+    "time_scale_diagnostic": {
+      "astronomy_profile_labels_changed_by_utc_mapping": 325,
+      "conclusion": "utc_mapping_contributes_but_astronomical_root_difference_remains",
+      "gate_role": "diagnostic_only",
+      "limitation": "diagnostic_reprojection_is_not_an_official_accuracy_oracle",
+      "method": "compare_provider_roots_on_tt_then_reproject_astronomy_tt_with_skyfield_utc_mapping",
+      "raw_profile_display_minute_disagreements": 494,
+      "raw_utc_delta": {
+        "maximum_absolute_seconds": 80.666231,
+        "mean_absolute_seconds": 17.130844,
+        "p99_absolute_seconds": 57.56609,
+        "rows": 1800
+      },
+      "same_scale_mean_absolute_retained_percent": 67.209818,
+      "same_scale_tt_root_delta": {
+        "maximum_absolute_seconds": 52.145523,
+        "mean_absolute_seconds": 11.513609,
+        "p99_absolute_seconds": 37.763867,
+        "rows": 1800
+      },
+      "same_tt_profile_display_minute_disagreements": 330,
+      "status": "not_delta_t_only",
+      "utc_mapping_component": {
+        "maximum_absolute_seconds": 44.923954,
+        "mean_absolute_seconds": 11.543219,
+        "p99_absolute_seconds": 42.88202,
+        "rows": 1800
+      }
+    }
+  },
+  "source_versions": {
+    "astronomy_engine": "2.1.19",
+    "conformance_source_registry": "saju-runtime-sources-v1.4.0",
+    "id_contract": "saju-runtime-id-hmac-v2.0.0",
+    "jplephem": "2.24",
+    "korean_lunar_calendar": "0.4.0",
+    "numpy": "2.2.6",
+    "python_tzdata": "2026.3",
+    "runtime_contract": "saju-runtime-contract-v1.2.0",
+    "skyfield": "1.55",
+    "solar_term_provider": "astronomy-engine-2.1.19",
+    "source_registry": "saju-runtime-sources-v1.2.0",
+    "table_policy": "saju-calculation-policy-v1.0.0",
+    "tzdb": "2026c"
+  },
+  "status": "data_availability_passed_provider_ineligible",
+  "suite_version": "saju-runtime-conformance-v6.0.0",
+  "synthetic_invariants": {
+    "canonical_hash_mismatches": 0,
+    "canonical_hash_vectors": 200,
+    "dst_fold_auto_pick_failures": 0,
+    "dst_gap_auto_shift_failures": 0,
+    "guessed_unknown_hour": 0,
+    "heuristic_fact_leaks": 0,
+    "profile_id_failures": 0,
+    "source_version_id_failures": 0,
+    "unknown_range_cases": 500,
+    "unsupported_foreign_cases": 20,
+    "unsupported_foreign_failures": 0
+  },
+  "technical_gate_passed": false,
+  "training_promotion_allowed": false
+}
