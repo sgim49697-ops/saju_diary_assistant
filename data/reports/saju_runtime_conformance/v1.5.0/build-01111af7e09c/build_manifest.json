@@ -1,0 +1,34 @@
+{
+  "app_binding_performed": false,
+  "artifacts": {
+    "aggregate.json": {
+      "bytes": 645363,
+      "sha256": "67848c234c991d8a63042a6d9b432d7922e4cf930d4b313c05718ba139694273"
+    },
+    "provider_delta_by_year.svg": {
+      "bytes": 223170,
+      "sha256": "7e166fee2bcb8ef2a3b370755bb6023c5b6087f1b3a2c66b7ff1644bd3cab290"
+    },
+    "provider_records.jsonl": {
+      "bytes": 5406345,
+      "sha256": "8cbdfa2faf442c6d9e802c1bf35775ee3b763f29d128292af35c79461db40042"
+    },
+    "provider_time_scale_scatter.svg": {
+      "bytes": 476031,
+      "sha256": "02ca6f3ff18cb2319ea90641b65f1eaf8102e0babb694e2df91be8a14ac11040"
+    }
+  },
+  "build_id": "build-01111af7e09c",
+  "data_availability_gate_passed": true,
+  "mix20k_v3_1_regeneration_allowed": false,
+  "phase5_training_performed": false,
+  "provider_candidate_gate_passed": true,
+  "release_approval_performed": false,
+  "release_registry_creation_allowed": false,
+  "report_type": "saju_runtime_conformance_v7",
+  "runtime_approved": false,
+  "schema_version": "1.5.0",
+  "strict_runtime_provider_gate_passed": false,
+  "technical_gate_passed": false,
+  "training_promotion_allowed": false
+}

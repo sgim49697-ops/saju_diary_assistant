@@ -1,0 +1,86 @@
+{
+  "_description": "Skyfield/DE440s+UT1을 검증 우선 후보로 선택하되 원시 분 라벨과 미래 예측이 남은 상태에서는 runtime release를 계속 차단한다.",
+  "schema_version": "1.5.0",
+  "gate_version": "saju-runtime-gate-v1.5.0",
+  "suite_version": "saju-runtime-conformance-v7.0.0",
+  "status": "preferred_candidate_only_release_out_of_scope",
+  "profile_id": "KR_CIVIL_MIDNIGHT_V1",
+  "parent": {
+    "path": "configs/runtime/calculation/conformance_gate-v1.4.0.json",
+    "sha256": "7353131db05abc3c66783e88bc8df100852048b32b69cf6681c6d623fcd8e154"
+  },
+  "minimum_cases": {
+    "kasi_lunar_days": 54787,
+    "kasi_term_api_years_scanned": 150,
+    "kasi_term_api_rows_observed": 696,
+    "kasi_official_download_rows": 4343,
+    "kasi_official_download_expected_rows_before_known_omission": 4344,
+    "kasi_official_download_known_non_jie_omissions": 1,
+    "kasi_official_download_jie_rows": 2172,
+    "kasi_official_runtime_range_jie_rows": 1560,
+    "kasi_official_past_rows_at_collection": 1280,
+    "kasi_official_future_rows_at_collection": 280,
+    "profile_deterministic_jie_rows": 240,
+    "institutional_advisory_minute_rows": 84,
+    "historical_1964_baengno_rows": 1,
+    "provider_jie_instants_each": 1800,
+    "preferred_candidate_boundary_assignment": 5400,
+    "iers_finals_rows": 19969,
+    "unknown_range": 500,
+    "hmac_id_vectors": 200,
+    "unsupported_foreign": 20
+  },
+  "data_availability_gate": {
+    "openapi_requested_range_scan_complete": true,
+    "official_download_snapshot_collected": true,
+    "official_download_known_omission_exact": true,
+    "official_download_jie_coverage_complete": true,
+    "all_accessible_official_data_collected": true,
+    "official_snapshot_values_filled_from_provider": false,
+    "target_without_official_rows_classified_profile_deterministic": true,
+    "iers_diagnostic_snapshot_collected": true
+  },
+  "provider_candidate_gate": {
+    "preferred_candidate": "skyfield_de440s_builtin_ut1",
+    "official_rows_complete": true,
+    "official_printed_date_mismatch_zero": true,
+    "past_rounding_interval_plus_declared_uncertainty_failure_zero": true,
+    "future_forecast_rows_classified_nonapproval": true,
+    "root_solver_convergence_not_blocking": true,
+    "preferred_candidate_boundary_mismatch_zero": true,
+    "candidate_selection_changes_runtime": false
+  },
+  "strict_runtime_provider_gate": {
+    "available_official_current_minute_label_mismatch_zero": true,
+    "future_physical_instant_adjudicated": true,
+    "selected_provider_strict_eligible": true,
+    "release_approval_performed": false
+  },
+  "evidence_authority": {
+    "kasi_official_current_published_label": "SOURCE_HARD_FACT",
+    "kasi_past_uncertainty_seconds_at_most": 1,
+    "kasi_future_label_as_physical_accuracy_oracle": "FORECAST_DIAGNOSTIC_NONAPPROVAL",
+    "target_without_official_source_coverage": "PROFILE_DETERMINISTIC",
+    "kasi_nonformal_calendar_data": "INSTITUTIONAL_ADVISORY",
+    "historical_almanac_document_fact": "SOURCE_HARD_FACT",
+    "historical_almanac_as_current_physical_instant_adjudicator": "INSTITUTIONAL_ADVISORY",
+    "subminute_physical_accuracy": "not_adjudicated_by_minute_precision_sources"
+  },
+  "selection_rule": {
+    "candidate_ranking": "date_mismatches_then_past_uncertainty_failures_then_raw_minute_mismatches",
+    "preferred_candidate": "skyfield_de440s_builtin_ut1",
+    "strict_eligible_provider": null,
+    "selected_candidate_boundary_checks": "before_exact_after_for_5400_cases",
+    "runtime_change_in_this_scope": false
+  },
+  "promotion_effects": {
+    "runtime_approved": false,
+    "release_approval_performed": false,
+    "runtime_feature_flag_default": false,
+    "app_binding_performed": false,
+    "mix20k_v3_1_regeneration_allowed": false,
+    "training_promotion_allowed": false,
+    "phase5_training_performed": false,
+    "sealed_blind_access_allowed": false
+  }
+}
