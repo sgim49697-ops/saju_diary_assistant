@@ -165,6 +165,37 @@
           <span class="lock-icon" aria-hidden="true">◇</span>
           <div><span class="label">SAFE INFERENCE LOCK</span><h2>학습 중에는 모델을 추가로 로드하지 않습니다.</h2><p id="model-lock-copy">학습 종료와 final reload 검증 뒤 자동으로 열립니다.</p><button id="run-probe-button" class="secondary-button hidden" type="button">고정 20건 검사 실행</button></div>
         </div>
+        <article id="runtime-panel" class="panel runtime-panel hidden">
+          <div class="panel-heading">
+            <div><span class="label">APPROVED RUNTIME · FEATURE OFF BY DEFAULT</span><h2>구조화 만세력 계산기</h2><p id="runtime-status-copy" class="runtime-copy">runtime 상태를 확인하는 중입니다.</p></div>
+            <span id="runtime-status-pill" class="status-pill locked">확인 중</span>
+          </div>
+          <div id="runtime-remote-warning" class="runtime-warning hidden" role="alert">무인증 원격 canary입니다. 입력은 현재 run의 로컬 0600 파일에 저장되며 요청 본문은 로그에 남기지 않습니다.</div>
+          <form id="runtime-chart-form" class="runtime-form">
+            <div class="runtime-field"><label for="runtime-birth-date">생년월일</label><input id="runtime-birth-date" type="date" min="1900-01-01" max="2049-12-31" required></div>
+            <div class="runtime-field"><label for="runtime-calendar">달력</label><select id="runtime-calendar"><option value="solar">양력</option><option value="lunar">음력</option></select></div>
+            <div id="runtime-leap-field" class="runtime-field hidden"><label for="runtime-leap-month">윤달 여부</label><select id="runtime-leap-month"><option value="false">평달</option><option value="true">윤달</option></select></div>
+            <div class="runtime-field"><label for="runtime-time-precision">출생시각 정확도</label><select id="runtime-time-precision"><option value="exact">정확히 앎</option><option value="range">범위로 앎</option><option value="unknown">모름</option></select></div>
+            <div id="runtime-exact-time-field" class="runtime-field"><label for="runtime-birth-time">출생시각</label><input id="runtime-birth-time" type="time" value="12:00" required></div>
+            <div id="runtime-range-start-field" class="runtime-field hidden"><label for="runtime-range-start">범위 시작</label><input id="runtime-range-start" type="time" value="09:00"></div>
+            <div id="runtime-range-end-field" class="runtime-field hidden"><label for="runtime-range-end">범위 끝</label><input id="runtime-range-end" type="time" value="11:59"></div>
+            <div class="runtime-field"><label for="runtime-city">출생 도시</label><input id="runtime-city" type="text" maxlength="80" value="서울" required></div>
+            <div class="runtime-field"><label for="runtime-longitude">경도</label><input id="runtime-longitude" type="number" min="-180" max="180" step="0.000001" value="126.978000" required></div>
+            <div class="runtime-field"><label for="runtime-latitude">위도</label><input id="runtime-latitude" type="number" min="-90" max="90" step="0.000001" value="37.566500" required></div>
+            <div class="runtime-field"><label for="runtime-gender">성별(대운용·v1 미사용)</label><select id="runtime-gender"><option value="unspecified">지정 안 함</option><option value="male">남성</option><option value="female">여성</option></select></div>
+            <div class="runtime-form-actions"><small>현재 v1은 KR·Asia/Seoul 민간시 정책이며 좌표·성별로 결과를 바꾸지 않습니다.</small><button id="runtime-chart-button" type="submit">원국 계산</button></div>
+          </form>
+          <section id="runtime-facts-panel" class="runtime-facts hidden" aria-live="polite">
+            <div class="runtime-facts-head"><div><span class="label">SERVER FACTS · MODEL INDEPENDENT</span><h3>계산 사실</h3></div><code id="runtime-session-id"></code></div>
+            <pre id="runtime-facts-json"></pre>
+          </section>
+          <form id="runtime-period-form" class="runtime-period-form hidden">
+            <div class="runtime-field"><label for="runtime-period-type">기간</label><select id="runtime-period-type"><option value="day">하루</option><option value="week">주</option><option value="month">월</option><option value="year">년</option></select></div>
+            <div class="runtime-field"><label for="runtime-period-start">시작일</label><input id="runtime-period-start" type="date" min="1900-01-01" max="2049-12-31" required></div>
+            <div class="runtime-field"><label for="runtime-period-end">종료일</label><input id="runtime-period-end" type="date" min="1900-01-01" max="2049-12-31"></div>
+            <div class="runtime-form-actions"><small>원국을 다시 계산하면 기존 기간 사실은 폐기됩니다.</small><button id="runtime-period-button" type="submit">기간 간지 계산</button></div>
+          </form>
+        </article>
         <article id="manual-panel" class="panel manual-panel hidden">
           <div class="panel-heading">
             <div><span class="label">LOCAL · SESSION HISTORY</span><h2>세션별 수동 질문</h2></div>
@@ -192,7 +223,7 @@
             </select>
             <small id="prompt-profile-copy">계산 도구 미연결 경계를 고정한 안내 보정 prompt를 적용합니다. 새 세션을 만든 뒤에는 프로필을 바꿀 수 없습니다.</small>
           </div>
-          <p class="diagnostic-engine-note">K0와 KI20 모두 계산 엔진이 연결되지 않은 진단용 언어 모델입니다. 출력은 명리학적 정답이나 운영 승격 근거가 아닙니다.</p>
+          <p id="diagnostic-engine-note" class="diagnostic-engine-note">K0와 KI20 모두 계산 엔진이 연결되지 않은 진단용 언어 모델입니다. 출력은 명리학적 정답이나 운영 승격 근거가 아닙니다.</p>
           <div id="manual-conversation" class="manual-conversation" aria-live="polite">
             <p class="empty-conversation">아직 저장된 대화가 없습니다.</p>
           </div>

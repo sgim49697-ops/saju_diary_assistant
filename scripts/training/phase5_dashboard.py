@@ -35,7 +35,7 @@ if str(REPO_ROOT) not in sys.path:
 from scripts.training.phase5_quality import score_generations
 
 DEFAULT_CONFIG = Path(
-    "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.7.0.json"
+    "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.8.0.json"
 )
 ASSET_ROOT = Path(__file__).with_name("phase5_dashboard_assets")
 RUN_BUILD_PATTERN = re.compile(r"^run-[0-9a-f]{12}$")
@@ -46,6 +46,7 @@ CHECKPOINT_PATTERN = re.compile(r"^checkpoint-([1-9][0-9]*)$")
 SERVICE_PATTERN = re.compile(r"^[A-Za-z0-9_.@:-]+\.service$")
 CONTROL_PATTERN = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
 SESSION_ID_PATTERN = re.compile(r"^[0-9a-f]{24}$")
+RUNTIME_SESSION_ID_PATTERN = re.compile(r"^[0-9a-f]{24}$")
 PRIVATE_FILE_MODE = 0o600
 PRIVATE_DIR_MODE = 0o700
 REMOTE_BASIC_AUTH_USER_PATTERN = re.compile(r"^[A-Za-z0-9._-]{1,64}$")
@@ -317,6 +318,42 @@ def _validate_prompt_profiles(value: Any, governance: dict[str, Any]) -> None:
         raise Phase5DashboardError("Phase 5 prompt profile 세부 계약이 다릅니다.")
 
 
+def _validate_runtime_canary(value: Any, governance: dict[str, Any]) -> None:
+    expected_allowlist = [
+        "status",
+        "hard_facts",
+        "fact_authority",
+        "code",
+        "message",
+        "limitations",
+    ]
+    if (
+        not isinstance(value, dict)
+        or value.get("enabled_by_default") is not False
+        or value.get("release_registry")
+        != "configs/runtime/calculation/releases/v1.1.0/release_registry.json"
+        or value.get("engine_version") != "saju-runtime-python-v1.1.0"
+        or value.get("profile_id") != "KR_CIVIL_MIDNIGHT_V1"
+        or value.get("private_output_relative")
+        != "dashboard/v1.8.0/runtime_sessions"
+        or value.get("max_state_bytes") != 1_000_000
+        or value.get("country_code") != "KR"
+        or value.get("timezone") != "Asia/Seoul"
+        or value.get("calendars") != ["solar", "lunar"]
+        or value.get("time_precisions") != ["exact", "range", "unknown"]
+        or value.get("period_types") != ["day", "week", "month", "year"]
+        or value.get("remote_unauthenticated_requires_explicit_flag") is not True
+        or value.get("model_visible_allowlist") != expected_allowlist
+        or governance.get("runtime_feature_default_off") is not True
+        or governance.get("runtime_release_required") is not True
+        or governance.get("runtime_facts_rendered_without_model") is not True
+        or governance.get("runtime_internal_trace_model_visible") is not False
+        or governance.get("runtime_requests_logged") is not False
+        or governance.get("runtime_state_local_only") is not True
+    ):
+        raise Phase5DashboardError("Phase 5 dashboard v1.8 runtime canary 계약이 다릅니다.")
+
+
 def _validate_inference_engines(value: Any, governance: dict[str, Any]) -> None:
     if not isinstance(value, dict):
         raise Phase5DashboardError("Phase 5 inference engine 계약이 없습니다.")
@@ -435,6 +472,7 @@ def validate_config(config: dict[str, Any]) -> None:
             "1.5.0",
             "1.6.0",
             "1.7.0",
+            "1.8.0",
         }
         or config.get("dashboard_id") != "KI20-MIX-v2-dashboard"
         or config.get("allowed_run_id") != "KI20-MIX-v2"
@@ -475,7 +513,7 @@ def validate_config(config: dict[str, Any]) -> None:
     if schema_version == "1.6.0":
         if remote_share != expected_authenticated_remote_share:
             raise Phase5DashboardError("Phase 5 dashboard v1.6 원격 공유 계약이 다릅니다.")
-    elif schema_version == "1.7.0":
+    elif schema_version in {"1.7.0", "1.8.0"}:
         expected_unauthenticated_remote_share = {
             "enabled_by_default": False,
             "exact_https_origin_required": True,
@@ -486,7 +524,7 @@ def validate_config(config: dict[str, Any]) -> None:
             "minimum_password_bytes": REMOTE_PASSWORD_MIN_BYTES,
         }
         if remote_share != expected_unauthenticated_remote_share:
-            raise Phase5DashboardError("Phase 5 dashboard v1.7 원격 공유 계약이 다릅니다.")
+            raise Phase5DashboardError("Phase 5 dashboard v1.7+ 원격 공유 계약이 다릅니다.")
     elif remote_share is not None:
         raise Phase5DashboardError("과거 dashboard config에 원격 공유 계약이 있습니다.")
     manual_session = config.get("manual_session")
@@ -514,14 +552,26 @@ def validate_config(config: dict[str, Any]) -> None:
             raise Phase5DashboardError("과거 dashboard config에 dataset browser가 있습니다.")
     else:
         _validate_dataset_browser(dataset_browser, governance, schema_version)
-    if schema_version in {"1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0"}:
+    if schema_version in {
+        "1.3.0",
+        "1.4.0",
+        "1.5.0",
+        "1.6.0",
+        "1.7.0",
+        "1.8.0",
+    }:
         _validate_prompt_profiles(prompt_profiles, governance)
     elif prompt_profiles is not None:
         raise Phase5DashboardError("과거 dashboard config에 prompt profile이 있습니다.")
-    if schema_version in {"1.4.0", "1.5.0", "1.6.0", "1.7.0"}:
+    if schema_version in {"1.4.0", "1.5.0", "1.6.0", "1.7.0", "1.8.0"}:
         _validate_inference_engines(inference_engines, governance)
     elif inference_engines is not None:
         raise Phase5DashboardError("과거 dashboard config에 inference engine이 있습니다.")
+    runtime_canary = config.get("runtime_canary")
+    if schema_version == "1.8.0":
+        _validate_runtime_canary(runtime_canary, governance)
+    elif runtime_canary is not None:
+        raise Phase5DashboardError("과거 dashboard config에 runtime canary가 있습니다.")
     generation = model_check.get("generation")
     if generation != {"do_sample": False, "num_beams": 1, "max_new_tokens": 256}:
         raise Phase5DashboardError("대시보드 generation 계약이 다릅니다.")
@@ -562,7 +612,7 @@ def _validate_dataset_browser(
         or governance.get("sealed_blind_access_allowed") is not False
     ):
         raise Phase5DashboardError("Phase 5 dataset browser 계약이 다릅니다.")
-    if schema_version in {"1.5.0", "1.6.0", "1.7.0"}:
+    if schema_version in {"1.5.0", "1.6.0", "1.7.0", "1.8.0"}:
         if (
             value.get("selection_seed")
             != "phase5-dashboard-v1.5.0-dataset-samples"
@@ -603,7 +653,11 @@ def _validate_dataset_browser(
                 or isinstance(rows, bool)
                 or not isinstance(rows, int)
                 or rows
-                < (10 if schema_version in {"1.5.0", "1.6.0", "1.7.0"} else 1)
+                < (
+                    10
+                    if schema_version in {"1.5.0", "1.6.0", "1.7.0", "1.8.0"}
+                    else 1
+                )
                 for axis, rows in axes.items()
             )
             or sum(axes.values()) != split["rows"]
@@ -766,7 +820,7 @@ def inference_engines_payload(context: dict[str, Any]) -> dict[str, Any]:
     return {
         "default_selection": contract["default_selection"],
         "diagnostic_only": True,
-        "calculator_connected": False,
+        "calculator_connected": bool(context.get("runtime_canary_active", False)),
         "items": [
             {
                 **_engine_snapshot(context, engine_id),
@@ -778,6 +832,48 @@ def inference_engines_payload(context: dict[str, Any]) -> dict[str, Any]:
             {"selection_id": selection_id, **selection}
             for selection_id, selection in contract["selections"].items()
         ],
+    }
+
+
+def _prepare_runtime_canary(
+    root: Path, config: dict[str, Any]
+) -> dict[str, Any] | None:
+    contract = config.get("runtime_canary")
+    if not isinstance(contract, dict):
+        return None
+    from scripts.runtime.calculation.contracts_v1_1 import (
+        validate_contract_registry_v1_1,
+        validate_release_registry,
+    )
+    from scripts.runtime.calculation.errors import RuntimeCalculationError
+
+    try:
+        validate_contract_registry_v1_1()
+    except RuntimeCalculationError as exc:
+        raise Phase5DashboardError(
+            f"runtime v1.1 정적 계약 검증이 실패했습니다: {exc.code}"
+        ) from exc
+    release_path = _safe_under(
+        root, contract["release_registry"], "runtime release registry"
+    )
+    if not release_path.exists():
+        return {
+            "contract": contract,
+            "release_path": release_path,
+            "release": None,
+            "availability_code": "RUNTIME_RELEASE_REQUIRED",
+        }
+    try:
+        release = validate_release_registry(release_path)
+    except RuntimeCalculationError as exc:
+        raise Phase5DashboardError(
+            f"runtime release registry 검증이 실패했습니다: {exc.code}"
+        ) from exc
+    return {
+        "contract": contract,
+        "release_path": release_path,
+        "release": release,
+        "availability_code": None,
     }
 
 
@@ -824,6 +920,7 @@ def prepare_context(
         raise Phase5DashboardError("KI20 학습 계약과 dashboard가 다릅니다.")
     prompt_profiles = _load_prompt_profiles(root, config)
     inference_engines = _load_inference_engines(root, run_target, config)
+    runtime_canary = _prepare_runtime_canary(root, config)
     return {
         "repo_root": root,
         "config_path": config_target,
@@ -833,6 +930,8 @@ def prepare_context(
         "resolved": resolved,
         "prompt_profiles": prompt_profiles,
         "inference_engines": inference_engines,
+        "runtime_canary": runtime_canary,
+        "runtime_canary_active": False,
     }
 
 
@@ -1113,7 +1212,12 @@ def dataset_samples_payload(
         raise DashboardRequestError(HTTPStatus.NOT_FOUND, "허용되지 않은 dataset split입니다.")
     if axis != "all" and axis not in split["axes"]:
         raise DashboardRequestError(HTTPStatus.NOT_FOUND, "허용되지 않은 dataset 축입니다.")
-    if randomize and schema_version not in {"1.5.0", "1.6.0", "1.7.0"}:
+    if randomize and schema_version not in {
+        "1.5.0",
+        "1.6.0",
+        "1.7.0",
+        "1.8.0",
+    }:
         raise DashboardRequestError(
             HTTPStatus.NOT_FOUND, "이 dashboard config는 무작위 샘플을 지원하지 않습니다."
         )
@@ -1125,7 +1229,7 @@ def dataset_samples_payload(
             return cached
     candidates = _dataset_candidates(context, split_id, axis, active_cache)
     selected: list[dict[str, Any]] = []
-    if schema_version in {"1.5.0", "1.6.0", "1.7.0"}:
+    if schema_version in {"1.5.0", "1.6.0", "1.7.0", "1.8.0"}:
         matching = (
             candidates
             if axis == "all"
@@ -2054,7 +2158,7 @@ def _validate_manual_session(
     messages = value.get("messages")
     schema_version = value.get("schema_version")
     if (
-        schema_version not in {"1.0.0", "1.1.0", "1.2.0"}
+        schema_version not in {"1.0.0", "1.1.0", "1.2.0", "1.3.0"}
         or value.get("session_id") != session_id
         or value.get("run_id") != context["manifest"]["run_id"]
         or value.get("run_build_id") != context["manifest"]["run_build_id"]
@@ -2071,11 +2175,38 @@ def _validate_manual_session(
     ):
         raise Phase5DashboardError("수동 대화 세션 계약이 다릅니다.")
     profile = _session_prompt_profile(context, value)
-    if schema_version in {"1.1.0", "1.2.0"} and (
+    if schema_version in {"1.1.0", "1.2.0", "1.3.0"} and (
         value.get("prompt_profile") != profile["profile_id"]
         or value.get("system_prompt_sha256") != profile["system_prompt_sha256"]
     ):
         raise Phase5DashboardError("수동 대화 세션 prompt profile 계약이 다릅니다.")
+    if schema_version == "1.3.0":
+        runtime_session_id = value.get("runtime_session_id")
+        runtime_snapshot_sha256 = value.get("runtime_snapshot_sha256")
+        if (
+            (runtime_session_id is None) != (runtime_snapshot_sha256 is None)
+            or (
+                runtime_session_id is not None
+                and (
+                    not isinstance(runtime_session_id, str)
+                    or RUNTIME_SESSION_ID_PATTERN.fullmatch(runtime_session_id) is None
+                    or re.fullmatch(
+                        r"[0-9a-f]{64}", str(runtime_snapshot_sha256 or "")
+                    )
+                    is None
+                )
+            )
+        ):
+            raise Phase5DashboardError("수동 대화 runtime binding이 다릅니다.")
+        if runtime_session_id is not None:
+            state = _read_runtime_state(context, runtime_session_id)
+            history_hashes = {
+                item["snapshot_sha256"] for item in state["snapshot_history"]
+            }
+            if runtime_snapshot_sha256 not in history_hashes:
+                raise Phase5DashboardError(
+                    "수동 대화 runtime snapshot이 state history에 없습니다."
+                )
     if schema_version in {"1.0.0", "1.1.0"}:
         if len(messages) % 2 != 0 or value["turn_count"] != len(messages) // 2:
             raise Phase5DashboardError("기존 수동 대화 turn 계약이 다릅니다.")
@@ -2220,6 +2351,8 @@ def manual_sessions_payload(context: dict[str, Any]) -> dict[str, Any]:
                 "engine_selection": selection["selection_id"],
                 "engine_selection_label": selection["label"],
                 "engine_mode": selection["mode"],
+                "runtime_session_id": session.get("runtime_session_id"),
+                "runtime_bound": session.get("runtime_session_id") is not None,
             }
         )
     maximum = _manual_session_contract(context)["max_sessions"]
@@ -2262,15 +2395,242 @@ def _write_manual_session(context: dict[str, Any], session: dict[str, Any]) -> N
             temporary.unlink()
 
 
+def _runtime_canary_contract(context: dict[str, Any]) -> dict[str, Any]:
+    prepared = context.get("runtime_canary")
+    if not isinstance(prepared, dict) or not isinstance(prepared.get("contract"), dict):
+        raise Phase5DashboardError("이 dashboard config는 runtime canary를 지원하지 않습니다.")
+    return prepared["contract"]
+
+
+def _runtime_state_root(context: dict[str, Any], *, create: bool) -> Path:
+    contract = _runtime_canary_contract(context)
+    root = _safe_under(
+        context["run_root"], contract["private_output_relative"], "runtime canary state"
+    )
+    if create:
+        root.mkdir(parents=True, exist_ok=True, mode=PRIVATE_DIR_MODE)
+        if root.is_symlink() or not root.is_dir():
+            raise Phase5DashboardError("runtime canary state 경로가 안전하지 않습니다.")
+        root.chmod(PRIVATE_DIR_MODE)
+    elif root.exists() and (root.is_symlink() or not root.is_dir()):
+        raise Phase5DashboardError("runtime canary state 경로가 안전하지 않습니다.")
+    return root
+
+
+def _runtime_state_path(context: dict[str, Any], runtime_session_id: str) -> Path:
+    if RUNTIME_SESSION_ID_PATTERN.fullmatch(runtime_session_id) is None:
+        raise Phase5DashboardError("runtime_session_id가 잘못됐습니다.")
+    return _runtime_state_root(context, create=False) / f"{runtime_session_id}.json"
+
+
+def _validate_runtime_state(
+    context: dict[str, Any], value: dict[str, Any], runtime_session_id: str
+) -> dict[str, Any]:
+    prepared = context.get("runtime_canary")
+    release = prepared.get("release") if isinstance(prepared, dict) else None
+    chart_result = value.get("chart_result")
+    history = value.get("snapshot_history")
+    if (
+        not isinstance(release, dict)
+        or value.get("schema_version") != "1.0.0"
+        or value.get("runtime_session_id") != runtime_session_id
+        or value.get("run_id") != context["manifest"]["run_id"]
+        or value.get("run_build_id") != context["manifest"]["run_build_id"]
+        or value.get("release_id") != release.get("release_id")
+        or value.get("engine_version") != "saju-runtime-python-v1.1.0"
+        or not isinstance(value.get("created_at_utc"), str)
+        or not isinstance(value.get("updated_at_utc"), str)
+        or isinstance(value.get("revision"), bool)
+        or not isinstance(value.get("revision"), int)
+        or value["revision"] < 1
+        or not isinstance(value.get("chart_arguments"), dict)
+        or not isinstance(chart_result, dict)
+        or chart_result.get("status") not in {"ok", "partial"}
+        or chart_result.get("fact_authority")
+        not in {"HARD_GT", "POLICY_BOUND_RULE"}
+        or not isinstance(history, list)
+        or len(history) != value["revision"]
+        or not history
+    ):
+        raise Phase5DashboardError("runtime canary state 계약이 다릅니다.")
+    for index, snapshot in enumerate(history, 1):
+        if (
+            not isinstance(snapshot, dict)
+            or set(snapshot) != {
+                "revision",
+                "snapshot_sha256",
+                "created_at_utc",
+                "period_present",
+            }
+            or snapshot.get("revision") != index
+            or re.fullmatch(r"[0-9a-f]{64}", str(snapshot.get("snapshot_sha256", "")))
+            is None
+            or not isinstance(snapshot.get("created_at_utc"), str)
+            or not isinstance(snapshot.get("period_present"), bool)
+        ):
+            raise Phase5DashboardError("runtime canary snapshot history가 다릅니다.")
+    period_arguments = value.get("period_arguments")
+    period_result = value.get("period_result")
+    if (period_arguments is None) != (period_result is None) or (
+        period_result is not None
+        and (
+            not isinstance(period_arguments, dict)
+            or not isinstance(period_result, dict)
+            or period_result.get("status") != "ok"
+            or period_result.get("fact_authority") != "HARD_GT"
+        )
+    ):
+        raise Phase5DashboardError("runtime canary 기간 state가 다릅니다.")
+    return value
+
+
+def _read_runtime_state(
+    context: dict[str, Any], runtime_session_id: str
+) -> dict[str, Any]:
+    path = _runtime_state_path(context, runtime_session_id)
+    maximum = _runtime_canary_contract(context)["max_state_bytes"]
+    flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
+    descriptor = -1
+    try:
+        descriptor = os.open(path, flags)
+        metadata = os.fstat(descriptor)
+        if (
+            not stat.S_ISREG(metadata.st_mode)
+            or stat.S_IMODE(metadata.st_mode) != PRIVATE_FILE_MODE
+            or metadata.st_uid != os.getuid()
+            or not 1 <= metadata.st_size <= maximum
+        ):
+            raise Phase5DashboardError("runtime canary state 파일 권한·크기가 다릅니다.")
+        with os.fdopen(descriptor, "rb") as stream:
+            descriptor = -1
+            payload = stream.read(maximum + 1)
+    except FileNotFoundError as exc:
+        raise DashboardRequestError(
+            HTTPStatus.NOT_FOUND, "runtime canary state를 찾을 수 없습니다."
+        ) from exc
+    except OSError as exc:
+        raise Phase5DashboardError("runtime canary state를 안전하게 읽을 수 없습니다.") from exc
+    finally:
+        if descriptor >= 0:
+            os.close(descriptor)
+    try:
+        value = json.loads(payload)
+    except (UnicodeError, json.JSONDecodeError) as exc:
+        raise Phase5DashboardError("runtime canary state JSON이 잘못됐습니다.") from exc
+    if not isinstance(value, dict):
+        raise Phase5DashboardError("runtime canary state가 JSON object가 아닙니다.")
+    return _validate_runtime_state(context, value, runtime_session_id)
+
+
+def _write_runtime_state(context: dict[str, Any], state: dict[str, Any]) -> None:
+    runtime_session_id = state["runtime_session_id"]
+    root = _runtime_state_root(context, create=True)
+    target = root / f"{runtime_session_id}.json"
+    if target.is_symlink():
+        raise Phase5DashboardError("runtime canary state 대상이 symlink입니다.")
+    payload = _json_bytes(state)
+    if len(payload) > _runtime_canary_contract(context)["max_state_bytes"]:
+        raise Phase5DashboardError("runtime canary state 저장 크기가 계약을 넘습니다.")
+    descriptor, temporary_name = tempfile.mkstemp(
+        prefix=f".{runtime_session_id}.", dir=root
+    )
+    temporary = Path(temporary_name)
+    try:
+        os.fchmod(descriptor, PRIVATE_FILE_MODE)
+        with os.fdopen(descriptor, "wb") as stream:
+            descriptor = -1
+            stream.write(payload)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, target)
+        target.chmod(PRIVATE_FILE_MODE)
+    finally:
+        if descriptor >= 0:
+            os.close(descriptor)
+        if temporary.exists():
+            temporary.unlink()
+
+
+def _runtime_visible(result: dict[str, Any]) -> dict[str, Any]:
+    allowlist = {
+        "status",
+        "hard_facts",
+        "fact_authority",
+        "code",
+        "message",
+        "limitations",
+    }
+    return {
+        key: value
+        for key, value in result.items()
+        if key in allowlist and value is not None and value != []
+    }
+
+
+def _runtime_snapshot(state: dict[str, Any]) -> dict[str, Any]:
+    value = {
+        "chart": _runtime_visible(state["chart_result"]),
+        "period": (
+            _runtime_visible(state["period_result"])
+            if isinstance(state.get("period_result"), dict)
+            else None
+        ),
+    }
+    return {
+        "value": value,
+        "sha256": hashlib.sha256(
+            json.dumps(
+                value, ensure_ascii=False, separators=(",", ":"), sort_keys=True
+            ).encode("utf-8")
+        ).hexdigest(),
+    }
+
+
+def runtime_state_payload(
+    context: dict[str, Any], runtime_session_id: str
+) -> dict[str, Any]:
+    state = _read_runtime_state(context, runtime_session_id)
+    snapshot = _runtime_snapshot(state)
+    return {
+        "runtime_session_id": runtime_session_id,
+        "revision": state["revision"],
+        "snapshot_sha256": snapshot["sha256"],
+        "facts": snapshot["value"],
+        "period_allowed": state["chart_result"].get("fact_authority") == "HARD_GT"
+        and state["chart_result"].get("chart_id") is not None,
+        "updated_at_utc": state["updated_at_utc"],
+        "local_only": True,
+        "model_visible_allowlist_applied": True,
+    }
+
+
+def _runtime_model_context(
+    context: dict[str, Any], runtime_session_id: str | None
+) -> tuple[str | None, str | None]:
+    if runtime_session_id is None:
+        return None, None
+    state = _read_runtime_state(context, runtime_session_id)
+    snapshot = _runtime_snapshot(state)
+    prompt = (
+        "[서버에서 계산한 승인 만세력 사실]\n"
+        "아래 JSON만 계산 사실로 사용하세요. 없는 사실은 추측하지 말고, "
+        "신강약·격국·용신·미래 사건으로 확대하지 마세요.\n"
+        + json.dumps(snapshot["value"], ensure_ascii=False, sort_keys=True)
+    )
+    return prompt, snapshot["sha256"]
+
+
 def _messages_for_engine(
     previous_messages: Sequence[dict[str, Any]],
     engine_id: str,
     prompt: str,
     system_prompt: str | None,
+    runtime_context: str | None = None,
 ) -> list[dict[str, str]]:
     messages: list[dict[str, str]] = []
-    if system_prompt is not None:
-        messages.append({"role": "system", "content": system_prompt})
+    system_parts = [part for part in (system_prompt, runtime_context) if part]
+    if system_parts:
+        messages.append({"role": "system", "content": "\n\n".join(system_parts)})
     for message in previous_messages:
         if message["role"] == "user" or message.get("engine_id", engine_id) == engine_id:
             messages.append({"role": message["role"], "content": message["content"]})
@@ -2302,6 +2662,7 @@ def execute_manual_generation(
     session_id: str | None = None,
     profile: str | None = None,
     engine_selection: str | None = None,
+    runtime_session_id: str | None = None,
 ) -> dict[str, Any]:
     gate = _generation_gate(context)
     if not gate["allowed"]:
@@ -2332,6 +2693,7 @@ def execute_manual_generation(
             engine_selection
             or context["inference_engines"]["default_selection"],
         )
+        selected_runtime_session_id = runtime_session_id
     else:
         try:
             current = manual_session_payload(context, session_id)
@@ -2345,6 +2707,16 @@ def execute_manual_generation(
         title = current["title"]
         selected_profile = _session_prompt_profile(context, current)
         selected_engines = _session_inference_selection(context, current)
+        stored_runtime_session_id = current.get("runtime_session_id")
+        if (
+            stored_runtime_session_id is not None
+            and runtime_session_id is not None
+            and runtime_session_id != stored_runtime_session_id
+        ):
+            raise Phase5DashboardError(
+                "기존 세션에 결합된 runtime_session_id는 변경할 수 없습니다."
+            )
+        selected_runtime_session_id = runtime_session_id or stored_runtime_session_id
         if profile is not None and profile != selected_profile["profile_id"]:
             raise Phase5DashboardError("기존 세션의 prompt profile은 변경할 수 없습니다.")
         if (
@@ -2352,6 +2724,9 @@ def execute_manual_generation(
             and engine_selection != selected_engines["selection_id"]
         ):
             raise Phase5DashboardError("기존 세션의 inference engine은 변경할 수 없습니다.")
+    runtime_context, runtime_snapshot_sha256 = _runtime_model_context(
+        context, selected_runtime_session_id
+    )
     for engine_id in selected_engines["engine_ids"]:
         availability = _engine_availability(context, engine_id)
         if not availability["available"]:
@@ -2376,6 +2751,7 @@ def execute_manual_generation(
             engine_id,
             clean_prompt,
             selected_profile["system_prompt_text"],
+            runtime_context,
         )
         engine_started = time.monotonic()
         generated = _generate_conversation(
@@ -2420,7 +2796,7 @@ def execute_manual_generation(
             }
         )
     session = {
-        "schema_version": "1.2.0",
+        "schema_version": "1.3.0",
         "session_id": session_id,
         "run_id": context["manifest"]["run_id"],
         "run_build_id": context["manifest"]["run_build_id"],
@@ -2433,6 +2809,8 @@ def execute_manual_generation(
         "system_prompt_sha256": stored_profile["system_prompt_sha256"],
         "engine_selection": selected_engines["selection_id"],
         "engine_snapshots": _selection_snapshots(context, selected_engines),
+        "runtime_session_id": selected_runtime_session_id,
+        "runtime_snapshot_sha256": runtime_snapshot_sha256,
         "messages": normalized_previous
         + [
             {"role": "user", "content": clean_prompt, "created_at_utc": requested_at},
@@ -2498,6 +2876,261 @@ def execute_manual_generation(
     }
 
 
+def _new_runtime_engine(context: dict[str, Any]) -> Any:
+    prepared = context.get("runtime_canary")
+    if not isinstance(prepared, dict) or not isinstance(prepared.get("release"), dict):
+        raise DashboardRequestError(
+            HTTPStatus.CONFLICT,
+            "통과한 conformance v3 runtime release가 아직 없습니다.",
+        )
+    try:
+        from scripts.runtime.calculation.approved_engine import (
+            ApprovedSajuRuntimeEngine,
+        )
+        from scripts.runtime.calculation.errors import RuntimeCalculationError
+
+        try:
+            return ApprovedSajuRuntimeEngine(
+                release_registry=prepared["release_path"],
+                enable_approved_runtime=True,
+            )
+        except RuntimeCalculationError as exc:
+            raise Phase5DashboardError(
+                f"runtime engine 준비가 실패했습니다: {exc.code}"
+            ) from exc
+    except ImportError as exc:
+        raise Phase5DashboardError(
+            "runtime v1.1 고정 의존성이 현재 dashboard Python 환경에 없습니다."
+        ) from exc
+
+
+def runtime_status_payload(server: DashboardHTTPServer) -> dict[str, Any]:
+    prepared = server.context.get("runtime_canary")
+    configured = isinstance(prepared, dict)
+    release = prepared.get("release") if configured else None
+    release_available = isinstance(release, dict)
+    enabled = bool(server.runtime_canary_requested and release_available)
+    if not configured:
+        code = "RUNTIME_CANARY_NOT_CONFIGURED"
+        message = "이 dashboard 버전에는 runtime canary가 없습니다."
+    elif not release_available:
+        code = "RUNTIME_RELEASE_REQUIRED"
+        message = "KASI 공식 Gate를 통과한 runtime release가 없어 계산기를 차단했습니다."
+    elif not server.runtime_canary_requested:
+        code = "RUNTIME_FEATURE_DISABLED"
+        message = "승인 runtime은 기본 off입니다. 명시적 실행 flag가 필요합니다."
+    else:
+        code = None
+        message = "승인 runtime canary가 활성화됐습니다."
+    return {
+        "schema_version": "1.0.0",
+        "configured": configured,
+        "release_available": release_available,
+        "feature_requested": bool(server.runtime_canary_requested),
+        "enabled": enabled,
+        "code": code,
+        "message": message,
+        "release_id": release.get("release_id") if release_available else None,
+        "engine_version": (
+            prepared["contract"]["engine_version"] if configured else None
+        ),
+        "profile_id": prepared["contract"]["profile_id"] if configured else None,
+        "remote_unauthenticated": server.remote_unauthenticated,
+        "unsafe_remote_runtime_acknowledged": bool(
+            server.allow_unauthenticated_runtime_canary
+        ),
+        "facts_rendered_without_model": True,
+        "requests_logged": False,
+        "state_local_only": True,
+    }
+
+
+def _require_runtime_enabled(server: DashboardHTTPServer) -> None:
+    status = runtime_status_payload(server)
+    if not status["enabled"]:
+        raise DashboardRequestError(HTTPStatus.CONFLICT, status["message"])
+
+
+def _runtime_engine_for_state(
+    server: DashboardHTTPServer,
+    runtime_session_id: str,
+    state: dict[str, Any],
+) -> Any:
+    cached = server.runtime_engines.get(runtime_session_id)
+    if cached is not None:
+        return cached
+    engine = _new_runtime_engine(server.context)
+    replay = engine.calculate_chart(state["chart_arguments"])
+    expected = state["chart_result"]
+    identity_fields = (
+        "status",
+        "fact_authority",
+        "chart_id",
+        "chart_set_id",
+        "calculation_run_id",
+    )
+    if any(replay.get(key) != expected.get(key) for key in identity_fields) or (
+        _runtime_visible(replay) != _runtime_visible(expected)
+    ):
+        raise Phase5DashboardError(
+            "runtime state 재현 결과가 저장된 chart fingerprint와 다릅니다."
+        )
+    server.runtime_engines[runtime_session_id] = engine
+    return engine
+
+
+def _runtime_response_from_result(
+    result: dict[str, Any], runtime_session_id: str | None
+) -> dict[str, Any]:
+    return {
+        "runtime_session_id": runtime_session_id,
+        "facts": {"chart": _runtime_visible(result), "period": None},
+        "period_allowed": result.get("fact_authority") == "HARD_GT"
+        and result.get("chart_id") is not None,
+        "persisted": False,
+        "local_only": True,
+        "model_visible_allowlist_applied": True,
+    }
+
+
+def execute_runtime_chart(
+    server: DashboardHTTPServer, payload: dict[str, Any]
+) -> dict[str, Any]:
+    _require_runtime_enabled(server)
+    if set(payload) != {"runtime_session_id", "arguments"} or not isinstance(
+        payload.get("arguments"), dict
+    ):
+        raise DashboardRequestError(
+            HTTPStatus.BAD_REQUEST,
+            "runtime chart 요청은 runtime_session_id와 arguments만 허용합니다.",
+        )
+    requested_id = payload.get("runtime_session_id")
+    if requested_id is not None and (
+        not isinstance(requested_id, str)
+        or RUNTIME_SESSION_ID_PATTERN.fullmatch(requested_id) is None
+    ):
+        raise DashboardRequestError(
+            HTTPStatus.BAD_REQUEST, "runtime_session_id가 잘못됐습니다."
+        )
+    with server.runtime_lock:
+        previous = (
+            _read_runtime_state(server.context, requested_id)
+            if requested_id is not None
+            else None
+        )
+        runtime_session_id = requested_id or secrets.token_hex(12)
+        engine = (
+            _runtime_engine_for_state(server, runtime_session_id, previous)
+            if previous is not None
+            else _new_runtime_engine(server.context)
+        )
+        result = engine.calculate_chart(payload["arguments"])
+        if result.get("status") not in {"ok", "partial"}:
+            return _runtime_response_from_result(result, requested_id)
+        now = datetime.now(timezone.utc).isoformat()
+        revision = (previous["revision"] + 1) if previous is not None else 1
+        state = {
+            "schema_version": "1.0.0",
+            "runtime_session_id": runtime_session_id,
+            "run_id": server.context["manifest"]["run_id"],
+            "run_build_id": server.context["manifest"]["run_build_id"],
+            "release_id": server.context["runtime_canary"]["release"]["release_id"],
+            "engine_version": "saju-runtime-python-v1.1.0",
+            "created_at_utc": previous["created_at_utc"] if previous else now,
+            "updated_at_utc": now,
+            "revision": revision,
+            "chart_arguments": payload["arguments"],
+            "chart_result": result,
+            "period_arguments": None,
+            "period_result": None,
+            "snapshot_history": list(previous["snapshot_history"]) if previous else [],
+        }
+        snapshot = _runtime_snapshot(state)
+        state["snapshot_history"].append(
+            {
+                "revision": revision,
+                "snapshot_sha256": snapshot["sha256"],
+                "created_at_utc": now,
+                "period_present": False,
+            }
+        )
+        _validate_runtime_state(server.context, state, runtime_session_id)
+        _write_runtime_state(server.context, state)
+        server.runtime_engines[runtime_session_id] = engine
+        return {**runtime_state_payload(server.context, runtime_session_id), "persisted": True}
+
+
+def execute_runtime_period(
+    server: DashboardHTTPServer, payload: dict[str, Any]
+) -> dict[str, Any]:
+    _require_runtime_enabled(server)
+    if set(payload) != {"runtime_session_id", "arguments"} or not isinstance(
+        payload.get("runtime_session_id"), str
+    ) or not isinstance(payload.get("arguments"), dict):
+        raise DashboardRequestError(
+            HTTPStatus.BAD_REQUEST,
+            "runtime period 요청은 runtime_session_id와 arguments만 허용합니다.",
+        )
+    runtime_session_id = payload["runtime_session_id"]
+    if RUNTIME_SESSION_ID_PATTERN.fullmatch(runtime_session_id) is None:
+        raise DashboardRequestError(
+            HTTPStatus.BAD_REQUEST, "runtime_session_id가 잘못됐습니다."
+        )
+    supplied = payload["arguments"]
+    if set(supplied) != {"period_type", "start_date", "end_date"}:
+        raise DashboardRequestError(
+            HTTPStatus.BAD_REQUEST, "runtime period arguments가 잘못됐습니다."
+        )
+    with server.runtime_lock:
+        state = _read_runtime_state(server.context, runtime_session_id)
+        chart_id = state["chart_result"].get("chart_id")
+        if (
+            state["chart_result"].get("fact_authority") != "HARD_GT"
+            or not isinstance(chart_id, str)
+        ):
+            raise DashboardRequestError(
+                HTTPStatus.CONFLICT,
+                "기간 계산에는 exact 입력으로 확정된 HARD_GT chart가 필요합니다.",
+            )
+        engine = _runtime_engine_for_state(server, runtime_session_id, state)
+        arguments = {
+            "chart_id": chart_id,
+            "period_type": supplied["period_type"],
+            "start_date": supplied["start_date"],
+            "end_date": supplied["end_date"],
+            "timezone": "Asia/Seoul",
+        }
+        result = engine.calculate_period(arguments)
+        if result.get("status") != "ok":
+            return {
+                **runtime_state_payload(server.context, runtime_session_id),
+                "period_attempt": _runtime_visible(result),
+                "persisted": False,
+            }
+        now = datetime.now(timezone.utc).isoformat()
+        revision = state["revision"] + 1
+        updated = {
+            **state,
+            "updated_at_utc": now,
+            "revision": revision,
+            "period_arguments": arguments,
+            "period_result": result,
+            "snapshot_history": list(state["snapshot_history"]),
+        }
+        snapshot = _runtime_snapshot(updated)
+        updated["snapshot_history"].append(
+            {
+                "revision": revision,
+                "snapshot_sha256": snapshot["sha256"],
+                "created_at_utc": now,
+                "period_present": True,
+            }
+        )
+        _validate_runtime_state(server.context, updated, runtime_session_id)
+        _write_runtime_state(server.context, updated)
+        return {**runtime_state_payload(server.context, runtime_session_id), "persisted": True}
+
+
 class DashboardHTTPServer(ThreadingHTTPServer):
     """loopback 전용 대시보드 context와 CSRF token을 보관한다."""
 
@@ -2512,6 +3145,8 @@ class DashboardHTTPServer(ThreadingHTTPServer):
         csrf_token: str,
         trusted_origin: str | None = None,
         basic_auth: tuple[str, str] | None = None,
+        runtime_canary_requested: bool = False,
+        allow_unauthenticated_runtime_canary: bool = False,
     ) -> None:
         if trusted_origin is None and basic_auth is not None:
             raise Phase5DashboardError(
@@ -2521,7 +3156,14 @@ class DashboardHTTPServer(ThreadingHTTPServer):
         self.asset_root = asset_root
         self.csrf_token = csrf_token
         self.basic_auth = basic_auth
+        self.runtime_canary_requested = bool(runtime_canary_requested)
+        self.allow_unauthenticated_runtime_canary = bool(
+            allow_unauthenticated_runtime_canary
+        )
+        self.remote_unauthenticated = trusted_origin is not None and basic_auth is None
         self.generation_lock = threading.Lock()
+        self.runtime_lock = threading.Lock()
+        self.runtime_engines: dict[str, Any] = {}
         self.dataset_cache: dict[str, Any] = {}
         self.dataset_cache_lock = threading.Lock()
         super().__init__(address, DashboardRequestHandler)
@@ -2529,7 +3171,11 @@ class DashboardHTTPServer(ThreadingHTTPServer):
         self.allowed_hosts = {f"127.0.0.1:{port}", f"localhost:{port}"}
         self.allowed_origins = {f"http://{value}" for value in self.allowed_hosts}
         if trusted_origin is not None:
-            self.allowed_origins.add(_validated_trusted_origin(trusted_origin))
+            validated_origin = _validated_trusted_origin(trusted_origin)
+            self.allowed_origins.add(validated_origin)
+            hostname = urlsplit(validated_origin).hostname
+            if hostname is not None:
+                self.allowed_hosts.add(hostname)
 
 
 class DashboardRequestHandler(BaseHTTPRequestHandler):
@@ -2682,6 +3328,21 @@ class DashboardRequestHandler(BaseHTTPRequestHandler):
                 if path == "/api/status":
                     self._send_json(HTTPStatus.OK, status_payload(self.server.context))
                     return
+                if path == "/api/runtime/status":
+                    self._send_json(HTTPStatus.OK, runtime_status_payload(self.server))
+                    return
+                runtime_state_match = re.fullmatch(
+                    r"/api/runtime/states/([0-9a-f]{24})", path
+                )
+                if runtime_state_match is not None:
+                    _require_runtime_enabled(self.server)
+                    self._send_json(
+                        HTTPStatus.OK,
+                        runtime_state_payload(
+                            self.server.context, runtime_state_match.group(1)
+                        ),
+                    )
+                    return
                 if path == "/api/metrics":
                     self._send_json(HTTPStatus.OK, metrics_payload(self.server.context))
                     return
@@ -2779,6 +3440,15 @@ class DashboardRequestHandler(BaseHTTPRequestHandler):
                     )
                 self._send_json(HTTPStatus.OK, result)
                 return
+            if path in {"/api/runtime/chart", "/api/runtime/period"}:
+                payload = self._request_json()
+                result = (
+                    execute_runtime_chart(self.server, payload)
+                    if path == "/api/runtime/chart"
+                    else execute_runtime_period(self.server, payload)
+                )
+                self._send_json(HTTPStatus.OK, result)
+                return
             if path not in {"/api/generate", "/api/probe"}:
                 raise DashboardRequestError(HTTPStatus.NOT_FOUND, "API 경로를 찾을 수 없습니다.")
             payload = self._request_json()
@@ -2792,7 +3462,13 @@ class DashboardRequestHandler(BaseHTTPRequestHandler):
                     if (
                         not {"prompt", "session_id"}.issubset(payload)
                         or not set(payload).issubset(
-                            {"prompt", "session_id", "profile", "engine_selection"}
+                            {
+                                "prompt",
+                                "session_id",
+                                "profile",
+                                "engine_selection",
+                                "runtime_session_id",
+                            }
                         )
                         or not isinstance(payload["prompt"], str)
                         or (
@@ -2807,6 +3483,10 @@ class DashboardRequestHandler(BaseHTTPRequestHandler):
                             payload.get("engine_selection") is not None
                             and not isinstance(payload.get("engine_selection"), str)
                         )
+                        or (
+                            payload.get("runtime_session_id") is not None
+                            and not isinstance(payload.get("runtime_session_id"), str)
+                        )
                     ):
                         raise DashboardRequestError(
                             HTTPStatus.BAD_REQUEST,
@@ -2818,6 +3498,7 @@ class DashboardRequestHandler(BaseHTTPRequestHandler):
                         payload["session_id"],
                         payload.get("profile"),
                         payload.get("engine_selection"),
+                        payload.get("runtime_session_id"),
                     )
                 else:
                     if payload:
@@ -2848,6 +3529,7 @@ def _manual_generation_subprocess(
     session_id: str | None,
     profile: str | None,
     engine_selection: str | None,
+    runtime_session_id: str | None = None,
 ) -> dict[str, Any]:
     command = [
         sys.executable,
@@ -2880,6 +3562,7 @@ def _manual_generation_subprocess(
                 "session_id": session_id,
                 "profile": profile,
                 "engine_selection": engine_selection,
+                "runtime_session_id": runtime_session_id,
             },
             ensure_ascii=False,
         ),
@@ -2952,6 +3635,8 @@ def serve(
     basic_auth_user: str | None = None,
     basic_auth_password_file: Path | None = None,
     allow_unauthenticated_remote: bool = False,
+    enable_runtime_canary: bool = False,
+    allow_unauthenticated_runtime_canary: bool = False,
 ) -> None:
     if host != "127.0.0.1" or not 1 <= port <= 65535:
         raise Phase5DashboardError("대시보드는 127.0.0.1의 유효한 port에만 열 수 있습니다.")
@@ -2962,13 +3647,38 @@ def serve(
         allow_unauthenticated_remote,
     )
     schema_version = context["config"]["schema_version"]
-    if resolved_origin is not None and basic_auth is None and schema_version != "1.7.0":
-        raise Phase5DashboardError("무인증 원격 공유에는 dashboard v1.7.0 계약이 필요합니다.")
+    if resolved_origin is not None and basic_auth is None and schema_version not in {
+        "1.7.0",
+        "1.8.0",
+    }:
+        raise Phase5DashboardError("무인증 원격 공유에는 dashboard v1.7.0+ 계약이 필요합니다.")
     if resolved_origin is not None and basic_auth is not None and schema_version not in {
         "1.6.0",
         "1.7.0",
+        "1.8.0",
     }:
         raise Phase5DashboardError("인증 원격 공유에는 dashboard v1.6.0+ 계약이 필요합니다.")
+    if enable_runtime_canary and schema_version != "1.8.0":
+        raise Phase5DashboardError("runtime canary에는 dashboard v1.8.0 계약이 필요합니다.")
+    remote_unauthenticated = resolved_origin is not None and basic_auth is None
+    if allow_unauthenticated_runtime_canary and (
+        not enable_runtime_canary or not remote_unauthenticated
+    ):
+        raise Phase5DashboardError(
+            "무인증 runtime 확인 flag는 무인증 원격 runtime canary와만 사용할 수 있습니다."
+        )
+    if (
+        enable_runtime_canary
+        and remote_unauthenticated
+        and not allow_unauthenticated_runtime_canary
+    ):
+        raise Phase5DashboardError(
+            "무인증 원격 runtime canary에는 별도 위험 확인 flag가 필요합니다."
+        )
+    release_available = isinstance(
+        (context.get("runtime_canary") or {}).get("release"), dict
+    )
+    context["runtime_canary_active"] = bool(enable_runtime_canary and release_available)
     server = DashboardHTTPServer(
         (host, port),
         context,
@@ -2976,6 +3686,8 @@ def serve(
         secrets.token_hex(24),
         resolved_origin,
         basic_auth,
+        enable_runtime_canary,
+        allow_unauthenticated_runtime_canary,
     )
     actual_port = server.server_address[1]
     print(f"Phase 5 dashboard: http://127.0.0.1:{actual_port}", flush=True)
@@ -2999,6 +3711,10 @@ def _parser() -> argparse.ArgumentParser:
     serve_parser.add_argument("--basic-auth-user")
     serve_parser.add_argument("--basic-auth-password-file", type=Path)
     serve_parser.add_argument("--allow-unauthenticated-remote", action="store_true")
+    serve_parser.add_argument("--enable-runtime-canary", action="store_true")
+    serve_parser.add_argument(
+        "--allow-unauthenticated-runtime-canary", action="store_true"
+    )
     probe = subparsers.add_parser("probe", help="완료 모델 고정 20건 비교")
     probe.add_argument("--execute", action="store_true")
     generate = subparsers.add_parser("generate", help=argparse.SUPPRESS)
@@ -3023,6 +3739,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                 args.basic_auth_user,
                 args.basic_auth_password_file,
                 args.allow_unauthenticated_remote,
+                args.enable_runtime_canary,
+                args.allow_unauthenticated_runtime_canary,
             )
             return 0
         elif args.command == "probe":
@@ -3038,7 +3756,13 @@ def main(argv: Sequence[str] | None = None) -> int:
                 not isinstance(payload, dict)
                 or not {"prompt", "session_id"}.issubset(payload)
                 or not set(payload).issubset(
-                    {"prompt", "session_id", "profile", "engine_selection"}
+                    {
+                        "prompt",
+                        "session_id",
+                        "profile",
+                        "engine_selection",
+                        "runtime_session_id",
+                    }
                 )
                 or not isinstance(payload["prompt"], str)
                 or (
@@ -3053,6 +3777,10 @@ def main(argv: Sequence[str] | None = None) -> int:
                     payload.get("engine_selection") is not None
                     and not isinstance(payload.get("engine_selection"), str)
                 )
+                or (
+                    payload.get("runtime_session_id") is not None
+                    and not isinstance(payload.get("runtime_session_id"), str)
+                )
             ):
                 raise Phase5DashboardError("수동 generation stdin 계약이 다릅니다.")
             result = execute_manual_generation(
@@ -3061,6 +3789,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 payload["session_id"],
                 payload.get("profile"),
                 payload.get("engine_selection"),
+                payload.get("runtime_session_id"),
             )
         else:
             raise Phase5DashboardError("지원하지 않는 command입니다.")

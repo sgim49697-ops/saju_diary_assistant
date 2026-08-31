@@ -49,7 +49,7 @@ class DashboardFixture:
         self.config = json.loads((REPO_ROOT / DEFAULT_CONFIG).read_text(encoding="utf-8"))
         self.config_path = (
             root
-            / "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.7.0.json"
+            / "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.8.0.json"
         )
         self.config_path.parent.mkdir(parents=True)
         prompt_source = REPO_ROOT / self.config["prompt_profiles"]["profiles"][
@@ -165,7 +165,9 @@ class Phase5DashboardTests(unittest.TestCase):
     def test_committed_config_and_cli_defaults_are_valid(self) -> None:
         config = json.loads((REPO_ROOT / DEFAULT_CONFIG).read_text(encoding="utf-8"))
         validate_config(config)
-        self.assertEqual(config["schema_version"], "1.7.0")
+        self.assertEqual(config["schema_version"], "1.8.0")
+        self.assertFalse(config["runtime_canary"]["enabled_by_default"])
+        self.assertTrue(config["governance"]["runtime_release_required"])
         self.assertEqual(
             config["server"]["remote_share"],
             {
@@ -225,6 +227,10 @@ class Phase5DashboardTests(unittest.TestCase):
         invalid_remote["server"]["remote_share"]["wildcard_origins_allowed"] = True
         with self.assertRaisesRegex(Phase5DashboardError, "원격 공유 계약"):
             validate_config(invalid_remote)
+        invalid_runtime = json.loads(json.dumps(config))
+        invalid_runtime["runtime_canary"]["enabled_by_default"] = True
+        with self.assertRaisesRegex(Phase5DashboardError, "runtime canary"):
+            validate_config(invalid_runtime)
         self.assertTrue(DashboardHTTPServer.allow_reuse_address)
 
     def test_remote_access_requires_exact_origin_and_private_password_file(self) -> None:
@@ -687,6 +693,45 @@ class Phase5DashboardTests(unittest.TestCase):
         self.assertEqual(stored["prompt_profile"], "guided_diagnostic_v1")
         self.assertEqual(manual_sessions_payload(self.fixture.context())["items"][0]["turn_count"], 2)
         self.assertFalse(result["production_promotion_allowed"])
+
+    @patch("scripts.training.phase5_dashboard._read_runtime_state")
+    @patch("scripts.training.phase5_dashboard._runtime_model_context")
+    @patch("scripts.training.phase5_dashboard._generate_conversation")
+    @patch("scripts.training.phase5_dashboard._generation_gate")
+    def test_manual_generation_binds_allowlisted_runtime_snapshot(
+        self,
+        gate: object,
+        generate: object,
+        runtime_context: object,
+        read_state: object,
+    ) -> None:
+        gate.return_value = {"allowed": True, "reasons": []}
+        snapshot_hash = "d" * 64
+        runtime_session_id = "c" * 24
+        runtime_context.return_value = (
+            "[서버에서 계산한 승인 만세력 사실]\n{\"fact_authority\":\"HARD_GT\"}",
+            snapshot_hash,
+        )
+        read_state.return_value = {
+            "snapshot_history": [{"snapshot_sha256": snapshot_hash}]
+        }
+        generate.return_value = {
+            "output": "서버 사실을 바탕으로 한 답변",
+            "input_tokens": 30,
+            "omitted_messages": 0,
+        }
+        result = execute_manual_generation(
+            self.fixture.context(),
+            "이 원국을 설명해줘",
+            runtime_session_id=runtime_session_id,
+        )
+        session = result["session"]
+        self.assertEqual(session["schema_version"], "1.3.0")
+        self.assertEqual(session["runtime_session_id"], runtime_session_id)
+        self.assertEqual(session["runtime_snapshot_sha256"], snapshot_hash)
+        system_message = generate.call_args.args[1][0]["content"]
+        self.assertIn("서버에서 계산한 승인 만세력 사실", system_message)
+        self.assertIn("HARD_GT", system_message)
 
     @patch("scripts.training.phase5_dashboard._gpu_snapshot")
     @patch("scripts.training.phase5_dashboard._generate_conversation")
@@ -1188,6 +1233,132 @@ class Phase5DashboardHTTPTests(unittest.TestCase):
         status, _, _ = self.request("GET", "/api/status")
         self.assertEqual(status, 403)
 
+    def test_runtime_canary_is_release_gated_and_projects_only_visible_facts(
+        self,
+    ) -> None:
+        status, _, payload = self.request("GET", "/api/runtime/status", token=True)
+        self.assertEqual(status, 200)
+        runtime_status = json.loads(payload)
+        self.assertFalse(runtime_status["enabled"])
+        self.assertEqual(runtime_status["code"], "RUNTIME_RELEASE_REQUIRED")
+        chart_arguments = {
+            "birth_date": "1989-01-05",
+            "calendar": "solar",
+            "leap_month": None,
+            "birth_time": "13:00",
+            "time_precision": "exact",
+            "time_range": None,
+            "birthplace": {
+                "country_code": "KR",
+                "city": "서울",
+                "timezone": "Asia/Seoul",
+                "longitude": 126.978,
+                "latitude": 37.5665,
+            },
+            "gender_for_daeun": "male",
+        }
+        body = json.dumps(
+            {"runtime_session_id": None, "arguments": chart_arguments}
+        ).encode()
+        status, _, payload = self.request(
+            "POST", "/api/runtime/chart", token=True, origin=True, body=body
+        )
+        self.assertEqual(status, 409)
+        self.assertNotIn("1989-01-05", payload.decode())
+
+        class FakeRuntimeEngine:
+            def calculate_chart(self, arguments: dict[str, object]) -> dict[str, object]:
+                self.chart_arguments = arguments
+                return {
+                    "status": "ok",
+                    "hard_facts": {"pillars": {"year": "戊辰"}},
+                    "fact_authority": "HARD_GT",
+                    "message": "계산 완료",
+                    "limitations": ["휴리스틱 제외"],
+                    "chart_id": "sc1_fixture",
+                    "chart_set_id": None,
+                    "calculation_run_id": "scr1_fixture",
+                    "internal_trace": {"secret": "never-visible"},
+                }
+
+            def calculate_period(self, arguments: dict[str, object]) -> dict[str, object]:
+                return {
+                    "status": "ok",
+                    "hard_facts": {"period": {"start_date": arguments["start_date"]}},
+                    "fact_authority": "HARD_GT",
+                    "message": "기간 계산 완료",
+                    "limitations": ["해석 제외"],
+                    "calculation_run_id": "scr1_period_fixture",
+                    "internal_trace": {"secret": "never-visible"},
+                }
+
+        self.context["runtime_canary"]["release"] = {
+            "release_id": "saju-runtime-release-v1.1.0-fixture"
+        }
+        self.server.runtime_canary_requested = True
+        self.context["runtime_canary_active"] = True
+        with patch(
+            "scripts.training.phase5_dashboard._new_runtime_engine",
+            return_value=FakeRuntimeEngine(),
+        ):
+            status, _, payload = self.request(
+                "POST", "/api/runtime/chart", token=True, origin=True, body=body
+            )
+            self.assertEqual(status, 200)
+            chart = json.loads(payload)
+            runtime_session_id = chart["runtime_session_id"]
+            self.assertTrue(chart["persisted"])
+            self.assertTrue(chart["period_allowed"])
+            self.assertNotIn("chart_id", payload.decode())
+            self.assertNotIn("never-visible", payload.decode())
+
+            period_body = json.dumps(
+                {
+                    "runtime_session_id": runtime_session_id,
+                    "arguments": {
+                        "period_type": "day",
+                        "start_date": "2026-08-31",
+                        "end_date": None,
+                    },
+                }
+            ).encode()
+            status, _, payload = self.request(
+                "POST",
+                "/api/runtime/period",
+                token=True,
+                origin=True,
+                body=period_body,
+            )
+            self.assertEqual(status, 200)
+            period = json.loads(payload)
+            self.assertIsNotNone(period["facts"]["period"])
+            self.assertNotIn("never-visible", payload.decode())
+
+            correction_body = json.dumps(
+                {
+                    "runtime_session_id": runtime_session_id,
+                    "arguments": {**chart_arguments, "birth_time": "13:01"},
+                }
+            ).encode()
+            status, _, payload = self.request(
+                "POST",
+                "/api/runtime/chart",
+                token=True,
+                origin=True,
+                body=correction_body,
+            )
+            self.assertEqual(status, 200)
+            corrected = json.loads(payload)
+            self.assertIsNone(corrected["facts"]["period"])
+            self.assertEqual(corrected["revision"], 3)
+
+        state_path = (
+            self.fixture.run_root
+            / "dashboard/v1.8.0/runtime_sessions"
+            / f"{runtime_session_id}.json"
+        )
+        self.assertEqual(state_path.stat().st_mode & 0o777, 0o600)
+
     @patch("scripts.training.phase5_dashboard._manual_generation_subprocess")
     @patch("scripts.training.phase5_dashboard._generation_gate")
     def test_remote_share_requires_basic_auth_and_exact_origin(
@@ -1320,6 +1491,7 @@ class Phase5DashboardHTTPTests(unittest.TestCase):
             None,
             "guided_diagnostic_v1",
             "k0_vs_ki20",
+            None,
         )
 
     @patch("scripts.training.phase5_dashboard._generate_conversation")

@@ -19,6 +19,8 @@ let loadedDatasetKey = null;
 let datasetSampleRequestSequence = 0;
 let promptExampleCatalog = null;
 let selectedPromptExampleCategory = "all";
+let runtimeCanaryStatus = null;
+let activeRuntimeSessionId = null;
 
 const byId = (id) => document.getElementById(id);
 const number = (value, digits = 4) => Number.isFinite(value) ? value.toLocaleString("ko-KR", { maximumFractionDigits: digits }) : "—";
@@ -150,6 +152,71 @@ async function api(path, options = {}) {
   const payload = await response.json();
   if (!response.ok) throw new Error(payload.error || `HTTP ${response.status}`);
   return payload;
+}
+
+function setRuntimeFormEnabled(enabled) {
+  byId("runtime-chart-form").querySelectorAll("input, select, button").forEach((field) => { field.disabled = !enabled; });
+  if (!enabled) byId("runtime-period-form").querySelectorAll("input, select, button").forEach((field) => { field.disabled = true; });
+}
+
+function renderRuntimeStatus(status) {
+  runtimeCanaryStatus = status;
+  const panel = byId("runtime-panel");
+  panel.classList.toggle("hidden", !status.configured);
+  if (!status.configured) return;
+  const pill = byId("runtime-status-pill");
+  pill.textContent = status.enabled ? "활성" : status.release_available ? "기본 OFF" : "Gate 대기";
+  pill.className = `status-pill ${status.enabled ? "" : status.release_available ? "locked" : "incomplete"}`.trim();
+  byId("runtime-status-copy").textContent = status.message;
+  byId("runtime-remote-warning").classList.toggle("hidden", !status.remote_unauthenticated);
+  setRuntimeFormEnabled(status.enabled);
+  byId("diagnostic-engine-note").textContent = status.enabled
+    ? "서버 계산 사실은 모델 출력과 별도로 먼저 표시됩니다. KI20에는 허용된 사실만 전달하며, 모델 해석은 여전히 진단용입니다."
+    : "K0와 KI20 모두 계산 엔진이 연결되지 않은 진단용 언어 모델입니다. 출력은 명리학적 정답이나 운영 승격 근거가 아닙니다.";
+  if (status.enabled && activeRuntimeSessionId) loadRuntimeState(activeRuntimeSessionId);
+}
+
+async function refreshRuntimeStatus() {
+  try {
+    renderRuntimeStatus(await api("/api/runtime/status"));
+  } catch (error) {
+    runtimeCanaryStatus = null;
+    byId("runtime-panel").classList.add("hidden");
+  }
+}
+
+function updateRuntimeTimeFields() {
+  const precision = byId("runtime-time-precision").value;
+  byId("runtime-exact-time-field").classList.toggle("hidden", precision !== "exact");
+  byId("runtime-range-start-field").classList.toggle("hidden", precision !== "range");
+  byId("runtime-range-end-field").classList.toggle("hidden", precision !== "range");
+  byId("runtime-birth-time").required = precision === "exact";
+  byId("runtime-range-start").required = precision === "range";
+  byId("runtime-range-end").required = precision === "range";
+}
+
+function updateRuntimeCalendarFields() {
+  byId("runtime-leap-field").classList.toggle("hidden", byId("runtime-calendar").value !== "lunar");
+}
+
+function renderRuntimeFacts(payload) {
+  if (!payload?.facts) return;
+  activeRuntimeSessionId = payload.runtime_session_id || activeRuntimeSessionId;
+  byId("runtime-facts-panel").classList.remove("hidden");
+  byId("runtime-session-id").textContent = activeRuntimeSessionId ? `${activeRuntimeSessionId} · rev ${payload.revision || "—"}` : "저장되지 않음";
+  byId("runtime-facts-json").textContent = JSON.stringify(payload.facts, null, 2);
+  const periodVisible = Boolean(runtimeCanaryStatus?.enabled && payload.period_allowed && activeRuntimeSessionId);
+  byId("runtime-period-form").classList.toggle("hidden", !periodVisible);
+  byId("runtime-period-form").querySelectorAll("input, select, button").forEach((field) => { field.disabled = !periodVisible; });
+}
+
+async function loadRuntimeState(runtimeSessionId) {
+  if (!runtimeCanaryStatus?.enabled || !runtimeSessionId) return;
+  try {
+    renderRuntimeFacts(await api(`/api/runtime/states/${runtimeSessionId}`));
+  } catch (error) {
+    byId("runtime-status-copy").textContent = `runtime state 로드 실패: ${error.message}`;
+  }
 }
 
 function renderAlerts(alerts) {
@@ -476,6 +543,12 @@ function renderConversation(session, contexts = null) {
     byId("session-meta").textContent = "새 세션에서 첫 질문을 입력하세요.";
     return;
   }
+  activeRuntimeSessionId = session.runtime_session_id || null;
+  if (activeRuntimeSessionId) loadRuntimeState(activeRuntimeSessionId);
+  else {
+    byId("runtime-facts-panel").classList.add("hidden");
+    byId("runtime-period-form").classList.add("hidden");
+  }
   target.innerHTML = sessionTurns(session).map((turn) => {
     const assistants = turn.assistants.map((message) => {
       const engineId = message.engine_id || "ki20_final";
@@ -594,6 +667,7 @@ async function renderSessions(payload) {
 }
 
 async function refresh() {
+  const runtimeRefresh = refreshRuntimeStatus();
   try {
     const [status, metrics, checkpoints, checks, sessions, datasets] = await Promise.all([
       api("/api/status"), api("/api/metrics"), api("/api/checkpoints"), api("/api/model-checks"), api("/api/sessions"), api("/api/dataset-splits"),
@@ -604,6 +678,7 @@ async function refresh() {
     renderModelChecks(checks);
     await renderSessions(sessions);
     renderDatasetCatalog(datasets);
+    await runtimeRefresh;
   } catch (error) {
     byId("live-dot").className = "live-dot error";
     byId("lifecycle").textContent = "대시보드 오류";
@@ -676,6 +751,79 @@ byId("prompt-example-category").addEventListener("change", (event) => {
   renderPromptExamples();
 });
 
+byId("runtime-calendar").addEventListener("change", updateRuntimeCalendarFields);
+byId("runtime-time-precision").addEventListener("change", updateRuntimeTimeFields);
+
+byId("runtime-chart-form").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (!runtimeCanaryStatus?.enabled) return;
+  const button = byId("runtime-chart-button");
+  const precision = byId("runtime-time-precision").value;
+  const calendar = byId("runtime-calendar").value;
+  const argumentsPayload = {
+    birth_date: byId("runtime-birth-date").value,
+    calendar,
+    leap_month: calendar === "lunar" ? byId("runtime-leap-month").value === "true" : null,
+    birth_time: precision === "exact" ? byId("runtime-birth-time").value : null,
+    time_precision: precision,
+    time_range: precision === "range" ? { start: byId("runtime-range-start").value, end: byId("runtime-range-end").value } : null,
+    birthplace: {
+      country_code: "KR",
+      city: byId("runtime-city").value.trim(),
+      timezone: "Asia/Seoul",
+      longitude: Number(byId("runtime-longitude").value),
+      latitude: Number(byId("runtime-latitude").value),
+    },
+    gender_for_daeun: byId("runtime-gender").value,
+  };
+  button.disabled = true;
+  button.textContent = activeRuntimeSessionId ? "원국 정정 중…" : "원국 계산 중…";
+  byId("runtime-status-copy").textContent = "서버에서 승인 runtime을 실행하고 있습니다.";
+  try {
+    const result = await api("/api/runtime/chart", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ runtime_session_id: activeRuntimeSessionId, arguments: argumentsPayload }),
+    });
+    renderRuntimeFacts(result);
+    byId("runtime-status-copy").textContent = result.persisted ? "원국 사실을 로컬 state에 저장했습니다. 모델 출력과 별도로 확인할 수 있습니다." : "입력 오류로 state를 바꾸지 않았습니다.";
+  } catch (error) {
+    byId("runtime-status-copy").textContent = `원국 계산 실패: ${error.message}`;
+  } finally {
+    button.disabled = false;
+    button.textContent = activeRuntimeSessionId ? "원국 다시 계산" : "원국 계산";
+  }
+});
+
+byId("runtime-period-form").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (!runtimeCanaryStatus?.enabled || !activeRuntimeSessionId) return;
+  const button = byId("runtime-period-button");
+  button.disabled = true;
+  button.textContent = "기간 계산 중…";
+  try {
+    const result = await api("/api/runtime/period", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        runtime_session_id: activeRuntimeSessionId,
+        arguments: {
+          period_type: byId("runtime-period-type").value,
+          start_date: byId("runtime-period-start").value,
+          end_date: byId("runtime-period-end").value || null,
+        },
+      }),
+    });
+    renderRuntimeFacts(result);
+    byId("runtime-status-copy").textContent = result.persisted ? "기간 간지 사실을 현재 runtime state에 추가했습니다." : "기간 입력 오류로 state를 바꾸지 않았습니다.";
+  } catch (error) {
+    byId("runtime-status-copy").textContent = `기간 계산 실패: ${error.message}`;
+  } finally {
+    button.disabled = false;
+    button.textContent = "기간 간지 계산";
+  }
+});
+
 byId("manual-form").addEventListener("submit", async (event) => {
   event.preventDefault();
   const prompt = byId("manual-prompt").value.trim();
@@ -689,7 +837,7 @@ byId("manual-form").addEventListener("submit", async (event) => {
     const result = await api("/api/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt, session_id: activeSessionId, profile: selectedPromptProfile, engine_selection: selectedEngineSelection }),
+      body: JSON.stringify({ prompt, session_id: activeSessionId, profile: selectedPromptProfile, engine_selection: selectedEngineSelection, runtime_session_id: activeRuntimeSessionId }),
     });
     activeSessionId = result.session_id;
     startingNewSession = false;
@@ -728,6 +876,8 @@ byId("run-probe-button").addEventListener("click", async () => {
   }
 });
 
+updateRuntimeCalendarFields();
+updateRuntimeTimeFields();
 loadPromptExamples();
 refresh();
 setInterval(refresh, refreshMilliseconds);
