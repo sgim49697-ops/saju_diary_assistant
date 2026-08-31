@@ -10,8 +10,8 @@ from typing import Any
 
 from scripts.runtime.calculation.id_signer import RuntimeIdSigner
 
-FSM_VERSION = "saju-intake-fsm-v1.0.0"
-SESSION_SCHEMA_VERSION = "saju-session-state-v2"
+FSM_VERSION = "saju-intake-fsm-v1.1.0"
+SESSION_SCHEMA_VERSION = "saju-session-state-v2.1"
 DECISION_ACTIONS = frozenset(
     {
         "ask_birth_date",
@@ -61,6 +61,12 @@ SLOT_FIELDS = frozenset(
     }
 )
 TIME_PATTERN = re.compile(r"^(?:[01]\d|2[0-3]):[0-5]\d$")
+HMAC_ID_PATTERNS = {
+    "chart_id": re.compile(r"^sc2_[0-9a-f]{64}$"),
+    "chart_set_id": re.compile(r"^scs2_[0-9a-f]{64}$"),
+    "calculation_run_id": re.compile(r"^scr2_[0-9a-f]{64}$"),
+    "chart_input_fingerprint": re.compile(r"^sif2_[0-9a-f]{64}$"),
+}
 PROVENANCE_VALUES = frozenset(
     {"user_explicit", "deterministic_default", "derived_from_policy"}
 )
@@ -168,13 +174,13 @@ def _validate_slot(field: str, value: Any) -> None:
     if field == "birth_date":
         valid = _valid_date(value)
     elif field == "calendar":
-        valid = value in {"solar", "lunar"}
+        valid = isinstance(value, str) and value in {"solar", "lunar"}
     elif field == "leap_month":
         valid = isinstance(value, bool)
     elif field == "birth_time":
         valid = isinstance(value, str) and TIME_PATTERN.fullmatch(value) is not None
     elif field == "time_precision":
-        valid = value in {"exact", "range"}
+        valid = isinstance(value, str) and value in {"exact", "range"}
     elif field == "time_range":
         valid = _valid_range(value)
     elif field == "birthplace":
@@ -183,7 +189,9 @@ def _validate_slot(field: str, value: Any) -> None:
         raise IntakeFsmError(f"구조화 slot 값이 계약과 다릅니다: {field}")
 
 
-def _validate_state(state: Mapping[str, Any]) -> None:
+def _validate_state(state: Mapping[str, Any], signer: RuntimeIdSigner) -> None:
+    if not isinstance(state, Mapping):
+        raise IntakeFsmError("intake state는 object여야 합니다.")
     expected = set(empty_intake_state())
     if set(state) != expected:
         raise IntakeFsmError("intake state field 집합이 다릅니다.")
@@ -191,19 +199,28 @@ def _validate_state(state: Mapping[str, Any]) -> None:
         state.get("session_schema_version") != SESSION_SCHEMA_VERSION
         or state.get("fsm_version") != FSM_VERSION
         or not isinstance(state.get("saju_opt_in"), bool)
+        or isinstance(state.get("state_revision"), bool)
         or not isinstance(state.get("state_revision"), int)
         or state["state_revision"] < 0
     ):
         raise IntakeFsmError("intake state version·revision이 다릅니다.")
+    if not state["saju_opt_in"] and state != empty_intake_state():
+        raise IntakeFsmError("opt-in하지 않은 state에는 출생·계산 상태를 저장할 수 없습니다.")
     slots = state.get("birth_slots")
     if not isinstance(slots, Mapping) or set(slots) != set(empty_intake_state()["birth_slots"]):
         raise IntakeFsmError("intake birth_slots field 집합이 다릅니다.")
     if slots.get("gender_for_daeun") != "unspecified":
         raise IntakeFsmError("v1 FSM은 대운 성별을 묻지 않고 unspecified로 고정합니다.")
-    if slots.get("timezone") not in {None, "Asia/Seoul"}:
+    timezone = slots.get("timezone")
+    if timezone is not None and (
+        not isinstance(timezone, str) or timezone != "Asia/Seoul"
+    ):
         raise IntakeFsmError("v1 FSM timezone은 Asia/Seoul만 허용합니다.")
     precision = slots.get("time_precision")
-    if precision not in {None, "exact", "range", "unknown"}:
+    if precision is not None and (
+        not isinstance(precision, str)
+        or precision not in {"exact", "range", "unknown"}
+    ):
         raise IntakeFsmError("time_precision 값이 다릅니다.")
     if precision == "exact" and slots.get("time_range") is not None:
         raise IntakeFsmError("exact 시간과 range가 함께 저장됐습니다.")
@@ -213,12 +230,21 @@ def _validate_state(state: Mapping[str, Any]) -> None:
         slots.get("birth_time") is not None or slots.get("time_range") is not None
     ):
         raise IntakeFsmError("시간 미상 state에 시각 값이 남아 있습니다.")
+    if slots.get("birth_time") is not None and precision != "exact":
+        raise IntakeFsmError("정확한 출생시각은 exact precision에서만 저장할 수 있습니다.")
+    if slots.get("time_range") is not None and precision != "range":
+        raise IntakeFsmError("출생시각 범위는 range precision에서만 저장할 수 있습니다.")
     if slots.get("birth_date") is not None and not _valid_date(slots["birth_date"]):
         raise IntakeFsmError("state birth_date가 지원 범위·형식과 다릅니다.")
-    if slots.get("calendar") not in {None, "solar", "lunar"}:
+    calendar = slots.get("calendar")
+    if calendar is not None and (
+        not isinstance(calendar, str) or calendar not in {"solar", "lunar"}
+    ):
         raise IntakeFsmError("state calendar 값이 다릅니다.")
     if slots.get("calendar") == "solar" and slots.get("leap_month") is not None:
         raise IntakeFsmError("양력 state에 윤달 값이 남아 있습니다.")
+    if slots.get("leap_month") is not None and slots.get("calendar") != "lunar":
+        raise IntakeFsmError("윤달 값은 음력 state에서만 저장할 수 있습니다.")
     if slots.get("leap_month") is not None and not isinstance(
         slots["leap_month"], bool
     ):
@@ -238,13 +264,21 @@ def _validate_state(state: Mapping[str, Any]) -> None:
         "birthplace"
     ]["timezone"]:
         raise IntakeFsmError("state birthplace와 timezone이 다릅니다.")
+    if slots.get("birthplace") is None and slots.get("timezone") is not None:
+        raise IntakeFsmError("출생지 없는 state에 timezone 값이 있습니다.")
     for key in ("confirmed_fields", "explicit_unknown_fields"):
         value = state.get(key)
-        if not isinstance(value, list) or len(value) != len(set(value)):
+        if (
+            not isinstance(value, list)
+            or any(not isinstance(item, str) for item in value)
+            or len(value) != len(set(value))
+        ):
             raise IntakeFsmError(f"{key}는 중복 없는 list여야 합니다.")
-    if not set(state["confirmed_fields"]).issubset(
-        {*SLOT_FIELDS, "timezone", "gender_for_daeun"}
-    ) or not set(state["explicit_unknown_fields"]).issubset({"birth_time"}):
+    confirmed = set(state["confirmed_fields"])
+    explicit_unknown = set(state["explicit_unknown_fields"])
+    if not confirmed.issubset(SLOT_FIELDS) or not explicit_unknown.issubset(
+        {"birth_time"}
+    ):
         raise IntakeFsmError("state 확인·미상 field가 허용 집합 밖입니다.")
     provenance = state.get("field_provenance")
     if (
@@ -252,28 +286,84 @@ def _validate_state(state: Mapping[str, Any]) -> None:
         or not set(provenance).issubset(
             {*SLOT_FIELDS, "timezone", "gender_for_daeun"}
         )
-        or any(value not in PROVENANCE_VALUES for value in provenance.values())
+        or any(
+            not isinstance(value, str) or value not in PROVENANCE_VALUES
+            for value in provenance.values()
+        )
     ):
         raise IntakeFsmError("state field provenance가 다릅니다.")
+    expected_confirmed = {
+        field for field in SLOT_FIELDS if slots.get(field) is not None
+    }
+    if confirmed != expected_confirmed or any(
+        provenance.get(field) != "user_explicit" for field in confirmed
+    ):
+        raise IntakeFsmError("state 확인 field와 실제 slot·provenance가 다릅니다.")
+    if (precision == "unknown" and explicit_unknown != {"birth_time"}) or (
+        precision != "unknown" and explicit_unknown
+    ):
+        raise IntakeFsmError("시간 미상 표식이 time_precision과 다릅니다.")
+    allowed_provenance = confirmed | {"gender_for_daeun"}
+    if slots.get("calendar") == "solar":
+        allowed_provenance.add("leap_month")
+        if provenance.get("leap_month") != "deterministic_default":
+            raise IntakeFsmError("양력 leap_month 기본값 provenance가 다릅니다.")
+    if slots.get("birthplace") is not None:
+        allowed_provenance.add("timezone")
+        if provenance.get("timezone") != "derived_from_policy":
+            raise IntakeFsmError("timezone provenance가 다릅니다.")
+    elif "timezone" in provenance:
+        raise IntakeFsmError("출생지 없는 state에 timezone provenance가 있습니다.")
+    if (
+        provenance.get("gender_for_daeun") != "deterministic_default"
+        or set(provenance) != allowed_provenance
+    ):
+        raise IntakeFsmError("state provenance field 집합이 slot 상태와 다릅니다.")
     chart = state.get("chart")
     if not isinstance(chart, Mapping) or set(chart) != set(empty_intake_state()["chart"]):
         raise IntakeFsmError("chart state field 집합이 다릅니다.")
+    if not isinstance(chart.get("chart_valid"), bool):
+        raise IntakeFsmError("chart_valid는 boolean이어야 합니다.")
     if chart.get("chart_valid"):
+        exact_chart = chart.get("chart_id") is not None
         if (
             not isinstance(chart.get("chart_input_fingerprint"), str)
-            or not chart["chart_input_fingerprint"].startswith("sif2_")
+            or HMAC_ID_PATTERNS["chart_input_fingerprint"].fullmatch(
+                chart["chart_input_fingerprint"]
+            )
+            is None
             or not isinstance(chart.get("hard_facts"), Mapping)
             or not (chart.get("chart_id") or chart.get("chart_set_id"))
             or bool(chart.get("chart_id")) == bool(chart.get("chart_set_id"))
             or (
                 chart.get("chart_id") is not None
-                and not str(chart["chart_id"]).startswith("sc2_")
+                and HMAC_ID_PATTERNS["chart_id"].fullmatch(str(chart["chart_id"]))
+                is None
             )
             or (
                 chart.get("chart_set_id") is not None
-                and not str(chart["chart_set_id"]).startswith("scs2_")
+                and HMAC_ID_PATTERNS["chart_set_id"].fullmatch(
+                    str(chart["chart_set_id"])
+                )
+                is None
             )
             or chart.get("fact_authority") not in {"HARD_GT", "POLICY_BOUND_RULE"}
+            or (
+                chart.get("chart_id") is not None
+                and chart.get("fact_authority") != "HARD_GT"
+            )
+            or (
+                chart.get("chart_set_id") is not None
+                and chart.get("fact_authority") != "POLICY_BOUND_RULE"
+            )
+            or (precision == "exact") != exact_chart
+            or precision not in {"exact", "range", "unknown"}
+            or slots.get("birth_date") is None
+            or slots.get("calendar") is None
+            or (slots.get("calendar") == "lunar" and slots.get("leap_month") is None)
+            or slots.get("birthplace") is None
+            or chart.get("chart_input_fingerprint")
+            != signer.chart_input_fingerprint(_chart_arguments(slots))
         ):
             raise IntakeFsmError("유효 chart state의 HMAC ID·사실이 불완전합니다.")
     elif any(value is not None for key, value in chart.items() if key != "chart_valid"):
@@ -290,20 +380,22 @@ def _validate_state(state: Mapping[str, Any]) -> None:
         or period["result"]["fact_authority"] != "HARD_GT"
     ):
         raise IntakeFsmError("period result state가 다릅니다.")
-    if state.get("current_intent") not in {None, "chart", "period"}:
+    current_intent = state.get("current_intent")
+    if current_intent is not None and (
+        not isinstance(current_intent, str)
+        or current_intent not in {"chart", "period"}
+    ):
         raise IntakeFsmError("current_intent 값이 다릅니다.")
-    if state.get("last_tool_status") not in {
-        None,
-        "ok",
-        "partial",
-        "blocked",
-        "error",
-    }:
+    last_tool_status = state.get("last_tool_status")
+    if last_tool_status is not None and (
+        not isinstance(last_tool_status, str)
+        or last_tool_status not in {"ok", "partial", "blocked", "error"}
+    ):
         raise IntakeFsmError("last_tool_status 값이 다릅니다.")
 
 
 def _validate_runtime_status(value: Mapping[str, Any]) -> None:
-    if set(value) != RUNTIME_STATUS_FIELDS or any(
+    if not isinstance(value, Mapping) or set(value) != RUNTIME_STATUS_FIELDS or any(
         not isinstance(value[key], bool) for key in RUNTIME_STATUS_FIELDS
     ):
         raise IntakeFsmError("runtime_status field·boolean 계약이 다릅니다.")
@@ -351,7 +443,28 @@ def _chart_arguments(slots: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
-def _next_decision(state: Mapping[str, Any], runtime_status: Mapping[str, bool]) -> dict[str, Any]:
+def _call_id(
+    signer: RuntimeIdSigner,
+    *,
+    call_kind: str,
+    state_revision: int,
+    arguments: Mapping[str, Any],
+) -> str:
+    return signer.calculation_run_id(
+        {
+            "fsm_version": FSM_VERSION,
+            "call_kind": call_kind,
+            "state_revision": state_revision,
+            "arguments": arguments,
+        }
+    )
+
+
+def _next_decision(
+    state: Mapping[str, Any],
+    runtime_status: Mapping[str, bool],
+    signer: RuntimeIdSigner,
+) -> dict[str, Any]:
     if not state["saju_opt_in"]:
         return _decision("explain_runtime_blocked", reason_code="SAJU_OPT_IN_REQUIRED")
     slots = state["birth_slots"]
@@ -377,10 +490,17 @@ def _next_decision(state: Mapping[str, Any], runtime_status: Mapping[str, bool])
         if not _runtime_ready(runtime_status):
             return _decision("explain_runtime_blocked", reason_code="APP_RUNTIME_NOT_READY")
         request = state["period"]["request"]
+        arguments = {"chart_id": state["chart"]["chart_id"], **deepcopy(request)}
         return _decision(
             "call_period",
             tool_name="calculate_saju_period",
-            arguments={"chart_id": state["chart"]["chart_id"], **deepcopy(request)},
+            call_id=_call_id(
+                signer,
+                call_kind="period",
+                state_revision=state["state_revision"],
+                arguments=arguments,
+            ),
+            arguments=arguments,
         )
     if state["chart"]["chart_valid"]:
         return _decision(
@@ -393,10 +513,17 @@ def _next_decision(state: Mapping[str, Any], runtime_status: Mapping[str, bool])
         )
     if not _runtime_ready(runtime_status):
         return _decision("explain_runtime_blocked", reason_code="APP_RUNTIME_NOT_READY")
+    arguments = _chart_arguments(slots)
     return _decision(
         "call_chart",
         tool_name="calculate_saju_chart",
-        arguments=_chart_arguments(slots),
+        call_id=_call_id(
+            signer,
+            call_kind="chart",
+            state_revision=state["state_revision"],
+            arguments=arguments,
+        ),
+        arguments=arguments,
     )
 
 
@@ -417,6 +544,12 @@ def _set_slot(state: dict[str, Any], field: str, value: Any, *, correction: bool
         state["confirmed_fields"] = [
             item for item in state["confirmed_fields"] if item != "leap_month"
         ]
+    elif (
+        field == "calendar"
+        and value == "lunar"
+        and state["birth_slots"]["leap_month"] is None
+    ):
+        state["field_provenance"].pop("leap_month", None)
     if field == "time_precision":
         if value == "exact":
             state["birth_slots"]["time_range"] = None
@@ -448,7 +581,12 @@ def _validate_period_request(value: Any) -> dict[str, Any]:
         "timezone",
     }:
         raise IntakeFsmError("기간 요청 field 집합이 다릅니다.")
-    if value["period_type"] not in {"day", "week", "month", "year"}:
+    if not isinstance(value["period_type"], str) or value["period_type"] not in {
+        "day",
+        "week",
+        "month",
+        "year",
+    }:
         raise IntakeFsmError("period_type이 다릅니다.")
     if not _valid_date(value["start_date"]):
         raise IntakeFsmError("기간 시작일이 지원 범위 밖입니다.")
@@ -469,12 +607,17 @@ def advance_intake(
 ) -> dict[str, Any]:
     """검증된 구조화 event 하나를 적용하고 다음 단일 action을 결정한다."""
 
-    _validate_state(state)
+    _validate_state(state, signer)
     _validate_runtime_status(runtime_status)
-    if not isinstance(event, Mapping) or event.get("type") not in EVENT_TYPES:
+    event_type_value = event.get("type") if isinstance(event, Mapping) else None
+    if (
+        not isinstance(event, Mapping)
+        or not isinstance(event_type_value, str)
+        or event_type_value not in EVENT_TYPES
+    ):
         raise IntakeFsmError("허용되지 않은 구조화 event입니다.")
     result = deepcopy(dict(state))
-    event_type = event["type"]
+    event_type = event_type_value
     allowed_fields = {
         "opt_in": {"type", "accepted"},
         "set_slot": {"type", "field", "value"},
@@ -538,18 +681,30 @@ def advance_intake(
         result["current_intent"] = "period"
         result["period"]["request"] = _validate_period_request(event["request"])
         result["period"]["result"] = None
+        result["state_revision"] += 1
     elif event_type == "chart_result":
-        if _next_decision(result, runtime_status)["action"] != "call_chart":
+        expected_decision = _next_decision(result, runtime_status, signer)
+        if expected_decision["action"] != "call_chart":
             raise IntakeFsmError(
                 "chart_result는 직전 state가 call_chart일 때만 받을 수 있습니다."
             )
         tool_result = event["result"]
-        if not isinstance(tool_result, Mapping) or tool_result.get("status") not in {
+        tool_status = tool_result.get("status") if isinstance(tool_result, Mapping) else None
+        if (
+            not isinstance(tool_status, str)
+            or tool_status not in {
             "ok",
             "partial",
             "blocked",
             "error",
-        }:
+            }
+            or not isinstance(tool_result.get("call_id"), str)
+            or HMAC_ID_PATTERNS["calculation_run_id"].fullmatch(
+                tool_result["call_id"]
+            )
+            is None
+            or tool_result["call_id"] != expected_decision.get("call_id")
+        ):
             raise IntakeFsmError("chart_result status가 다릅니다.")
         result["last_tool_status"] = tool_result["status"]
         if tool_result["status"] in {"blocked", "error"}:
@@ -559,7 +714,7 @@ def advance_intake(
                 "explain_runtime_blocked",
                 reason_code=str(tool_result.get("code") or "CHART_TOOL_FAILED"),
             )
-            _validate_state(result)
+            _validate_state(result, signer)
             return {"session_state": result, "decision": decision}
         required = {"hard_facts", "fact_authority", "chart_id", "chart_set_id"}
         if not required.issubset(tool_result) or not isinstance(
@@ -570,11 +725,16 @@ def advance_intake(
         chart_set_id = tool_result["chart_set_id"]
         precision = result["birth_slots"]["time_precision"]
         if not (
-            (isinstance(chart_id, str) and chart_id.startswith("sc2_") and chart_set_id is None)
+            (
+                isinstance(chart_id, str)
+                and HMAC_ID_PATTERNS["chart_id"].fullmatch(chart_id) is not None
+                and chart_set_id is None
+            )
             or (
                 chart_id is None
                 and isinstance(chart_set_id, str)
-                and chart_set_id.startswith("scs2_")
+                and HMAC_ID_PATTERNS["chart_set_id"].fullmatch(chart_set_id)
+                is not None
             )
         ):
             raise IntakeFsmError("chart_result HMAC ID 종류가 입력 정밀도와 다릅니다.")
@@ -606,16 +766,27 @@ def advance_intake(
         result["period"] = {"request": None, "result": None}
         result["current_intent"] = "chart"
     elif event_type == "period_result":
-        if _next_decision(result, runtime_status)["action"] != "call_period":
+        expected_decision = _next_decision(result, runtime_status, signer)
+        if expected_decision["action"] != "call_period":
             raise IntakeFsmError(
                 "period_result는 직전 state가 call_period일 때만 받을 수 있습니다."
             )
         tool_result = event["result"]
-        if not isinstance(tool_result, Mapping) or tool_result.get("status") not in {
+        tool_status = tool_result.get("status") if isinstance(tool_result, Mapping) else None
+        if (
+            not isinstance(tool_status, str)
+            or tool_status not in {
             "ok",
             "blocked",
             "error",
-        }:
+            }
+            or not isinstance(tool_result.get("call_id"), str)
+            or HMAC_ID_PATTERNS["calculation_run_id"].fullmatch(
+                tool_result["call_id"]
+            )
+            is None
+            or tool_result["call_id"] != expected_decision.get("call_id")
+        ):
             raise IntakeFsmError("period_result status가 다릅니다.")
         result["last_tool_status"] = tool_result["status"]
         if tool_result["status"] != "ok":
@@ -624,7 +795,7 @@ def advance_intake(
                 "explain_runtime_blocked",
                 reason_code=str(tool_result.get("code") or "PERIOD_TOOL_FAILED"),
             )
-            _validate_state(result)
+            _validate_state(result, signer)
             return {"session_state": result, "decision": decision}
         if (
             not isinstance(tool_result.get("hard_facts"), Mapping)
@@ -641,9 +812,9 @@ def advance_intake(
             result_kind="period",
             payload=deepcopy(result["period"]["result"]),
         )
-        _validate_state(result)
+        _validate_state(result, signer)
         return {"session_state": result, "decision": decision}
 
-    decision = _next_decision(result, runtime_status)
-    _validate_state(result)
+    decision = _next_decision(result, runtime_status, signer)
+    _validate_state(result, signer)
     return {"session_state": result, "decision": decision}

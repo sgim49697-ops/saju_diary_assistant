@@ -1,0 +1,135 @@
+{
+  "app_fsm_gate_passed": true,
+  "app_integration_allowed": false,
+  "by_stratum": {
+    "ask_birth_date": {
+      "cases": 10,
+      "passed": 10
+    },
+    "birthplace_then_handoff": {
+      "cases": 10,
+      "passed": 10
+    },
+    "correction_invalidation": {
+      "cases": 10,
+      "passed": 10
+    },
+    "exact_time_value": {
+      "cases": 10,
+      "passed": 10
+    },
+    "lunar_leap_month": {
+      "cases": 10,
+      "passed": 10
+    },
+    "no_reask_confirmed_date": {
+      "cases": 10,
+      "passed": 10
+    },
+    "period_handoff": {
+      "cases": 10,
+      "passed": 10
+    },
+    "runtime_blocked": {
+      "cases": 10,
+      "passed": 10
+    },
+    "tool_result_render": {
+      "cases": 10,
+      "passed": 10
+    },
+    "unknown_time_partial": {
+      "cases": 10,
+      "passed": 10
+    }
+  },
+  "cases": 100,
+  "encrypted_persistence_ready": false,
+  "failed": 0,
+  "failure_counts": {
+    "cached_input_fingerprint_mismatch_accepted": 0,
+    "confirmed_field_reasked": 0,
+    "correction_cache_not_invalidated": 0,
+    "fake_ui_or_completion_claim": 0,
+    "free_text_parser_present": 0,
+    "malformed_state_type_accepted": 0,
+    "name_family_job_or_gender_slot_requested": 0,
+    "non_hmac_session_fingerprint": 0,
+    "replayed_period_result_accepted": 0,
+    "runtime_block_bypassed": 0,
+    "stale_tool_result_accepted": 0,
+    "state_semantic_mismatch_accepted": 0,
+    "unknown_time_guessed": 0
+  },
+  "gate_checks": {
+    "cached_input_fingerprint_mismatch_rejected": true,
+    "configured_maximum_failures_satisfied": true,
+    "correction_invalidation_passed": true,
+    "decision_actions_match_contract": true,
+    "event_types_match_contract": true,
+    "free_text_parser_absent": true,
+    "full_hmac_id_required": true,
+    "malformed_state_type_rejected": true,
+    "name_family_job_slots_absent": true,
+    "replayed_period_result_rejected": true,
+    "runtime_block_fail_closed": true,
+    "stale_tool_result_rejected": true,
+    "state_semantic_mismatch_rejected": true,
+    "synthetic_cases_exactly_100": true,
+    "synthetic_cases_passed_100": true,
+    "tool_results_rendered_without_fake_completion": true,
+    "unknown_time_supported_without_guess": true,
+    "versioned_gate_config_valid": true
+  },
+  "gate_version": "saju-intake-fsm-gate-v1.1.0",
+  "inputs": {
+    "gate_config": {
+      "path": "configs/runtime/intake_fsm_gate-v1.1.0.json",
+      "sha256": "fc657c525f75018fd7c2f5e36fc3be7db598402332b8ac0ada3c872f85de0da0"
+    },
+    "implementation_sha256": {
+      "scripts/evaluation/saju_runtime/intake_fsm_gate.py": "9a9ceb6f682cbb10c9786063631e279db95c0c328815fed791dadd5520ad50c8",
+      "scripts/runtime/calculation/id_signer.py": "51c52c01b1b49ad3ad6dcfe966d420f53267792ab2c448b4886f7322c31d85e9",
+      "scripts/runtime/intake_contracts_v1_1.py": "d6382f682b3cb7ecb69e632fdf3da6ed869deddd53ccf0e59ccdd48a5badabf9",
+      "scripts/runtime/intake_fsm.py": "b9377eaecea9553624673e63e754eabe58718f72acc49456c82875038d8ff68f"
+    },
+    "intake_registry": {
+      "path": "configs/runtime/intake_registry-v1.1.0.json",
+      "registry_id": "saju-runtime-intake-registry-v1.1.0",
+      "sha256": "9fd5c179d3980c2d192d596d5158645062931f5c191c2c35e382fc59ec42184a"
+    }
+  },
+  "maximum_failures": {
+    "cached_input_fingerprint_mismatch_accepted": 0,
+    "confirmed_field_reasked": 0,
+    "correction_cache_not_invalidated": 0,
+    "fake_ui_or_completion_claim": 0,
+    "free_text_parser_present": 0,
+    "malformed_state_type_accepted": 0,
+    "name_family_job_or_gender_slot_requested": 0,
+    "non_hmac_session_fingerprint": 0,
+    "replayed_period_result_accepted": 0,
+    "runtime_block_bypassed": 0,
+    "stale_tool_result_accepted": 0,
+    "state_semantic_mismatch_accepted": 0,
+    "unknown_time_guessed": 0
+  },
+  "model_gate_comparison": {
+    "path": "data/reports/saju_1b_baseline/phase5-stateful-chat-gate/v1.0.0/stateful-gate-f5b76dde1921/evaluation_summary.json",
+    "required_handoff_action_passed": 14,
+    "required_handoff_action_total": 100,
+    "sha256": "861d81b4dadb5870306ccbb6a95cc7bafb0b71cbb5d67f5eabcccdb50add8bdb",
+    "status": "unchanged_model_result_not_replaced_by_fsm_gate"
+  },
+  "passed": 100,
+  "production_id_key_ready": false,
+  "records_in_public_report": false,
+  "records_sha256": "b392ea9cb668018c45e7a0e833fcddd4066fe0cda3a1b3f3b0cd953510b05b39",
+  "retention_policy_ready": false,
+  "runtime_release_ready": false,
+  "schema_version": "1.0.0",
+  "status": "passed",
+  "test_signer": "fixed_non_production_key_injected_no_key_material_reported",
+  "training_execution_performed": false,
+  "training_promotion_allowed": false
+}

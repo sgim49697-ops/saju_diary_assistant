@@ -1,0 +1,203 @@
+{
+  "_description": "중복 key를 금지하고 기간·HMAC·provenance 의미 제약을 닫은 구조화 intake 세션 계약이다.",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schema_version": "2.1.0",
+  "session_state_schema_version": "saju-session-state-v2.1",
+  "fsm_version": "saju-intake-fsm-v1.1.0",
+  "pii_at_rest": {
+    "contains_birth_data": true,
+    "hmac_is_encryption": false,
+    "production_requires_encrypted_persistence": true,
+    "production_requires_retention_policy": true
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "session_schema_version": {"const": "saju-session-state-v2.1"},
+    "fsm_version": {"const": "saju-intake-fsm-v1.1.0"},
+    "saju_opt_in": {"type": "boolean"},
+    "birth_slots": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "birth_date": {"type": ["string", "null"], "format": "date"},
+        "calendar": {"type": ["string", "null"], "enum": ["solar", "lunar", null]},
+        "leap_month": {"type": ["boolean", "null"]},
+        "birth_time": {"type": ["string", "null"], "pattern": "^(?:[01]\\d|2[0-3]):[0-5]\\d$"},
+        "time_precision": {"type": ["string", "null"], "enum": ["exact", "range", "unknown", null]},
+        "time_range": {
+          "anyOf": [
+            {"type": "null"},
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "start": {"type": "string", "pattern": "^(?:[01]\\d|2[0-3]):[0-5]\\d$"},
+                "end": {"type": "string", "pattern": "^(?:[01]\\d|2[0-3]):[0-5]\\d$"}
+              },
+              "required": ["start", "end"]
+            }
+          ]
+        },
+        "birthplace": {
+          "anyOf": [
+            {"type": "null"},
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "country_code": {"const": "KR"},
+                "city": {"type": "string", "minLength": 1},
+                "timezone": {"const": "Asia/Seoul"},
+                "longitude": {"type": ["number", "null"], "minimum": -180, "maximum": 180},
+                "latitude": {"type": ["number", "null"], "minimum": -90, "maximum": 90}
+              },
+              "required": ["country_code", "city", "timezone", "longitude", "latitude"]
+            }
+          ]
+        },
+        "timezone": {"type": ["string", "null"], "enum": ["Asia/Seoul", null]},
+        "gender_for_daeun": {"const": "unspecified"}
+      },
+      "required": [
+        "birth_date", "calendar", "leap_month", "birth_time", "time_precision",
+        "time_range", "birthplace", "timezone", "gender_for_daeun"
+      ],
+      "allOf": [
+        {
+          "if": {"properties": {"calendar": {"const": "solar"}}, "required": ["calendar"]},
+          "then": {"properties": {"leap_month": {"const": null}}}
+        },
+        {
+          "if": {"properties": {"leap_month": {"type": "boolean"}}, "required": ["leap_month"]},
+          "then": {"properties": {"calendar": {"const": "lunar"}}}
+        },
+        {
+          "if": {"properties": {"time_precision": {"const": "exact"}}, "required": ["time_precision"]},
+          "then": {"properties": {"time_range": {"const": null}}}
+        },
+        {
+          "if": {"properties": {"time_precision": {"const": "range"}}, "required": ["time_precision"]},
+          "then": {"properties": {"birth_time": {"const": null}}}
+        },
+        {
+          "if": {"properties": {"time_precision": {"const": "unknown"}}, "required": ["time_precision"]},
+          "then": {"properties": {"birth_time": {"const": null}, "time_range": {"const": null}}}
+        },
+        {
+          "if": {"properties": {"birth_time": {"type": "string"}}, "required": ["birth_time"]},
+          "then": {"properties": {"time_precision": {"const": "exact"}}}
+        },
+        {
+          "if": {"properties": {"time_range": {"type": "object"}}, "required": ["time_range"]},
+          "then": {"properties": {"time_precision": {"const": "range"}}}
+        },
+        {
+          "if": {"properties": {"birthplace": {"const": null}}, "required": ["birthplace"]},
+          "then": {"properties": {"timezone": {"const": null}}}
+        }
+      ]
+    },
+    "confirmed_fields": {
+      "type": "array",
+      "items": {"type": "string", "enum": ["birth_date", "calendar", "leap_month", "birth_time", "time_precision", "time_range", "birthplace"]},
+      "uniqueItems": true
+    },
+    "explicit_unknown_fields": {
+      "type": "array",
+      "items": {"const": "birth_time"},
+      "uniqueItems": true
+    },
+    "field_provenance": {
+      "type": "object",
+      "propertyNames": {"enum": ["birth_date", "calendar", "leap_month", "birth_time", "time_precision", "time_range", "birthplace", "timezone", "gender_for_daeun"]},
+      "additionalProperties": {"type": "string", "enum": ["user_explicit", "deterministic_default", "derived_from_policy"]}
+    },
+    "chart": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "chart_id": {"type": ["string", "null"], "pattern": "^sc2_[0-9a-f]{64}$"},
+        "chart_set_id": {"type": ["string", "null"], "pattern": "^scs2_[0-9a-f]{64}$"},
+        "chart_valid": {"type": "boolean"},
+        "chart_input_fingerprint": {"type": ["string", "null"], "pattern": "^sif2_[0-9a-f]{64}$"},
+        "hard_facts": {"type": ["object", "null"]},
+        "fact_authority": {"type": ["string", "null"], "enum": ["HARD_GT", "POLICY_BOUND_RULE", null]}
+      },
+      "required": ["chart_id", "chart_set_id", "chart_valid", "chart_input_fingerprint", "hard_facts", "fact_authority"],
+      "allOf": [
+        {
+          "if": {"properties": {"chart_valid": {"const": false}}, "required": ["chart_valid"]},
+          "then": {
+            "properties": {
+              "chart_id": {"const": null},
+              "chart_set_id": {"const": null},
+              "chart_input_fingerprint": {"const": null},
+              "hard_facts": {"const": null},
+              "fact_authority": {"const": null}
+            }
+          }
+        },
+        {
+          "if": {"properties": {"chart_valid": {"const": true}}, "required": ["chart_valid"]},
+          "then": {
+            "properties": {
+              "chart_input_fingerprint": {"type": "string", "pattern": "^sif2_[0-9a-f]{64}$"},
+              "hard_facts": {"type": "object"},
+              "fact_authority": {"enum": ["HARD_GT", "POLICY_BOUND_RULE"]}
+            },
+            "oneOf": [
+              {"properties": {"chart_id": {"type": "string", "pattern": "^sc2_[0-9a-f]{64}$"}, "chart_set_id": {"const": null}, "fact_authority": {"const": "HARD_GT"}}},
+              {"properties": {"chart_id": {"const": null}, "chart_set_id": {"type": "string", "pattern": "^scs2_[0-9a-f]{64}$"}, "fact_authority": {"const": "POLICY_BOUND_RULE"}}}
+            ]
+          }
+        }
+      ]
+    },
+    "period": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "request": {
+          "anyOf": [
+            {"type": "null"},
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "period_type": {"enum": ["day", "week", "month", "year"]},
+                "start_date": {"type": "string", "format": "date"},
+                "end_date": {"type": ["string", "null"], "format": "date"},
+                "timezone": {"const": "Asia/Seoul"}
+              },
+              "required": ["period_type", "start_date", "end_date", "timezone"]
+            }
+          ]
+        },
+        "result": {
+          "anyOf": [
+            {"type": "null"},
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "hard_facts": {"type": "object"},
+                "fact_authority": {"const": "HARD_GT"}
+              },
+              "required": ["hard_facts", "fact_authority"]
+            }
+          ]
+        }
+      },
+      "required": ["request", "result"]
+    },
+    "current_intent": {"type": ["string", "null"], "enum": ["chart", "period", null]},
+    "last_tool_status": {"type": ["string", "null"], "enum": ["ok", "partial", "blocked", "error", null]},
+    "state_revision": {"type": "integer", "minimum": 0}
+  },
+  "required": [
+    "session_schema_version", "fsm_version", "saju_opt_in", "birth_slots",
+    "confirmed_fields", "explicit_unknown_fields", "field_provenance", "chart",
+    "period", "current_intent", "last_tool_status", "state_revision"
+  ]
+}

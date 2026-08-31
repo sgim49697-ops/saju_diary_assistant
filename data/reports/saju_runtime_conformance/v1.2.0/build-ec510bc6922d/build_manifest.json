@@ -1,0 +1,24 @@
+{
+  "artifacts": {
+    "aggregate.json": {
+      "bytes": 46653,
+      "sha256": "2555241c5962d456e42768d3b97c1ce2023fe5072e8fdc5b82abcd8ad6d293e9"
+    },
+    "delta_by_year.svg": {
+      "bytes": 223170,
+      "sha256": "36719450663671cfa81fa5294efb7c6922b8d37c1713d44ea34dfda7e51c8034"
+    },
+    "independent_records.jsonl": {
+      "bytes": 1026588,
+      "sha256": "a334ce5cdfcf1362da563e8c34cf1ea04e362e13db5b15ccfef057b866a5bc01"
+    }
+  },
+  "build_id": "build-ec510bc6922d",
+  "mix20k_v3_1_regeneration_allowed": false,
+  "phase5_training_performed": false,
+  "release_registry_creation_allowed": false,
+  "report_type": "saju_runtime_conformance_v4",
+  "runtime_gate_passed": false,
+  "schema_version": "1.2.0",
+  "training_promotion_allowed": false
+}

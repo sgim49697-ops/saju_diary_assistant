@@ -5,26 +5,40 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+from collections import Counter
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
 from scripts.runtime.calculation.canonical import canonical_json_bytes
 from scripts.runtime.calculation.contracts import REPO_ROOT, sha256_file
+from scripts.runtime.calculation.errors import RuntimeCalculationError
 from scripts.runtime.calculation.id_signer import RuntimeIdSigner
+from scripts.runtime.intake_contracts_v1_1 import (
+    DECISION_ACTIONS as CONTRACT_DECISION_ACTIONS,
+)
+from scripts.runtime.intake_contracts_v1_1 import EVENT_TYPES as CONTRACT_EVENT_TYPES
+from scripts.runtime.intake_contracts_v1_1 import (
+    FSM_GATE_CONFIG,
+    INTAKE_REGISTRY,
+    load_strict_json_object,
+    validate_intake_registry_v1_1,
+)
 from scripts.runtime.intake_fsm import (
+    DECISION_ACTIONS,
+    EVENT_TYPES,
+    SLOT_FIELDS,
     IntakeFsmError,
     advance_intake,
     empty_intake_state,
 )
 
-GATE_VERSION = "saju-intake-fsm-gate-v1.0.0"
-REPORT_ROOT = REPO_ROOT / "data/reports/saju_runtime_intake_fsm/v1.0.0"
+GATE_VERSION = "saju-intake-fsm-gate-v1.1.0"
+REPORT_ROOT = REPO_ROOT / "data/reports/saju_runtime_intake_fsm/v1.1.0"
 MODEL_GATE_REPORT = REPO_ROOT / (
     "data/reports/saju_1b_baseline/phase5-stateful-chat-gate/v1.0.0/"
     "stateful-gate-f5b76dde1921/evaluation_summary.json"
 )
-FSM_GATE_CONFIG = REPO_ROOT / "configs/runtime/intake_fsm_gate-v1.0.0.json"
 READY = {
     "runtime_release_ready": True,
     "feature_enabled": True,
@@ -117,6 +131,8 @@ def _complete_input(
 def _chart_result(
     state: dict[str, Any], signer: RuntimeIdSigner, index: int, *, unknown: bool = False
 ) -> tuple[dict[str, Any], dict[str, Any]]:
+    preview = advance_intake(state, {"type": "request_chart"}, signer, READY)
+    call_id = preview["decision"].get("call_id")
     identity = {"case": index, "input": state["birth_slots"]}
     event = {
         "type": "chart_result",
@@ -126,9 +142,211 @@ def _chart_result(
             "fact_authority": "POLICY_BOUND_RULE" if unknown else "HARD_GT",
             "chart_id": None if unknown else signer.chart_id(identity),
             "chart_set_id": signer.chart_set_id(identity) if unknown else None,
+            "call_id": call_id,
         },
     }
     return _advance(state, event, signer)
+
+
+def _structural_checks(signer: RuntimeIdSigner) -> dict[str, bool]:
+    free_text_rejected = False
+    try:
+        advance_intake(
+            empty_intake_state(),
+            {"type": "free_text", "text": "내 사주를 봐줘"},
+            signer,
+            READY,
+        )
+    except IntakeFsmError:
+        free_text_rejected = True
+
+    semantic_mismatch_rejected = False
+    tampered = empty_intake_state()
+    tampered["saju_opt_in"] = True
+    tampered["current_intent"] = "chart"
+    tampered["birth_slots"]["birth_date"] = "1989-01-05"
+    tampered["field_provenance"]["birth_date"] = "user_explicit"
+    try:
+        advance_intake(tampered, {"type": "request_chart"}, signer, READY)
+    except IntakeFsmError:
+        semantic_mismatch_rejected = True
+
+    non_hmac_id_rejected = False
+    state, _decision_value = _complete_input(97, signer)
+    call_id = _decision_value["call_id"]
+    try:
+        _advance(
+            state,
+            {
+                "type": "chart_result",
+                "result": {
+                    "status": "ok",
+                    "hard_facts": {"pillars": {}},
+                    "fact_authority": "HARD_GT",
+                    "chart_id": "sc2_not-a-complete-hmac",
+                    "chart_set_id": None,
+                    "call_id": call_id,
+                },
+            },
+            signer,
+        )
+    except IntakeFsmError:
+        non_hmac_id_rejected = True
+
+    replayed_period_result_rejected = False
+    state, _decision_value = _complete_input(98, signer)
+    state, _decision_value = _chart_result(state, signer, 98)
+    state, period_decision = _advance(
+        state,
+        {
+            "type": "request_period",
+            "request": {
+                "period_type": "day",
+                "start_date": "2026-08-31",
+                "end_date": None,
+                "timezone": "Asia/Seoul",
+            },
+        },
+        signer,
+    )
+    period_event = {
+        "type": "period_result",
+        "result": {
+            "status": "ok",
+            "hard_facts": {"period": {}},
+            "fact_authority": "HARD_GT",
+            "call_id": period_decision["call_id"],
+        },
+    }
+    state, _decision_value = _advance(state, period_event, signer)
+    try:
+        _advance(state, period_event, signer)
+    except IntakeFsmError:
+        replayed_period_result_rejected = True
+
+    stale_result_rejected = False
+    state, _decision_value = _complete_input(99, signer)
+    state, _decision_value = _chart_result(state, signer, 99)
+    state, first_period_decision = _advance(
+        state,
+        {
+            "type": "request_period",
+            "request": {
+                "period_type": "day",
+                "start_date": "2026-08-31",
+                "end_date": None,
+                "timezone": "Asia/Seoul",
+            },
+        },
+        signer,
+    )
+    state, second_period_decision = _advance(
+        state,
+        {
+            "type": "request_period",
+            "request": {
+                "period_type": "day",
+                "start_date": "2026-09-01",
+                "end_date": None,
+                "timezone": "Asia/Seoul",
+            },
+        },
+        signer,
+    )
+    stale_period_event = {
+        "type": "period_result",
+        "result": {
+            "status": "ok",
+            "hard_facts": {"period": {}},
+            "fact_authority": "HARD_GT",
+            "call_id": first_period_decision["call_id"],
+        },
+    }
+    try:
+        _advance(state, stale_period_event, signer)
+    except IntakeFsmError:
+        stale_result_rejected = (
+            first_period_decision["call_id"] != second_period_decision["call_id"]
+        )
+
+    cached_fingerprint_mismatch_rejected = False
+    state, _decision_value = _complete_input(96, signer)
+    state, _decision_value = _chart_result(state, signer, 96)
+    state["chart"]["chart_input_fingerprint"] = "sif2_" + "0" * 64
+    try:
+        _advance(state, {"type": "request_chart"}, signer)
+    except IntakeFsmError:
+        cached_fingerprint_mismatch_rejected = True
+
+    malformed_state_type_rejected = False
+    malformed = empty_intake_state()
+    malformed["saju_opt_in"] = True
+    malformed["current_intent"] = "chart"
+    malformed["birth_slots"]["timezone"] = []
+    try:
+        _advance(malformed, {"type": "request_chart"}, signer)
+    except IntakeFsmError:
+        malformed_state_type_rejected = True
+
+    forbidden = {"name", "family_relationship", "job", "gender_for_daeun"}
+    return {
+        "event_types_match_contract": tuple(sorted(EVENT_TYPES))
+        == tuple(sorted(CONTRACT_EVENT_TYPES)),
+        "decision_actions_match_contract": tuple(sorted(DECISION_ACTIONS))
+        == tuple(sorted(CONTRACT_DECISION_ACTIONS)),
+        "free_text_event_rejected": free_text_rejected,
+        "name_family_job_gender_slots_absent": SLOT_FIELDS.isdisjoint(forbidden),
+        "full_hmac_id_required": non_hmac_id_rejected,
+        "replayed_period_result_rejected": replayed_period_result_rejected,
+        "stale_tool_result_rejected": stale_result_rejected,
+        "state_semantic_mismatch_rejected": semantic_mismatch_rejected,
+        "cached_input_fingerprint_mismatch_rejected": (
+            cached_fingerprint_mismatch_rejected
+        ),
+        "malformed_state_type_rejected": malformed_state_type_rejected,
+    }
+
+
+def _failure_counts(
+    records: list[dict[str, Any]], structural: dict[str, bool]
+) -> dict[str, int]:
+    case_failures = Counter(
+        failure
+        for record in records
+        for failure in record.get("failure_codes", [])
+        if isinstance(failure, str)
+    )
+    return {
+        "free_text_parser_present": int(not structural["free_text_event_rejected"]),
+        "name_family_job_or_gender_slot_requested": int(
+            not structural["name_family_job_gender_slots_absent"]
+        ),
+        "unknown_time_guessed": case_failures["unknown_time_not_preserved_partial"],
+        "confirmed_field_reasked": case_failures["confirmed_date_reasked"],
+        "correction_cache_not_invalidated": case_failures[
+            "correction_did_not_invalidate_and_recalculate"
+        ],
+        "runtime_block_bypassed": case_failures["runtime_block_did_not_fail_closed"],
+        "fake_ui_or_completion_claim": case_failures["chart_facts_not_rendered"],
+        "non_hmac_session_fingerprint": int(
+            not structural["full_hmac_id_required"]
+        ),
+        "replayed_period_result_accepted": int(
+            not structural["replayed_period_result_rejected"]
+        ),
+        "stale_tool_result_accepted": int(
+            not structural["stale_tool_result_rejected"]
+        ),
+        "state_semantic_mismatch_accepted": int(
+            not structural["state_semantic_mismatch_rejected"]
+        ),
+        "cached_input_fingerprint_mismatch_accepted": int(
+            not structural["cached_input_fingerprint_mismatch_rejected"]
+        ),
+        "malformed_state_type_accepted": int(
+            not structural["malformed_state_type_rejected"]
+        ),
+    }
 
 
 def _evaluate_case(index: int, stratum: str, signer: RuntimeIdSigner) -> list[str]:
@@ -238,7 +456,8 @@ def _evaluate_case(index: int, stratum: str, signer: RuntimeIdSigner) -> list[st
 
 
 def evaluate() -> dict[str, Any]:
-    gate_config = json.loads(FSM_GATE_CONFIG.read_text(encoding="utf-8"))
+    intake_registry = validate_intake_registry_v1_1()
+    gate_config = load_strict_json_object(FSM_GATE_CONFIG)
     signer = RuntimeIdSigner.for_test(bytes(range(32)))
     strata = (
         "ask_birth_date",
@@ -252,14 +471,8 @@ def evaluate() -> dict[str, Any]:
         "period_handoff",
         "tool_result_render",
     )
-    if (
-        gate_config.get("gate_version") != GATE_VERSION
-        or gate_config.get("minimum_cases") != 100
-        or gate_config.get("required_passed_cases") != 100
-        or gate_config.get("strata") != {stratum: 10 for stratum in strata}
-        or gate_config.get("training_promotion_allowed") is not False
-    ):
-        raise IntakeFsmGateError("FSM gate config가 구현 strata·임계와 다릅니다.")
+    if gate_config.get("gate_version") != GATE_VERSION:
+        raise IntakeFsmGateError("FSM gate version이 구현과 다릅니다.")
     records: list[dict[str, Any]] = []
     for number in range(100):
         stratum = strata[number // 10]
@@ -282,29 +495,77 @@ def evaluate() -> dict[str, Any]:
         }
         for stratum in strata
     }
+    structural = _structural_checks(signer)
+    failure_counts = _failure_counts(records, structural)
+    maximum_failures = gate_config["maximum_failures"]
+    maximum_failures_satisfied = set(failure_counts) == set(
+        maximum_failures
+    ) and all(
+        failure_counts[name] <= maximum_failures[name] for name in failure_counts
+    )
+    checks = {
+        "versioned_gate_config_valid": True,
+        "synthetic_cases_exactly_100": len(records) == 100,
+        "synthetic_cases_passed_100": passed == 100,
+        "free_text_parser_absent": structural["free_text_event_rejected"],
+        "event_types_match_contract": structural["event_types_match_contract"],
+        "decision_actions_match_contract": structural[
+            "decision_actions_match_contract"
+        ],
+        "name_family_job_slots_absent": structural[
+            "name_family_job_gender_slots_absent"
+        ],
+        "full_hmac_id_required": structural["full_hmac_id_required"],
+        "replayed_period_result_rejected": structural[
+            "replayed_period_result_rejected"
+        ],
+        "stale_tool_result_rejected": structural["stale_tool_result_rejected"],
+        "state_semantic_mismatch_rejected": structural[
+            "state_semantic_mismatch_rejected"
+        ],
+        "cached_input_fingerprint_mismatch_rejected": structural[
+            "cached_input_fingerprint_mismatch_rejected"
+        ],
+        "malformed_state_type_rejected": structural[
+            "malformed_state_type_rejected"
+        ],
+        "configured_maximum_failures_satisfied": maximum_failures_satisfied,
+        "unknown_time_supported_without_guess": by_stratum[
+            "unknown_time_partial"
+        ]["passed"]
+        == 10,
+        "correction_invalidation_passed": by_stratum[
+            "correction_invalidation"
+        ]["passed"]
+        == 10,
+        "runtime_block_fail_closed": by_stratum["runtime_blocked"]["passed"]
+        == 10,
+        "tool_results_rendered_without_fake_completion": by_stratum[
+            "tool_result_render"
+        ]["passed"]
+        == 10,
+    }
+    gate_passed = len(records) == 100 and passed == 100 and all(checks.values())
     return {
         "schema_version": "1.0.0",
         "gate_version": GATE_VERSION,
-        "status": "passed" if passed == 100 else "failed",
+        "status": "passed" if gate_passed else "failed",
         "cases": len(records),
         "passed": passed,
         "failed": len(records) - passed,
         "by_stratum": by_stratum,
-        "gate_checks": {
-            "versioned_gate_config_valid": True,
-            "synthetic_cases_exactly_100": len(records) == 100,
-            "synthetic_cases_passed_100": passed == 100,
-            "free_text_parser_absent": True,
-            "name_family_job_slots_absent": True,
-            "unknown_time_supported_without_guess": by_stratum["unknown_time_partial"]["passed"] == 10,
-            "correction_invalidation_passed": by_stratum["correction_invalidation"]["passed"] == 10,
-            "runtime_block_fail_closed": by_stratum["runtime_blocked"]["passed"] == 10,
-            "tool_results_rendered_without_fake_completion": by_stratum["tool_result_render"]["passed"] == 10,
-        },
+        "gate_checks": checks,
+        "failure_counts": failure_counts,
+        "maximum_failures": maximum_failures,
         "records_sha256": hashlib.sha256(canonical_json_bytes(records)).hexdigest(),
         "records_in_public_report": False,
         "test_signer": "fixed_non_production_key_injected_no_key_material_reported",
         "inputs": {
+            "intake_registry": {
+                "path": str(INTAKE_REGISTRY.relative_to(REPO_ROOT)),
+                "sha256": sha256_file(INTAKE_REGISTRY),
+                "registry_id": intake_registry["registry_id"],
+            },
             "gate_config": {
                 "path": str(FSM_GATE_CONFIG.relative_to(REPO_ROOT)),
                 "sha256": sha256_file(FSM_GATE_CONFIG),
@@ -313,6 +574,7 @@ def evaluate() -> dict[str, Any]:
                 path: sha256_file(REPO_ROOT / path)
                 for path in (
                     "scripts/runtime/calculation/id_signer.py",
+                    "scripts/runtime/intake_contracts_v1_1.py",
                     "scripts/runtime/intake_fsm.py",
                     "scripts/evaluation/saju_runtime/intake_fsm_gate.py",
                 )
@@ -325,7 +587,7 @@ def evaluate() -> dict[str, Any]:
             "required_handoff_action_total": model_metric["total"],
             "status": "unchanged_model_result_not_replaced_by_fsm_gate",
         },
-        "app_fsm_gate_passed": passed == 100,
+        "app_fsm_gate_passed": gate_passed,
         "runtime_release_ready": False,
         "production_id_key_ready": False,
         "encrypted_persistence_ready": False,
@@ -339,7 +601,7 @@ def evaluate() -> dict[str, Any]:
 def _safe_output_base(path: Path) -> Path:
     resolved = path.resolve(strict=False)
     if resolved != REPORT_ROOT.resolve(strict=False) or path.is_symlink():
-        raise IntakeFsmGateError("FSM gate output base는 고정 v1.0.0 경로여야 합니다.")
+        raise IntakeFsmGateError("FSM gate output base는 고정 v1.1.0 경로여야 합니다.")
     return resolved
 
 
@@ -385,7 +647,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         report = evaluate()
         output = write_report(report, args.output_base)
-    except (IntakeFsmError, IntakeFsmGateError, OSError, ValueError) as exc:
+    except (
+        IntakeFsmError,
+        IntakeFsmGateError,
+        OSError,
+        RuntimeCalculationError,
+        ValueError,
+    ) as exc:
         print(json.dumps({"status": "error", "message": str(exc)}, ensure_ascii=False))
         return 2
     print(

@@ -21,10 +21,24 @@ from scripts.runtime.calculation.engine_v1_2 import (
 from scripts.runtime.calculation.errors import RuntimeCalculationError
 
 
+def _input_object_without_duplicates(
+    pairs: list[tuple[str, Any]],
+) -> dict[str, Any]:
+    value: dict[str, Any] = {}
+    for key, item in pairs:
+        if key in value:
+            raise RuntimeCalculationError(
+                "INPUT_JSON_DUPLICATE_KEY",
+                f"입력 JSON에 중복 key가 있습니다: {key}",
+            )
+        value[key] = item
+    return value
+
+
 def _load_input(path: str) -> dict[str, Any]:
     try:
         text = sys.stdin.read() if path == "-" else Path(path).read_text(encoding="utf-8")
-        value = json.loads(text)
+        value = json.loads(text, object_pairs_hook=_input_object_without_duplicates)
     except (OSError, UnicodeError, json.JSONDecodeError) as exc:
         raise RuntimeCalculationError(
             "INPUT_JSON_INVALID", "입력 JSON을 읽을 수 없습니다."

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import importlib.metadata
+import json
 import re
 from pathlib import Path
 from typing import Any
@@ -72,6 +73,78 @@ REPORT_ARTIFACTS = {
     "independent_records.jsonl",
     "delta_by_year.svg",
 }
+EXPECTED_MINIMUM_CASES = {
+    "kasi_lunar_days": 54_787,
+    "kasi_all_solar_term_dates_collected": 3_600,
+    "kasi_jie_dates_compared": 1_800,
+    "kasi_jie_minute_references": 84,
+    "independent_jie_instants": 1_800,
+    "internal_profile_boundary_assignment": 5_400,
+    "unknown_range": 500,
+    "hmac_id_vectors": 200,
+    "unsupported_foreign": 20,
+}
+EXPECTED_MAXIMUM_FAILURES = {
+    "kasi_lunar_conversion_mismatch": 0,
+    "kasi_day_ganzhi_mismatch": 0,
+    "runtime_kasi_jie_date_mismatch": 0,
+    "unresolved_engine_local_date_disagreement": 0,
+    "runtime_kasi_nearest_minute_label_mismatch": 0,
+    "independent_kasi_nearest_minute_label_mismatch": 0,
+    "independent_jie_fixed_regression_delta_seconds": 120,
+    "independent_term_identity_mismatch": 0,
+    "independent_chronological_order_failure": 0,
+    "internal_profile_boundary_assignment_mismatch": 0,
+    "hmac_id_mismatch": 0,
+    "guessed_unknown_hour": 0,
+    "dst_gap_auto_shift": 0,
+    "dst_fold_auto_pick": 0,
+    "host_timezone_or_locale_drift": 0,
+    "heuristic_fact_leak": 0,
+    "unclassified_mismatch": 0,
+    "silent_unsupported_fallback": 0,
+    "id_version_instability": 0,
+}
+
+
+class _DuplicateJsonKey(ValueError):
+    pass
+
+
+def _object_without_duplicates(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    value: dict[str, Any] = {}
+    for key, item in pairs:
+        if key in value:
+            raise _DuplicateJsonKey(key)
+        value[key] = item
+    return value
+
+
+def load_strict_json_object_v1_2(path: Path) -> dict[str, Any]:
+    """v1.2 활성 계약·release·report의 중복 key를 모든 수준에서 거부한다."""
+
+    if path.is_symlink() or not path.is_file():
+        raise RuntimeCalculationError(
+            "RUNTIME_RELEASE_INVALID", f"v1.2 JSON 파일이 없거나 symlink입니다: {path}"
+        )
+    try:
+        value = json.loads(
+            path.read_text(encoding="utf-8"),
+            object_pairs_hook=_object_without_duplicates,
+        )
+    except _DuplicateJsonKey as exc:
+        raise RuntimeCalculationError(
+            "RUNTIME_RELEASE_INVALID", f"v1.2 JSON에 중복 key가 있습니다: {exc}"
+        ) from exc
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        raise RuntimeCalculationError(
+            "RUNTIME_RELEASE_INVALID", f"v1.2 JSON을 읽지 못했습니다: {path}"
+        ) from exc
+    if not isinstance(value, dict):
+        raise RuntimeCalculationError(
+            "RUNTIME_RELEASE_INVALID", "v1.2 JSON 최상위는 object여야 합니다."
+        )
+    return value
 
 
 def _safe_repo_path(relative: str) -> Path:
@@ -99,7 +172,7 @@ def _safe_repo_path(relative: str) -> Path:
 
 def validate_contract_registry_v1_2() -> dict[str, Any]:
     validate_contract_registry_v1_1()
-    registry = load_json_object(REGISTRY_V12_PATH)
+    registry = load_strict_json_object_v1_2(REGISTRY_V12_PATH)
     if (
         registry.get("schema_version") != "1.2.0"
         or registry.get("registry_id")
@@ -142,10 +215,10 @@ def validate_contract_registry_v1_2() -> dict[str, Any]:
             "CONTRACT_REGISTRY_INVALID", "v1.2 artifact 집합이 다릅니다."
         )
 
-    contract = load_json_object(CONTRACT_V12_PATH)
-    profile = load_json_object(PROFILE_V12_PATH)
-    gate = load_json_object(GATE_V12_PATH)
-    id_contract = load_json_object(ID_CONTRACT_V2_PATH)
+    contract = load_strict_json_object_v1_2(CONTRACT_V12_PATH)
+    profile = load_strict_json_object_v1_2(PROFILE_V12_PATH)
+    gate = load_strict_json_object_v1_2(GATE_V12_PATH)
+    id_contract = load_strict_json_object_v1_2(ID_CONTRACT_V2_PATH)
     session = load_json_object(REPO_ROOT / "configs/runtime/session_state_schema_v2.json")
     fsm = load_json_object(REPO_ROOT / "configs/runtime/intake_fsm-v1.0.0.json")
     fsm_gate = load_json_object(REPO_ROOT / "configs/runtime/intake_fsm_gate-v1.0.0.json")
@@ -159,7 +232,23 @@ def validate_contract_registry_v1_2() -> dict[str, Any]:
         or profile.get("runtime_approved_in_static_contract") is not False
         or gate.get("suite_version") != SUITE_VERSION_V4
         or gate.get("profile_id") != POLICY_ID
+        or gate.get("minimum_cases") != EXPECTED_MINIMUM_CASES
+        or gate.get("maximum_failures") != EXPECTED_MAXIMUM_FAILURES
         or gate.get("minute_label_policy", {}).get("absolute_tolerance_gate_allowed")
+        is not False
+        or gate.get("minute_label_policy", {}).get("project_equivalence_rule")
+        != "nearest_minute_half_up_in_asia_seoul"
+        or gate.get("official_adjudication", {}).get(
+            "engine_date_disagreement_without_official_row"
+        )
+        != "blocking_unresolved"
+        or gate.get("independent_crosscheck", {}).get(
+            "fixed_regression_guard_seconds"
+        )
+        != 120
+        or gate.get("independent_crosscheck", {}).get(
+            "guard_is_physical_accuracy_budget"
+        )
         is not False
         or id_contract.get("id_contract_version") != ID_CONTRACT_VERSION_V2
         or id_contract.get("mac") != "HMAC-SHA-256"
@@ -196,7 +285,7 @@ def validate_contract_registry_v1_2() -> dict[str, Any]:
             raise RuntimeCalculationError(
                 "CONTRACT_PARENT_HASH_MISMATCH", f"v1.2 parent hash가 다릅니다: {name}"
             )
-    sources = load_json_object(SOURCE_REGISTRY_V12_PATH)
+    sources = load_strict_json_object_v1_2(SOURCE_REGISTRY_V12_PATH)
     parent = sources.get("parent")
     validator = sources.get("validator")
     if (
@@ -255,7 +344,121 @@ def _load_release(path: Path) -> dict[str, Any]:
         raise RuntimeCalculationError(
             "RUNTIME_RELEASE_REQUIRED", "승인된 v1.2 runtime release registry가 없습니다."
         )
-    return load_json_object(path)
+    return load_strict_json_object_v1_2(path)
+
+
+def derive_gate_checks_v1_2(report: dict[str, Any]) -> dict[str, bool]:
+    """release 승인 시 보고된 bool을 신뢰하지 않고 집계값에서 다시 계산한다."""
+
+    try:
+        gate = load_strict_json_object_v1_2(GATE_V12_PATH)
+        minimum = gate["minimum_cases"]
+        lunar = report["official_kasi_lunisolar"]
+        term_dates = report["official_kasi_solar_term_dates"]
+        minute = report["institutional_kasi_minute_reference"]
+        independent = report["independent_jie_crosscheck"]
+        adjudication = report["official_local_date_adjudication"]
+        boundary = report["internal_profile_boundary_assignment_checks"]
+        policy = report["policy_comparison"]
+        invariants = report["synthetic_invariants"]
+        hmac_invariants = report["hmac_id_invariants"]
+        host = report["host_invariance"]
+        lunar_complete = lunar["rows"] == minimum["kasi_lunar_days"]
+        terms_complete = (
+            term_dates["all_term_rows_collected"]
+            == minimum["kasi_all_solar_term_dates_collected"]
+            and term_dates["jie_rows_compared"]
+            == minimum["kasi_jie_dates_compared"]
+        )
+        minute_complete = (
+            minute["rows"] == minimum["kasi_jie_minute_references"]
+        )
+        independent_complete = (
+            independent["rows"] == minimum["independent_jie_instants"]
+        )
+        mismatch_rows = [
+            *term_dates["mismatches"],
+            *boundary["mismatches"],
+            *policy["mismatches"],
+        ]
+    except (KeyError, TypeError) as exc:
+        raise RuntimeCalculationError(
+            "RUNTIME_RELEASE_INVALID",
+            "v1.2 conformance 집계에서 Gate를 재계산할 수 없습니다.",
+        ) from exc
+    return {
+        "kasi_lunar_days_complete": lunar_complete,
+        "kasi_lunar_conversion_mismatch_zero": lunar_complete
+        and lunar["solar_lunar_mismatches"] == 0,
+        "kasi_day_ganzhi_mismatch_zero": lunar_complete
+        and lunar["day_ganzhi_mismatches"] == 0,
+        "kasi_all_solar_term_dates_complete": terms_complete,
+        "runtime_kasi_jie_date_mismatch_zero": terms_complete
+        and term_dates["runtime_date_mismatches"] == 0,
+        "engine_local_date_adjudication_evidence_complete": independent_complete
+        and adjudication["unresolved_disagreements"] == 0,
+        "runtime_matches_official_on_engine_date_disagreements": independent_complete
+        and adjudication["unresolved_disagreements"] == 0
+        and adjudication["runtime_official_mismatches_on_disagreements"] == 0,
+        "kasi_jie_minute_references_complete": minute_complete,
+        "runtime_kasi_nearest_minute_label_match": minute_complete
+        and minute["runtime_display_minute_mismatches"] == 0,
+        "independent_kasi_nearest_minute_label_match": minute_complete
+        and independent_complete
+        and minute["independent_missing_rows"] == 0
+        and minute["independent_display_minute_mismatches"] == 0,
+        "independent_jie_instants_complete": independent_complete,
+        "independent_jie_fixed_120_second_regression_guard": independent_complete
+        and independent["threshold_failures"] == 0
+        and independent.get("fixed_regression_guard", {}).get(
+            "maximum_delta_seconds"
+        )
+        == 120.0,
+        "independent_term_identity_zero": independent_complete
+        and independent["term_identity_failures"] == 0,
+        "independent_chronological_order_zero": independent_complete
+        and independent["chronological_order_failures"] == 0,
+        "delta_t_diagnostic_complete": independent_complete
+        and independent.get("delta_t_diagnostic", {}).get("status")
+        in {"delta_t_not_primary", "delta_t_may_be_primary"},
+        "internal_profile_boundary_cases_complete": boundary["cases"]
+        == minimum["internal_profile_boundary_assignment"],
+        "internal_profile_boundary_mismatch_zero": boundary["mismatch_rows"] == 0,
+        "policy_fixture_mismatch_zero": policy["mismatch_rows"] == 0,
+        "unknown_range_complete": invariants["unknown_range_cases"]
+        >= minimum["unknown_range"],
+        "guessed_unknown_hour_zero": invariants["guessed_unknown_hour"] == 0,
+        "hmac_id_vectors_complete": hmac_invariants["vectors"]
+        >= minimum["hmac_id_vectors"],
+        "hmac_id_mismatch_zero": all(
+            hmac_invariants[key] == 0
+            for key in (
+                "reproducibility_mismatches",
+                "prefix_failures",
+                "domain_collisions",
+                "key_separation_failures",
+            )
+        ),
+        "unsupported_foreign_complete": invariants["unsupported_foreign_cases"]
+        >= minimum["unsupported_foreign"],
+        "unsupported_foreign_failure_zero": invariants[
+            "unsupported_foreign_failures"
+        ]
+        == 0,
+        "dst_gap_auto_shift_zero": invariants["dst_gap_auto_shift_failures"] == 0,
+        "dst_fold_auto_pick_zero": invariants["dst_fold_auto_pick_failures"] == 0,
+        "host_timezone_or_locale_drift_zero": host["byte_drift"] == 0,
+        "heuristic_fact_leak_zero": invariants["heuristic_fact_leaks"] == 0,
+        "source_version_id_failure_zero": invariants[
+            "source_version_id_failures"
+        ]
+        == 0,
+        "profile_id_failure_zero": invariants["profile_id_failures"] == 0,
+        "unclassified_mismatch_zero": all(
+            isinstance(item, dict) and bool(item.get("category"))
+            for item in mismatch_rows
+        ),
+    }
 
 
 def _validate_report_identity_v1_2(identity: Any) -> tuple[dict[str, Any], dict[str, Any]]:
@@ -295,8 +498,8 @@ def _validate_report_identity_v1_2(identity: Any) -> tuple[dict[str, Any], dict[
         raise RuntimeCalculationError(
             "RUNTIME_RELEASE_HASH_MISMATCH", "v1.2 report·manifest hash가 다릅니다."
         )
-    report = load_json_object(report_path)
-    manifest = load_json_object(manifest_path)
+    report = load_strict_json_object_v1_2(report_path)
+    manifest = load_strict_json_object_v1_2(manifest_path)
     expected_build_id = "build-" + hashlib.sha256(canonical_json_bytes(report)).hexdigest()[:12]
     artifacts = manifest.get("artifacts")
     if not isinstance(artifacts, dict) or set(artifacts) != REPORT_ARTIFACTS:
@@ -386,9 +589,16 @@ def _validate_report_identity_v1_2(identity: Any) -> tuple[dict[str, Any], dict[
             "RUNTIME_RELEASE_INVALID", "v1.2 conformance 통과 상태가 다릅니다."
         )
     checks = report.get("gate_checks")
-    if not isinstance(checks, dict) or not checks or any(value is not True for value in checks.values()):
+    derived_checks = derive_gate_checks_v1_2(report)
+    if (
+        not isinstance(checks, dict)
+        or not checks
+        or checks != derived_checks
+        or any(value is not True for value in checks.values())
+    ):
         raise RuntimeCalculationError(
-            "RUNTIME_RELEASE_INVALID", "v1.2 conformance Gate가 전부 true가 아닙니다."
+            "RUNTIME_RELEASE_INVALID",
+            "v1.2 conformance Gate가 집계 재계산과 일치하며 전부 true가 아닙니다.",
         )
     return report, manifest
 

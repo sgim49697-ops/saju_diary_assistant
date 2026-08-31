@@ -282,6 +282,33 @@ class RuntimeEngineV12Tests(unittest.TestCase):
                 "saju-runtime-release-v1.2.0-000000000000",
             )
 
+    def test_future_v31_projection_rejects_legacy_period_chart_id(self) -> None:
+        with self.assertRaisesRegex(Phase5V31PreflightError, "runtime ID"):
+            _verify_projection_release(
+                [
+                    {
+                        "runtime_release_id": "saju-runtime-release-v1.2.0-000000000000",
+                        "runtime_fact_source": "approved_saju_runtime_v1_2",
+                        "messages": [
+                            {
+                                "role": "assistant",
+                                "tool_calls": [
+                                    {
+                                        "function": {
+                                            "name": "calculate_saju_period",
+                                            "arguments": {
+                                                "chart_id": "sc1_" + "a" * 64
+                                            },
+                                        }
+                                    }
+                                ],
+                            }
+                        ],
+                    }
+                ],
+                "saju-runtime-release-v1.2.0-000000000000",
+            )
+
 
 class IntakeFsmTests(unittest.TestCase):
     def setUp(self) -> None:
@@ -327,6 +354,7 @@ class IntakeFsmTests(unittest.TestCase):
             value = self._advance(state, event)
             state = value["session_state"]
         self.assertEqual(value["decision"]["action"], "call_chart")
+        call_id = value["decision"]["call_id"]
         value = self._advance(
             state,
             {
@@ -337,6 +365,7 @@ class IntakeFsmTests(unittest.TestCase):
                     "fact_authority": "HARD_GT",
                     "chart_id": self.signer.chart_id({"fixture": 1}),
                     "chart_set_id": None,
+                    "call_id": call_id,
                 },
             },
         )
@@ -410,6 +439,7 @@ class IntakeFsmTests(unittest.TestCase):
         ):
             value = self._advance(state, event)
             state = value["session_state"]
+        chart_call_id = value["decision"]["call_id"]
         value = self._advance(
             state,
             {
@@ -420,6 +450,7 @@ class IntakeFsmTests(unittest.TestCase):
                     "fact_authority": "HARD_GT",
                     "chart_id": self.signer.chart_id({"fixture": "period"}),
                     "chart_set_id": None,
+                    "call_id": chart_call_id,
                 },
             },
         )
@@ -437,12 +468,14 @@ class IntakeFsmTests(unittest.TestCase):
             },
         )
         state = value["session_state"]
+        period_call_id = value["decision"]["call_id"]
         period_result = {
             "type": "period_result",
             "result": {
                 "status": "ok",
                 "hard_facts": {"period": {}},
                 "fact_authority": "HARD_GT",
+                "call_id": period_call_id,
             },
         }
         value = self._advance(state, period_result)

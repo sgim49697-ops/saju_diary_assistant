@@ -47,6 +47,7 @@ from scripts.runtime.calculation.contracts_v1_2 import (
     ID_CONTRACT_VERSION_V2,
     REGISTRY_V12_PATH,
     SUITE_VERSION_V4,
+    derive_gate_checks_v1_2,
     runtime_source_versions_v1_2,
     validate_contract_registry_v1_2,
 )
@@ -567,6 +568,10 @@ def run_conformance(
         "sealed_blind_accessed": False,
         "raw_restricted_samples_in_report": False,
     }
+    if derive_gate_checks_v1_2(report) != checks:
+        raise RuntimeConformanceV4Error(
+            "conformance v4 Gate bool이 release 재계산 규칙과 다릅니다."
+        )
     directory = _write_artifacts(report, records_payload, svg_payload, output_base)
     return report, directory
 

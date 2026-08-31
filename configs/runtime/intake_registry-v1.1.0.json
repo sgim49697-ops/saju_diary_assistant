@@ -1,0 +1,32 @@
+{
+  "_description": "runtime v1.2 계산 계약 위에 얹는 session v2.1·FSM v1.1·app Gate v1.1의 독립 hash registry다.",
+  "schema_version": "1.1.0",
+  "registry_id": "saju-runtime-intake-registry-v1.1.0",
+  "status": "implemented_app_integration_blocked",
+  "parent_runtime_registry": {
+    "path": "configs/runtime/calculation/registry-v1.2.0.json",
+    "sha256": "6d036ee9b9cb6591de2d0248ccf7aad150869240ccbabfe9b81c211f537b1ede"
+  },
+  "artifacts": [
+    {
+      "path": "configs/runtime/session_state_schema_v2.1.0.json",
+      "sha256": "4fcf99aec86c31b2a811d766e6951db2fdff71b6f975027854552ee0d2e31082"
+    },
+    {
+      "path": "configs/runtime/intake_fsm-v1.1.0.json",
+      "sha256": "5c4f136fe5cbec6416323698cfeae90e3c717be9744cedd1b993a8fe1ee38668"
+    },
+    {
+      "path": "configs/runtime/intake_fsm_gate-v1.1.0.json",
+      "sha256": "fc657c525f75018fd7c2f5e36fc3be7db598402332b8ac0ada3c872f85de0da0"
+    }
+  ],
+  "supersedes_for_app_integration": {
+    "session_state_schema": "configs/runtime/session_state_schema_v2.json",
+    "intake_fsm": "configs/runtime/intake_fsm-v1.0.0.json",
+    "intake_fsm_gate": "configs/runtime/intake_fsm_gate-v1.0.0.json",
+    "reason": "duplicate_period_schema_key_and_semantic_gate_hardening"
+  },
+  "app_integration_allowed": false,
+  "training_promotion_allowed": false
+}

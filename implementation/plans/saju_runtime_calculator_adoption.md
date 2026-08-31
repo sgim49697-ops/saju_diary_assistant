@@ -4,13 +4,13 @@
 
 | 항목 | 값 |
 |---|---|
-| 문서 버전 | `runtime-calculator-adoption-v2.2.0` |
+| 문서 버전 | `runtime-calculator-adoption-v2.3.0` |
 | 정본화 기준일 | 2026-08-31 |
 | 구현 시작 기준 `master` | `22fa6943c625b7caad7a7fb9cfd174a6a01992e6` |
 | 기준 모델 run | `KI20-MIX-v2/run-1f5d732cae67` |
 | 모델 run 상태 | `trained_and_reloaded`, production 승격 금지 |
 | runtime profile | `KR_CIVIL_MIDNIGHT_V1` |
-| runtime 상태 | v1.2 천문·HMAC·FSM 보강 완료, 공식 snapshot·표시 분 Gate 차단 |
+| runtime 상태 | v1.2 천문·HMAC·session v2.1·FSM v1.1 보강 완료, 공식 snapshot·표시 분 Gate 차단 |
 | 데이터 상태 | v3.1 생성·비학습 preflight 구현, release 전 실행 차단 |
 
 이 문서는 앞서 제공된 `SAJU_RUNTIME_CALCULATOR_ADOPTION_PLAN.md` 조사 초안을 대체하는 저장소 실행 정본이다. 기존 데이터 보정 정본인 [`mix20k_v3_repair_plan.md`](mix20k_v3_repair_plan.md)와 역할을 나눈다.
@@ -39,7 +39,8 @@
 
 다음 산출물은 수정하거나 재해석하지 않는다.
 
-- 기존 `saju-tools-v1`, `saju-session-state-v1`(학습·과거 세션 계약). 앱 후보용 `saju-session-state-v2`는 별도 추가하며 v1을 덮어쓰지 않는다.
+- 기존 `saju-tools-v1`, `saju-session-state-v1`(학습·과거 세션 계약).
+- `session_state_schema_v2.json`·FSM/Gate v1.0은 과거 불변 산출물로 보존한다. session v2의 중복 `period` key 결함을 고치기 위해 앱 후보는 별도 `session_state_schema_v2.1.0.json`·FSM/Gate v1.1·`intake_registry-v1.1.0.json`만 사용한다.
 - `configs/saju_calculation_policy-v1.0.0.json`
 - MIX20K-v2와 `mix20k-v3.0.1-repaired/build-94eb7b543490`
 - KI10·KI20 checkpoint, manifest, training summary
@@ -100,7 +101,7 @@ saju-tools-v1
   → HMAC-SHA256 v2 출생 파생 ID
   → 구현·계약·공식 snapshot hash 결합 release registry
   → ApprovedSajuRuntimeEngineV12(feature flag 기본 off, production key 필수)
-  → 구조화 intake FSM(app precondition 6개, 자유문 parser 없음)
+  → 구조화 intake FSM v1.1(app precondition 6개, 자유문 parser 없음, HMAC call 상관관계)
   → 내부 trace와 LLM-visible allowlist 분리
 ```
 
@@ -148,6 +149,8 @@ v1·v1.1의 평문 SHA-256 ID는 과거 불변 산출물에만 남긴다. v1.2�
 - tzdb·음양력·절입·표 source version
 
 HMAC은 raw 출생 state 암호화가 아니다. 앱 연결에는 저장 암호화와 보존·삭제 정책이 별도로 필요하다.
+
+FSM v1.1의 chart·period action은 calculation-run HMAC domain의 `scr2_` call ID를 별도로 발급한다. app adapter는 이 값을 tool 결과 event에 그대로 결합해야 하며 FSM은 현재 state revision·arguments에서 재계산한 값과 다르면 stale 결과로 거부한다. 저장된 chart의 `sif2_` fingerprint도 현재 slot과 다시 결합해 correction 우회나 cache 변조를 차단한다.
 
 ## 8. v1 계산 범위
 
@@ -212,9 +215,12 @@ KASI service key 또는 공식 전체 snapshot이 없으면 외부 라이브러�
 
 ```text
 data/reports/saju_runtime_conformance/v1.2.0/build-08ea29de9e94/
-data/reports/saju_runtime_intake_fsm/v1.0.0/build-571d0e82ee0e/
+data/reports/saju_runtime_conformance/v1.2.0/build-ec510bc6922d/
+data/reports/saju_runtime_intake_fsm/v1.1.0/build-3366376bb01b/
 data/reports/saju_runtime_migration/v1.0.0/build-94eb7b543490/analysis.json
 ```
+
+`build-08ea29de9e94`와 FSM v1.0 `build-571d0e82ee0e`는 당시 코드의 이력 산출물로 보존한다. 현재 판단은 Gate 집계 재계산·strict JSON·session v2.1/FSM v1.1을 포함한 뒤의 두 새 build를 따른다.
 
 | 검사 | 결과 |
 |---|---:|
@@ -234,7 +240,7 @@ data/reports/saju_runtime_migration/v1.0.0/build-94eb7b543490/analysis.json
 | 단일 profile 비교 | 16/16 통과 |
 | unknown/range | 500/500 |
 | HMAC v2 ID | 200/200, 재현·prefix·domain·key 분리 오류 0 |
-| 구조화 app FSM | 100/100 |
+| 구조화 app FSM | 100/100, 계산된 구조·변조 check 18/18 |
 | 기존 KI20 모델 handoff | 14/100, 개선 주장 없음 |
 | 해외 차단 | 20/20 |
 | host TZ·locale drift | 0 |
@@ -269,7 +275,7 @@ data/reports/saju_runtime_migration/v1.0.0/build-94eb7b543490/analysis.json
 | R4 | KASI 전수·계층형 절입 snapshot 수집 | 부분 완료(표시 분 84 완료, 인증 API 3개 Gate 대기) |
 | R5 | full conformance와 profile ADR 승인 | v4 구현·독립 검증 완료, 공식 snapshot·runtime 분 mismatch로 승인 차단 |
 | R6 | v3.1 5,250 tool call 전수 재생성·새 split/preflight | 생성기·preflight 구현 완료, release 전 입력도 읽지 않고 차단 |
-| R7 | 대시보드 `KI20 + Runtime` local lane·앱 canary | v1.8은 기존대로 비활성. 구조화 FSM 100/100 추가, release·key·암호화·보존 정책 전 앱 연결 금지 |
+| R7 | 대시보드 `KI20 + Runtime` local lane·앱 canary | v1.8은 기존대로 비활성. session v2.1/FSM v1.1 합성 Gate 통과, 실제 adapter·release·key·암호화·보존 정책 전 앱 연결 금지 |
 | R8 | 새 모델 학습 handoff | 이 계획 범위 밖 |
 
 R4 완료 전에도 candidate·독립 validator와 대시보드 UI는 검증할 수 있지만 사용자-facing production 결과나 학습 Gold로 사용하지 않는다. 현재 실행 중인 기존 dashboard process는 재시작하지 않았으며 새 UI는 v1.7 backend에서 runtime endpoint가 없으면 패널을 자동으로 숨긴다.
@@ -375,7 +381,7 @@ release가 생긴 뒤에만 v3.1 생성과 비학습 preflight를 순서대로 �
 - [x] KASI 표시 분은 signed delta 진단과 분리해 KST 최근접 분 라벨 동등성으로 검증한다.
 - [x] 1,800건 공개 JSONL·연도/연대 통계·SVG와 ΔT 원인 진단을 재현 가능하게 기록한다.
 - [x] 5종 출생 파생 ID를 domain-separated HMAC-SHA256 v2로 교체했다.
-- [x] 자유문 파서 없는 구조화 intake FSM과 앱 합성 Gate 100/100을 구현했다.
+- [x] 자유문 파서 없는 session v2.1/FSM v1.1과 앱 합성 Gate 100/100·구조/변조 check 18/18을 구현했다.
 - [x] release registry와 승인 runtime의 hash chain·기본 off를 구현했다.
 - [x] v3.0.1 20K를 읽기 전용 분석하고 v3.1 이관 수량을 고정했다.
 - [x] v3.1 전수 재생성기와 새 split·비학습 preflight를 v1.2 release·HMAC 계약으로 고정했다.
@@ -413,3 +419,9 @@ release가 생긴 뒤에만 v3.1 생성과 비학습 preflight를 순서대로 �
   - 변경 범위: 기존 v1·v1.1 산출물을 보존한 채 conformance v4·release v1.2·공개 1,800행 진단/산점도, 5종 HMAC ID, session v2/FSM·100건 앱 Gate를 새 버전으로 추가했다. 미래 MIX20K-v3.1 생성·preflight도 v1.2 release와 production key만 받도록 바꿨다. 기존 20K·모델·checkpoint·실행 중 dashboard·sealed blind는 변경하거나 실행하지 않았다.
   - 검증: 최종 코드 hash로 conformance `build-08ea29de9e94`와 FSM `build-571d0e82ee0e`를 재현했다. 독립 절입 1,800행·날짜 차이 1건/미판정 1건·runtime 최근접 분 mismatch 16건·Skyfield mismatch 0건·FSM 100/100을 확인했다. 차단 보고서의 release 승인과 release 없는 v3.1 생성이 모두 exit 2로 fail-closed했다. `uvx ruff check scripts tests`, runtime 계약·환경 검증, 전체 `unittest` 353건(38.957초), `git diff --check`를 통과했다.
   - 남은 이슈·후속 작업: 1964년 백로의 공식 KASI 행과 공식 전수 snapshot이 없어 Runtime Gate는 차단 상태다. production key·암호화 persistence·보존 정책·앱 FSM adapter도 미승인이라 release·v3.1 생성·학습·dashboard 재기동을 수행하지 않는다.
+
+- 2026-08-31
+  - 작업 요약: v1.2 구현과 보고서를 다시 변조 관점에서 감사해 과거 session v2의 중복 `period` key, 보고된 Gate boolean 신뢰, 약한 FSM state 의미 검증과 stale tool 결과 수용 가능성을 교정했다.
+  - 변경 범위: 과거 v2·FSM/Gate v1.0과 기존 보고서는 수정하지 않고 session v2.1·FSM/Gate v1.1·독립 intake hash registry를 추가했다. 활성 v1.2 JSON은 중복 key를 거부하고 release Gate를 집계에서 재계산한다. FSM은 slot·provenance·authority·현재 입력 fingerprint와 `scr2_` call ID를 검증한다. v3.1 preflight는 legacy/비정상 runtime ID를 거부한다. 기존 20K·모델·checkpoint·실행 중 dashboard·sealed blind는 변경하거나 실행하지 않았다.
+  - 검증: JSON Schema draft 2020-12 자체 검증과 정상 state 전이 8단계, malformed JSON 변조 fuzz 예외 누출 0건, 표적 48건, Ruff 전체와 전체 `unittest` 365건(43.067초)을 통과했다. 최종 코드 hash로 conformance `build-ec510bc6922d`와 FSM `build-3366376bb01b`을 각각 두 번 실행해 같은 ID를 재현했고 artifact hash chain도 일치했다. release 승인·v3.1 생성·preflight는 release 부재로 모두 exit 2로 차단됐다.
+  - 남은 이슈·후속 작업: Runtime Gate false 8개는 그대로다. KASI 54,787일·24절기 3,600건/12절 1,800건과 1964년 백로 공식 행을 확보하고, Astronomy Engine의 표시 분 mismatch 16/84를 해결할 provider 결정을 새 버전으로 검증해야 한다. 이후에만 production key 수명주기·암호화 persistence·실제 app adapter 통합 Gate, v3.1 생성·비학습 preflight 순으로 진행한다.

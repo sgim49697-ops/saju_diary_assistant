@@ -62,6 +62,8 @@ PUBLIC_DIR_MODE = 0o755
 PUBLIC_FILE_MODE = 0o644
 FULL_SHA = re.compile(r"^[0-9a-f]{64}$")
 BUILD_ID = re.compile(r"^build-[0-9a-f]{12}$")
+V2_CHART_ID = re.compile(r"^sc2_[0-9a-f]{64}$")
+LEGACY_RUNTIME_ID = re.compile(r"(?:sbi1_|sc1_|scs1_|scr1_|sif1_)[0-9a-f]+")
 GENERATOR_PATH = REPO_ROOT / "scripts/data/mix20k_v3_runtime_build.py"
 EXPECTED_BUILD_ARTIFACTS = {
     "review/mix20k_v3.1_review.jsonl",
@@ -259,6 +261,7 @@ def _verify_projection_release(
             "v3.1 training projection의 runtime release가 build와 다릅니다."
         )
     invalid_fact_sources = 0
+    invalid_runtime_ids = 0
     for row in rows:
         messages = row.get("messages")
         has_tool_call = isinstance(messages, list) and any(
@@ -267,9 +270,47 @@ def _verify_projection_release(
         )
         expected = "approved_saju_runtime_v1_2" if has_tool_call else None
         invalid_fact_sources += row.get("runtime_fact_source") != expected
+        if isinstance(messages, list):
+            invalid_runtime_ids += bool(
+                LEGACY_RUNTIME_ID.search(
+                    json.dumps(
+                        messages,
+                        ensure_ascii=False,
+                        separators=(",", ":"),
+                        sort_keys=True,
+                    )
+                )
+            )
+            for message in messages:
+                if not isinstance(message, Mapping):
+                    continue
+                tool_calls = message.get("tool_calls", [])
+                if tool_calls is None:
+                    tool_calls = []
+                if not isinstance(tool_calls, list):
+                    invalid_runtime_ids += 1
+                    continue
+                for call in tool_calls:
+                    function = call.get("function") if isinstance(call, Mapping) else None
+                    if not isinstance(function, Mapping):
+                        continue
+                    arguments = function.get("arguments")
+                    if (
+                        function.get("name") == "calculate_saju_period"
+                        and (
+                            not isinstance(arguments, Mapping)
+                            or not isinstance(arguments.get("chart_id"), str)
+                            or V2_CHART_ID.fullmatch(arguments["chart_id"]) is None
+                        )
+                    ):
+                        invalid_runtime_ids += 1
     if invalid_fact_sources:
         raise Phase5V31PreflightError(
             "v3.1 training projection의 tool 사용 여부와 v1.2 runtime fact source가 다릅니다."
+        )
+    if invalid_runtime_ids:
+        raise Phase5V31PreflightError(
+            "v3.1 training projection에 legacy 또는 비정상 runtime ID가 있습니다."
         )
 
 

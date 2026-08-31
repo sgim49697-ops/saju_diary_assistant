@@ -468,6 +468,30 @@ class RuntimeV31GateOrderingTest(unittest.TestCase):
             )
         load_source.assert_not_called()
 
+    @mock.patch("scripts.data.mix20k_v3_runtime_build._load_source")
+    @mock.patch(
+        "scripts.data.mix20k_v3_runtime_build.ApprovedSajuRuntimeEngineV12",
+        side_effect=RuntimeCalculationError(
+            "RUNTIME_ID_KEY_REQUIRED", "production HMAC key가 없습니다."
+        ),
+    )
+    @mock.patch(
+        "scripts.data.mix20k_v3_runtime_build.validate_release_registry_v1_2",
+        return_value={"release_id": "saju-runtime-release-v1.2.0-000000000000"},
+    )
+    def test_dataset_build_rejects_missing_hmac_key_before_reading_source(
+        self,
+        _validate_release: mock.Mock,
+        _engine: mock.Mock,
+        load_source: mock.Mock,
+    ) -> None:
+        with self.assertRaisesRegex(Mix20KV31BuildError, "HMAC key"):
+            build_v31(
+                source_build=Path("/not-read/source-build"),
+                release_registry=Path("/validated/release.json"),
+            )
+        load_source.assert_not_called()
+
     @mock.patch("scripts.training.phase5_v3_1_preflight._verify_build")
     def test_preflight_rejects_missing_release_before_reading_build(
         self, verify_build: mock.Mock

@@ -20,7 +20,9 @@
 - `chart_id` cache는 process 메모리에만 존재해 재시작 뒤 period 호출에 재사용할 수 없다.
 - v1.2의 `sbi2_`·`sc2_`·`scs2_`·`scr2_`·`sif2_`는 HMAC 가명 식별자일 뿐 원시 출생 state를 암호화하지 않는다. 앱 연결에는 별도의 저장 암호화와 보존·삭제 정책이 필요하다.
 - HMAC key를 교체하면 기존 v2 세션 ID와 fingerprint는 무효가 되며 세션을 재계산해야 한다. v2 도입 전 확인된 runtime 세션은 0건이라 legacy ID migration은 수행하지 않았다.
-- 구조화 intake FSM의 합성 app Gate는 100/100이지만 기존 KI20 모델의 `required_handoff_action` 평가는 14/100 그대로다. FSM 통과를 모델 대화능력 개선으로 해석하지 않는다.
+- 과거 `session_state_schema_v2.json`에는 최상위 `period` key가 중복돼 일반 JSON parser가 상세 계약을 약한 object 계약으로 덮어쓰는 결함이 있다. 과거 파일은 불변 보존하되 앱 연결에는 중복 key를 거부하는 `session_state_schema_v2.1.0.json`과 `intake_registry-v1.1.0.json`만 사용한다.
+- 구조화 intake FSM v1.1은 slot·provenance·입력 fingerprint를 재검증하고 현재 `scr2_` HMAC call ID와 일치하는 tool 결과만 받는다. 이 call ID는 결과 내용의 전문적 정확성을 보증하지 않으며 앱 adapter가 요청과 응답에 그대로 결합해야 한다.
+- 구조화 intake FSM의 합성 app Gate는 100/100이고 계산된 구조·변조 검사도 모두 통과하지만 실제 앱 adapter·암호화 저장소 통합 검사는 아직 없다. `app_integration_allowed=false`이며 기존 KI20 모델의 `required_handoff_action` 평가는 14/100 그대로다. FSM 통과를 모델 대화능력 개선으로 해석하지 않는다.
 - 미래 MIX20K-v3.1 생성기는 v1.2 release와 production HMAC key가 모두 준비되기 전에는 기존 20K source도 읽지 않는다. 현재 release가 없어 v3.1 데이터 생성·preflight는 실행하지 않았다.
 - 기존 dashboard v1.8 runtime canary는 v1.1 소비 경로다. v1.2 FSM·key·persistence 통합 검증 전에는 v1.2 승인 경로로 사용하지 않는다.
 - Runtime Gate 통과 전 대시보드나 앱의 기본 경로에 연결하지 않는다.
