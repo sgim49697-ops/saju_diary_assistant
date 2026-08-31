@@ -9,7 +9,7 @@ import os
 import stat
 import time
 from collections.abc import Sequence
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -22,12 +22,16 @@ from scripts.evaluation.saju_runtime.kasi_collector_v1_1 import (
     load_service_key,
     parse_solar_term_year,
 )
+from scripts.evaluation.saju_runtime.strict_json import (
+    DuplicateJsonKeyError,
+    loads_without_duplicate_keys,
+)
 from scripts.runtime.calculation.contracts import REPO_ROOT
 from scripts.runtime.calculation.solar_terms import SOLAR_TERM_NAMES
 
-COLLECTOR_VERSION = "kasi-term-coverage-collector-v1.2.0"
-CONFIRMATION = "COLLECT_KASI_TERM_COVERAGE_V1_2"
-ALLOWED_ROOT = REPO_ROOT / "data/raw/saju_runtime/kasi/v1.2.0"
+COLLECTOR_VERSION = "kasi-term-coverage-collector-v1.2.1"
+CONFIRMATION = "COLLECT_KASI_TERM_COVERAGE_V1_2_1"
+ALLOWED_ROOT = REPO_ROOT / "data/raw/saju_runtime/kasi/v1.2.1"
 START_YEAR = 1900
 END_YEAR = 2049
 EXPECTED_YEARS = END_YEAR - START_YEAR + 1
@@ -90,7 +94,9 @@ def _safe_output(directory: Path) -> Path:
     try:
         resolved.relative_to(ALLOWED_ROOT.resolve(strict=False))
     except ValueError as exc:
-        raise KasiTermCoverageCollectorError("출력 경로가 raw root를 벗어납니다.") from exc
+        raise KasiTermCoverageCollectorError(
+            "출력 경로가 raw root를 벗어납니다."
+        ) from exc
     return resolved
 
 
@@ -113,7 +119,9 @@ def _private_bytes(path: Path, *, allow_empty: bool = False) -> bytes:
             descriptor = -1
             return stream.read(MAX_PRIVATE_FILE_BYTES + 1)
     except OSError as exc:
-        raise KasiTermCoverageCollectorError("기존 raw 파일을 읽지 못했습니다.") from exc
+        raise KasiTermCoverageCollectorError(
+            "기존 raw 파일을 읽지 못했습니다."
+        ) from exc
     finally:
         if descriptor >= 0:
             os.close(descriptor)
@@ -132,22 +140,24 @@ def _jsonl_rows(path: Path) -> list[dict[str, Any]]:
                 raise KasiTermCoverageCollectorError(
                     f"기존 scan에 빈 행이 있습니다: {number}"
                 )
-            value = json.loads(line)
+            value = loads_without_duplicate_keys(line)
             if not isinstance(value, dict):
                 raise KasiTermCoverageCollectorError(
                     f"기존 scan 행이 object가 아닙니다: {number}"
                 )
             rows.append(value)
-    except (UnicodeError, json.JSONDecodeError) as exc:
-        raise KasiTermCoverageCollectorError("기존 scan JSONL을 읽지 못했습니다.") from exc
+    except (UnicodeError, json.JSONDecodeError, DuplicateJsonKeyError) as exc:
+        raise KasiTermCoverageCollectorError(
+            "기존 scan JSONL을 읽지 못했습니다."
+        ) from exc
     return rows
 
 
 def _canonical_jsonl(rows: list[dict[str, Any]]) -> bytes:
     return b"".join(
-        json.dumps(row, ensure_ascii=False, separators=(",", ":"), sort_keys=True).encode(
-            "utf-8"
-        )
+        json.dumps(
+            row, ensure_ascii=False, separators=(",", ":"), sort_keys=True
+        ).encode("utf-8")
         + b"\n"
         for row in rows
     )
@@ -167,7 +177,9 @@ def _append_scan(path: Path, row: dict[str, Any]) -> None:
             or metadata.st_uid != os.getuid()
             or stat.S_IMODE(metadata.st_mode) != 0o600
         ):
-            raise KasiTermCoverageCollectorError("scan은 현재 사용자 0600 파일이어야 합니다.")
+            raise KasiTermCoverageCollectorError(
+                "scan은 현재 사용자 0600 파일이어야 합니다."
+            )
         with os.fdopen(descriptor, "ab") as stream:
             descriptor = -1
             stream.write(payload)
@@ -204,11 +216,15 @@ def _replace_private(path: Path, payload: bytes) -> None:
 
 def _load_manifest(path: Path) -> dict[str, Any]:
     try:
-        value = json.loads(_private_bytes(path))
-    except (UnicodeError, json.JSONDecodeError) as exc:
-        raise KasiTermCoverageCollectorError("기존 manifest를 읽지 못했습니다.") from exc
+        value = loads_without_duplicate_keys(_private_bytes(path))
+    except (UnicodeError, json.JSONDecodeError, DuplicateJsonKeyError) as exc:
+        raise KasiTermCoverageCollectorError(
+            "기존 manifest를 읽지 못했습니다."
+        ) from exc
     if not isinstance(value, dict):
-        raise KasiTermCoverageCollectorError("기존 manifest 최상위가 object가 아닙니다.")
+        raise KasiTermCoverageCollectorError(
+            "기존 manifest 최상위가 object가 아닙니다."
+        )
     return value
 
 
@@ -234,24 +250,47 @@ def _validated_scan(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
             or row.get("item_count") not in {0, 24}
             or not isinstance(row.get("response_sha256"), str)
             or len(row["response_sha256"]) != 64
+            or any(
+                character not in "0123456789abcdef"
+                for character in row["response_sha256"]
+            )
             or not isinstance(row_terms, list)
             or len(row_terms) != row["item_count"]
         ):
             raise KasiTermCoverageCollectorError(f"기존 scan 행이 다릅니다: {year}")
         if row_terms:
             expected = list(range(24))
-            if (
-                [item.get("term_index") for item in row_terms] != expected
-                or any(
-                    item.get("year") != year
-                    or item.get("term_name") != SOLAR_TERM_NAMES[item["term_index"]]
-                    or item.get("source_id") != "kasi_24_divisions_openapi"
-                    for item in row_terms
+            if any(not isinstance(item, dict) for item in row_terms):
+                raise KasiTermCoverageCollectorError(
+                    f"기존 scan의 24절기 block이 다릅니다: {year}"
                 )
+            indexes = [item.get("term_index") for item in row_terms]
+            if indexes != expected or any(
+                isinstance(index, bool) or not isinstance(index, int)
+                for index in indexes
             ):
                 raise KasiTermCoverageCollectorError(
                     f"기존 scan의 24절기 block이 다릅니다: {year}"
                 )
+            for index, item in enumerate(row_terms):
+                try:
+                    local_date = date.fromisoformat(item["local_date"])
+                except (KeyError, TypeError, ValueError) as exc:
+                    raise KasiTermCoverageCollectorError(
+                        f"기존 scan의 24절기 날짜가 다릅니다: {year}"
+                    ) from exc
+                if (
+                    item.get("schema_version") != "1.1.0"
+                    or item.get("year") != year
+                    or item.get("term_name") != SOLAR_TERM_NAMES[index]
+                    or item.get("reference_precision") != "date"
+                    or item.get("source_id") != "kasi_24_divisions_openapi"
+                    or local_date.year != year
+                    or local_date.month != index // 2 + 1
+                ):
+                    raise KasiTermCoverageCollectorError(
+                        f"기존 scan의 24절기 값이 다릅니다: {year}"
+                    )
             terms.extend(row_terms)
     if len(rows) > EXPECTED_YEARS:
         raise KasiTermCoverageCollectorError("기존 scan이 요청 범위를 넘습니다.")
@@ -290,8 +329,7 @@ def _manifest(
         "supported_year_ranges": _coverage_ranges(supported_years),
         "missing_years": len(scan_rows) - len(supported_years),
         "api_range_scan_complete": complete,
-        "contract_coverage_complete": complete
-        and len(terms) == CONTRACT_EXPECTED_ROWS,
+        "contract_coverage_complete": complete and len(terms) == CONTRACT_EXPECTED_ROWS,
         "scan_sha256": _sha256_file(scan_path),
         "snapshot_sha256": _sha256_file(snapshot_path)
         if complete and snapshot_path.exists()
@@ -304,6 +342,69 @@ def _manifest(
         "unsupported_years_filled_from_provider": False,
         "updated_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
     }
+
+
+def _validate_resume_manifest(
+    manifest: dict[str, Any],
+    *,
+    scan_path: Path,
+    snapshot_path: Path,
+    scan_rows: list[dict[str, Any]],
+    terms: list[dict[str, Any]],
+) -> None:
+    complete = len(scan_rows) == EXPECTED_YEARS
+    supported_years = [row["year"] for row in scan_rows if row["item_count"] == 24]
+    expected = {
+        "schema_version": "1.2.0",
+        "status": "complete_api_range_scan" if complete else "partial_resume_required",
+        "source_kind": "solar-terms-api-coverage-scan",
+        "source_page": SOLAR_TERM_SOURCE_PAGE,
+        "endpoint": SOLAR_TERM_ENDPOINT,
+        "collector_version": COLLECTOR_VERSION,
+        "collector_sha256": _sha256_file(Path(__file__)),
+        "transport_collector_path": "scripts/evaluation/saju_runtime/kasi_collector_v1_1.py",
+        "transport_collector_sha256": _sha256_file(
+            REPO_ROOT / "scripts/evaluation/saju_runtime/kasi_collector_v1_1.py"
+        ),
+        "start_year": START_YEAR,
+        "end_year": END_YEAR,
+        "expected_periods": EXPECTED_YEARS,
+        "completed_periods": len(scan_rows),
+        "contract_expected_rows": CONTRACT_EXPECTED_ROWS,
+        "rows": len(terms),
+        "supported_years": supported_years,
+        "supported_year_ranges": _coverage_ranges(supported_years),
+        "missing_years": len(scan_rows) - len(supported_years),
+        "api_range_scan_complete": complete,
+        "contract_coverage_complete": complete and len(terms) == CONTRACT_EXPECTED_ROWS,
+        "scan_sha256": _sha256_file(scan_path),
+        "snapshot_sha256": _sha256_file(snapshot_path)
+        if complete and snapshot_path.exists()
+        else None,
+        "credential_value_recorded": False,
+        "unsupported_years_filled_from_provider": False,
+    }
+    if not complete and snapshot_path.exists():
+        raise KasiTermCoverageCollectorError("미완성 scan에 snapshot이 존재합니다.")
+    if any(manifest.get(key) != value for key, value in expected.items()):
+        raise KasiTermCoverageCollectorError("기존 scan resume provenance가 다릅니다.")
+    if manifest.get("credential_source") not in {"environment", "private_file"}:
+        raise KasiTermCoverageCollectorError(
+            "기존 scan credential provenance가 다릅니다."
+        )
+    requests_this_run = manifest.get("requests_this_run")
+    if (
+        isinstance(requests_this_run, bool)
+        or not isinstance(requests_this_run, int)
+        or not 0 <= requests_this_run <= EXPECTED_YEARS
+    ):
+        raise KasiTermCoverageCollectorError("기존 scan 요청 수가 다릅니다.")
+    try:
+        updated_at = datetime.fromisoformat(manifest["updated_at"])
+    except (KeyError, TypeError, ValueError) as exc:
+        raise KasiTermCoverageCollectorError("기존 scan 갱신 시각이 다릅니다.") from exc
+    if updated_at.tzinfo != timezone.utc:
+        raise KasiTermCoverageCollectorError("기존 scan 갱신 시각이 UTC가 아닙니다.")
 
 
 def collect(
@@ -320,7 +421,9 @@ def collect(
             f"network 수집에는 --confirm-network {CONFIRMATION}가 필요합니다."
         )
     if not 1 <= max_requests <= 10_000 or request_interval < 0 or timeout <= 0:
-        raise KasiTermCoverageCollectorError("요청 수·간격·timeout이 올바르지 않습니다.")
+        raise KasiTermCoverageCollectorError(
+            "요청 수·간격·timeout이 올바르지 않습니다."
+        )
     directory = _safe_output(output)
     directory.mkdir(parents=True, mode=0o700, exist_ok=True)
     directory.chmod(0o700)
@@ -329,30 +432,31 @@ def collect(
     manifest_path = directory / MANIFEST_FILENAME
     scan_rows = _jsonl_rows(scan_path)
     terms = _validated_scan(scan_rows)
+    manifest: dict[str, Any] | None = None
     if manifest_path.exists():
         manifest = _load_manifest(manifest_path)
-        if (
-            manifest.get("collector_version") != COLLECTOR_VERSION
-            or manifest.get("completed_periods") != len(scan_rows)
-            or manifest.get("scan_sha256") != _sha256_file(scan_path)
-            or manifest.get("credential_value_recorded") is not False
-        ):
-            raise KasiTermCoverageCollectorError("기존 scan resume provenance가 다릅니다.")
+        _validate_resume_manifest(
+            manifest,
+            scan_path=scan_path,
+            snapshot_path=snapshot_path,
+            scan_rows=scan_rows,
+            terms=terms,
+        )
     elif scan_rows or snapshot_path.exists():
-        raise KasiTermCoverageCollectorError("resume에는 scan과 manifest가 함께 필요합니다.")
+        raise KasiTermCoverageCollectorError(
+            "resume에는 scan과 manifest가 함께 필요합니다."
+        )
     if len(scan_rows) == EXPECTED_YEARS:
         payload = _canonical_jsonl(terms)
         if not snapshot_path.exists():
             _replace_private(snapshot_path, payload)
         elif _private_bytes(snapshot_path, allow_empty=True) != payload:
-            raise KasiTermCoverageCollectorError("기존 완성 snapshot이 scan과 다릅니다.")
-        return _manifest(
-            scan_path=scan_path,
-            snapshot_path=snapshot_path,
-            scan_rows=scan_rows,
-            terms=terms,
-            requests_this_run=0,
-        )
+            raise KasiTermCoverageCollectorError(
+                "기존 완성 snapshot이 scan과 다릅니다."
+            )
+        if manifest is None:
+            raise KasiTermCoverageCollectorError("완성 scan manifest가 없습니다.")
+        return manifest
 
     key = load_service_key(service_key_file)
     requests = 0
@@ -394,9 +498,9 @@ def collect(
         )
         _replace_private(
             manifest_path,
-            (json.dumps(current, ensure_ascii=False, indent=2, sort_keys=True) + "\n").encode(
-                "utf-8"
-            ),
+            (
+                json.dumps(current, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+            ).encode("utf-8"),
         )
         if not complete and requests < max_requests and request_interval:
             time.sleep(request_interval)

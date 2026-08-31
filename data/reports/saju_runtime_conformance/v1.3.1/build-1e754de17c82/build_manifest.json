@@ -1,0 +1,27 @@
+{
+  "app_binding_performed": false,
+  "artifacts": {
+    "aggregate.json": {
+      "bytes": 21461,
+      "sha256": "51b2a3a669b022ff32016453b641ae55489d6f4b2037b176581eeb7d3ac7588d"
+    },
+    "provider_delta_by_year.svg": {
+      "bytes": 223170,
+      "sha256": "7e166fee2bcb8ef2a3b370755bb6023c5b6087f1b3a2c66b7ff1644bd3cab290"
+    },
+    "provider_records.jsonl": {
+      "bytes": 680600,
+      "sha256": "77ab9d78c60f2b7f5d5c9a064bee5d03ba12c73d92e40e28ccb12f683ea531c6"
+    }
+  },
+  "build_id": "build-1e754de17c82",
+  "mix20k_v3_1_regeneration_allowed": false,
+  "phase5_training_performed": false,
+  "release_approval_performed": false,
+  "release_registry_creation_allowed": false,
+  "report_type": "saju_runtime_conformance_v5",
+  "runtime_approved": false,
+  "schema_version": "1.3.1",
+  "technical_gate_passed": false,
+  "training_promotion_allowed": false
+}

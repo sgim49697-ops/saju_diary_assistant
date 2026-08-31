@@ -18,16 +18,18 @@ from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any
 
+from scripts.evaluation.saju_runtime.strict_json import (
+    DuplicateJsonKeyError,
+    loads_without_duplicate_keys,
+)
 from scripts.runtime.calculation.contracts import REPO_ROOT
 
-COLLECTOR_VERSION = "kasi-almanac-1964-collector-v1.0.0"
-CONFIRMATION = "COLLECT_KASI_ALMANAC_1964_V1"
-ALLOWED_ROOT = REPO_ROOT / "data/raw/saju_runtime/kasi/v1.2.0"
+COLLECTOR_VERSION = "kasi-almanac-1964-collector-v1.0.1"
+CONFIRMATION = "COLLECT_KASI_ALMANAC_1964_V1_0_1"
+ALLOWED_ROOT = REPO_ROOT / "data/raw/saju_runtime/kasi/v1.2.1"
 SOURCE_PAGE = "https://astro.kasi.re.kr/kor/almanac/pageView/26"
 DATA_ENDPOINT = "https://astro.kasi.re.kr/kor/almanac/list"
-IMAGE_URL = (
-    "https://astro.kasi.re.kr/file/astro_img/KASI_A188_Z_001/00020.jpg"
-)
+IMAGE_URL = "https://astro.kasi.re.kr/file/astro_img/KASI_A188_Z_001/00020.jpg"
 ARCHIVE_ID = "KASI_A188_Z_001"
 ARCHIVE_CATEGORY_ID = "SYSCD20170290"
 PAGE_SEQUENCE = 20
@@ -59,7 +61,6 @@ class _TextTokens(HTMLParser):
 
 class _SameOriginRedirect(urllib.request.HTTPRedirectHandler):
     def redirect_request(self, request, file_pointer, code, message, headers, new_url):
-        del file_pointer, code, message, headers
         resolved = urllib.parse.urljoin(request.full_url, new_url)
         before = urllib.parse.urlsplit(request.full_url)
         after = urllib.parse.urlsplit(resolved)
@@ -68,7 +69,7 @@ class _SameOriginRedirect(urllib.request.HTTPRedirectHandler):
                 "KASI archive의 다른 origin redirect를 허용하지 않습니다."
             )
         return super().redirect_request(
-            request, None, 302, "same-origin", {}, resolved
+            request, file_pointer, code, message, headers, resolved
         )
 
 
@@ -126,7 +127,9 @@ def _safe_output(directory: Path) -> Path:
     try:
         resolved.relative_to(ALLOWED_ROOT.resolve(strict=False))
     except ValueError as exc:
-        raise KasiAlmanac1964CollectorError("출력 경로가 raw root를 벗어납니다.") from exc
+        raise KasiAlmanac1964CollectorError(
+            "출력 경로가 raw root를 벗어납니다."
+        ) from exc
     return resolved
 
 
@@ -148,7 +151,9 @@ def _private_bytes(path: Path, maximum: int = MAX_PRIVATE_BYTES) -> bytes:
             descriptor = -1
             payload = stream.read(maximum + 1)
     except OSError as exc:
-        raise KasiAlmanac1964CollectorError("기존 archive 파일을 읽지 못했습니다.") from exc
+        raise KasiAlmanac1964CollectorError(
+            "기존 archive 파일을 읽지 못했습니다."
+        ) from exc
     finally:
         if descriptor >= 0:
             os.close(descriptor)
@@ -159,7 +164,9 @@ def _private_bytes(path: Path, maximum: int = MAX_PRIVATE_BYTES) -> bytes:
 
 def _write_exclusive(path: Path, payload: bytes) -> None:
     if path.exists() or path.is_symlink():
-        raise KasiAlmanac1964CollectorError(f"기존 archive 파일이 있습니다: {path.name}")
+        raise KasiAlmanac1964CollectorError(
+            f"기존 archive 파일이 있습니다: {path.name}"
+        )
     descriptor = os.open(
         path,
         os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0),
@@ -200,22 +207,30 @@ def _read_response(
                     "KASI archive Content-Length가 제한을 넘습니다."
                 )
             payload = response.read(maximum + 1)
+    except KasiAlmanac1964CollectorError:
+        raise
     except (OSError, ValueError, urllib.error.URLError) as exc:
-        if isinstance(exc, KasiAlmanac1964CollectorError):
-            raise
-        raise KasiAlmanac1964CollectorError("KASI archive 요청에 실패했습니다.") from exc
+        raise KasiAlmanac1964CollectorError(
+            "KASI archive 요청에 실패했습니다."
+        ) from exc
     if not payload or len(payload) > maximum:
-        raise KasiAlmanac1964CollectorError("KASI archive 응답 크기가 올바르지 않습니다.")
+        raise KasiAlmanac1964CollectorError(
+            "KASI archive 응답 크기가 올바르지 않습니다."
+        )
     return payload
 
 
 def _parse_response(payload: bytes) -> tuple[dict[str, Any], dict[str, Any]]:
     try:
-        value = json.loads(payload)
-    except (UnicodeError, json.JSONDecodeError) as exc:
-        raise KasiAlmanac1964CollectorError("KASI archive JSON을 읽지 못했습니다.") from exc
+        value = loads_without_duplicate_keys(payload)
+    except (UnicodeError, json.JSONDecodeError, DuplicateJsonKeyError) as exc:
+        raise KasiAlmanac1964CollectorError(
+            "KASI archive JSON을 읽지 못했습니다."
+        ) from exc
     if not isinstance(value, dict):
-        raise KasiAlmanac1964CollectorError("KASI archive JSON 최상위가 object가 아닙니다.")
+        raise KasiAlmanac1964CollectorError(
+            "KASI archive JSON 최상위가 object가 아닙니다."
+        )
     metadata = value.get("map")
     pages = value.get("pages")
     if (
@@ -225,11 +240,22 @@ def _parse_response(payload: bytes) -> tuple[dict[str, Any], dict[str, Any]]:
         or str(metadata.get("PBLS_YYYY")) != "1964"
         or metadata.get("WEB_SRVC_DVSN") != "이미지,텍스트"
         or not isinstance(pages, list)
+        or len(pages) != 2
+        or any(not isinstance(page, dict) for page in pages)
     ):
         raise KasiAlmanac1964CollectorError("KASI 1964년 역서 metadata가 다릅니다.")
-    by_sequence = {page.get("PAGE_SEQ"): page for page in pages if isinstance(page, dict)}
+    by_sequence = {page.get("PAGE_SEQ"): page for page in pages}
     if set(by_sequence) != {20, 21}:
         raise KasiAlmanac1964CollectorError("KASI 1964년 9월 page 범위가 다릅니다.")
+    following_page = by_sequence[21]
+    if (
+        following_page.get("ALMN_ID") != ARCHIVE_ID
+        or following_page.get("ARTL_AFT_FILENM") != "00021.jpg"
+        or not isinstance(following_page.get("PAGE_CONT"), str)
+    ):
+        raise KasiAlmanac1964CollectorError(
+            "KASI 1964년 9월 다음 page identity가 다릅니다."
+        )
     page = by_sequence[PAGE_SEQUENCE]
     if (
         page.get("ALMN_ID") != ARCHIVE_ID
@@ -243,7 +269,9 @@ def _parse_response(payload: bytes) -> tuple[dict[str, Any], dict[str, Any]]:
     try:
         start = tokens.index("백로")
     except ValueError as exc:
-        raise KasiAlmanac1964CollectorError("1964년 역서에서 백로를 찾지 못했습니다.") from exc
+        raise KasiAlmanac1964CollectorError(
+            "1964년 역서에서 백로를 찾지 못했습니다."
+        ) from exc
     if (
         "9 월 소" not in tokens[:start]
         or tokens[start : start + 4] != ["백로", "7일", "24시", "00분"]
@@ -284,27 +312,72 @@ def _existing_manifest(directory: Path) -> dict[str, Any] | None:
         return None
     if not all(present):
         raise KasiAlmanac1964CollectorError("KASI archive 산출물이 일부만 존재합니다.")
+    response_payload = _private_bytes(paths[0], MAX_JSON_BYTES)
+    image_payload = _private_bytes(paths[1], MAX_IMAGE_BYTES)
+    normalized_payload = _private_bytes(paths[2])
     try:
-        manifest = json.loads(_private_bytes(paths[-1]))
-        normalized = json.loads(_private_bytes(paths[-2]))
-    except (UnicodeError, json.JSONDecodeError) as exc:
-        raise KasiAlmanac1964CollectorError("기존 archive JSON을 읽지 못했습니다.") from exc
+        manifest = loads_without_duplicate_keys(_private_bytes(paths[-1]))
+        normalized = loads_without_duplicate_keys(normalized_payload)
+        response, derived = _parse_response(response_payload)
+    except (UnicodeError, json.JSONDecodeError, DuplicateJsonKeyError) as exc:
+        raise KasiAlmanac1964CollectorError(
+            "기존 archive JSON을 읽지 못했습니다."
+        ) from exc
+    canonical_response = (
+        json.dumps(response, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
+        + "\n"
+    ).encode("utf-8")
+    canonical_normalized = (
+        json.dumps(derived, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+    ).encode("utf-8")
+    artifacts = manifest.get("artifacts") if isinstance(manifest, dict) else None
+    actual_artifacts = {
+        RESPONSE_FILENAME: {
+            "bytes": len(response_payload),
+            "sha256": _sha256_bytes(response_payload),
+        },
+        IMAGE_FILENAME: {
+            "bytes": len(image_payload),
+            "sha256": _sha256_bytes(image_payload),
+        },
+        SNAPSHOT_FILENAME: {
+            "bytes": len(normalized_payload),
+            "sha256": _sha256_bytes(normalized_payload),
+        },
+    }
     if (
         not isinstance(manifest, dict)
+        or manifest.get("schema_version") != "1.0.0"
+        or manifest.get("status") != "complete"
         or manifest.get("collector_version") != COLLECTOR_VERSION
         or manifest.get("collector_sha256") != _sha256_file(Path(__file__))
+        or manifest.get("source_page") != SOURCE_PAGE
+        or manifest.get("data_endpoint") != DATA_ENDPOINT
+        or manifest.get("image_url") != IMAGE_URL
+        or manifest.get("archive_id") != ARCHIVE_ID
+        or manifest.get("page_sequence") != PAGE_SEQUENCE
         or manifest.get("credential_used") is not False
-        or manifest.get("artifacts", {}).get(RESPONSE_FILENAME, {}).get("sha256")
-        != _sha256_file(paths[0])
-        or manifest.get("artifacts", {}).get(IMAGE_FILENAME, {}).get("sha256")
-        != _sha256_file(paths[1])
-        or manifest.get("artifacts", {}).get(SNAPSHOT_FILENAME, {}).get("sha256")
-        != _sha256_file(paths[2])
+        or manifest.get("private_path_recorded") is not False
+        or not isinstance(artifacts, dict)
+        or artifacts != actual_artifacts
         or not isinstance(normalized, dict)
-        or normalized.get("normalized_reference_local_minute")
-        != "1964-09-08T00:00+09:00"
+        or normalized != derived
+        or response_payload != canonical_response
+        or normalized_payload != canonical_normalized
+        or not image_payload.startswith(b"\xff\xd8\xff")
+        or not image_payload.endswith(b"\xff\xd9")
     ):
         raise KasiAlmanac1964CollectorError("기존 archive provenance가 다릅니다.")
+    try:
+        updated_at = datetime.fromisoformat(manifest["updated_at"])
+    except (KeyError, TypeError, ValueError) as exc:
+        raise KasiAlmanac1964CollectorError(
+            "기존 archive 갱신 시각이 다릅니다."
+        ) from exc
+    if updated_at.tzinfo != timezone.utc:
+        raise KasiAlmanac1964CollectorError(
+            "기존 archive 갱신 시각이 UTC가 아닙니다."
+        )
     return manifest
 
 
@@ -325,13 +398,18 @@ def collect(*, output: Path, confirmation: str) -> dict[str, Any]:
         opener,
         urllib.request.Request(
             SOURCE_PAGE,
-            headers={"Accept": "text/html", "User-Agent": "saju-runtime-kasi-almanac/1.0"},
+            headers={
+                "Accept": "text/html",
+                "User-Agent": "saju-runtime-kasi-almanac/1.0",
+            },
         ),
         maximum=MAX_LANDING_BYTES,
         content_type_prefix="text/html",
     )
     if ARCHIVE_ID.encode() not in landing or "역서(曆書)1964년".encode() not in landing:
-        raise KasiAlmanac1964CollectorError("KASI archive landing에서 1964년 역서를 찾지 못했습니다.")
+        raise KasiAlmanac1964CollectorError(
+            "KASI archive landing에서 1964년 역서를 찾지 못했습니다."
+        )
     body = urllib.parse.urlencode(
         {
             "searchKey": ARCHIVE_CATEGORY_ID,
@@ -368,13 +446,21 @@ def collect(*, output: Path, confirmation: str) -> dict[str, Any]:
         opener,
         urllib.request.Request(
             IMAGE_URL,
-            headers={"Accept": "image/jpeg", "Referer": SOURCE_PAGE, "User-Agent": "saju-runtime-kasi-almanac/1.0"},
+            headers={
+                "Accept": "image/jpeg",
+                "Referer": SOURCE_PAGE,
+                "User-Agent": "saju-runtime-kasi-almanac/1.0",
+            },
         ),
         maximum=MAX_IMAGE_BYTES,
         content_type_prefix="image/jpeg",
     )
-    if not image_payload.startswith(b"\xff\xd8\xff") or not image_payload.endswith(b"\xff\xd9"):
-        raise KasiAlmanac1964CollectorError("KASI archive page가 완전한 JPEG가 아닙니다.")
+    if not image_payload.startswith(b"\xff\xd8\xff") or not image_payload.endswith(
+        b"\xff\xd9"
+    ):
+        raise KasiAlmanac1964CollectorError(
+            "KASI archive page가 완전한 JPEG가 아닙니다."
+        )
     artifacts = {
         RESPONSE_FILENAME: {
             "bytes": len(canonical_response),

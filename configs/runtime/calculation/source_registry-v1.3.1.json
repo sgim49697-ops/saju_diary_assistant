@@ -1,0 +1,109 @@
+{
+  "_description": "기존 KASI raw의 원 수집기 hash를 보존하고 patch validator·향후 수집기 버전을 분리한다.",
+  "schema_version": "1.3.1",
+  "registry_version": "saju-runtime-sources-v1.3.1",
+  "reviewed_at": "2026-08-31",
+  "parent": {
+    "path": "configs/runtime/calculation/source_registry-v1.3.0.json",
+    "sha256": "32d36a9606d8b9809e1310d92a5734dd1a101953194a033c08d04fff67dccd58"
+  },
+  "official_sources": {
+    "kasi_lunisolar_openapi": {
+      "source_page": "https://www.data.go.kr/data/15012679/openapi.do",
+      "endpoint": "https://apis.data.go.kr/B090041/openapi/service/LrsrCldInfoService/getLunCalInfo",
+      "requested_range": [
+        1900,
+        2049
+      ],
+      "collector_path": "scripts/evaluation/saju_runtime/kasi_collector_v1_1.py"
+    },
+    "kasi_24_divisions_openapi": {
+      "source_page": "https://www.data.go.kr/data/15012690/openapi.do",
+      "endpoint": "https://apis.data.go.kr/B090041/openapi/service/SpcdeInfoService/get24DivisionsInfo",
+      "requested_range": [
+        1900,
+        2049
+      ],
+      "accepted_snapshot_origins": [
+        {
+          "snapshot_root_version": "v1.2.0",
+          "collector_version": "kasi-term-coverage-collector-v1.2.0",
+          "collector_sha256": "c7ce32d04a5498a2d42dccda5d2408980d49ee158e59eda615b82d7b70347865"
+        },
+        {
+          "snapshot_root_version": "v1.2.1",
+          "collector_version": "kasi-term-coverage-collector-v1.2.1",
+          "collector_sha256": "8cf4e36903025c530b22d19cdf370f8da3b082feb267fa8b008860aa70a7bda1"
+        }
+      ],
+      "origin_transport_collector_sha256": "819b909acf4933f567ee930405aa8c09001f852e6c51751805290eb816a1b3f2",
+      "validator_path": "scripts/evaluation/saju_runtime/kasi_term_coverage_collector_v1_2.py",
+      "future_collector_version": "kasi-term-coverage-collector-v1.2.1",
+      "future_snapshot_root_version": "v1.2.1",
+      "coverage_policy": "record_every_requested_year_and_never_fill_zero_row_years_from_a_calculation_provider"
+    },
+    "kasi_digitized_almanac_1964": {
+      "source_page": "https://astro.kasi.re.kr/kor/almanac/pageView/26",
+      "archive_id": "KASI_A188_Z_001",
+      "page_sequence": 20,
+      "image_url": "https://astro.kasi.re.kr/file/astro_img/KASI_A188_Z_001/00020.jpg",
+      "accepted_snapshot_origins": [
+        {
+          "snapshot_root_version": "v1.2.0",
+          "collector_version": "kasi-almanac-1964-collector-v1.0.0",
+          "collector_sha256": "b1002a4ebeba07a6f283d623220b57e431be4e23ae6a7eba1372de6c24182efb"
+        },
+        {
+          "snapshot_root_version": "v1.2.1",
+          "collector_version": "kasi-almanac-1964-collector-v1.0.1",
+          "collector_sha256": "cb11263e13f204f39fbd6404232995a84ed10a69724aef174acf2191c8103d5c"
+        }
+      ],
+      "validator_path": "scripts/evaluation/saju_runtime/kasi_almanac_1964_collector.py",
+      "future_collector_version": "kasi-almanac-1964-collector-v1.0.1",
+      "future_snapshot_root_version": "v1.2.1",
+      "recorded_fact": "baengno_printed_as_1964_09_07_24_00_kst",
+      "normalized_reference": "1964-09-08T00:00+09:00",
+      "precision": "minute"
+    },
+    "kasi_calendar_display_minutes": {
+      "source_page": "https://astro.kasi.re.kr/kor/life/post/calendarData",
+      "range": [
+        2021,
+        2027
+      ],
+      "rows": 84,
+      "authority": "institutional_display_reference_not_formal_almanac"
+    }
+  },
+  "provider_candidates": {
+    "astronomy_engine": {
+      "package": "astronomy-engine",
+      "version": "2.1.19",
+      "current_runtime_provider": true
+    },
+    "skyfield_de440s": {
+      "package": "skyfield",
+      "version": "1.55",
+      "ephemeris": "de440s.bsp",
+      "ephemeris_sha256": "c1c7feeab882263fc493a9d5a5b2ddd71b54826cdf65d8d17a76126b260a49f2",
+      "timescale": "builtin_no_network",
+      "root_bracket": "fixed_calendar_center_plus_minus_5_days",
+      "astronomy_engine_result_used_as_bracket_center": false
+    }
+  },
+  "validation": {
+    "nested_duplicate_json_keys": "reject",
+    "duplicate_almanac_page_sequence": "reject",
+    "stored_response_reparsed": true,
+    "canonical_snapshot_bytes_required": true,
+    "origin_collector_hash_compared_to_current_validator_hash": false
+  },
+  "interpretation": {
+    "printed_24_00_normalization": "next_civil_day_00_00",
+    "formal_minute_source_adjudicates_subminute_physical_accuracy": false,
+    "provider_values_fill_missing_official_rows": false,
+    "provider_selection_requires_all_gate_checks": true,
+    "no_eligible_provider_means_runtime_provider_unchanged": true
+  }
+}

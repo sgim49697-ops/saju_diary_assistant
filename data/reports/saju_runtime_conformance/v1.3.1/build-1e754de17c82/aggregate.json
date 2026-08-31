@@ -1,0 +1,577 @@
+{
+  "app_binding_performed": false,
+  "baseline_internal_boundary_assignment_checks": {
+    "cases": 5400,
+    "mismatch_details_truncated": false,
+    "mismatch_rows": 0,
+    "mismatches": [],
+    "reporting_label": "internal_profile_boundary_assignment_checks",
+    "scope": "internal_assignment_around_runtime_generated_boundary_instants",
+    "validates_assignment_logic": true,
+    "validates_boundary_instant_accuracy": false
+  },
+  "blocking_reasons": [
+    "eligible_provider_selected",
+    "kasi_all_solar_term_dates_complete",
+    "kasi_jie_dates_complete",
+    "selected_provider_boundary_cases_complete"
+  ],
+  "comparison_version": "saju-solar-term-provider-comparison-v1.0.0",
+  "engine_version": "saju-runtime-python-v1.2.0",
+  "gate_checks": {
+    "at_least_one_provider_minute_label_mismatch_zero": true,
+    "available_kasi_openapi_date_mismatch_zero_both_providers": true,
+    "baseline_internal_boundary_cases_complete": true,
+    "baseline_internal_boundary_mismatch_zero": true,
+    "dst_fold_auto_pick_zero": true,
+    "dst_gap_auto_shift_zero": true,
+    "eligible_provider_selected": false,
+    "guessed_unknown_hour_zero": true,
+    "heuristic_fact_leak_zero": true,
+    "hmac_id_mismatch_zero": true,
+    "hmac_id_vectors_complete": true,
+    "host_timezone_or_locale_drift_zero": true,
+    "kasi_1964_baengno_civil_date_adjudicated": true,
+    "kasi_all_solar_term_dates_complete": false,
+    "kasi_day_ganzhi_mismatch_zero": true,
+    "kasi_formal_1964_baengno_complete": true,
+    "kasi_jie_dates_complete": false,
+    "kasi_lunar_conversion_mismatch_zero": true,
+    "kasi_lunar_days_complete": true,
+    "kasi_minute_references_complete": true,
+    "kasi_term_api_year_scan_complete": true,
+    "policy_fixture_mismatch_zero": true,
+    "profile_id_failure_zero": true,
+    "provider_chronological_order_failure_zero": true,
+    "provider_fixed_120_second_regression_guard": true,
+    "provider_rows_complete": true,
+    "provider_term_identity_failure_zero": true,
+    "selected_provider_boundary_cases_complete": false,
+    "source_version_id_failure_zero": true,
+    "unknown_range_complete": true,
+    "unsupported_foreign_complete": true,
+    "unsupported_foreign_failure_zero": true
+  },
+  "hmac_id_invariants": {
+    "domain_collisions": 0,
+    "id_kinds_per_vector": 5,
+    "key_separation_failures": 0,
+    "key_value_recorded": false,
+    "prefix_failures": 0,
+    "production_signer_accepted": false,
+    "reproducibility_mismatches": 0,
+    "signer_kind": "fixed_non_production_injected",
+    "vectors": 200
+  },
+  "host_invariance": {
+    "byte_drift": 0,
+    "runs": 2,
+    "tested_locales": [
+      "C",
+      "C.UTF-8"
+    ]
+  },
+  "id_contract_version": "saju-runtime-id-hmac-v2.0.0",
+  "inputs": {
+    "gate_sha256": "c8fbd682e54a5c0a1e9590029d0ad2da0587e239783aaac0d0c9a7eac8ec9278",
+    "implementation_sha256": {
+      "configs/runtime/calculation/conformance_gate-v1.3.1.json": "c8fbd682e54a5c0a1e9590029d0ad2da0587e239783aaac0d0c9a7eac8ec9278",
+      "configs/runtime/calculation/source_registry-v1.3.1.json": "cfcb9ced0830a1817fab13f0450eefb3492cab8f964ca82b07f06efa52ba69cd",
+      "scripts/evaluation/saju_runtime/conformance_v5.py": "3543b130c2684c5cc9d337aa138cd91fc0b551865eaef6b260d7bcfb70c498d8",
+      "scripts/evaluation/saju_runtime/kasi_almanac_1964_collector.py": "cb11263e13f204f39fbd6404232995a84ed10a69724aef174acf2191c8103d5c",
+      "scripts/evaluation/saju_runtime/kasi_collector_v1_1.py": "819b909acf4933f567ee930405aa8c09001f852e6c51751805290eb816a1b3f2",
+      "scripts/evaluation/saju_runtime/kasi_minute_collector_v1_1.py": "9dc93bdf7f400e6957ebd5011d9406decd1910092ca3a5f4833957cda1ca1cec",
+      "scripts/evaluation/saju_runtime/kasi_term_coverage_collector_v1_2.py": "8cf4e36903025c530b22d19cdf370f8da3b082feb267fa8b008860aa70a7bda1",
+      "scripts/evaluation/saju_runtime/solar_term_provider_comparison_v1.py": "417647fe74e3f83821188331a988f7a9c60b304edaca15f29d126cb569ad5680",
+      "scripts/evaluation/saju_runtime/strict_json.py": "d805220721a27edbcd2e66f4954aab0bea97779665cdd9b78ed78dd6487018a1",
+      "scripts/runtime/calculation/engine.py": "477d39458e1609347922f571f74e02ac19af606822d114076b1a8e4348afece3",
+      "scripts/runtime/calculation/engine_v1_2.py": "353523bd50924372c551bc3be9efc8467dfe4c03f0da53e8da08745d9368c529",
+      "scripts/runtime/calculation/solar_terms.py": "5ca5ae0e9303ee626be8276fae329142625acc44443eb6a7cc8d7aa54a232ce4"
+    },
+    "official_snapshots": {
+      "kasi_1964_almanac": {
+        "archive_id": "KASI_A188_Z_001",
+        "complete": true,
+        "image_sha256": "553f0734a32191c394b34c95773d34bb4fd2348f0c325761ec8f511121e49010",
+        "kind": "private_official_kasi_digitized_almanac",
+        "manifest_sha256": "4adf8c2892d1e717ec669cddeeee941e3edf1f786a864dfb5bb93bfd4a40fb9f",
+        "origin_collector_sha256": "b1002a4ebeba07a6f283d623220b57e431be4e23ae6a7eba1372de6c24182efb",
+        "origin_collector_version": "kasi-almanac-1964-collector-v1.0.0",
+        "page_sequence": 20,
+        "private_path_recorded": false,
+        "provided": true,
+        "sha256": "5fafbb8dfd3e7d43e5a5ce59619195061beaac76c2f1dc94fe32d1205c4138a5"
+      },
+      "kasi_24_divisions_observed_coverage": {
+        "api_range_scan_complete": true,
+        "contract_coverage_complete": false,
+        "expected_rows": 3600,
+        "kind": "private_official_24_divisions_observed_api_coverage",
+        "manifest_sha256": "30c104c9a01d00abb902380d4917d009dafa46e08864c261c1abca443b1c6bcf",
+        "origin_collector_sha256": "c7ce32d04a5498a2d42dccda5d2408980d49ee158e59eda615b82d7b70347865",
+        "origin_collector_version": "kasi-term-coverage-collector-v1.2.0",
+        "private_path_recorded": false,
+        "provided": true,
+        "requested_years": [
+          1900,
+          2049
+        ],
+        "rows": 696,
+        "scan_sha256": "5bf0e5d8540bd09b36dce56a4d7c1a995f84d1c5225ba40ac9cd33887062d389",
+        "sha256": "eabaa07271529c08ecc02c3886775b39d069ee9db3f7522242ccad95ec51bb4c",
+        "supported_year_ranges": [
+          [
+            2000,
+            2028
+          ]
+        ],
+        "supported_years": [
+          2000,
+          2001,
+          2002,
+          2003,
+          2004,
+          2005,
+          2006,
+          2007,
+          2008,
+          2009,
+          2010,
+          2011,
+          2012,
+          2013,
+          2014,
+          2015,
+          2016,
+          2017,
+          2018,
+          2019,
+          2020,
+          2021,
+          2022,
+          2023,
+          2024,
+          2025,
+          2026,
+          2027,
+          2028
+        ],
+        "unsupported_years_filled_from_provider": false,
+        "years_scanned": 150
+      },
+      "kasi_lunisolar": {
+        "complete": true,
+        "kind": "private_official_full_lunisolar",
+        "manifest_sha256": "824bd313dcced2b15bda75c9c5d136e06b6cb1c2330c3f47dc0ffab007b30b48",
+        "private_path_recorded": false,
+        "provided": true,
+        "sha256": "276de1729cbec4ecba013c9a9f92d80f14fcac0440bc86565047c29ac341ef04",
+        "supported_rows": 54787
+      },
+      "kasi_minute_reference": {
+        "complete": true,
+        "kind": "private_institutional_minute_reference",
+        "manifest_sha256": "47f3952f266ab471270d8a0e9a2d83fb97e477e7e112702750c704559199a4d2",
+        "private_path_recorded": false,
+        "provided": true,
+        "rows": 84,
+        "sha256": "5c1c12a7a3821a330a04b0b2e10117a4c2f28af748211d163bf9a4631d8940bf",
+        "source_tier": "institutional_minute_display_reference_not_formal_almanac"
+      }
+    },
+    "policy_fixture": {
+      "path": "tests/fixtures/saju_external_conformance/policy_cases_20.jsonl",
+      "sha256": "5a424a7bf7f31cc9bb8505317a8674213fc7ec26eaee72f4062bed5b82cb94e6"
+    },
+    "public_fallback_fixture": {
+      "path": "tests/fixtures/saju_external_conformance/kasi_lunar_200.json",
+      "sha256": "d651d5a77d7970cde4b36f414995b6ea833b4d50760f23fe0f462c96fdf8ca1a"
+    },
+    "source_registry_sha256": "cfcb9ced0830a1817fab13f0450eefb3492cab8f964ca82b07f06efa52ba69cd",
+    "source_registry_version": "saju-runtime-sources-v1.3.1",
+    "test_signer": {
+      "accepted_for_production": false,
+      "key_value_recorded": false,
+      "kind": "fixed_non_production_injected"
+    }
+  },
+  "mix20k_v3_1_generated": false,
+  "mix20k_v3_1_regeneration_allowed": false,
+  "official_kasi_1964_baengno": {
+    "archive_id": "KASI_A188_Z_001",
+    "normalization": "end_of_day_24_00_to_next_day_00_00",
+    "normalized_reference_local_minute": "1964-09-08T00:00+09:00",
+    "page_filename": "00020.jpg",
+    "page_sequence": 20,
+    "printed_hour": 24,
+    "printed_label": "1964-09-07 24:00 KST",
+    "printed_local_date": "1964-09-07",
+    "printed_minute": 0,
+    "raw_artifact_hashes_only": true,
+    "reference_precision": "minute",
+    "schema_version": "1.0.0",
+    "source_id": "kasi_digitized_almanac_1964",
+    "source_page": "https://astro.kasi.re.kr/kor/almanac/pageView/26",
+    "source_tier": "formal_kasi_almanac_archive",
+    "subminute_instant_claimed": false,
+    "term_index": 16,
+    "term_name": "백로",
+    "year": 1964
+  },
+  "official_kasi_lunisolar": {
+    "day_ganzhi_mismatches": 0,
+    "official_hard_mismatches": 0,
+    "rows": 54787,
+    "solar_lunar_mismatches": 0
+  },
+  "official_kasi_solar_term_coverage": {
+    "all_term_rows": 696,
+    "expected_all_term_rows": 3600,
+    "expected_jie_rows": 1800,
+    "jie_rows": 348,
+    "supported_year_ranges": [
+      [
+        2000,
+        2028
+      ]
+    ],
+    "unsupported_years_filled_from_provider": false,
+    "years_scanned": 150
+  },
+  "phase5_training_performed": false,
+  "policy_comparison": {
+    "comparable_rows": 16,
+    "excluded_non_profile_cases": [
+      "day-boundary-jasi-20240310-2330",
+      "day-boundary-split-jasi-20240310-2330",
+      "true-solar-seoul-19900515-0705",
+      "void-branches-gyeongjin"
+    ],
+    "fixture_rows": 20,
+    "mismatch_rows": 0,
+    "mismatches": [],
+    "passed_rows": 16
+  },
+  "profile_id": "KR_CIVIL_MIDNIGHT_V1",
+  "public_diagnostics": {
+    "provider_delta_by_year_svg": {
+      "bytes": 223170,
+      "sha256": "7e166fee2bcb8ef2a3b370755bb6023c5b6087f1b3a2c66b7ff1644bd3cab290"
+    },
+    "provider_records": {
+      "bytes": 680600,
+      "contains_birth_or_session_data": false,
+      "rows": 1800,
+      "sha256": "77ab9d78c60f2b7f5d5c9a064bee5d03ba12c73d92e40e28ccb12f683ea531c6"
+    }
+  },
+  "raw_restricted_samples_in_report": false,
+  "release_approval_performed": false,
+  "release_registry_creation_allowed": false,
+  "runtime_approved": false,
+  "runtime_feature_flag_default": false,
+  "runtime_gate_passed": false,
+  "runtime_provider_changed": false,
+  "schema_version": "1.3.1",
+  "sealed_blind_accessed": false,
+  "selected_provider_boundary_assignment_checks": {
+    "cases": 0,
+    "expected_cases": 5400,
+    "mismatch_rows": null,
+    "reason": "provider_selection_blocked",
+    "status": "not_run_no_selected_provider"
+  },
+  "solar_term_provider_comparison": {
+    "adjudication_1964_baengno": {
+      "civil_date_match": {
+        "astronomy_engine": true,
+        "skyfield_de440s": false
+      },
+      "civil_date_policy_result": "astronomy_engine",
+      "display_minute_match": {
+        "astronomy_engine": true,
+        "skyfield_de440s": false
+      },
+      "normalized_kasi_reference": "1964-09-08T00:00+09:00",
+      "printed_kasi_label": "1964-09-07 24:00 KST",
+      "status": "resolved_for_normalized_civil_date_not_subminute_physics",
+      "subminute_physical_accuracy_result": "not_adjudicated_by_minute_precision_source"
+    },
+    "astronomy_chronological_order_failures": 0,
+    "comparison_version": "saju-solar-term-provider-comparison-v1.0.0",
+    "delta_convention": "astronomy_instant_utc_minus_skyfield_instant_utc",
+    "delta_distribution": {
+      "maximum_absolute_seconds": 80.666231,
+      "mean_absolute_seconds": 17.130844,
+      "p99_absolute_seconds": 57.56609,
+      "rows": 1800
+    },
+    "engine_display_minute_disagreements": 494,
+    "engine_exact_local_date_disagreements": 1,
+    "expected_rows": 1800,
+    "fixed_regression_guard": {
+      "failures": 0,
+      "maximum_seconds": 120.0,
+      "role": "non_authoritative_regression_guard_not_accuracy_oracle"
+    },
+    "maximum_signed_delta_seconds": 80.666231,
+    "minimum_signed_delta_seconds": -44.512186,
+    "official_evidence": {
+      "astronomy_engine": {
+        "blocking_reasons": [
+          "institutional_minute_label_mismatch_zero",
+          "official_jie_date_coverage_complete"
+        ],
+        "eligibility_checks": {
+          "astronomy_chronological_order_failure_zero": true,
+          "available_openapi_date_mismatch_zero": true,
+          "fixed_120_second_regression_guard": true,
+          "formal_1964_normalized_civil_date_match": true,
+          "institutional_minute_label_mismatch_zero": false,
+          "institutional_minute_reference_complete": true,
+          "official_jie_date_coverage_complete": false,
+          "rows_complete": true,
+          "skyfield_chronological_order_failure_zero": true,
+          "term_identity_failure_zero": true
+        },
+        "eligible": false,
+        "formal_1964_almanac": {
+          "display_minute_match": true,
+          "normalized_civil_date_match": true,
+          "normalized_reference_local_minute": "1964-09-08T00:00+09:00",
+          "printed_label": "1964-09-07 24:00 KST",
+          "provider_display_minute_kst": "1964-09-08T00:00+09:00",
+          "provider_exact_local_date": "1964-09-08",
+          "provider_instant_utc": "1964-09-07T15:00:00.017704Z",
+          "source_precision": "minute",
+          "subminute_physical_accuracy_adjudicated": false
+        },
+        "institutional_minute_label_mismatches": 16,
+        "institutional_minute_mismatch_rows": [
+          {
+            "actual": "2021-01-05T12:24+09:00",
+            "expected": "2021-01-05T12:23+09:00",
+            "term_index": 0,
+            "year": 2021
+          },
+          {
+            "actual": "2022-10-08T16:23+09:00",
+            "expected": "2022-10-08T16:22+09:00",
+            "term_index": 18,
+            "year": 2022
+          },
+          {
+            "actual": "2022-11-07T19:46+09:00",
+            "expected": "2022-11-07T19:45+09:00",
+            "term_index": 20,
+            "year": 2022
+          },
+          {
+            "actual": "2023-02-04T11:42+09:00",
+            "expected": "2023-02-04T11:43+09:00",
+            "term_index": 2,
+            "year": 2023
+          },
+          {
+            "actual": "2023-07-07T17:30+09:00",
+            "expected": "2023-07-07T17:31+09:00",
+            "term_index": 12,
+            "year": 2023
+          },
+          {
+            "actual": "2024-03-05T11:22+09:00",
+            "expected": "2024-03-05T11:23+09:00",
+            "term_index": 4,
+            "year": 2024
+          },
+          {
+            "actual": "2024-08-07T09:10+09:00",
+            "expected": "2024-08-07T09:09+09:00",
+            "term_index": 14,
+            "year": 2024
+          },
+          {
+            "actual": "2024-09-07T12:12+09:00",
+            "expected": "2024-09-07T12:11+09:00",
+            "term_index": 16,
+            "year": 2024
+          },
+          {
+            "actual": "2025-08-07T14:51+09:00",
+            "expected": "2025-08-07T14:52+09:00",
+            "term_index": 14,
+            "year": 2025
+          },
+          {
+            "actual": "2026-06-06T00:49+09:00",
+            "expected": "2026-06-06T00:48+09:00",
+            "term_index": 10,
+            "year": 2026
+          },
+          {
+            "actual": "2026-09-07T23:42+09:00",
+            "expected": "2026-09-07T23:41+09:00",
+            "term_index": 16,
+            "year": 2026
+          },
+          {
+            "actual": "2026-10-08T15:30+09:00",
+            "expected": "2026-10-08T15:29+09:00",
+            "term_index": 18,
+            "year": 2026
+          },
+          {
+            "actual": "2026-11-07T18:53+09:00",
+            "expected": "2026-11-07T18:52+09:00",
+            "term_index": 20,
+            "year": 2026
+          },
+          {
+            "actual": "2027-03-06T04:39+09:00",
+            "expected": "2027-03-06T04:40+09:00",
+            "term_index": 4,
+            "year": 2027
+          },
+          {
+            "actual": "2027-06-06T06:25+09:00",
+            "expected": "2027-06-06T06:26+09:00",
+            "term_index": 10,
+            "year": 2027
+          },
+          {
+            "actual": "2027-08-08T02:26+09:00",
+            "expected": "2027-08-08T02:27+09:00",
+            "term_index": 14,
+            "year": 2027
+          }
+        ],
+        "institutional_minute_rows": 84,
+        "official_jie_date_expected_rows": 1800,
+        "official_jie_date_rows": 349,
+        "openapi_date_mismatch_rows": [],
+        "openapi_date_mismatches": 0,
+        "openapi_jie_rows": 348,
+        "provider": "astronomy_engine"
+      },
+      "skyfield_de440s": {
+        "blocking_reasons": [
+          "formal_1964_normalized_civil_date_match",
+          "official_jie_date_coverage_complete"
+        ],
+        "eligibility_checks": {
+          "astronomy_chronological_order_failure_zero": true,
+          "available_openapi_date_mismatch_zero": true,
+          "fixed_120_second_regression_guard": true,
+          "formal_1964_normalized_civil_date_match": false,
+          "institutional_minute_label_mismatch_zero": true,
+          "institutional_minute_reference_complete": true,
+          "official_jie_date_coverage_complete": false,
+          "rows_complete": true,
+          "skyfield_chronological_order_failure_zero": true,
+          "term_identity_failure_zero": true
+        },
+        "eligible": false,
+        "formal_1964_almanac": {
+          "display_minute_match": false,
+          "normalized_civil_date_match": false,
+          "normalized_reference_local_minute": "1964-09-08T00:00+09:00",
+          "printed_label": "1964-09-07 24:00 KST",
+          "provider_display_minute_kst": "1964-09-07T23:59+09:00",
+          "provider_exact_local_date": "1964-09-07",
+          "provider_instant_utc": "1964-09-07T14:59:19.887194Z",
+          "source_precision": "minute",
+          "subminute_physical_accuracy_adjudicated": false
+        },
+        "institutional_minute_label_mismatches": 0,
+        "institutional_minute_mismatch_rows": [],
+        "institutional_minute_rows": 84,
+        "official_jie_date_expected_rows": 1800,
+        "official_jie_date_rows": 349,
+        "openapi_date_mismatch_rows": [],
+        "openapi_date_mismatches": 0,
+        "openapi_jie_rows": 348,
+        "provider": "skyfield_de440s"
+      }
+    },
+    "providers": {
+      "astronomy_engine": {
+        "ephemeris": "embedded_truncated_vsop87_novas_lineage",
+        "package": "astronomy-engine",
+        "production_selected": false,
+        "provider_id": "astronomy-engine-2.1.19",
+        "version": "2.1.19"
+      },
+      "skyfield_de440s": {
+        "astronomy_engine_center_used": false,
+        "automatic_download_or_fallback": false,
+        "ephemeris": {
+          "bytes": 32726016,
+          "coverage_years": [
+            1849,
+            2150
+          ],
+          "filename": "de440s.bsp",
+          "local_path_recorded": false,
+          "sha256": "c1c7feeab882263fc493a9d5a5b2ddd71b54826cdf65d8d17a76126b260a49f2"
+        },
+        "ephemeris_expected_sha256": "c1c7feeab882263fc493a9d5a5b2ddd71b54826cdf65d8d17a76126b260a49f2",
+        "packages": {
+          "jplephem": "2.24",
+          "numpy": "2.2.6",
+          "skyfield": "1.55"
+        },
+        "production_selected": false,
+        "provider_id": "skyfield-1.55-jpl-de440s",
+        "root_bracket": "fixed_calendar_center_plus_minus_5_days",
+        "timescale": "skyfield_builtin_no_network"
+      }
+    },
+    "range": {
+      "end_year": 2049,
+      "start_year": 1900
+    },
+    "records_in_report": false,
+    "records_sha256": "3fc4355e35f6f2dc96cde3bde459739d223ca51c161cea668fecced740beb0a6",
+    "rows": 1800,
+    "schema_version": "1.0.0",
+    "selection": {
+      "runtime_provider_changed": false,
+      "selected_provider": null,
+      "status": "blocked_no_eligible_provider",
+      "tie_break_applied": false
+    },
+    "skyfield_chronological_order_failures": 0,
+    "term_identity_failures": 0
+  },
+  "source_versions": {
+    "astronomy_engine": "2.1.19",
+    "id_contract": "saju-runtime-id-hmac-v2.0.0",
+    "jplephem": "2.24",
+    "korean_lunar_calendar": "0.4.0",
+    "numpy": "2.2.6",
+    "python_tzdata": "2026.3",
+    "runtime_contract": "saju-runtime-contract-v1.2.0",
+    "skyfield": "1.55",
+    "solar_term_provider": "astronomy-engine-2.1.19",
+    "source_registry": "saju-runtime-sources-v1.2.0",
+    "table_policy": "saju-calculation-policy-v1.0.0",
+    "tzdb": "2026c"
+  },
+  "status": "blocked_official_coverage_and_no_eligible_provider",
+  "suite_version": "saju-runtime-conformance-v5.0.1",
+  "synthetic_invariants": {
+    "canonical_hash_mismatches": 0,
+    "canonical_hash_vectors": 200,
+    "dst_fold_auto_pick_failures": 0,
+    "dst_gap_auto_shift_failures": 0,
+    "guessed_unknown_hour": 0,
+    "heuristic_fact_leaks": 0,
+    "profile_id_failures": 0,
+    "source_version_id_failures": 0,
+    "unknown_range_cases": 500,
+    "unsupported_foreign_cases": 20,
+    "unsupported_foreign_failures": 0
+  },
+  "technical_gate_passed": false,
+  "training_promotion_allowed": false
+}

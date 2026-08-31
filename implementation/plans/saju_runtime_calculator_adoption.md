@@ -4,13 +4,13 @@
 
 | 항목 | 값 |
 |---|---|
-| 문서 버전 | `runtime-calculator-adoption-v2.3.0` |
+| 문서 버전 | `runtime-calculator-adoption-v2.3.1` |
 | 정본화 기준일 | 2026-08-31 |
 | 구현 시작 기준 `master` | `22fa6943c625b7caad7a7fb9cfd174a6a01992e6` |
 | 기준 모델 run | `KI20-MIX-v2/run-1f5d732cae67` |
 | 모델 run 상태 | `trained_and_reloaded`, production 승격 금지 |
 | runtime profile | `KR_CIVIL_MIDNIGHT_V1` |
-| runtime 상태 | v1.2 천문·HMAC·session v2.1·FSM v1.1 보강 완료, 공식 snapshot·표시 분 Gate 차단 |
+| runtime 상태 | v1.2 천문·HMAC·session v2.1·FSM v1.1 보강 완료, conformance v5.0.1 입력 검증 보강, 공식 snapshot·표시 분 Gate 차단 |
 | 데이터 상태 | v3.1 생성·비학습 preflight 구현, release 전 실행 차단 |
 
 이 문서는 앞서 제공된 `SAJU_RUNTIME_CALCULATOR_ADOPTION_PLAN.md` 조사 초안을 대체하는 저장소 실행 정본이다. 기존 데이터 보정 정본인 [`mix20k_v3_repair_plan.md`](mix20k_v3_repair_plan.md)와 역할을 나눈다.
@@ -83,7 +83,7 @@ v3.0.1 private training projection 20,000행을 읽기 전용 재검사한 결�
 | jplephem / NumPy / sgp4 / certifi | `2.24` / `2.2.6` / `2.27` / `2026.7.22` | Skyfield validator의 고정 전이 의존성 |
 | `manseryeok` | `2.0.0@fba3253d7305b8b61189bd78318a7a27ed8c9b09` | 개발·비교 전용, production dependency 아님 |
 
-v1.1 패키지와 원천은 그대로 보존한다. v1.2는 [`requirements-runtime-calculator-v1.2.txt`](../../requirements-runtime-calculator-v1.2.txt)와 [`source_registry-v1.2.0.json`](../../configs/runtime/calculation/source_registry-v1.2.0.json)에 같은 wheel·DE440s identity, 새 교차검증 구현 hash, 판정 범위와 근거 문서를 고정했다. v1.3 source registry와 Gate는 실제 API coverage scan·1964년 역서·동등한 provider 후보 비교만 추가하며 runtime release 계약은 만들지 않는다. Astronomy Engine은 공식 설명대로 compact·truncated VSOP87/NOVAS 계열이고 약 ±1 arcminute 설계 목표를 가지며, Skyfield는 여러 time scale과 ΔT를 별도로 관리한다. 이 차이는 80초 격차와 일관되지만 단일 원인으로 확정하지 않는다. 제3자 라이선스와 JPL 비추적 조건은 [`THIRD_PARTY_NOTICES.md`](../../THIRD_PARTY_NOTICES.md)에 보존한다. DE440s와 KASI 원문·snapshot은 Git에 넣지 않는다.
+v1.1 패키지와 원천은 그대로 보존한다. v1.2는 [`requirements-runtime-calculator-v1.2.txt`](../../requirements-runtime-calculator-v1.2.txt)와 [`source_registry-v1.2.0.json`](../../configs/runtime/calculation/source_registry-v1.2.0.json)에 같은 wheel·DE440s identity, 새 교차검증 구현 hash, 판정 범위와 근거 문서를 고정했다. v1.3.1 source registry와 Gate는 실제 API coverage scan·1964년 역서·동등한 provider 후보 비교에 중복 JSON key·중복 역서 page·canonical byte·원 수집기 hash 검증을 추가하며 runtime release 계약은 만들지 않는다. Astronomy Engine은 공식 설명대로 compact·truncated VSOP87/NOVAS 계열이고 약 ±1 arcminute 설계 목표를 가지며, Skyfield는 여러 time scale과 ΔT를 별도로 관리한다. 이 차이는 80초 격차와 일관되지만 단일 원인으로 확정하지 않는다. 제3자 라이선스와 JPL 비추적 조건은 [`THIRD_PARTY_NOTICES.md`](../../THIRD_PARTY_NOTICES.md)에 보존한다. DE440s와 KASI 원문·snapshot은 Git에 넣지 않는다.
 
 외부 패키지가 결과를 냈다는 사실은 승인 근거가 아니다. 공식·독립 fixture와 프로젝트 profile을 통과한 필드만 승인할 수 있다.
 
@@ -219,11 +219,12 @@ KASI service key 또는 공식 전체 snapshot이 없으면 외부 라이브러�
 data/reports/saju_runtime_conformance/v1.2.0/build-08ea29de9e94/
 data/reports/saju_runtime_conformance/v1.2.0/build-ec510bc6922d/
 data/reports/saju_runtime_conformance/v1.3.0/build-ef1b8ddb527e/
+data/reports/saju_runtime_conformance/v1.3.1/build-1e754de17c82/
 data/reports/saju_runtime_intake_fsm/v1.1.0/build-3366376bb01b/
 data/reports/saju_runtime_migration/v1.0.0/build-94eb7b543490/analysis.json
 ```
 
-`build-08ea29de9e94`와 FSM v1.0 `build-571d0e82ee0e`는 당시 코드의 이력 산출물로 보존한다. 현재 판단은 Gate 집계 재계산·strict JSON·session v2.1/FSM v1.1을 포함한 뒤의 두 새 build를 따른다.
+`build-08ea29de9e94`, FSM v1.0 `build-571d0e82ee0e`, conformance v5.0.0 `build-ef1b8ddb527e`는 당시 코드의 이력 산출물로 보존한다. 현재 R4~R5 판단은 원 raw를 수정하지 않고 strict JSON·중복 page·canonical byte를 재검증한 v5.0.1 `build-1e754de17c82`를 따른다.
 
 | 검사 | 결과 |
 |---|---:|
@@ -331,7 +332,7 @@ uv pip install --python .venv-runtime/bin/python -r requirements-runtime-calcula
   --confirm-network COLLECT_KASI_MINUTE_REFERENCES_V1_1
 ```
 
-인증 API key는 기본 경로 `/run/user/<UID>/saju-kasi-service-key`에 현재 사용자 소유 0600 일반 파일로 둔다. percent-encoding 전의 원문 key만 허용하며 key를 명령행·채팅·manifest·stdout·URL 로그에 기록하지 않는다. 두 수집은 같은 key로 순차 실행하고 resume manifest를 보존한다.
+인증 API key는 기본 경로 `/run/user/<UID>/saju-kasi-service-key`에 현재 사용자 소유 0600 일반 파일로 둔다. percent-encoding 전의 원문 key만 허용하며 key를 명령행·채팅·manifest·stdout·URL 로그에 기록하지 않는다. 두 수집은 같은 key로 순차 실행하고 resume manifest를 보존한다. 기존 `v1.2.0` raw는 최초 수집기 version·SHA-256과 함께 불변 보존한다. 향후 다시 수집할 때는 중복 key/page와 resume provenance를 보강한 patch 수집기로 `v1.2.1` 경로에 새 snapshot을 만들며 기존 경로를 덮어쓰지 않는다.
 
 ```bash
 .venv-runtime/bin/python -m scripts.evaluation.saju_runtime.kasi_collector_v1_1 collect \
@@ -340,15 +341,15 @@ uv pip install --python .venv-runtime/bin/python -r requirements-runtime-calcula
   --confirm-network COLLECT_KASI_RUNTIME_V1_1
 
 .venv-runtime/bin/python -m scripts.evaluation.saju_runtime.kasi_term_coverage_collector_v1_2 collect \
-  --output data/raw/saju_runtime/kasi/v1.2.0/solar-terms-api \
-  --confirm-network COLLECT_KASI_TERM_COVERAGE_V1_2
+  --output data/raw/saju_runtime/kasi/v1.2.1/solar-terms-api \
+  --confirm-network COLLECT_KASI_TERM_COVERAGE_V1_2_1
 
 .venv-runtime/bin/python -m scripts.evaluation.saju_runtime.kasi_almanac_1964_collector collect \
-  --output data/raw/saju_runtime/kasi/v1.2.0/almanac-1964 \
-  --confirm-network COLLECT_KASI_ALMANAC_1964_V1
+  --output data/raw/saju_runtime/kasi/v1.2.1/almanac-1964 \
+  --confirm-network COLLECT_KASI_ALMANAC_1964_V1_0_1
 ```
 
-음양력 전수·24절기 실제 coverage·1964년 역서·표시 분을 함께 검증한다. 현재 v5 보고서는 차단 상태이며 이번 R4~R5 범위에서는 release `approve` 자체를 실행하지 않는다.
+음양력 전수·24절기 실제 coverage·1964년 역서·표시 분을 함께 검증한다. 아래 명령은 보존된 `v1.2.0` snapshot으로 현재 보고서를 재현한다. 새로 수집한 경우 두 `v1.2.0` 입력 경로만 대응하는 `v1.2.1` 경로로 바꿀 수 있고, registry에 고정된 수집기 version·SHA-256과 일치해야 한다. 현재 v5 보고서는 차단 상태이며 이번 R4~R5 범위에서는 release `approve` 자체를 실행하지 않는다.
 
 ```bash
 .venv-runtime/bin/python -m scripts.evaluation.saju_runtime.conformance_v5 run \
@@ -444,3 +445,9 @@ release가 생긴 뒤에만 v3.1 생성과 비학습 preflight를 순서대로 �
   - 변경 범위: Git 제외 raw에 음양력 54,787일, 24절기 150년 coverage scan, 1964년 역서 JSON·원문 이미지·정규화 snapshot을 보존했다. 추적 범위에는 v1.3 source/Gate, 두 fail-closed 수집기, 고정 달력 bracket 기반 provider 비교, conformance v5 보고서 `build-ef1b8ddb527e`, 7개 회귀 테스트와 정책 문서를 추가했다. release 승인·앱 연결·MIX20K-v3.1 생성·preflight·학습·dashboard 재기동은 수행하지 않았다.
   - 검증: KASI 음양력 54,787/54,787일의 양음력·일진 mismatch 0, 24절기 API 1900~2049 scan 150/150년과 실제 반환 2000~2028년 696건, 1964년 역서 `9월 7일 24:00` 원문·이미지 hash chain을 확인했다. 두 provider 1,800건은 평균 절대 17.130844초, p99 57.566090초, 최대 80.666231초이며 120초 초과·identity·순서 오류 0이다. Astronomy는 1964 공식 civil date를 통과하나 분 표기 16/84가 다르고, Skyfield는 분 표기 84/84를 통과하나 1964 공식 civil date가 달라 선택하지 않았다. v5를 두 번 실행해 같은 `build-ef1b8ddb527e`를 재현했다. `uvx ruff check scripts tests`, 전체 `unittest` 372건(46.209초), v1.2 계약·validator 환경, `uv pip check`, Phase 1 source 계약·원본 verify, `git diff --check`를 통과했다.
   - 남은 이슈·후속 작업: 공식 24절기 Gate는 696/3,600, 12절은 348/1,800으로 미달이며 선택 가능한 provider도 없다. `technical_gate_passed=false`, `runtime_approved=false`, `release_approval_performed=false`와 candidate ADR을 유지한다. 공식 coverage 확장 또는 새 provider·정당화된 경계 정책 없이는 release·앱·v3.1·학습으로 진행하지 않는다.
+
+- 2026-08-31
+  - 작업 요약: 구현된 R4~R5 수집·판정·provider 비교·conformance를 fault injection과 독립 수치 재계산으로 디버깅해 중복 JSON key, 중복 역서 page, 약한 resume manifest 검증을 교정했다.
+  - 변경 범위: 기존 `v1.2.0` raw와 v5.0.0 보고서는 수정하지 않았다. 향후 수집기는 `v1.2.1` raw 경로를 쓰도록 patch version을 올리고, 공통 strict JSON loader·canonical byte·원 수집기 hash·Gate parent hash chain·0600/O_NOFOLLOW 재검증을 v5.0.1에 추가했다. 새 v1.3.1 source/Gate와 보고서 `build-1e754de17c82`, 회귀 테스트 14건을 추가했다. release 승인·runtime provider 변경·앱 연결·MIX20K-v3.1 생성·preflight·학습·dashboard 재기동은 수행하지 않았다.
+  - 검증: KASI 역서 원본 이미지를 육안 재확인했고, 기존 raw를 원 응답부터 다시 파싱해 1964년 백로 `9월 7일 24:00` 정규화와 696개 API 행을 재검증했다. Astronomy Engine·Skyfield 1,800행은 이전 보고서와 0초 차이로 재현됐고 Skyfield 근의 최대 황경 잔차는 약 `4.3e-8` 각초였다. v5.0.1을 두 번 실행해 같은 `build-1e754de17c82`를 얻었으며 v5.0.0과 Gate·provider·공식 근거 결과가 같고 artifact·implementation hash chain도 일치한다. `uvx ruff check scripts tests`, 전체 `unittest` 379건(44.454초), v1.2 계약·validator 환경, `uv pip check`, Phase 1 source 계약·원본 verify를 통과했다.
+  - 남은 이슈·후속 작업: 입력 검증 결함은 닫혔지만 공식 coverage와 provider 적격성은 달라지지 않았다. 공식 24절기 696/3,600, 12절 348/1,800과 선택 가능한 provider 없음 때문에 `technical_gate_passed=false`, `runtime_approved=false`, `release_approval_performed=false`를 유지한다.
