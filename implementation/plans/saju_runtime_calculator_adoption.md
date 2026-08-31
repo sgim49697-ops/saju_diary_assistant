@@ -305,5 +305,5 @@ KASI_LUNISOLAR_SERVICE_KEY='...' \
 - 2026-08-31
   - 작업 요약: 루트 조사 초안을 현재 KI20·MIX20K-v3.0.1 상태에 맞는 Korea-only 실행 정본으로 축소·재작성하고, versioned 계약과 Python candidate runtime을 구현했다.
   - 변경 범위: `configs/runtime/calculation`, `scripts/runtime/calculation`, KASI 수집기, conformance v2, v3.1 읽기 전용 이관 분석기, 전용 requirements와 제3자 고지를 추가했다. 기존 tool/session schema, 데이터 build, checkpoint, sealed blind는 변경하지 않았다.
-  - 검증: `uvx ruff check scripts tests`, runtime·conformance·v3 이관 unit 26건, JSON/manifest/hash chain 검증을 통과했다. 공개 KASI 지원 범위 63건의 음양력·일진 mismatch 0, 단일 profile 16/16, unknown/range 500, hash 200, 해외 20, host TZ·locale·DST·heuristic leak 검사도 통과했다. 최종 구현 hash를 반영한 보고서 `build-8db2f43d91ca`는 공식 전수 수량 부족으로 `runtime_gate_passed=false`다.
+  - 검증: `uvx ruff check scripts tests`, runtime·conformance·v3 이관 unit 26건, JSON/manifest/hash chain 검증을 통과했다. `master` 병합 뒤 기존 로컬 산출물이 있는 환경에서 전체 `unittest` 312건도 41.058초에 모두 통과했다. 공개 KASI 지원 범위 63건의 음양력·일진 mismatch 0, 단일 profile 16/16, unknown/range 500, hash 200, 해외 20, host TZ·locale·DST·heuristic leak 검사도 통과했다. 최종 구현 hash를 반영한 보고서 `build-8db2f43d91ca`는 공식 전수 수량 부족으로 `runtime_gate_passed=false`다.
   - 남은 이슈·후속 작업: KASI service key 또는 검증된 공식 전체 snapshot과 12절 경계 자료가 필요하다. 확보 전 v3.1 생성, 앱 기본 활성화, 실제 학습을 수행하지 않는다.
