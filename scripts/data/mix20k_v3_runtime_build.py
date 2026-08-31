@@ -1,4 +1,4 @@
-# mix20k_v3_runtime_build.py - 유효한 runtime release로 MIX20K-v3.1을 새 build에만 재생성한다.
+# mix20k_v3_runtime_build.py - 유효한 v1.2 runtime release와 HMAC key로 MIX20K-v3.1을 새 build에만 재생성한다.
 
 from __future__ import annotations
 
@@ -16,13 +16,16 @@ from datetime import date
 from pathlib import Path
 from typing import Any
 
-from scripts.runtime.calculation.approved_engine import (
-    ApprovedSajuRuntimeEngine,
-    execute_approved_runtime_tool,
-)
 from scripts.runtime.calculation.canonical import canonical_json_bytes
 from scripts.runtime.calculation.contracts import REPO_ROOT, sha256_file
-from scripts.runtime.calculation.contracts_v1_1 import validate_release_registry
+from scripts.runtime.calculation.contracts_v1_2 import (
+    ID_CONTRACT_VERSION_V2,
+    validate_release_registry_v1_2,
+)
+from scripts.runtime.calculation.engine_v1_2 import (
+    ApprovedSajuRuntimeEngineV12,
+    execute_approved_runtime_tool_v1_2,
+)
 from scripts.runtime.calculation.errors import RuntimeCalculationError
 
 SOURCE_BUILD_ID = "build-94eb7b543490"
@@ -323,7 +326,7 @@ def _tool_result_index(messages: Sequence[dict[str, Any]], call_index: int) -> i
 
 
 def _reground_rows(
-    rows: Sequence[dict[str, Any]], engine: ApprovedSajuRuntimeEngine
+    rows: Sequence[dict[str, Any]], engine: ApprovedSajuRuntimeEngineV12
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict[str, Any]]:
     unsupported_ids, replacement_ids = _foreign_ids(rows)
     review_rows: list[dict[str, Any]] = []
@@ -363,7 +366,9 @@ def _reground_rows(
             row["messages"][message_index]["tool_calls"][0]["function"][
                 "arguments"
             ] = arguments
-            internal, visible = execute_approved_runtime_tool(engine, name, arguments)
+            internal, visible = execute_approved_runtime_tool_v1_2(
+                engine, name, arguments
+            )
             regrounding.update(
                 {
                     "tool_executed": True,
@@ -416,7 +421,7 @@ def _reground_rows(
         row["schema_version"] = TARGET_SCHEMA
         row["runtime_release_id"] = engine.release["release_id"]
         row["runtime_fact_source"] = (
-            "approved_saju_runtime_v1_1" if call is not None else None
+            "approved_saju_runtime_v1_2" if call is not None else None
         )
         review = {**deepcopy(row), "runtime_regrounding": regrounding}
         review_rows.append(review)
@@ -564,19 +569,23 @@ def build(
     *,
     source_build: Path,
     release_registry: Path,
+    id_key_file: Path | None = None,
     output_base: Path = OUTPUT_ROOT,
 ) -> dict[str, Any]:
     try:
-        release = validate_release_registry(release_registry)
+        release = validate_release_registry_v1_2(release_registry)
+        engine = ApprovedSajuRuntimeEngineV12(
+            release_registry=release_registry,
+            enable_approved_runtime=True,
+            id_key_file=id_key_file,
+        )
     except RuntimeCalculationError as exc:
         raise Mix20KV31BuildError(
-            "유효한 runtime release 전에는 source dataset을 읽거나 재생성하지 않습니다: "
+            "유효한 v1.2 runtime release와 production HMAC key 전에는 "
+            "source dataset을 읽거나 재생성하지 않습니다: "
             + exc.message
         ) from exc
     source_manifest, source_rows = _load_source(source_build)
-    engine = ApprovedSajuRuntimeEngine(
-        release_registry=release_registry, enable_approved_runtime=True
-    )
     review_rows, training_rows, summary = _reground_rows(source_rows, engine)
     artifacts = _derived_artifacts(review_rows, training_rows)
     artifacts["reports/runtime_regrounding_summary.json"] = _json_bytes(summary)
@@ -587,6 +596,7 @@ def build(
         "source_manifest_sha256": sha256_file(source_build / "build_manifest.json"),
         "runtime_release_id": release["release_id"],
         "runtime_release_registry_sha256": release["release_registry_sha256"],
+        "runtime_id_contract_version": ID_CONTRACT_VERSION_V2,
         "generator_sha256": sha256_file(Path(__file__)),
         "artifact_content_sha256": {
             relative: _sha256_bytes(payload) for relative, payload in sorted(artifacts.items())
@@ -655,6 +665,11 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("command", choices=["build"])
     parser.add_argument("--source-build", type=Path, required=True)
     parser.add_argument("--release-registry", type=Path, required=True)
+    parser.add_argument(
+        "--id-key-file",
+        type=Path,
+        help="현재 사용자 소유 0600·32바이트 production HMAC key 파일",
+    )
     parser.add_argument("--output-base", type=Path, default=OUTPUT_ROOT)
     return parser
 
@@ -665,6 +680,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         result = build(
             source_build=args.source_build,
             release_registry=args.release_registry,
+            id_key_file=args.id_key_file,
             output_base=args.output_base,
         )
     except (OSError, Mix20KV31BuildError) as exc:

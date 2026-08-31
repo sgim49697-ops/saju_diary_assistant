@@ -1,0 +1,48 @@
+{
+  "_description": "v1.1 고정 원천을 보존하고 절입 교차검증의 판정 범위·근거 문서를 보강한다.",
+  "schema_version": "1.2.0",
+  "registry_version": "saju-runtime-sources-v1.2.0",
+  "reviewed_at": "2026-08-31",
+  "parent": {
+    "path": "configs/runtime/calculation/source_registry-v1.1.0.json",
+    "sha256": "8ad6d9bc294368900fe66f158b8d04d2fe6f8c4f966f56e250ea8675538b8377"
+  },
+  "validator": {
+    "crosscheck_version": "saju-jie-crosscheck-v1.2.0",
+    "implementation_path": "scripts/evaluation/saju_runtime/jie_crosscheck_v1_2.py",
+    "implementation_sha256": "df8f5f09f6b0d3fa5d5e135376d396706269aa6a18af64178ce5e452f945e7c7",
+    "production_runtime_dependency": false,
+    "local_date_scope": "engine_vs_engine_unadjudicated",
+    "delta_t_role": "diagnostic_only",
+    "remaining_cause_status": "astronomical_model_difference_consistent_but_not_fully_isolated"
+  },
+  "methodology_sources": {
+    "astronomy_engine": {
+      "url": "https://github.com/cosinekitty/astronomy#overview",
+      "recorded_fact": "compact_truncated_vsop87_approximately_one_arcminute_design_goal"
+    },
+    "skyfield_time": {
+      "url": "https://rhodesmill.org/skyfield/time.html",
+      "recorded_fact": "delta_t_and_earth_orientation_are_time_model_inputs"
+    },
+    "kasi_calendar_data": {
+      "url": "https://astro.kasi.re.kr/life/post/calendarData",
+      "recorded_fact": "institutional_display_minute_not_formal_almanac"
+    },
+    "kasi_almanac": {
+      "url": "https://astro.kasi.re.kr/life/post/almanac",
+      "recorded_fact": "formal_almanac_source_distinguished_from_calendar_display_page"
+    },
+    "python_hmac": {
+      "url": "https://docs.python.org/3/library/hmac.html",
+      "recorded_fact": "stdlib_hmac_sha256_construction"
+    }
+  },
+  "interpretation": {
+    "fixed_120_second_guard_is_accuracy_claim": false,
+    "engine_local_date_disagreement_self_adjudicates": false,
+    "official_kasi_date_required_for_adjudication": true,
+    "nearest_minute_half_up_is_officially_documented": false,
+    "nearest_minute_half_up_is_project_inference_from_observation": true
+  }
+}

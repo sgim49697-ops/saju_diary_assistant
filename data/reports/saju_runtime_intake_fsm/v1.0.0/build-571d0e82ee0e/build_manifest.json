@@ -1,0 +1,9 @@
+{
+  "aggregate_sha256": "30d9e7229d39f1294fd867a568713904c3309af165dd5e1a1167ab9a6fb45f6b",
+  "app_fsm_gate_passed": true,
+  "app_integration_allowed": false,
+  "build_id": "build-571d0e82ee0e",
+  "report_type": "saju_runtime_intake_fsm_gate",
+  "schema_version": "1.0.0",
+  "training_promotion_allowed": false
+}

@@ -1,0 +1,38 @@
+{
+  "_description": "출생 입력과 계산 결과에서 파생되는 식별자를 domain-separated HMAC-SHA256으로 만드는 계약이다.",
+  "schema_version": "2.0.0",
+  "canonicalization_id": "saju-runtime-canonical-json-v1",
+  "id_contract_version": "saju-runtime-id-hmac-v2.0.0",
+  "encoding": "UTF-8",
+  "unicode_normalization": "NFC",
+  "sort_object_keys": true,
+  "separators": [",", ":"],
+  "distinguish_null_and_omitted": true,
+  "forbid_nan_and_infinity": true,
+  "mac": "HMAC-SHA-256",
+  "domain_separation": "saju-runtime-id-hmac-v2\\x00{domain}\\x00{canonical_json}",
+  "prefixes": {
+    "birth_input_id": "sbi2_",
+    "chart_id": "sc2_",
+    "chart_set_id": "scs2_",
+    "calculation_run_id": "scr2_",
+    "chart_input_fingerprint": "sif2_"
+  },
+  "key_contract": {
+    "bytes": 32,
+    "source": "absolute_file_path_only",
+    "environment_path_variable": "SAJU_RUNTIME_ID_KEY_FILE",
+    "regular_file": true,
+    "owner": "current_user",
+    "mode": "0600",
+    "symlink_allowed": false,
+    "key_value_may_be_logged_or_reported": false,
+    "production_missing_key_policy": "fail_closed"
+  },
+  "test_policy": {
+    "fixed_non_production_key_may_be_explicitly_injected": true,
+    "test_signer_may_be_used_in_production": false
+  },
+  "rotation_policy": "invalidate_existing_runtime_sessions_and_recalculate",
+  "security_limit": "HMAC pseudonymizes identifiers but does not encrypt raw birth state"
+}

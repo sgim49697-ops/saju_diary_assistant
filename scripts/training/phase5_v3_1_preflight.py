@@ -30,7 +30,10 @@ from scripts.data.mix20k_v3_runtime_build import (
 )
 from scripts.runtime.calculation.canonical import canonical_json_bytes
 from scripts.runtime.calculation.contracts import REPO_ROOT, sha256_file
-from scripts.runtime.calculation.contracts_v1_1 import validate_release_registry
+from scripts.runtime.calculation.contracts_v1_2 import (
+    ID_CONTRACT_VERSION_V2,
+    validate_release_registry_v1_2,
+)
 from scripts.runtime.calculation.errors import RuntimeCalculationError
 from scripts.training.phase5_v3_1_dataset import (
     Phase5V31DatasetError,
@@ -161,6 +164,7 @@ def _verify_build(build_root: Path, release: dict[str, Any]) -> dict[str, Any]:
         "source_manifest_sha256",
         "runtime_release_id",
         "runtime_release_registry_sha256",
+        "runtime_id_contract_version",
         "generator_sha256",
         "artifact_content_sha256",
     }
@@ -202,6 +206,7 @@ def _verify_build(build_root: Path, release: dict[str, Any]) -> dict[str, Any]:
         or identity.get("runtime_release_id") != release["release_id"]
         or identity.get("runtime_release_registry_sha256")
         != release["release_registry_sha256"]
+        or identity.get("runtime_id_contract_version") != ID_CONTRACT_VERSION_V2
         or identity.get("generator_sha256") != sha256_file(GENERATOR_PATH)
         or manifest.get("rows")
         != {"review": EXPECTED_ROWS, "training": EXPECTED_ROWS, "diagnostic": 2000}
@@ -252,6 +257,19 @@ def _verify_projection_release(
     if actual != {release_id}:
         raise Phase5V31PreflightError(
             "v3.1 training projection의 runtime release가 build와 다릅니다."
+        )
+    invalid_fact_sources = 0
+    for row in rows:
+        messages = row.get("messages")
+        has_tool_call = isinstance(messages, list) and any(
+            isinstance(message, Mapping) and bool(message.get("tool_calls"))
+            for message in messages
+        )
+        expected = "approved_saju_runtime_v1_2" if has_tool_call else None
+        invalid_fact_sources += row.get("runtime_fact_source") != expected
+    if invalid_fact_sources:
+        raise Phase5V31PreflightError(
+            "v3.1 training projection의 tool 사용 여부와 v1.2 runtime fact source가 다릅니다."
         )
 
 
@@ -353,7 +371,7 @@ def analyze(
     config_path: Path = DEFAULT_CONFIG,
 ) -> tuple[dict[str, Any], dict[str, Any], list[dict[str, Any]]]:
     try:
-        release = validate_release_registry(release_registry)
+        release = validate_release_registry_v1_2(release_registry)
     except RuntimeCalculationError as exc:
         raise Phase5V31PreflightError(
             "유효한 runtime release 전에는 v3.1 preflight를 실행하지 않습니다: "

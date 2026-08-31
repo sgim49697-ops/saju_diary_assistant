@@ -9,4 +9,4 @@
 
 이 선택은 제품의 최초 범위를 명확하게 만들고 서로 다른 학파 축이 한 결과에 섞이는 것을 막는다. 다른 일 경계나 진태양시가 필요하면 기존 profile을 수정하지 않고 새 policy ID를 만든다.
 
-현재 KASI 1900~2049 전수 음양력과 12절 경계 fixture가 없으므로 `runtime_approved=false`를 유지한다. 기술 conformance와 별도로 명리 정책 검토가 끝난 뒤에만 이 문서를 accepted ADR로 갱신한다.
+현재 KASI 1900~2049 전수 음양력과 12절 경계 fixture가 없고, v1.2 최근접 분 Gate에서 production 후보인 Astronomy Engine이 84건 중 16건 불일치하므로 `runtime_approved=false`를 유지한다. 엔진 자체 순간으로 만든 5,400건 전·경계·후 검사는 배정 로직의 내부 일관성일 뿐 순간 정확도의 근거가 아니다. 기술 conformance와 별도로 명리 정책 검토가 끝난 뒤에만 이 문서를 accepted ADR로 갱신한다.

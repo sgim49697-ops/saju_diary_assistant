@@ -1,0 +1,68 @@
+{
+  "_description": "공식 날짜·최근접 분 표기·독립 엔진 회귀·HMAC ID를 분리 판정하는 v1.2 Gate다.",
+  "schema_version": "1.2.0",
+  "gate_version": "saju-runtime-gate-v1.2.0",
+  "suite_version": "saju-runtime-conformance-v4.0.0",
+  "status": "blocked_official_snapshots_and_minute_mismatches_pending",
+  "profile_id": "KR_CIVIL_MIDNIGHT_V1",
+  "minimum_cases": {
+    "kasi_lunar_days": 54787,
+    "kasi_all_solar_term_dates_collected": 3600,
+    "kasi_jie_dates_compared": 1800,
+    "kasi_jie_minute_references": 84,
+    "independent_jie_instants": 1800,
+    "internal_profile_boundary_assignment": 5400,
+    "unknown_range": 500,
+    "hmac_id_vectors": 200,
+    "unsupported_foreign": 20
+  },
+  "maximum_failures": {
+    "kasi_lunar_conversion_mismatch": 0,
+    "kasi_day_ganzhi_mismatch": 0,
+    "runtime_kasi_jie_date_mismatch": 0,
+    "unresolved_engine_local_date_disagreement": 0,
+    "runtime_kasi_nearest_minute_label_mismatch": 0,
+    "independent_kasi_nearest_minute_label_mismatch": 0,
+    "independent_jie_fixed_regression_delta_seconds": 120,
+    "independent_term_identity_mismatch": 0,
+    "independent_chronological_order_failure": 0,
+    "internal_profile_boundary_assignment_mismatch": 0,
+    "hmac_id_mismatch": 0,
+    "guessed_unknown_hour": 0,
+    "dst_gap_auto_shift": 0,
+    "dst_fold_auto_pick": 0,
+    "host_timezone_or_locale_drift": 0,
+    "heuristic_fact_leak": 0,
+    "unclassified_mismatch": 0,
+    "silent_unsupported_fallback": 0,
+    "id_version_instability": 0
+  },
+  "official_adjudication": {
+    "solar_term_local_date": "kasi_24_divisions_openapi",
+    "engine_date_disagreement_without_official_row": "blocking_unresolved",
+    "runtime_must_match_official_date": true,
+    "comparator_only_date_difference_after_runtime_matches_official": "resolved_reportable"
+  },
+  "minute_label_policy": {
+    "source": "kasi_calendar_data",
+    "source_precision": "displayed_minute",
+    "project_equivalence_rule": "nearest_minute_half_up_in_asia_seoul",
+    "official_rounding_rule_documented": false,
+    "evidence": "project_inference_from_84_of_84_skyfield_matches",
+    "signed_second_delta_role": "diagnostic_only",
+    "absolute_tolerance_gate_allowed": false
+  },
+  "independent_crosscheck": {
+    "fixed_regression_guard_seconds": 120,
+    "guard_is_physical_accuracy_budget": false,
+    "guard_is_official_oracle": false,
+    "correctness_oracle": "official_kasi_date_and_available_display_minute"
+  },
+  "promotion_effects": {
+    "runtime_feature_flag_default": false,
+    "training_promotion_allowed": false,
+    "release_registry_required": true,
+    "mix20k_v3_1_regeneration_allowed_only_after_pass": true,
+    "sealed_blind_access_allowed": false
+  }
+}

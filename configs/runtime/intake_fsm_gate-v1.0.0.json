@@ -1,0 +1,40 @@
+{
+  "_description": "LLM 모델 평가와 분리된 구조화 intake FSM app preflight 기준이다.",
+  "schema_version": "1.0.0",
+  "gate_version": "saju-intake-fsm-gate-v1.0.0",
+  "fsm_version": "saju-intake-fsm-v1.0.0",
+  "minimum_cases": 100,
+  "required_passed_cases": 100,
+  "strata": {
+    "ask_birth_date": 10,
+    "no_reask_confirmed_date": 10,
+    "lunar_leap_month": 10,
+    "exact_time_value": 10,
+    "unknown_time_partial": 10,
+    "birthplace_then_handoff": 10,
+    "runtime_blocked": 10,
+    "correction_invalidation": 10,
+    "period_handoff": 10,
+    "tool_result_render": 10
+  },
+  "maximum_failures": {
+    "free_text_parser_present": 0,
+    "name_family_job_or_gender_slot_requested": 0,
+    "unknown_time_guessed": 0,
+    "confirmed_field_reasked": 0,
+    "correction_cache_not_invalidated": 0,
+    "runtime_block_bypassed": 0,
+    "fake_ui_or_completion_claim": 0,
+    "non_hmac_session_fingerprint": 0
+  },
+  "model_gate_relation": {
+    "replaces_model_required_handoff_action_gate": false,
+    "recorded_model_result": "14/100",
+    "model_improvement_claim_allowed": false
+  },
+  "app_integration_requires": [
+    "runtime_release_ready", "feature_enabled", "production_id_key_ready",
+    "fsm_gate_passed", "encrypted_persistence_ready", "retention_policy_ready"
+  ],
+  "training_promotion_allowed": false
+}

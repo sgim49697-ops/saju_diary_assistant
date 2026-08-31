@@ -4,13 +4,13 @@
 
 | 항목 | 값 |
 |---|---|
-| 문서 버전 | `runtime-calculator-adoption-v2.1.0` |
+| 문서 버전 | `runtime-calculator-adoption-v2.2.0` |
 | 정본화 기준일 | 2026-08-31 |
 | 구현 시작 기준 `master` | `22fa6943c625b7caad7a7fb9cfd174a6a01992e6` |
 | 기준 모델 run | `KI20-MIX-v2/run-1f5d732cae67` |
 | 모델 run 상태 | `trained_and_reloaded`, production 승격 금지 |
 | runtime profile | `KR_CIVIL_MIDNIGHT_V1` |
-| runtime 상태 | v1.1 계층형 Gate·release 경로 구현, KASI 인증 snapshot 3개 Gate 차단 |
+| runtime 상태 | v1.2 천문·HMAC·FSM 보강 완료, 공식 snapshot·표시 분 Gate 차단 |
 | 데이터 상태 | v3.1 생성·비학습 preflight 구현, release 전 실행 차단 |
 
 이 문서는 앞서 제공된 `SAJU_RUNTIME_CALCULATOR_ADOPTION_PLAN.md` 조사 초안을 대체하는 저장소 실행 정본이다. 기존 데이터 보정 정본인 [`mix20k_v3_repair_plan.md`](mix20k_v3_repair_plan.md)와 역할을 나눈다.
@@ -33,13 +33,13 @@
 - 외부 `manseryeok@2.0.0`은 개발 비교기로만 사용하며 Node runtime 의존성으로 넣지 않는다.
 - 신강약·격국·용신·대운·공망·12운성·합충형파해·자동 해석은 v1 fact payload에서 제외한다.
 
-기존 v1 candidate와 별도로 v1.1 승인 wrapper·동적 release registry를 구현했다. 그러나 현재 `runtime_approved=false`이며 release registry도 생성하지 않았다. v1.1은 통과 보고서와 구현·계약·공식 snapshot 해시가 모두 일치할 때만 exact 결과를 `HARD_GT`, range/unknown의 공통 사실을 `POLICY_BOUND_RULE`로 승격한다. 그 전에는 `RUNTIME_RELEASE_REQUIRED`로 차단하며 v3.1 생성과 앱 canary를 진행하지 않는다.
+기존 v1 candidate와 v1.1 산출물은 보존하고, v1.2 승인 wrapper·동적 release registry·HMAC ID·구조화 intake FSM을 새 버전으로 구현했다. 그러나 현재 `runtime_approved=false`이며 release registry도 생성하지 않았다. v1.2는 통과 보고서와 구현·계약·공식 snapshot 해시가 모두 일치하고 production HMAC key가 준비된 경우에만 exact 결과를 `HARD_GT`, range/unknown의 공통 사실을 `POLICY_BOUND_RULE`로 승격한다. 그 전에는 `RUNTIME_RELEASE_REQUIRED`로 차단하며 v3.1 생성과 앱 canary를 진행하지 않는다.
 
 ## 2. 불변 보존 범위
 
 다음 산출물은 수정하거나 재해석하지 않는다.
 
-- 기존 `saju-tools-v1`, `saju-session-state-v1`
+- 기존 `saju-tools-v1`, `saju-session-state-v1`(학습·과거 세션 계약). 앱 후보용 `saju-session-state-v2`는 별도 추가하며 v1을 덮어쓰지 않는다.
 - `configs/saju_calculation_policy-v1.0.0.json`
 - MIX20K-v2와 `mix20k-v3.0.1-repaired/build-94eb7b543490`
 - KI10·KI20 checkpoint, manifest, training summary
@@ -81,7 +81,7 @@ v3.0.1 private training projection 20,000행을 읽기 전용 재검사한 결�
 | jplephem / NumPy / sgp4 / certifi | `2.24` / `2.2.6` / `2.27` / `2026.7.22` | Skyfield validator의 고정 전이 의존성 |
 | `manseryeok` | `2.0.0@fba3253d7305b8b61189bd78318a7a27ed8c9b09` | 개발·비교 전용, production dependency 아님 |
 
-v1.1 패키지와 source registry는 [`requirements-runtime-calculator-v1.1.txt`](../../requirements-runtime-calculator-v1.1.txt)와 [`source_registry-v1.1.0.json`](../../configs/runtime/calculation/source_registry-v1.1.0.json)에 wheel URL·SHA-256, collector/crosscheck 코드 SHA-256까지 고정했다. 제3자 라이선스와 JPL 비추적 조건은 [`THIRD_PARTY_NOTICES.md`](../../THIRD_PARTY_NOTICES.md)에 보존한다. DE440s와 KASI 원문·snapshot은 Git에 넣지 않는다.
+v1.1 패키지와 원천은 그대로 보존한다. v1.2는 [`requirements-runtime-calculator-v1.2.txt`](../../requirements-runtime-calculator-v1.2.txt)와 [`source_registry-v1.2.0.json`](../../configs/runtime/calculation/source_registry-v1.2.0.json)에 같은 wheel·DE440s identity, 새 교차검증 구현 hash, 판정 범위와 근거 문서를 고정했다. Astronomy Engine은 공식 설명대로 compact·truncated VSOP87/NOVAS 계열이고 약 ±1 arcminute 설계 목표를 가지며, Skyfield는 여러 time scale과 ΔT를 별도로 관리한다. 이 차이는 80초 격차와 일관되지만 단일 원인으로 확정하지 않는다. 제3자 라이선스와 JPL 비추적 조건은 [`THIRD_PARTY_NOTICES.md`](../../THIRD_PARTY_NOTICES.md)에 보존한다. DE440s와 KASI 원문·snapshot은 Git에 넣지 않는다.
 
 외부 패키지가 결과를 냈다는 사실은 승인 근거가 아니다. 공식·독립 fixture와 프로젝트 profile을 통과한 필드만 승인할 수 있다.
 
@@ -96,9 +96,11 @@ saju-tools-v1
   → KR_CIVIL_MIDNIGHT_V1 4주 core
   → 오행·지장간·십신 파생
   → exact chart 또는 range/unknown chart set
-  → conformance v3 통과 보고서
+  → conformance v4: 공식 날짜 판정 + 최근접 분 표기 + 비권위 120초 회귀 가드
+  → HMAC-SHA256 v2 출생 파생 ID
   → 구현·계약·공식 snapshot hash 결합 release registry
-  → ApprovedSajuRuntimeEngine(feature flag 기본 off)
+  → ApprovedSajuRuntimeEngineV12(feature flag 기본 off, production key 필수)
+  → 구조화 intake FSM(app precondition 6개, 자유문 parser 없음)
   → 내부 trace와 LLM-visible allowlist 분리
 ```
 
@@ -136,14 +138,16 @@ alternative_charts, chart_id, chart_set_id,
 calculation_run_id, internal_trace
 ```
 
-기존 candidate 결과는 항상 `status=partial`, `fact_authority=HARD_CANDIDATE`다. v1.1 승인 경로는 release가 없으면 `status=blocked`, `code=RUNTIME_RELEASE_REQUIRED`이며 사실 등급을 내지 않는다. 유효 release와 명시적 feature flag가 모두 있을 때만 exact를 `HARD_GT`, range/unknown 공통 사실을 `POLICY_BOUND_RULE`로 반환한다.
+기존 candidate 결과는 항상 `status=partial`, `fact_authority=HARD_CANDIDATE`다. v1.2 승인 경로는 release가 없으면 `status=blocked`, `code=RUNTIME_RELEASE_REQUIRED`이며 사실 등급을 내지 않는다. 유효 release·명시적 feature flag·production HMAC key가 모두 있을 때만 exact를 `HARD_GT`, range/unknown 공통 사실을 `POLICY_BOUND_RULE`로 반환한다.
 
-ID는 Unicode NFC, 정렬 key, compact UTF-8 JSON과 SHA-256으로 만든다. 다음이 달라지면 ID도 달라진다.
+v1·v1.1의 평문 SHA-256 ID는 과거 불변 산출물에만 남긴다. v1.2의 모든 출생 파생 ID(`birth_input_id`, `chart_id`, `chart_set_id`, `calculation_run_id`, `chart_input_fingerprint`)는 Unicode NFC·정렬 key·compact UTF-8 JSON을 domain-separated HMAC-SHA256으로 만든다. 32바이트 key는 현재 사용자 소유 0600 일반 파일에서만 읽고 값·hash를 보고서에 쓰지 않는다. key 교체 시 세션을 무효화하고 재계산하며, 도입 전 runtime 세션이 0건이므로 legacy migration은 하지 않았다. 다음이 달라지면 ID도 달라진다.
 
 - 정규화 출생 입력
 - `policy_id`
 - engine·schema version
 - tzdb·음양력·절입·표 source version
+
+HMAC은 raw 출생 state 암호화가 아니다. 앱 연결에는 저장 암호화와 보존·삭제 정책이 별도로 필요하다.
 
 ## 8. v1 계산 범위
 
@@ -180,12 +184,12 @@ ID는 Unicode NFC, 정렬 key, compact UTF-8 JSON과 SHA-256으로 만든다. �
 |---|---:|
 | KASI 음양력·일진 | 1900-01-01~2049-12-31, 54,787일, mismatch 0 |
 | KASI 24절기 날짜 수집 | 24절기 × 150년 = 3,600, 누락 0 |
-| KASI 12절 날짜 비교 | 12절 × 150년 = 1,800, mismatch 0 |
-| KASI 표시 분 reference | 2021~2027년 12절 84건, runtime·독립 엔진 모두 표시 분에서 60초 이내 |
-| Skyfield/JPL 독립 절입 | 12절 × 150년 = 1,800, Astronomy Engine과 120초 이내, 절기 identity·시간 순서 오류 0 |
-| profile 전/경계/후 | 12절 × 150년 × 3 = 5,400, mismatch 0 |
+| KASI 12절 날짜 비교 | 12절 × 150년 = 1,800, runtime mismatch 0. 엔진 간 날짜 차이는 해당 KASI 행이 없으면 미해결 차단 |
+| KASI 표시 분 reference | 2021~2027년 12절 84건, KST 최근접 분·30초 half-up label mismatch 0. signed 초 차이는 진단 전용 |
+| Skyfield/JPL 독립 절입 | 12절 × 150년 = 1,800, Astronomy Engine과 고정 120초 회귀 가드 이내, 절기 identity·시간 순서 오류 0. 120초는 정확도 oracle 아님 |
+| 내부 profile 전/경계/후 | 12절 × 150년 × 3 = 5,400, 배정 mismatch 0. 경계 순간 정확도 검증으로 표현 금지 |
 | unknown/range | 500 이상 |
-| canonical hash | 200 이상 |
+| HMAC v2 ID | 200 이상, 재현·prefix·domain·key 분리 오류 0 |
 | 해외 unsupported | 20 이상 |
 | 공식 hard mismatch | 0 |
 | profile boundary mismatch | 0 |
@@ -200,47 +204,55 @@ ID는 Unicode NFC, 정렬 key, compact UTF-8 JSON과 SHA-256으로 만든다. �
 
 KASI service key 또는 공식 전체 snapshot이 없으면 외부 라이브러리 값으로 빈 자리를 채우지 않는다. 인증 API 수집기는 월/연 단위 resume·최대 10,000요청/run·명시 확인·0600 key 파일 우선 방식으로 구현했다. 1,800개월과 150년을 합쳐 1,950요청이며 redirect·부분 응답·경로 이탈·변조 재사용을 거부한다.
 
-인증이 필요 없는 달력자료는 2021~2027년 HTML 7개를 실제 수집했다. 84개 절입 분 값은 생성값이 아니라 각 원문을 매번 재파싱한 결과이며 snapshot 행·manifest·원문 SHA-256·collector SHA-256이 모두 맞아야 한다. 페이지의 자체 고지를 존중해 이 계층은 `institutional_minute_display_reference_not_formal_almanac`로만 사용한다.
+인증이 필요 없는 달력자료는 2021~2027년 HTML 7개를 실제 수집했다. 84개 절입 분 값은 생성값이 아니라 각 원문을 매번 재파싱한 결과이며 snapshot 행·manifest·원문 SHA-256·collector SHA-256이 모두 맞아야 한다. 페이지의 자체 고지를 존중해 이 계층은 `institutional_minute_display_reference_not_formal_almanac`로만 사용한다. KASI가 반올림 규약을 공개한 것으로 확인하지 못했으므로 최근접 분·30초 half-up은 Skyfield 84/84 일치에서 도출한 프로젝트 등가 규칙으로만 기록한다.
 
 ## 10. 현재 검증 결과
 
 공개 보고서:
 
 ```text
-data/reports/saju_runtime_conformance/v1.1.0/build-333036eb7024/
+data/reports/saju_runtime_conformance/v1.2.0/build-08ea29de9e94/
+data/reports/saju_runtime_intake_fsm/v1.0.0/build-571d0e82ee0e/
 data/reports/saju_runtime_migration/v1.0.0/build-94eb7b543490/analysis.json
 ```
 
 | 검사 | 결과 |
 |---|---:|
 | 공개 KASI 중 지원 범위 | 63건 |
-| 음양력 mismatch | 0 |
-| 일진 mismatch | 0 |
+| 공개 fallback 음양력·일진 mismatch | 0 / 0, 단 전수 Gate에는 미달 |
 | KASI 표시 분 reference | 84/84 |
-| Astronomy Engine ↔ 표시 분 최대 차이 | 59.457159초 |
-| Skyfield/JPL ↔ 표시 분 최대 차이 | 29.281515초 |
+| Astronomy Engine ↔ KASI 최근접 분 label | 68/84, mismatch 16 |
+| Skyfield/JPL ↔ KASI 최근접 분 label | 84/84, mismatch 0 |
+| Astronomy Engine signed 차이 범위 | -43.226729~59.457159초, 진단 전용 |
+| Skyfield/JPL signed 차이 범위 | -28.827899~29.281515초, 진단 전용 |
 | Astronomy Engine ↔ Skyfield/JPL | 1,800/1,800, 120초 초과 0 |
-| 독립 비교 평균 절대 차이 / p99 | 17.130844초 / 57.591955초 |
+| 독립 비교 평균 절대 차이 / p99 / 최대 | 17.130844초 / 57.566090초 / 80.666231초 |
+| ΔT 정렬 뒤 평균 절대 차이 / 최대 | 17.151252초 / 79.772174초, 평균 100.11913% 잔존 |
+| 엔진 간 한국 날짜 차이 | 1964년 백로 1건, KASI 행 부재로 미해결 차단 |
 | 독립 비교 절기 identity·순서 오류 | 0 / 0 |
-| profile 전/경계/후 | 5,400/5,400, mismatch 0 |
+| 내부 profile 배정 전/경계/후 | 5,400/5,400, mismatch 0. 순간 정확도 검사는 아님 |
 | 단일 profile 비교 | 16/16 통과 |
 | unknown/range | 500/500 |
-| canonical ID | 200/200 |
+| HMAC v2 ID | 200/200, 재현·prefix·domain·key 분리 오류 0 |
+| 구조화 app FSM | 100/100 |
+| 기존 KI20 모델 handoff | 14/100, 개선 주장 없음 |
 | 해외 차단 | 20/20 |
 | host TZ·locale drift | 0 |
 | heuristic leak | 0 |
 | DST gap 이동·fold 자동 선택 | 0 |
 
-독립 엔진끼리 1964년 백로의 한국 날짜가 한 번 달랐지만 두 순간 차이는 약 40초로 허용 범위 안이다. 자정 양쪽의 날짜 판정은 독립 엔진이 스스로 정답을 정하지 않고 KASI 24절기 OpenAPI snapshot이 판정하도록 보고서에 남겼다.
+독립 엔진끼리 1964년 백로의 한국 날짜가 한 번 다르다. v1.1 보고서의 `local_date_adjudicator` 표기는 실제 KASI 행이 없는 상태를 오해하게 만들었으므로 v1.2 순수 교차검증에서 제거했다. 공식 행이 확보되기 전에는 `unresolved_missing_official_kasi_row`로 차단한다. runtime이 공식 날짜와 맞고 comparator만 다를 때에만 판정 완료·보고 가능하다.
 
-현재 실패는 구현 mismatch가 아니라 인증이 필요한 공식 fixture 수량 부족이다.
+현재 실패에는 공식 fixture 수량 부족뿐 아니라 최근접 분 label mismatch 16건도 포함된다. 따라서 KASI key만 확보한다고 자동 승인되지 않으며 provider 수정·교체 또는 물리적으로 정당화된 정책 변경이 별도 필요하다.
 
 - KASI 전수: `63 / 54,787`
 - KASI 24절기 날짜: `0 / 3,600`
 - KASI 12절 날짜: `0 / 1,800`
-- KASI 표시 분: `84 / 84`, 통과
-- 독립 절입: `1,800 / 1,800`, 통과
-- profile 전/경계/후: `5,400 / 5,400`, 통과
+- KASI 표시 분 자료 수량: `84 / 84`, 완료
+- runtime 최근접 분 label: `68 / 84`, Gate 실패
+- 독립 절입 수량·비권위 회귀 가드: `1,800 / 1,800`, 120초 초과 0
+- 엔진 간 날짜 판정: `1건 미해결`, Gate 실패
+- 내부 profile 배정 전/경계/후: `5,400 / 5,400`, 배정 mismatch 0
 - `runtime_gate_passed=false`
 - `release_registry_creation_allowed=false`
 - `mix20k_v3_1_regeneration_allowed=false`
@@ -251,13 +263,13 @@ data/reports/saju_runtime_migration/v1.0.0/build-94eb7b543490/analysis.json
 | 순서 | 작업 | 상태 |
 |---:|---|---|
 | R0 | KI20·v3.0.1·sealed blind 상태 동결 | 완료 |
-| R1 | input/output/profile/source/ID/Gate 계약 고정 | 완료 |
+| R1 | input/output/profile/source/ID/Gate 계약 고정 | v1.2 HMAC·분·날짜 판정 계약까지 완료 |
 | R2 | Python 음양력·절입·4주·불확실성·기간 core 구현 | 완료(후보) |
 | R3 | 기존 tool allowlist in-process bridge | 완료(기본 off) |
 | R4 | KASI 전수·계층형 절입 snapshot 수집 | 부분 완료(표시 분 84 완료, 인증 API 3개 Gate 대기) |
-| R5 | full conformance와 profile ADR 승인 | 구현·독립 검증 완료, 공식 snapshot 부족으로 승인 차단 |
+| R5 | full conformance와 profile ADR 승인 | v4 구현·독립 검증 완료, 공식 snapshot·runtime 분 mismatch로 승인 차단 |
 | R6 | v3.1 5,250 tool call 전수 재생성·새 split/preflight | 생성기·preflight 구현 완료, release 전 입력도 읽지 않고 차단 |
-| R7 | 대시보드 `KI20 + Runtime` local lane·앱 canary | v1.8 구현 완료, release·명시 flag 전 비활성 |
+| R7 | 대시보드 `KI20 + Runtime` local lane·앱 canary | v1.8은 기존대로 비활성. 구조화 FSM 100/100 추가, release·key·암호화·보존 정책 전 앱 연결 금지 |
 | R8 | 새 모델 학습 handoff | 이 계획 범위 밖 |
 
 R4 완료 전에도 candidate·독립 validator와 대시보드 UI는 검증할 수 있지만 사용자-facing production 결과나 학습 Gold로 사용하지 않는다. 현재 실행 중인 기존 dashboard process는 재시작하지 않았으며 새 UI는 v1.7 backend에서 runtime endpoint가 없으면 패널을 자동으로 숨긴다.
@@ -287,13 +299,15 @@ Runtime Gate만으로 학습을 허용하지 않는다. 생성 build와 prefligh
 
 ```bash
 uv venv .venv-runtime
-uv pip install --python .venv-runtime/bin/python -r requirements-runtime-calculator-v1.1.txt
+uv pip install --python .venv-runtime/bin/python -r requirements-runtime-calculator-v1.2.txt
 
-.venv-runtime/bin/python -m scripts.runtime.saju_runtime_v1_1 verify-contract
-.venv-runtime/bin/python -m scripts.runtime.saju_runtime_v1_1 environment --include-validator
+.venv-runtime/bin/python -m scripts.runtime.saju_runtime_v1_2 verify-contract
+.venv-runtime/bin/python -m scripts.runtime.saju_runtime_v1_2 environment --include-validator
 .venv-runtime/bin/python -m scripts.evaluation.saju_runtime.kasi_collector_v1_1 plan
 .venv-runtime/bin/python -m scripts.evaluation.saju_runtime.kasi_minute_collector_v1_1 plan
 ```
+
+수집기 이름의 `v1_1`은 Git 제외 공식 snapshot의 불변 수집 형식을 뜻한다. v1.2 Gate는 해당 원문·manifest를 다시 검증해 읽으며 v1.1의 잘못된 날짜 판정 표기를 상속하지 않는다.
 
 인증이 필요 없는 84개 표시 분 reference는 원문 7개와 함께 Git 제외 경로에 수집한다.
 
@@ -316,39 +330,36 @@ uv pip install --python .venv-runtime/bin/python -r requirements-runtime-calcula
   --confirm-network COLLECT_KASI_RUNTIME_V1_1
 ```
 
-두 공식 snapshot이 완성된 뒤에만 full report와 release를 만든다.
+두 공식 snapshot이 완성된 뒤에만 full report와 release를 만든다. 현재 보고서는 차단 상태이므로 아래 `approve`는 실패해야 정상이다.
 
 ```bash
-.venv-runtime/bin/python -m scripts.evaluation.saju_runtime.conformance_v3 run \
+.venv-runtime/bin/python -m scripts.evaluation.saju_runtime.conformance_v4 run \
   --kasi-lunar-snapshot data/raw/saju_runtime/kasi/v1.1.0/lunisolar/kasi_lunisolar.jsonl \
   --kasi-solar-term-snapshot data/raw/saju_runtime/kasi/v1.1.0/solar-terms/kasi_solar_terms.jsonl \
   --kasi-minute-snapshot data/raw/saju_runtime/kasi/v1.1.0/minute-references/kasi_minute_references.jsonl \
   --ephemeris /로컬/검증전용/de440s.bsp
 
-.venv-runtime/bin/python -m scripts.evaluation.saju_runtime.release_registry approve \
-  --conformance-report data/reports/saju_runtime_conformance/v1.1.0/build-통과해시/aggregate.json
+.venv-runtime/bin/python -m scripts.evaluation.saju_runtime.release_registry_v1_2 approve \
+  --conformance-report data/reports/saju_runtime_conformance/v1.2.0/build-통과해시/aggregate.json
+
+.venv-runtime/bin/python -m scripts.evaluation.saju_runtime.intake_fsm_gate run
 ```
 
-release가 생긴 뒤에만 v3.1 생성과 비학습 preflight를 순서대로 실행한다. 아래 명령도 학습·backward·optimizer step은 호출하지 않는다.
+release가 생긴 뒤에만 v3.1 생성과 비학습 preflight를 순서대로 실행한다. 32바이트 production HMAC key는 저장소 밖의 현재 사용자 소유 0600 일반 파일이어야 하며, 값·hash를 로그나 manifest에 남기지 않는다. `--id-key-file` 대신 `SAJU_RUNTIME_ID_KEY_FILE` 하나만 사용할 수도 있다. 아래 명령도 학습·backward·optimizer step은 호출하지 않는다.
 
 ```bash
 .venv-runtime/bin/python -m scripts.data.mix20k_v3_runtime_build build \
   --source-build data/derived/saju_1b_baseline/mix20k-v3.0.1-repaired/build-94eb7b543490 \
-  --release-registry configs/runtime/calculation/releases/v1.1.0/release_registry.json
+  --release-registry configs/runtime/calculation/releases/v1.2.0/release_registry.json \
+  --id-key-file /run/user/<UID>/saju-runtime-id-hmac-key
 
 .venv-data/bin/python -m scripts.training.phase5_v3_1_preflight run \
   --build-root data/derived/saju_1b_baseline/mix20k-v3.1-runtime-grounded/build-새해시 \
   --tokenizer-path models/saju_1b_baseline/kanana-2-1.3b-instruct/bf4786aa2a1908adce942d53976270132732f720 \
-  --release-registry configs/runtime/calculation/releases/v1.1.0/release_registry.json
+  --release-registry configs/runtime/calculation/releases/v1.2.0/release_registry.json
 ```
 
-대시보드 canary는 release가 존재하고 로컬 실행에서 명시 flag를 줬을 때만 열린다. 원격 무인증 공유에서 runtime까지 켜려면 기존 원격 위험 확인과 runtime 전용 위험 확인 두 flag가 모두 필요하므로 기본 운영에는 사용하지 않는다.
-
-```bash
-.venv/bin/python scripts/training/phase5_dashboard.py \
-  --run-root runs/KI20-MIX-v2/v1.2.0/run-1f5d732cae67 \
-  serve --enable-runtime-canary
-```
+기존 dashboard v1.8 canary는 v1.1 release 소비 코드이므로 v1.2 승인 근거로 재사용하지 않는다. 구조화 FSM과 암호화 persistence·보존 정책을 실제 앱/대시보드 adapter에 연결하고 별도 통합 Gate를 통과하기 전에는 `--enable-runtime-canary`로 재기동하지 않는다.
 
 ## 14. 완료 기준
 
@@ -360,13 +371,20 @@ release가 생긴 뒤에만 v3.1 생성과 비학습 preflight를 순서대로 �
 - [x] LLM-visible allowlist에서 내부 trace·ID를 숨긴다.
 - [x] KASI 인증 수집기와 표시 분 수집기, 계층형 conformance v3를 구현했다.
 - [x] KASI 표시 분 84건과 독립 Skyfield/JPL 1,800건을 검증했다.
+- [x] 엔진 간 날짜 차이를 공식 KASI 행 없이는 판정하지 않고 Gate에서 차단한다.
+- [x] KASI 표시 분은 signed delta 진단과 분리해 KST 최근접 분 라벨 동등성으로 검증한다.
+- [x] 1,800건 공개 JSONL·연도/연대 통계·SVG와 ΔT 원인 진단을 재현 가능하게 기록한다.
+- [x] 5종 출생 파생 ID를 domain-separated HMAC-SHA256 v2로 교체했다.
+- [x] 자유문 파서 없는 구조화 intake FSM과 앱 합성 Gate 100/100을 구현했다.
 - [x] release registry와 승인 runtime의 hash chain·기본 off를 구현했다.
 - [x] v3.0.1 20K를 읽기 전용 분석하고 v3.1 이관 수량을 고정했다.
-- [x] v3.1 전수 재생성기와 새 split·비학습 preflight를 구현했다.
+- [x] v3.1 전수 재생성기와 새 split·비학습 preflight를 v1.2 release·HMAC 계약으로 고정했다.
 - [x] 대시보드 v1.8에 구조화 chart·period·세션 snapshot canary를 기본 off로 구현했다.
 - [ ] KASI 54,787일 공식 snapshot을 확보한다.
 - [ ] KASI 24절기 3,600건과 12절 날짜 1,800건 공식 snapshot을 확보한다.
 - [ ] Runtime Gate를 통과하고 profile ADR을 승인한다.
+- [ ] production HMAC key 수명주기와 암호화 persistence·보존/삭제 정책을 운영 환경에서 승인한다.
+- [ ] 앱 adapter에 구조화 event FSM을 연결하고 통합 Gate를 통과한다.
 - [ ] v3.1을 새 fingerprint로 생성하고 split/preflight를 재실행한다.
 - [ ] 승인 release와 feature flag 기본 off 상태로 앱·대시보드 canary를 검증한다.
 
@@ -389,3 +407,9 @@ release가 생긴 뒤에만 v3.1 생성과 비학습 preflight를 순서대로 �
   - 변경 범위: conformance report의 canonical build ID·manifest governance·공식 snapshot·구현 파일 집합을 release 시 재검증한다. v3.0.1 원본 manifest SHA-256을 고정하고, v3.1 build preimage·artifact 집합·runtime release·5,250개 tool trajectory 수량을 preflight에서 다시 결합한다. dashboard는 runtime canary가 꺼진 상태에서 새 세션과 기존 결합 세션 모두 계산 사실을 모델 prompt에 넣지 못하게 했으며 내부 generation subprocess에도 명시 flag를 전달한다. 기존 데이터·모델·checkpoint·실행 중 dashboard process는 변경하지 않았다.
   - 검증: 변경 구현 hash로 새 conformance 보고서 `build-333036eb7024`를 생성했다. 이전 `build-2702394cde89`와 구현 hash를 제외한 집계 값이 byte-equivalent JSON 의미로 일치하며, KASI 표시 분 84건·독립 절입 1,800건·경계 5,400건은 계속 통과한다. 회귀 표적 57건, Ruff, 계약·환경 검증, 실제 v3.0.1 manifest·20,000행 identity 재검증과 Git 제외 모델·원천·파생물을 포함한 저장소 전체 unittest 335건(43.545초)을 통과했다.
   - 남은 이슈·후속 작업: KASI 인증 snapshot 세 Gate는 계속 미충족이므로 `runtime_gate_passed=false`, release·v3.1 생성·학습 차단 상태를 유지한다.
+
+- 2026-08-31
+  - 작업 요약: 날짜 판정·분 표기·독립 엔진 격차 보고 결함을 v1.2 Gate로 교정하고, 출생 파생 ID HMAC v2와 자유문 파서 없는 구조화 intake FSM을 추가했다.
+  - 변경 범위: 기존 v1·v1.1 산출물을 보존한 채 conformance v4·release v1.2·공개 1,800행 진단/산점도, 5종 HMAC ID, session v2/FSM·100건 앱 Gate를 새 버전으로 추가했다. 미래 MIX20K-v3.1 생성·preflight도 v1.2 release와 production key만 받도록 바꿨다. 기존 20K·모델·checkpoint·실행 중 dashboard·sealed blind는 변경하거나 실행하지 않았다.
+  - 검증: 최종 코드 hash로 conformance `build-08ea29de9e94`와 FSM `build-571d0e82ee0e`를 재현했다. 독립 절입 1,800행·날짜 차이 1건/미판정 1건·runtime 최근접 분 mismatch 16건·Skyfield mismatch 0건·FSM 100/100을 확인했다. 차단 보고서의 release 승인과 release 없는 v3.1 생성이 모두 exit 2로 fail-closed했다. `uvx ruff check scripts tests`, runtime 계약·환경 검증, 전체 `unittest` 353건(38.957초), `git diff --check`를 통과했다.
+  - 남은 이슈·후속 작업: 1964년 백로의 공식 KASI 행과 공식 전수 snapshot이 없어 Runtime Gate는 차단 상태다. production key·암호화 persistence·보존 정책·앱 FSM adapter도 미승인이라 release·v3.1 생성·학습·dashboard 재기동을 수행하지 않는다.

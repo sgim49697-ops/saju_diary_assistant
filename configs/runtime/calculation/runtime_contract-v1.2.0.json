@@ -1,0 +1,70 @@
+{
+  "_description": "천문 판정 보강·HMAC ID v2·구조화 intake FSM을 결합하되 release 전 기능을 차단하는 계약이다.",
+  "schema_version": "1.2.0",
+  "runtime_contract_version": "saju-runtime-contract-v1.2.0",
+  "engine_version": "saju-runtime-python-v1.2.0",
+  "output_schema_version": "1.2.0",
+  "id_contract_version": "saju-runtime-id-hmac-v2.0.0",
+  "conformance_suite_version": "saju-runtime-conformance-v4.0.0",
+  "status": "implemented_v1_2_gate_release_pending",
+  "runtime_approved_in_static_contract": false,
+  "approval_requires_release_registry": true,
+  "production_id_key_required": true,
+  "feature_flag_default": false,
+  "profile_id": "KR_CIVIL_MIDNIGHT_V1",
+  "parents": {
+    "tiered_runtime_registry_v1_1": {
+      "path": "configs/runtime/calculation/registry-v1.1.0.json",
+      "sha256": "2cb652b82e804b22c30e5e2a5c3b20b7192abd1f72a5fa87f5e01ded613e0669"
+    },
+    "id_canonicalization": {
+      "path": "configs/runtime/calculation/id_canonicalization-v2.0.0.json",
+      "sha256": "54290f788af0a57483e8bd6483697a480fc527456227b81acab3c7ff4ab218f5"
+    },
+    "session_state_schema": {
+      "path": "configs/runtime/session_state_schema_v2.json",
+      "sha256": "a5f08690a7b5510e20dfac0f3d304d2672065b570abbc1139524ac6c25af0419"
+    },
+    "intake_fsm": {
+      "path": "configs/runtime/intake_fsm-v1.0.0.json",
+      "sha256": "b5804efb91f371fb86a4c246fe5cbfa0cdf8d8d921c9d4541c180c7feff1eb7a"
+    },
+    "intake_fsm_gate": {
+      "path": "configs/runtime/intake_fsm_gate-v1.0.0.json",
+      "sha256": "93c6d2d96b4838e0784fab84d6507a2e30065875a0d969e3f38bbbc74d05fc3a"
+    }
+  },
+  "authority": {
+    "exact_after_valid_release": "HARD_GT",
+    "range_or_unknown_after_valid_release": "POLICY_BOUND_RULE",
+    "candidate_before_release": "HARD_CANDIDATE",
+    "heuristic_fields_may_be_upgraded": false
+  },
+  "astronomy_gate": {
+    "production_candidate": "astronomy-engine-2.1.19",
+    "comparator": "skyfield-1.55-jpl-de440s",
+    "official_date_oracle": "kasi_24_divisions_openapi",
+    "display_minute_equivalence": "nearest_minute_half_up_in_asia_seoul",
+    "fixed_120_second_guard_is_authoritative": false
+  },
+  "app_integration": {
+    "required_fsm_gate": "100_of_100",
+    "required_model_handoff_score": null,
+    "model_handoff_14_of_100_remains_recorded": true,
+    "encrypted_persistence_required": true,
+    "retention_policy_required": true,
+    "hmac_replaces_encryption": false,
+    "allowed_before_all_preconditions": false
+  },
+  "id_rotation": {
+    "migration_policy": "invalidate_sessions_and_recalculate",
+    "current_runtime_sessions_observed_before_v2": 0,
+    "legacy_sha_ids_migrated": false
+  },
+  "data_migration": {
+    "target_version": "mix20k-v3.1-runtime-grounded",
+    "allowed_before_valid_release": false,
+    "executed_in_this_version": false,
+    "training_allowed_by_runtime_gate_alone": false
+  }
+}

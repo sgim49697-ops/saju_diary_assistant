@@ -1,0 +1,38 @@
+{
+  "_description": "HMAC v2 식별자와 release 승인 권위를 분리한 runtime 내부 출력 계약이다.",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "saju-calculation-output-v1.2.0",
+  "schema_version": "1.2.0",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "status": {"type": "string", "enum": ["ok", "partial", "blocked", "error"]},
+    "code": {"type": ["string", "null"]},
+    "message": {"type": ["string", "null"]},
+    "normalized_input": {"type": ["object", "null"]},
+    "hard_facts": {"type": ["object", "null"]},
+    "stable_facts": {"type": ["object", "null"]},
+    "alternative_charts": {"type": "array", "items": {"type": "object"}},
+    "uncertainty": {"type": ["object", "null"]},
+    "fact_authority": {"type": ["string", "null"], "enum": ["HARD_GT", "HARD_CANDIDATE", "POLICY_BOUND_RULE", null]},
+    "birth_input_id": {"type": ["string", "null"], "pattern": "^sbi2_[0-9a-f]{64}$"},
+    "chart_id": {"type": ["string", "null"], "pattern": "^sc2_[0-9a-f]{64}$"},
+    "chart_set_id": {"type": ["string", "null"], "pattern": "^scs2_[0-9a-f]{64}$"},
+    "calculation_run_id": {"type": ["string", "null"], "pattern": "^scr2_[0-9a-f]{64}$"},
+    "engine_version": {"const": "saju-runtime-python-v1.2.0"},
+    "calculation_schema_version": {"const": "1.2.0"},
+    "id_contract_version": {"const": "saju-runtime-id-hmac-v2.0.0"},
+    "policy_id": {"const": "KR_CIVIL_MIDNIGHT_V1"},
+    "source_versions": {"type": "object"},
+    "warnings": {"type": "array", "items": {"type": "object"}},
+    "limitations": {"type": "array", "items": {"type": "string"}},
+    "internal_trace": {"type": ["object", "null"]}
+  },
+  "required": [
+    "status", "code", "message", "normalized_input", "hard_facts", "stable_facts",
+    "alternative_charts", "uncertainty", "fact_authority", "birth_input_id",
+    "chart_id", "chart_set_id", "calculation_run_id", "engine_version",
+    "calculation_schema_version", "id_contract_version", "policy_id", "source_versions",
+    "warnings", "limitations", "internal_trace"
+  ]
+}

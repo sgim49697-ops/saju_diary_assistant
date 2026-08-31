@@ -407,7 +407,7 @@ class RuntimeV31GateOrderingTest(unittest.TestCase):
                 _verify_build(
                     build,
                     {
-                        "release_id": "saju-runtime-release-v1.1.0-000000000000",
+                        "release_id": "saju-runtime-release-v1.2.0-000000000000",
                         "release_registry_sha256": "1" * 64,
                     },
                 )
@@ -415,8 +415,13 @@ class RuntimeV31GateOrderingTest(unittest.TestCase):
     def test_v31_projection_release_must_match_validated_release(self) -> None:
         with self.assertRaisesRegex(Phase5V31PreflightError, "release"):
             _verify_projection_release(
-                [{"runtime_release_id": "saju-runtime-release-v1.1.0-000000000000"}],
-                "saju-runtime-release-v1.1.0-111111111111",
+                [
+                    {
+                        "runtime_release_id": "saju-runtime-release-v1.2.0-000000000000",
+                        "runtime_fact_source": "approved_saju_runtime_v1_2",
+                    }
+                ],
+                "saju-runtime-release-v1.2.0-111111111111",
             )
 
     def test_foreign_replacement_preserves_prior_multiturn_and_source(self) -> None:

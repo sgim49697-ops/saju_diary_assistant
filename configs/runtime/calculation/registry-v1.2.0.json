@@ -1,0 +1,52 @@
+{
+  "_description": "천문 v4 Gate·HMAC ID v2·구조화 intake FSM 계약 파일의 SHA-256을 고정한다.",
+  "schema_version": "1.2.0",
+  "registry_id": "saju-runtime-calculation-registry-v1.2.0",
+  "status": "v1_2_runtime_gate_release_pending",
+  "artifacts": [
+    {
+      "path": "configs/runtime/calculation/runtime_contract-v1.2.0.json",
+      "sha256": "78a45399acedb937c13373d5fb30eef7169e40bd3bf09f3ce90eab6fe8bdeb37"
+    },
+    {
+      "path": "configs/runtime/calculation/calculation_output_schema-v1.2.0.json",
+      "sha256": "3acea12e4205acbf3c60a2e05c4e148756177f2099ead229ab503abcae1155a3"
+    },
+    {
+      "path": "configs/runtime/calculation/source_registry-v1.2.0.json",
+      "sha256": "e1700360ba9df4af0b3b28c03003585a9309f7286cbf85be43c20806e8605689"
+    },
+    {
+      "path": "configs/runtime/calculation/conformance_gate-v1.2.0.json",
+      "sha256": "cef8c5d5e71c9c0b35b9b9500b10707b81fbb31756d6d9c87afc61269632f8c1"
+    },
+    {
+      "path": "configs/runtime/calculation/profiles/KR_CIVIL_MIDNIGHT_V1-v1.2.0.json",
+      "sha256": "040c42e80623bbe9e660501be04cf7f6a568804145705b40569c912f4c66f997"
+    },
+    {
+      "path": "configs/runtime/calculation/release_registry_schema-v1.2.0.json",
+      "sha256": "f09a4eb2870c2eff232d9db2e321c478056e0f008f34c23574226eb914689f3c"
+    },
+    {
+      "path": "configs/runtime/calculation/id_canonicalization-v2.0.0.json",
+      "sha256": "54290f788af0a57483e8bd6483697a480fc527456227b81acab3c7ff4ab218f5"
+    },
+    {
+      "path": "configs/runtime/session_state_schema_v2.json",
+      "sha256": "a5f08690a7b5510e20dfac0f3d304d2672065b570abbc1139524ac6c25af0419"
+    },
+    {
+      "path": "configs/runtime/intake_fsm-v1.0.0.json",
+      "sha256": "b5804efb91f371fb86a4c246fe5cbfa0cdf8d8d921c9d4541c180c7feff1eb7a"
+    },
+    {
+      "path": "configs/runtime/intake_fsm_gate-v1.0.0.json",
+      "sha256": "93c6d2d96b4838e0784fab84d6507a2e30065875a0d969e3f38bbbc74d05fc3a"
+    },
+    {
+      "path": "requirements-runtime-calculator-v1.2.txt",
+      "sha256": "25bd3100c7b6eb75261bd0211cb6d09918eb0adc994862a9a230200ab92134ad"
+    }
+  ]
+}

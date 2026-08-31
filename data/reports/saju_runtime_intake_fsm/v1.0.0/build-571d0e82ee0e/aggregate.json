@@ -1,0 +1,90 @@
+{
+  "app_fsm_gate_passed": true,
+  "app_integration_allowed": false,
+  "by_stratum": {
+    "ask_birth_date": {
+      "cases": 10,
+      "passed": 10
+    },
+    "birthplace_then_handoff": {
+      "cases": 10,
+      "passed": 10
+    },
+    "correction_invalidation": {
+      "cases": 10,
+      "passed": 10
+    },
+    "exact_time_value": {
+      "cases": 10,
+      "passed": 10
+    },
+    "lunar_leap_month": {
+      "cases": 10,
+      "passed": 10
+    },
+    "no_reask_confirmed_date": {
+      "cases": 10,
+      "passed": 10
+    },
+    "period_handoff": {
+      "cases": 10,
+      "passed": 10
+    },
+    "runtime_blocked": {
+      "cases": 10,
+      "passed": 10
+    },
+    "tool_result_render": {
+      "cases": 10,
+      "passed": 10
+    },
+    "unknown_time_partial": {
+      "cases": 10,
+      "passed": 10
+    }
+  },
+  "cases": 100,
+  "encrypted_persistence_ready": false,
+  "failed": 0,
+  "gate_checks": {
+    "correction_invalidation_passed": true,
+    "free_text_parser_absent": true,
+    "name_family_job_slots_absent": true,
+    "runtime_block_fail_closed": true,
+    "synthetic_cases_exactly_100": true,
+    "synthetic_cases_passed_100": true,
+    "tool_results_rendered_without_fake_completion": true,
+    "unknown_time_supported_without_guess": true,
+    "versioned_gate_config_valid": true
+  },
+  "gate_version": "saju-intake-fsm-gate-v1.0.0",
+  "inputs": {
+    "gate_config": {
+      "path": "configs/runtime/intake_fsm_gate-v1.0.0.json",
+      "sha256": "93c6d2d96b4838e0784fab84d6507a2e30065875a0d969e3f38bbbc74d05fc3a"
+    },
+    "implementation_sha256": {
+      "scripts/evaluation/saju_runtime/intake_fsm_gate.py": "3ae347ffd7efd3628105b185be7aaf8965670af7f805dc3854bd38ef8b7ebaa7",
+      "scripts/runtime/calculation/id_signer.py": "51c52c01b1b49ad3ad6dcfe966d420f53267792ab2c448b4886f7322c31d85e9",
+      "scripts/runtime/intake_fsm.py": "28e0c08071145cccc7dbd5b426492318278c6d7987f8e4d70decc757e8b10932"
+    }
+  },
+  "model_gate_comparison": {
+    "path": "data/reports/saju_1b_baseline/phase5-stateful-chat-gate/v1.0.0/stateful-gate-f5b76dde1921/evaluation_summary.json",
+    "required_handoff_action_passed": 14,
+    "required_handoff_action_total": 100,
+    "sha256": "861d81b4dadb5870306ccbb6a95cc7bafb0b71cbb5d67f5eabcccdb50add8bdb",
+    "status": "unchanged_model_result_not_replaced_by_fsm_gate"
+  },
+  "passed": 100,
+  "production_id_key_ready": false,
+  "records_in_public_report": false,
+  "records_sha256": "b392ea9cb668018c45e7a0e833fcddd4066fe0cda3a1b3f3b0cd953510b05b39",
+  "retention_policy_ready": false,
+  "runtime_release_ready": false,
+  "schema_version": "1.0.0",
+  "status": "passed",
+  "test_signer": "fixed_non_production_key_injected_no_key_material_reported",
+  "training_execution_performed": false,
+  "training_promotion_allowed": false
+}
