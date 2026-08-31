@@ -207,7 +207,7 @@ KASI service key 또는 공식 전체 snapshot이 없으면 외부 라이브러�
 공개 보고서:
 
 ```text
-data/reports/saju_runtime_conformance/v1.1.0/build-2702394cde89/
+data/reports/saju_runtime_conformance/v1.1.0/build-333036eb7024/
 data/reports/saju_runtime_migration/v1.0.0/build-94eb7b543490/analysis.json
 ```
 
@@ -383,3 +383,9 @@ release가 생긴 뒤에만 v3.1 생성과 비학습 preflight를 순서대로 �
   - 변경 범위: `requirements-runtime-calculator-v1.1.txt`, runtime v1.1 계약·engine·CLI, conformance v3·collector·release, v3.1 generator/loader/preflight, dashboard config·server·assets·테스트, 제3자 고지와 이 정본을 갱신했다. 기존 v3.0.1 build, KI20 model/checkpoint, 실행 중 dashboard process, sealed blind payload는 변경하지 않았다.
   - 검증: KASI 공식기관 표시 HTML 7개를 Git 제외 경로에 수집해 84/84행을 원문 SHA-256과 재파싱으로 확인했다. Astronomy Engine 최대 차이 59.457159초, Skyfield/JPL 최대 차이 29.281515초로 두 60초 Gate를 통과했다. 1900~2049 독립 절입 1,800건은 평균 절대 17.130844초, p99 57.591955초, 120초 초과·identity·순서 오류 0이고 profile 전/경계/후 5,400건 mismatch 0이다. `uvx ruff check scripts tests`, runtime·dashboard 표적 49건, `node --check`, `git diff --check`와 로컬 비추적 산출물이 있는 `master` 전체 `unittest` 327건(42.790초)을 통과했다. 최종 보고서 `build-2702394cde89`는 세 공식 인증 snapshot Gate만 false이며 release·v3.1·학습을 차단한다.
   - 남은 이슈·후속 작업: `/run/user/<UID>/saju-kasi-service-key`에 0600 KASI key가 필요하다. 54,787일과 3,600개 절기 날짜를 수집해 세 mismatch Gate가 0일 때만 release를 만들고 v3.1 생성→비학습 preflight→canary 순서로 진행한다. 실제 데이터 재생성·학습은 수행하지 않았다.
+
+- 2026-08-31
+  - 작업 요약: R4~R7 구현과 산출물의 경계 조건을 다시 감사해 release 보고서, v3.1 데이터 이관, dashboard runtime binding의 fail-closed 검증을 보강했다.
+  - 변경 범위: conformance report의 canonical build ID·manifest governance·공식 snapshot·구현 파일 집합을 release 시 재검증한다. v3.0.1 원본 manifest SHA-256을 고정하고, v3.1 build preimage·artifact 집합·runtime release·5,250개 tool trajectory 수량을 preflight에서 다시 결합한다. dashboard는 runtime canary가 꺼진 상태에서 새 세션과 기존 결합 세션 모두 계산 사실을 모델 prompt에 넣지 못하게 했으며 내부 generation subprocess에도 명시 flag를 전달한다. 기존 데이터·모델·checkpoint·실행 중 dashboard process는 변경하지 않았다.
+  - 검증: 변경 구현 hash로 새 conformance 보고서 `build-333036eb7024`를 생성했다. 이전 `build-2702394cde89`와 구현 hash를 제외한 집계 값이 byte-equivalent JSON 의미로 일치하며, KASI 표시 분 84건·독립 절입 1,800건·경계 5,400건은 계속 통과한다. 회귀 표적 57건, Ruff, 계약·환경 검증과 실제 v3.0.1 manifest·20,000행 identity 재검증을 통과했다.
+  - 남은 이슈·후속 작업: KASI 인증 snapshot 세 Gate는 계속 미충족이므로 `runtime_gate_passed=false`, release·v3.1 생성·학습 차단 상태를 유지한다. 전체 테스트는 Git 제외 모델·원천·파생물이 있는 원래 worktree에 통합한 뒤 다시 실행한다.

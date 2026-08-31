@@ -29,6 +29,9 @@ SOURCE_BUILD_ID = "build-94eb7b543490"
 SOURCE_BUILD_SHA256 = (
     "94eb7b5434907539d7041fc81846169dc2e80f332e99b53d710722dcd5564454"
 )
+SOURCE_MANIFEST_SHA256 = (
+    "eca6a9b53f8e29501aab700e9c984071a9e800348d757c1294ea5f80e7937948"
+)
 SOURCE_TRAINING = "training/training_mix20k_v3.0.1_candidate.jsonl"
 TARGET_VERSION = "mix20k-v3.1-runtime-grounded"
 TARGET_SCHEMA = "3.1.0"
@@ -38,6 +41,8 @@ EXPECTED_CHART_CALLS = 4_350
 EXPECTED_PERIOD_CALLS = 900
 EXPECTED_TOOL_RESULT_ROWS = 2_200
 EXPECTED_CALL_ONLY_ROWS = 3_050
+MAX_SOURCE_MANIFEST_BYTES = 64 * 1024
+MAX_SOURCE_TRAINING_BYTES = 64 * 1024 * 1024
 FOREIGN_SELECTION_SEED = (
     "mix20k-v3.1-runtime-grounded|KR_CIVIL_MIDNIGHT_V1|20260831"
 )
@@ -101,8 +106,13 @@ def _load_source(build: Path) -> tuple[dict[str, Any], list[dict[str, Any]]]:
         or training_path.is_symlink()
         or not manifest_path.is_file()
         or not training_path.is_file()
+        or not 1 <= manifest_path.stat().st_size <= MAX_SOURCE_MANIFEST_BYTES
+        or not 1 <= training_path.stat().st_size <= MAX_SOURCE_TRAINING_BYTES
+        or sha256_file(manifest_path) != SOURCE_MANIFEST_SHA256
     ):
-        raise Mix20KV31BuildError("v3.0.1 source manifest·training이 없습니다.")
+        raise Mix20KV31BuildError(
+            "v3.0.1 source manifest·training identity가 고정값과 다릅니다."
+        )
     try:
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     except (OSError, UnicodeError, json.JSONDecodeError) as exc:

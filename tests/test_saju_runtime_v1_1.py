@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import calendar
+import hashlib
+import json
 import os
 import tempfile
 import unittest
@@ -12,6 +14,7 @@ from unittest import mock
 
 from scripts.data.mix20k_v3_runtime_build import (
     Mix20KV31BuildError,
+    _load_source,
     _replace_foreign,
 )
 from scripts.data.mix20k_v3_runtime_build import (
@@ -41,9 +44,18 @@ from scripts.evaluation.saju_runtime.kasi_minute_collector_v1_1 import (
     collect as collect_minute_references,
 )
 from scripts.runtime.calculation.approved_engine import ApprovedSajuRuntimeEngine
+from scripts.runtime.calculation.canonical import canonical_json_bytes
 from scripts.runtime.calculation.contracts_v1_1 import (
+    CONFORMANCE_V3_IMPLEMENTATIONS,
+    ENGINE_VERSION_V11,
+    GATE_V11_PATH,
+    POLICY_ID,
+    REGISTRY_V11_PATH,
+    SUITE_VERSION_V3,
+    _validate_report_identity,
     validate_contract_registry_v1_1,
 )
+from scripts.runtime.calculation.errors import RuntimeCalculationError
 from scripts.runtime.calculation.solar_terms import (
     JIE_TO_MONTH,
     SOLAR_TERM_NAMES,
@@ -51,6 +63,8 @@ from scripts.runtime.calculation.solar_terms import (
 )
 from scripts.training.phase5_v3_1_preflight import (
     Phase5V31PreflightError,
+    _verify_build,
+    _verify_projection_release,
 )
 from scripts.training.phase5_v3_1_preflight import (
     analyze as analyze_v31,
@@ -220,6 +234,102 @@ class RuntimeV11ContractTest(unittest.TestCase):
         self.assertEqual(result["code"], "RUNTIME_RELEASE_REQUIRED")
         self.assertIsNone(result["fact_authority"])
 
+    def test_release_report_identity_rejects_malformed_types_fail_closed(self) -> None:
+        with self.assertRaises(RuntimeCalculationError) as raised:
+            _validate_report_identity(
+                {
+                    "path": 1,
+                    "sha256": "0" * 64,
+                    "manifest_path": "build_manifest.json",
+                    "manifest_sha256": "0" * 64,
+                    "build_id": "build-000000000000",
+                }
+            )
+        self.assertEqual(raised.exception.code, "RUNTIME_RELEASE_INVALID")
+
+    def test_release_report_identity_recomputes_canonical_build_id(self) -> None:
+        file_hash = lambda path: hashlib.sha256(path.read_bytes()).hexdigest()
+        official = {
+            name: {
+                "provided": True,
+                "complete": True,
+                "private_path_recorded": False,
+                "sha256": "a" * 64,
+                "manifest_sha256": "b" * 64,
+            }
+            for name in (
+                "kasi_lunisolar",
+                "kasi_24_divisions",
+                "kasi_minute_reference",
+            )
+        }
+        report = {
+            "schema_version": "1.1.0",
+            "suite_version": SUITE_VERSION_V3,
+            "engine_version": ENGINE_VERSION_V11,
+            "profile_id": POLICY_ID,
+            "status": "passed",
+            "inputs": {
+                "runtime_registry_sha256": file_hash(REGISTRY_V11_PATH),
+                "gate_sha256": file_hash(GATE_V11_PATH),
+                "implementation_sha256": {
+                    path: "c" * 64 for path in CONFORMANCE_V3_IMPLEMENTATIONS
+                },
+                "official_snapshots": official,
+            },
+            "gate_checks": {"fixture": True},
+            "blocking_reasons": [],
+            "runtime_gate_passed": True,
+            "release_registry_creation_allowed": True,
+            "runtime_feature_flag_default": False,
+            "mix20k_v3_1_regeneration_allowed": False,
+            "training_promotion_allowed": False,
+            "phase5_training_performed": False,
+            "sealed_blind_accessed": False,
+            "raw_restricted_samples_in_report": False,
+        }
+        build_id = "build-" + hashlib.sha256(canonical_json_bytes(report)).hexdigest()[:12]
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            build = root / build_id
+            build.mkdir()
+            aggregate = build / "aggregate.json"
+            aggregate.write_text(json.dumps(report), encoding="utf-8")
+            aggregate_hash = file_hash(aggregate)
+            manifest = {
+                "schema_version": "1.1.0",
+                "build_id": build_id,
+                "report_type": "saju_runtime_conformance_v3",
+                "aggregate_sha256": aggregate_hash,
+                "runtime_gate_passed": True,
+                "release_registry_creation_allowed": True,
+                "mix20k_v3_1_regeneration_allowed": False,
+                "training_promotion_allowed": False,
+                "phase5_training_performed": False,
+            }
+            manifest_path = build / "build_manifest.json"
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            identity = {
+                "path": f"report/{build_id}/aggregate.json",
+                "sha256": aggregate_hash,
+                "manifest_path": f"report/{build_id}/build_manifest.json",
+                "manifest_sha256": file_hash(manifest_path),
+                "build_id": build_id,
+            }
+            with (
+                mock.patch(
+                    "scripts.runtime.calculation.contracts_v1_1.REPORT_V11_ROOT",
+                    root,
+                ),
+                mock.patch(
+                    "scripts.runtime.calculation.contracts_v1_1._safe_repo_path",
+                    side_effect=[aggregate, manifest_path],
+                ),
+            ):
+                loaded, loaded_manifest = _validate_report_identity(identity)
+            self.assertEqual(loaded, report)
+            self.assertEqual(loaded_manifest, manifest)
+
     def test_all_boundary_before_exact_after_cases_match_profile(self) -> None:
         result = _boundary_checks()
         self.assertEqual(result["cases"], 5400)
@@ -261,6 +371,54 @@ class RuntimeV11ContractTest(unittest.TestCase):
 
 
 class RuntimeV31GateOrderingTest(unittest.TestCase):
+    def test_source_build_manifest_is_anchored_before_dataset_read(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            source = Path(temporary) / "build-94eb7b543490"
+            training = source / "training/training_mix20k_v3.0.1_candidate.jsonl"
+            training.parent.mkdir(parents=True)
+            (source / "build_manifest.json").write_text("{}\n", encoding="utf-8")
+            training.write_text("{}\n", encoding="utf-8")
+            with self.assertRaisesRegex(Mix20KV31BuildError, "identity"):
+                _load_source(source)
+
+    def test_v31_preflight_recomputes_build_identity(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            build = Path(temporary) / "build-000000000000"
+            build.mkdir()
+            manifest = {
+                "schema_version": "1.0.0",
+                "dataset_version": "mix20k-v3.1-runtime-grounded",
+                "build_id": build.name,
+                "build_sha256": "0" * 64,
+                "identity": {},
+                "artifact_sha256": {},
+                "rows": {"review": 20_000, "training": 20_000, "diagnostic": 2000},
+                "runtime_gate_passed": True,
+                "runtime_release_validated": True,
+                "training_execution_allowed": False,
+                "phase5_training_performed": False,
+                "sealed_blind_payload_accessed": False,
+                "source_build_mutated": False,
+            }
+            (build / "build_manifest.json").write_text(
+                json.dumps(manifest), encoding="utf-8"
+            )
+            with self.assertRaisesRegex(Phase5V31PreflightError, "identity"):
+                _verify_build(
+                    build,
+                    {
+                        "release_id": "saju-runtime-release-v1.1.0-000000000000",
+                        "release_registry_sha256": "1" * 64,
+                    },
+                )
+
+    def test_v31_projection_release_must_match_validated_release(self) -> None:
+        with self.assertRaisesRegex(Phase5V31PreflightError, "release"):
+            _verify_projection_release(
+                [{"runtime_release_id": "saju-runtime-release-v1.1.0-000000000000"}],
+                "saju-runtime-release-v1.1.0-111111111111",
+            )
+
     def test_foreign_replacement_preserves_prior_multiturn_and_source(self) -> None:
         row = {
             "id": "foreign-fixture",

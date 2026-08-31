@@ -2609,6 +2609,10 @@ def _runtime_model_context(
 ) -> tuple[str | None, str | None]:
     if runtime_session_id is None:
         return None, None
+    if context.get("runtime_canary_active") is not True:
+        raise Phase5DashboardError(
+            "runtime 사실을 모델에 연결하려면 명시적인 runtime canary flag가 필요합니다."
+        )
     state = _read_runtime_state(context, runtime_session_id)
     snapshot = _runtime_snapshot(state)
     prompt = (
@@ -3492,6 +3496,19 @@ class DashboardRequestHandler(BaseHTTPRequestHandler):
                             HTTPStatus.BAD_REQUEST,
                             "prompt·profile·engine_selection 문자열과 session_id 문자열 또는 null만 허용됩니다.",
                         )
+                    bound_runtime_id = payload.get("runtime_session_id")
+                    if bound_runtime_id is None and payload["session_id"] is not None:
+                        bound_runtime_id = manual_session_payload(
+                            self.server.context, payload["session_id"]
+                        ).get("runtime_session_id")
+                    if (
+                        bound_runtime_id is not None
+                        and self.server.context.get("runtime_canary_active") is not True
+                    ):
+                        raise DashboardRequestError(
+                            HTTPStatus.CONFLICT,
+                            "runtime canary가 비활성인 동안 계산 사실을 모델에 연결할 수 없습니다.",
+                        )
                     result = _manual_generation_subprocess(
                         self.server.context,
                         payload["prompt"],
@@ -3544,11 +3561,24 @@ def _manual_generation_subprocess(
     if session_id is not None:
         current = manual_session_payload(context, session_id)
         selected = _session_inference_selection(context, current)
+        effective_runtime_session_id = (
+            runtime_session_id or current.get("runtime_session_id")
+        )
     else:
         selected = _inference_selection(
             context,
             engine_selection or context["inference_engines"]["default_selection"],
         )
+        effective_runtime_session_id = runtime_session_id
+    if (
+        effective_runtime_session_id is not None
+        and context.get("runtime_canary_active") is not True
+    ):
+        raise Phase5DashboardError(
+            "runtime canary가 비활성인 동안 계산 사실을 모델에 연결할 수 없습니다."
+        )
+    if context.get("runtime_canary_active") is True:
+        command.append("--enable-runtime-canary")
     timeout = (
         context["inference_engines"]["paired_timeout_seconds"]
         if selected["mode"] == "paired"
@@ -3719,6 +3749,7 @@ def _parser() -> argparse.ArgumentParser:
     probe.add_argument("--execute", action="store_true")
     generate = subparsers.add_parser("generate", help=argparse.SUPPRESS)
     generate.add_argument("--execute", action="store_true")
+    generate.add_argument("--enable-runtime-canary", action="store_true")
     return parser
 
 
@@ -3751,6 +3782,15 @@ def main(argv: Sequence[str] | None = None) -> int:
         elif args.command == "generate":
             if not args.execute:
                 raise Phase5DashboardError("수동 generation에는 --execute가 필요합니다.")
+            if args.enable_runtime_canary:
+                release_available = isinstance(
+                    (context.get("runtime_canary") or {}).get("release"), dict
+                )
+                if not release_available:
+                    raise Phase5DashboardError(
+                        "유효한 runtime release 없이 canary를 활성화할 수 없습니다."
+                    )
+                context["runtime_canary_active"] = True
             payload = json.loads(sys.stdin.read())
             if (
                 not isinstance(payload, dict)

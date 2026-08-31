@@ -23,8 +23,10 @@ from scripts.training.phase5_dashboard import (
     Phase5DashboardError,
     _generate_loaded,
     _load_model,
+    _manual_generation_subprocess,
     _parser,
     _remote_access_settings,
+    _runtime_model_context,
     _select_probes,
     _service_snapshot,
     checkpoints_payload,
@@ -720,8 +722,10 @@ class Phase5DashboardTests(unittest.TestCase):
             "input_tokens": 30,
             "omitted_messages": 0,
         }
+        context = self.fixture.context()
+        context["runtime_canary_active"] = True
         result = execute_manual_generation(
-            self.fixture.context(),
+            context,
             "이 원국을 설명해줘",
             runtime_session_id=runtime_session_id,
         )
@@ -732,6 +736,43 @@ class Phase5DashboardTests(unittest.TestCase):
         system_message = generate.call_args.args[1][0]["content"]
         self.assertIn("서버에서 계산한 승인 만세력 사실", system_message)
         self.assertIn("HARD_GT", system_message)
+
+    @patch("scripts.training.phase5_dashboard._read_runtime_state")
+    def test_runtime_model_context_requires_explicit_feature_flag(
+        self, read_state: object
+    ) -> None:
+        with self.assertRaisesRegex(Phase5DashboardError, "runtime canary flag"):
+            _runtime_model_context(self.fixture.context(), "c" * 24)
+        read_state.assert_not_called()
+
+    @patch("scripts.training.phase5_dashboard.subprocess.run")
+    def test_generation_subprocess_propagates_runtime_feature_flag(
+        self, run: object
+    ) -> None:
+        run.return_value = CompletedProcess(
+            args=[],
+            returncode=0,
+            stdout=json.dumps(
+                {
+                    "status": "generated",
+                    "persisted": True,
+                    "local_only": True,
+                    "session_id": "c" * 24,
+                }
+            ),
+            stderr="",
+        )
+        context = self.fixture.context()
+        context["runtime_canary_active"] = True
+        _manual_generation_subprocess(
+            context,
+            "질문",
+            None,
+            None,
+            "ki20_final",
+            "d" * 24,
+        )
+        self.assertIn("--enable-runtime-canary", run.call_args.args[0])
 
     @patch("scripts.training.phase5_dashboard._gpu_snapshot")
     @patch("scripts.training.phase5_dashboard._generate_conversation")
@@ -1232,6 +1273,28 @@ class Phase5DashboardHTTPTests(unittest.TestCase):
         self.assertEqual(status, 421)
         status, _, _ = self.request("GET", "/api/status")
         self.assertEqual(status, 403)
+
+    @patch("scripts.training.phase5_dashboard._manual_generation_subprocess")
+    @patch("scripts.training.phase5_dashboard._generation_gate")
+    def test_generation_rejects_runtime_binding_while_feature_is_off(
+        self, gate: object, generate: object
+    ) -> None:
+        gate.return_value = {"allowed": True, "reasons": []}
+        body = json.dumps(
+            {
+                "prompt": "계산 사실로 설명해줘",
+                "session_id": None,
+                "profile": "guided_diagnostic_v1",
+                "engine_selection": "ki20_final",
+                "runtime_session_id": "c" * 24,
+            }
+        ).encode()
+        status, _, payload = self.request(
+            "POST", "/api/generate", token=True, origin=True, body=body
+        )
+        self.assertEqual(status, 409)
+        self.assertIn("비활성", payload.decode())
+        generate.assert_not_called()
 
     def test_runtime_canary_is_release_gated_and_projects_only_visible_facts(
         self,

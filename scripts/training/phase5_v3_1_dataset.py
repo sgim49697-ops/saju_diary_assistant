@@ -17,6 +17,7 @@ from scripts.training.phase5_v3_dataset import tokenize_training_row
 
 TRAINING_RELATIVE = "training/training_mix20k_v3.1_runtime_grounded.jsonl"
 RELEASE_PATTERN = re.compile(r"^saju-runtime-release-v1\.1\.0-[0-9a-f]{12}$")
+MAX_TRAINING_BYTES = 64 * 1024 * 1024
 
 
 class Phase5V31DatasetError(RuntimeError):
@@ -70,7 +71,7 @@ def _validate_row(row: Mapping[str, Any], line_number: int) -> None:
         for tool in row["tools"]
         if isinstance(tool, dict)
     }
-    pending_calls = 0
+    pending_calls: list[str] = []
     tool_call_count = 0
     for message in messages:
         if not isinstance(message, dict):
@@ -82,7 +83,11 @@ def _validate_row(row: Mapping[str, Any], line_number: int) -> None:
             function = call.get("function", {}) if isinstance(call, dict) else {}
             name = function.get("name") if isinstance(function, dict) else None
             arguments = function.get("arguments") if isinstance(function, dict) else None
-            if name not in declared or not isinstance(arguments, dict):
+            if (
+                message.get("role") != "assistant"
+                or name not in declared
+                or not isinstance(arguments, dict)
+            ):
                 raise Phase5V31DatasetError(
                     f"선언되지 않거나 잘못된 tool call입니다: {line_number}"
                 )
@@ -92,10 +97,14 @@ def _validate_row(row: Mapping[str, Any], line_number: int) -> None:
                 raise Phase5V31DatasetError(
                     f"strict tool arguments가 다릅니다: {line_number}"
                 ) from exc
-            pending_calls += 1
+            pending_calls.append(name)
             tool_call_count += 1
         if message.get("role") == "tool":
-            if pending_calls < 1 or not isinstance(message.get("content"), str):
+            if (
+                not pending_calls
+                or message.get("name") != pending_calls[0]
+                or not isinstance(message.get("content"), str)
+            ):
                 raise Phase5V31DatasetError(
                     f"tool result 순서가 다릅니다: {line_number}"
                 )
@@ -110,7 +119,11 @@ def _validate_row(row: Mapping[str, Any], line_number: int) -> None:
                 raise Phase5V31DatasetError(
                     f"tool result에 내부 field가 섞였습니다: {line_number}"
                 )
-            pending_calls -= 1
+            pending_calls.pop(0)
+    if tool_call_count > 1 or len(pending_calls) > 1:
+        raise Phase5V31DatasetError(
+            f"한 행의 tool trajectory 수가 계약을 넘습니다: {line_number}"
+        )
     expected_fact_source = (
         "approved_saju_runtime_v1_1" if tool_call_count else None
     )
@@ -124,6 +137,8 @@ def read_training_projection(build_root: Path) -> list[dict[str, Any]]:
     path = build_root / TRAINING_RELATIVE
     if path.is_symlink() or not path.is_file():
         raise Phase5V31DatasetError(f"v3.1 training projection이 없습니다: {path}")
+    if not 1 <= path.stat().st_size <= MAX_TRAINING_BYTES:
+        raise Phase5V31DatasetError("v3.1 training projection 크기가 허용 범위를 넘습니다.")
     rows: list[dict[str, Any]] = []
     try:
         with path.open(encoding="utf-8") as stream:

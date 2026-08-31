@@ -53,6 +53,7 @@ from scripts.runtime.calculation.calendar_provider import KoreanLunarCalendarPro
 from scripts.runtime.calculation.canonical import canonical_json_bytes
 from scripts.runtime.calculation.contracts import POLICY_ID, REPO_ROOT
 from scripts.runtime.calculation.contracts_v1_1 import (
+    CONFORMANCE_V3_IMPLEMENTATIONS,
     ENGINE_VERSION_V11,
     GATE_V11_PATH,
     REGISTRY_V11_PATH,
@@ -700,22 +701,6 @@ def run_conformance(
         status = "blocked_conformance_failures"
     else:
         status = "passed"
-    implementation_paths = [
-        "scripts/runtime/calculation/canonical.py",
-        "scripts/runtime/calculation/contracts.py",
-        "scripts/runtime/calculation/contracts_v1_1.py",
-        "scripts/runtime/calculation/timezone_resolver.py",
-        "scripts/runtime/calculation/calendar_provider.py",
-        "scripts/runtime/calculation/normalize.py",
-        "scripts/runtime/calculation/solar_terms.py",
-        "scripts/runtime/calculation/facts.py",
-        "scripts/runtime/calculation/engine.py",
-        "scripts/runtime/calculation/approved_engine.py",
-        "scripts/evaluation/saju_runtime/kasi_collector_v1_1.py",
-        "scripts/evaluation/saju_runtime/kasi_minute_collector_v1_1.py",
-        "scripts/evaluation/saju_runtime/jie_crosscheck.py",
-        "scripts/evaluation/saju_runtime/conformance_v3.py",
-    ]
     report = {
         "schema_version": "1.1.0",
         "suite_version": SUITE_VERSION_V3,
@@ -741,7 +726,7 @@ def run_conformance(
             "gate_sha256": sha256_file(GATE_V11_PATH),
             "implementation_sha256": {
                 relative: sha256_file(REPO_ROOT / relative)
-                for relative in implementation_paths
+                for relative in sorted(CONFORMANCE_V3_IMPLEMENTATIONS)
             },
         },
         "official_kasi_lunisolar": lunar,

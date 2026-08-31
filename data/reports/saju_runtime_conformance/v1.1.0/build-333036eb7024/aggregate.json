@@ -1,0 +1,218 @@
+{
+  "blocking_reasons": [
+    "kasi_all_solar_term_dates_complete",
+    "kasi_jie_dates_complete",
+    "kasi_lunar_days_complete"
+  ],
+  "engine_version": "saju-runtime-python-v1.1.0",
+  "gate_checks": {
+    "canonical_hash_mismatch_zero": true,
+    "canonical_hash_vectors_complete": true,
+    "dst_fold_auto_pick_zero": true,
+    "dst_gap_auto_shift_zero": true,
+    "guessed_unknown_hour_zero": true,
+    "heuristic_fact_leak_zero": true,
+    "host_timezone_or_locale_drift_zero": true,
+    "independent_chronological_order_zero": true,
+    "independent_jie_instants_complete": true,
+    "independent_jie_within_120_seconds": true,
+    "independent_kasi_minute_within_60_seconds": true,
+    "independent_term_identity_zero": true,
+    "jie_boundary_cases_complete": true,
+    "jie_boundary_mismatch_zero": true,
+    "kasi_all_solar_term_dates_complete": false,
+    "kasi_day_ganzhi_mismatch_zero": true,
+    "kasi_jie_dates_complete": false,
+    "kasi_jie_minute_references_complete": true,
+    "kasi_lunar_conversion_mismatch_zero": true,
+    "kasi_lunar_days_complete": false,
+    "policy_fixture_mismatch_zero": true,
+    "profile_id_failure_zero": true,
+    "runtime_kasi_jie_date_mismatch_zero": true,
+    "runtime_kasi_minute_within_60_seconds": true,
+    "source_version_id_failure_zero": true,
+    "unclassified_mismatch_zero": true,
+    "unknown_range_complete": true,
+    "unsupported_foreign_complete": true,
+    "unsupported_foreign_failure_zero": true
+  },
+  "host_invariance": {
+    "byte_drift": 0,
+    "runs": 2,
+    "tested_locales": [
+      "C",
+      "C.UTF-8"
+    ]
+  },
+  "independent_jie_crosscheck": {
+    "chronological_order_failures": 0,
+    "crosscheck_version": "saju-jie-crosscheck-v1.1.0",
+    "dependency_versions": {
+      "jplephem": "2.24",
+      "numpy": "2.2.6",
+      "skyfield": "1.55"
+    },
+    "end_year": 2049,
+    "ephemeris": {
+      "bytes": 32726016,
+      "coverage_years": [
+        1849,
+        2150
+      ],
+      "filename": "de440s.bsp",
+      "local_path_recorded": false,
+      "sha256": "c1c7feeab882263fc493a9d5a5b2ddd71b54826cdf65d8d17a76126b260a49f2"
+    },
+    "expected_rows": 1800,
+    "local_date_adjudicator": "kasi_24_divisions_openapi",
+    "local_date_mismatches": 1,
+    "maximum_allowed_delta_seconds": 120.0,
+    "maximum_signed_delta_seconds": 80.666231,
+    "mean_absolute_delta_seconds": 17.130844,
+    "minimum_signed_delta_seconds": -44.512186,
+    "p99_absolute_delta_seconds": 57.591955,
+    "records_in_report": false,
+    "records_sha256": "1b9e44155783c0d7a3700c4cbb0e1ac930c393ebb0b6a8cea1a7827315d2d47d",
+    "rows": 1800,
+    "schema_version": "1.1.0",
+    "start_year": 1900,
+    "status": "passed",
+    "term_identity_failures": 0,
+    "threshold_failures": 0
+  },
+  "inputs": {
+    "gate_sha256": "8df24cb9b2300150622eea844ebc869ae9313585578c697bc483c27e74d7a771",
+    "implementation_sha256": {
+      "scripts/evaluation/saju_runtime/conformance_v3.py": "d1de51a5c13251b009e1470d24b2312a8e5624fa6797193027074ff162586868",
+      "scripts/evaluation/saju_runtime/jie_crosscheck.py": "26592152a4b205b22a1d722b4b31e4278afeb0ebf6d1c02f2abeeddb14e71adc",
+      "scripts/evaluation/saju_runtime/kasi_collector_v1_1.py": "819b909acf4933f567ee930405aa8c09001f852e6c51751805290eb816a1b3f2",
+      "scripts/evaluation/saju_runtime/kasi_minute_collector_v1_1.py": "9dc93bdf7f400e6957ebd5011d9406decd1910092ca3a5f4833957cda1ca1cec",
+      "scripts/runtime/calculation/approved_engine.py": "b444f9df63e1a731f0fb83b4539547664a1cc336fa9ca09f72d0e2fb266dab2a",
+      "scripts/runtime/calculation/calendar_provider.py": "a2a37c843ad3f3ff5640fb22f75ba894b9e8f9a9c30996a3eb715c740c959f24",
+      "scripts/runtime/calculation/canonical.py": "2a76c5db10412e4695a351b9dce1192e0d1957f3af88efb88a9c23927a14eaa9",
+      "scripts/runtime/calculation/contracts.py": "6a6ca29ae5edb5875bcf60b659d8a9a3c9dcc625e64488c5adda9020e9c190d5",
+      "scripts/runtime/calculation/contracts_v1_1.py": "0cf14140d13e3c1e6148f61611d8c67289aa284ef6cfb823ac6548a3376ad678",
+      "scripts/runtime/calculation/engine.py": "477d39458e1609347922f571f74e02ac19af606822d114076b1a8e4348afece3",
+      "scripts/runtime/calculation/facts.py": "21ad0a180c987d6935be791f98f2900372225695849d367ca6e27c7b8924c8c4",
+      "scripts/runtime/calculation/normalize.py": "5f35934baa7919febcd14e3980e52682c5445a0bac3f765db4ffaeb1a3aa3985",
+      "scripts/runtime/calculation/solar_terms.py": "5ca5ae0e9303ee626be8276fae329142625acc44443eb6a7cc8d7aa54a232ce4",
+      "scripts/runtime/calculation/timezone_resolver.py": "9a1eb7bafeb6f7c172c2f70d9bfcbed4a9eb07e3b36018479b18abd1600eaad1"
+    },
+    "official_snapshots": {
+      "kasi_24_divisions": {
+        "complete": false,
+        "kind": "missing_official_24_divisions",
+        "manifest_sha256": null,
+        "private_path_recorded": false,
+        "provided": false,
+        "rows": 0,
+        "sha256": null
+      },
+      "kasi_lunisolar": {
+        "complete": false,
+        "kind": "committed_stratified_reference",
+        "manifest_sha256": null,
+        "private_path_recorded": false,
+        "provided": true,
+        "sha256": "d651d5a77d7970cde4b36f414995b6ea833b4d50760f23fe0f462c96fdf8ca1a",
+        "supported_rows": 63
+      },
+      "kasi_minute_reference": {
+        "complete": true,
+        "kind": "private_institutional_minute_reference",
+        "manifest_sha256": "47f3952f266ab471270d8a0e9a2d83fb97e477e7e112702750c704559199a4d2",
+        "private_path_recorded": false,
+        "provided": true,
+        "rows": 84,
+        "sha256": "5c1c12a7a3821a330a04b0b2e10117a4c2f28af748211d163bf9a4631d8940bf",
+        "source_tier": "institutional_minute_display_reference_not_formal_almanac"
+      }
+    },
+    "policy_fixture": {
+      "path": "tests/fixtures/saju_external_conformance/policy_cases_20.jsonl",
+      "sha256": "5a424a7bf7f31cc9bb8505317a8674213fc7ec26eaee72f4062bed5b82cb94e6"
+    },
+    "public_fallback_fixture": {
+      "path": "tests/fixtures/saju_external_conformance/kasi_lunar_200.json",
+      "sha256": "d651d5a77d7970cde4b36f414995b6ea833b4d50760f23fe0f462c96fdf8ca1a"
+    },
+    "runtime_registry_sha256": "2cb652b82e804b22c30e5e2a5c3b20b7192abd1f72a5fa87f5e01ded613e0669"
+  },
+  "institutional_kasi_minute_reference": {
+    "independent_over_60_seconds_or_missing": 0,
+    "maximum_independent_delta_seconds": 29.281515,
+    "maximum_runtime_delta_seconds": 59.457159,
+    "rows": 84,
+    "runtime_over_60_seconds": 0
+  },
+  "mix20k_v3_1_regeneration_allowed": false,
+  "official_kasi_lunisolar": {
+    "day_ganzhi_mismatches": 0,
+    "official_hard_mismatches": 0,
+    "rows": 63,
+    "solar_lunar_mismatches": 0
+  },
+  "official_kasi_solar_term_dates": {
+    "all_term_rows_collected": 0,
+    "jie_rows_compared": 0,
+    "mismatch_details_truncated": false,
+    "mismatches": [],
+    "runtime_date_mismatches": 0
+  },
+  "phase5_training_performed": false,
+  "policy_comparison": {
+    "comparable_rows": 16,
+    "excluded_non_profile_cases": [
+      "day-boundary-jasi-20240310-2330",
+      "day-boundary-split-jasi-20240310-2330",
+      "true-solar-seoul-19900515-0705",
+      "void-branches-gyeongjin"
+    ],
+    "fixture_rows": 20,
+    "mismatch_rows": 0,
+    "mismatches": [],
+    "passed_rows": 16
+  },
+  "profile_boundary_checks": {
+    "cases": 5400,
+    "mismatch_details_truncated": false,
+    "mismatch_rows": 0,
+    "mismatches": []
+  },
+  "profile_id": "KR_CIVIL_MIDNIGHT_V1",
+  "raw_restricted_samples_in_report": false,
+  "release_registry_creation_allowed": false,
+  "runtime_feature_flag_default": false,
+  "runtime_gate_passed": false,
+  "schema_version": "1.1.0",
+  "sealed_blind_accessed": false,
+  "source_versions": {
+    "astronomy_engine": "2.1.19",
+    "jplephem": "2.24",
+    "korean_lunar_calendar": "0.4.0",
+    "numpy": "2.2.6",
+    "python_tzdata": "2026.3",
+    "runtime_contract": "saju-runtime-contract-v1.1.0",
+    "skyfield": "1.55",
+    "solar_term_provider": "astronomy-engine-2.1.19",
+    "source_registry": "saju-runtime-sources-v1.1.0",
+    "table_policy": "saju-calculation-policy-v1.0.0",
+    "tzdb": "2026c"
+  },
+  "status": "blocked_missing_official_tiered_snapshots",
+  "suite_version": "saju-runtime-conformance-v3.0.0",
+  "synthetic_invariants": {
+    "canonical_hash_mismatches": 0,
+    "canonical_hash_vectors": 200,
+    "dst_fold_auto_pick_failures": 0,
+    "dst_gap_auto_shift_failures": 0,
+    "guessed_unknown_hour": 0,
+    "heuristic_fact_leaks": 0,
+    "profile_id_failures": 0,
+    "source_version_id_failures": 0,
+    "unknown_range_cases": 500,
+    "unsupported_foreign_cases": 20,
+    "unsupported_foreign_failures": 0
+  },
+  "training_promotion_allowed": false
+}

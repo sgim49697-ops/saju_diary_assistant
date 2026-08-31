@@ -33,6 +33,36 @@ OUTPUT_SCHEMA_VERSION_V11 = "1.1.0"
 SUITE_VERSION_V3 = "saju-runtime-conformance-v3.0.0"
 FULL_SHA = re.compile(r"^[0-9a-f]{64}$")
 RELEASE_ID = re.compile(r"^saju-runtime-release-v1\.1\.0-[0-9a-f]{12}$")
+CONFORMANCE_BUILD_ID = re.compile(r"^build-[0-9a-f]{12}$")
+CONFORMANCE_V3_IMPLEMENTATIONS = frozenset(
+    {
+        "scripts/runtime/calculation/canonical.py",
+        "scripts/runtime/calculation/contracts.py",
+        "scripts/runtime/calculation/contracts_v1_1.py",
+        "scripts/runtime/calculation/timezone_resolver.py",
+        "scripts/runtime/calculation/calendar_provider.py",
+        "scripts/runtime/calculation/normalize.py",
+        "scripts/runtime/calculation/solar_terms.py",
+        "scripts/runtime/calculation/facts.py",
+        "scripts/runtime/calculation/engine.py",
+        "scripts/runtime/calculation/approved_engine.py",
+        "scripts/evaluation/saju_runtime/kasi_collector_v1_1.py",
+        "scripts/evaluation/saju_runtime/kasi_minute_collector_v1_1.py",
+        "scripts/evaluation/saju_runtime/jie_crosscheck.py",
+        "scripts/evaluation/saju_runtime/conformance_v3.py",
+    }
+)
+CONFORMANCE_MANIFEST_FIELDS = {
+    "schema_version",
+    "build_id",
+    "report_type",
+    "aggregate_sha256",
+    "runtime_gate_passed",
+    "release_registry_creation_allowed",
+    "mix20k_v3_1_regeneration_allowed",
+    "training_promotion_allowed",
+    "phase5_training_performed",
+}
 EXPECTED_ARTIFACTS = {
     "configs/runtime/calculation/runtime_contract-v1.1.0.json",
     "configs/runtime/calculation/calculation_output_schema-v1.1.0.json",
@@ -236,7 +266,14 @@ def _load_release(path: Path) -> dict[str, Any]:
 
 def _validate_report_identity(identity: Any) -> tuple[dict[str, Any], dict[str, Any]]:
     required = {"path", "sha256", "manifest_path", "manifest_sha256", "build_id"}
-    if not isinstance(identity, dict) or set(identity) != required:
+    if (
+        not isinstance(identity, dict)
+        or set(identity) != required
+        or not all(isinstance(identity[key], str) for key in required)
+        or FULL_SHA.fullmatch(identity["sha256"]) is None
+        or FULL_SHA.fullmatch(identity["manifest_sha256"]) is None
+        or CONFORMANCE_BUILD_ID.fullmatch(identity["build_id"]) is None
+    ):
         raise RuntimeCalculationError(
             "RUNTIME_RELEASE_INVALID", "release의 conformance identity가 다릅니다."
         )
@@ -254,6 +291,10 @@ def _validate_report_identity(identity: Any) -> tuple[dict[str, Any], dict[str, 
         or manifest_path.name != "build_manifest.json"
         or report_path.parent != manifest_path.parent
         or report_path.parent.name != identity["build_id"]
+        or report_path.is_symlink()
+        or manifest_path.is_symlink()
+        or not report_path.is_file()
+        or not manifest_path.is_file()
         or sha256_file(report_path) != identity["sha256"]
         or sha256_file(manifest_path) != identity["manifest_sha256"]
     ):
@@ -262,18 +303,61 @@ def _validate_report_identity(identity: Any) -> tuple[dict[str, Any], dict[str, 
         )
     report = load_json_object(report_path)
     manifest = load_json_object(manifest_path)
+    expected_build_id = "build-" + hashlib.sha256(
+        canonical_json_bytes(report)
+    ).hexdigest()[:12]
+    inputs = report.get("inputs")
+    implementations = (
+        inputs.get("implementation_sha256") if isinstance(inputs, dict) else None
+    )
+    official = inputs.get("official_snapshots") if isinstance(inputs, dict) else None
     if (
-        report.get("suite_version") != SUITE_VERSION_V3
+        expected_build_id != identity["build_id"]
+        or report.get("schema_version") != "1.1.0"
+        or report.get("suite_version") != SUITE_VERSION_V3
         or report.get("engine_version") != ENGINE_VERSION_V11
         or report.get("profile_id") != POLICY_ID
         or report.get("status") != "passed"
         or report.get("runtime_gate_passed") is not True
+        or report.get("release_registry_creation_allowed") is not True
+        or report.get("runtime_feature_flag_default") is not False
+        or report.get("mix20k_v3_1_regeneration_allowed") is not False
         or report.get("training_promotion_allowed") is not False
+        or report.get("phase5_training_performed") is not False
         or report.get("sealed_blind_accessed") is not False
+        or report.get("raw_restricted_samples_in_report") is not False
+        or report.get("blocking_reasons") != []
+        or not isinstance(inputs, dict)
+        or inputs.get("runtime_registry_sha256") != sha256_file(REGISTRY_V11_PATH)
+        or inputs.get("gate_sha256") != sha256_file(GATE_V11_PATH)
+        or not isinstance(implementations, dict)
+        or set(implementations) != CONFORMANCE_V3_IMPLEMENTATIONS
+        or any(
+            not isinstance(value, str) or FULL_SHA.fullmatch(value) is None
+            for value in implementations.values()
+        )
+        or not isinstance(official, dict)
+        or set(official)
+        != {"kasi_lunisolar", "kasi_24_divisions", "kasi_minute_reference"}
+        or any(
+            not isinstance(value, dict)
+            or value.get("provided") is not True
+            or value.get("complete") is not True
+            or value.get("private_path_recorded") is not False
+            or FULL_SHA.fullmatch(str(value.get("sha256", ""))) is None
+            or FULL_SHA.fullmatch(str(value.get("manifest_sha256", ""))) is None
+            for value in official.values()
+        )
+        or set(manifest) != CONFORMANCE_MANIFEST_FIELDS
+        or manifest.get("schema_version") != "1.1.0"
         or manifest.get("report_type") != "saju_runtime_conformance_v3"
         or manifest.get("build_id") != identity["build_id"]
         or manifest.get("aggregate_sha256") != identity["sha256"]
         or manifest.get("runtime_gate_passed") is not True
+        or manifest.get("release_registry_creation_allowed") is not True
+        or manifest.get("mix20k_v3_1_regeneration_allowed") is not False
+        or manifest.get("training_promotion_allowed") is not False
+        or manifest.get("phase5_training_performed") is not False
     ):
         raise RuntimeCalculationError(
             "RUNTIME_RELEASE_INVALID", "conformance 통과 상태가 release 계약과 다릅니다."
