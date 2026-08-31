@@ -1,0 +1,33 @@
+{
+  "_description": "한국 민간시·자정 일경계를 쓰는 최초 단일 runtime 후보 profile이다.",
+  "profile_schema_version": "1.0.0",
+  "policy_id": "KR_CIVIL_MIDNIGHT_V1",
+  "status": "candidate_runtime_gate_pending",
+  "runtime_approved": false,
+  "supported_country_codes": ["KR"],
+  "iana_time_zone": "Asia/Seoul",
+  "supported_solar_years": {"minimum": 1900, "maximum": 2049},
+  "year_boundary": "lichun_instant",
+  "month_boundary": "twelve_jie_instant",
+  "day_boundary": "civil_midnight",
+  "hour_clock": "civil_time",
+  "true_solar_time": false,
+  "equation_of_time": false,
+  "historical_timezone": "iana_tzdb_2026c",
+  "branch_ten_god_basis": "main_hidden_stem",
+  "hidden_stem_table": "saju-calculation-policy-v1.0.0",
+  "unknown_time_policy": "hour_pillar_null_and_candidate_set",
+  "dst_gap_policy": "block_without_shift",
+  "dst_fold_policy": "preserve_both_candidates_without_user_fold",
+  "excluded_fields": [
+    "daeun",
+    "gongmang",
+    "twelve_stages",
+    "branch_relations",
+    "day_strength",
+    "geukguk",
+    "yongsin",
+    "automatic_interpretation",
+    "future_event_prediction"
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "_description": "runtime 계산 계약 파일의 경로와 SHA-256을 고정하는 manifest다.",
+  "schema_version": "1.0.0",
+  "registry_id": "saju-runtime-calculation-registry-v1.0.0",
+  "status": "candidate_runtime_gate_blocked",
+  "artifacts": [
+    {
+      "path": "configs/runtime/calculation/runtime_contract-v1.0.0.json",
+      "sha256": "3066760bf2abeb0642e837ad72cfd8795d7c6c5ea9a1e8add3641737ec3bf794"
+    },
+    {
+      "path": "configs/runtime/calculation/birth_input_schema-v1.0.0.json",
+      "sha256": "c50befbfb8307ad82cb46ea835f900e25e3445fb546defffab0dd0d8cf62c1e3"
+    },
+    {
+      "path": "configs/runtime/calculation/calculation_output_schema-v1.0.0.json",
+      "sha256": "98dc3a356b209a087cf235dcb6e8b5c23f7531a4eaa3a8d78bae7618fc9e8b2b"
+    },
+    {
+      "path": "configs/runtime/calculation/source_registry-v1.0.0.json",
+      "sha256": "4e24ae42ac92c5f92ab55a0c78e50889a1cd6fe378b1d9779eaa6d1a21a01473"
+    },
+    {
+      "path": "configs/runtime/calculation/mismatch_taxonomy-v1.0.0.json",
+      "sha256": "4d00bf2ecac1fbb97aeedd0cc1a8167ef6b2dfa021ae3bbb4229935e3a2da452"
+    },
+    {
+      "path": "configs/runtime/calculation/id_canonicalization-v1.0.0.json",
+      "sha256": "96397d953fb4a601d2d6056f5e45d68f7088833255b71ca89da870e53d94dd49"
+    },
+    {
+      "path": "configs/runtime/calculation/conformance_gate-v1.0.0.json",
+      "sha256": "d0a28df97be9cb83ed08447f04c2bb98317146d914072b21f0b5f81b7f247826"
+    },
+    {
+      "path": "configs/runtime/calculation/profiles/KR_CIVIL_MIDNIGHT_V1.json",
+      "sha256": "7022cf823f9600e44f97fedc6e353bc03e8208c58badb917fa0dabddff6f8da5"
+    },
+    {
+      "path": "requirements-runtime-calculator.txt",
+      "sha256": "61213a35cee1ed7fda5791887360db64ca3318219e369d95e2af8eb583f045d3"
+    }
+  ]
+}

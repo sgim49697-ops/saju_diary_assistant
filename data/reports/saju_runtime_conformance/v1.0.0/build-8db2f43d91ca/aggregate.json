@@ -1,0 +1,124 @@
+{
+  "blocking_reasons": [
+    "jie_boundary_before_at_after",
+    "kasi_supported_solar_days",
+    "runtime_profile_preapproved"
+  ],
+  "coverage": {
+    "jie_boundary_before_at_after": {
+      "observed": 2,
+      "required": 5400
+    },
+    "kasi_supported_solar_days": {
+      "observed": 63,
+      "required": 54787
+    }
+  },
+  "engine_version": "saju-runtime-python-v1.0.0",
+  "gate_checks": {
+    "canonical_hash_vectors": true,
+    "dst_fold_auto_pick_zero": true,
+    "dst_gap_auto_shift_zero": true,
+    "guessed_unknown_hour_zero": true,
+    "heuristic_fact_leak_zero": true,
+    "host_timezone_or_locale_drift_zero": true,
+    "jie_boundary_before_at_after": false,
+    "kasi_supported_solar_days": false,
+    "official_hard_mismatch_zero": true,
+    "profile_boundary_mismatch_zero": true,
+    "profile_id_failure_zero": true,
+    "runtime_profile_preapproved": false,
+    "source_version_id_failure_zero": true,
+    "unclassified_mismatch_zero": true,
+    "unknown_range": true,
+    "unsupported_foreign": true,
+    "unsupported_foreign_failure_zero": true
+  },
+  "host_invariance": {
+    "byte_drift": 0,
+    "runs": 2,
+    "tested_locales": [
+      "C",
+      "C.UTF-8"
+    ]
+  },
+  "inputs": {
+    "gate_sha256": "d0a28df97be9cb83ed08447f04c2bb98317146d914072b21f0b5f81b7f247826",
+    "implementation_sha256": {
+      "scripts/evaluation/saju_runtime/conformance.py": "b6bd6e6d7b101f34a59303d75109bffea4c51da998589e04634dd9c464667cfa",
+      "scripts/runtime/calculation/calendar_provider.py": "a2a37c843ad3f3ff5640fb22f75ba894b9e8f9a9c30996a3eb715c740c959f24",
+      "scripts/runtime/calculation/canonical.py": "2a76c5db10412e4695a351b9dce1192e0d1957f3af88efb88a9c23927a14eaa9",
+      "scripts/runtime/calculation/contracts.py": "6a6ca29ae5edb5875bcf60b659d8a9a3c9dcc625e64488c5adda9020e9c190d5",
+      "scripts/runtime/calculation/engine.py": "477d39458e1609347922f571f74e02ac19af606822d114076b1a8e4348afece3",
+      "scripts/runtime/calculation/facts.py": "21ad0a180c987d6935be791f98f2900372225695849d367ca6e27c7b8924c8c4",
+      "scripts/runtime/calculation/normalize.py": "5f35934baa7919febcd14e3980e52682c5445a0bac3f765db4ffaeb1a3aa3985",
+      "scripts/runtime/calculation/solar_terms.py": "5ca5ae0e9303ee626be8276fae329142625acc44443eb6a7cc8d7aa54a232ce4",
+      "scripts/runtime/calculation/timezone_resolver.py": "9a1eb7bafeb6f7c172c2f70d9bfcbed4a9eb07e3b36018479b18abd1600eaad1"
+    },
+    "kasi": {
+      "committed_rows": 200,
+      "complete_supported_range": false,
+      "kind": "committed_stratified_snapshot",
+      "path": "tests/fixtures/saju_external_conformance/kasi_lunar_200.json",
+      "sha256": "d651d5a77d7970cde4b36f414995b6ea833b4d50760f23fe0f462c96fdf8ca1a",
+      "supported_rows": 63
+    },
+    "policy_fixture": {
+      "path": "tests/fixtures/saju_external_conformance/policy_cases_20.jsonl",
+      "sha256": "5a424a7bf7f31cc9bb8505317a8674213fc7ec26eaee72f4062bed5b82cb94e6"
+    },
+    "runtime_registry_sha256": "a85849bc6728ba7b9c0bd31a062b18e8fc15f176dcf60ea680ca34e79755e299"
+  },
+  "mix20k_v3_1_regeneration_allowed": false,
+  "official_kasi": {
+    "day_ganzhi_mismatches": 0,
+    "official_hard_mismatches": 0,
+    "rows": 63,
+    "solar_lunar_mismatches": 0
+  },
+  "phase5_training_performed": false,
+  "policy_comparison": {
+    "comparable_rows": 16,
+    "excluded_non_profile_cases": [
+      "day-boundary-jasi-20240310-2330",
+      "day-boundary-split-jasi-20240310-2330",
+      "true-solar-seoul-19900515-0705",
+      "void-branches-gyeongjin"
+    ],
+    "fixture_rows": 20,
+    "mismatch_rows": 0,
+    "mismatches": [],
+    "passed_rows": 16
+  },
+  "profile_id": "KR_CIVIL_MIDNIGHT_V1",
+  "raw_restricted_samples_in_report": false,
+  "runtime_feature_flag_default": false,
+  "runtime_gate_passed": false,
+  "schema_version": "1.0.0",
+  "sealed_blind_accessed": false,
+  "source_versions": {
+    "astronomy_engine": "2.1.19",
+    "korean_lunar_calendar": "0.4.0",
+    "python_tzdata": "2026.3",
+    "solar_term_provider": "astronomy-engine-2.1.19",
+    "source_registry": "saju-runtime-sources-v1.0.0",
+    "table_policy": "saju-calculation-policy-v1.0.0",
+    "tzdb": "2026c"
+  },
+  "status": "blocked_missing_official_full_snapshots",
+  "suite_version": "saju-runtime-conformance-v2.0.0",
+  "synthetic_invariants": {
+    "canonical_hash_mismatches": 0,
+    "canonical_hash_vectors": 200,
+    "dst_fold_auto_pick_failures": 0,
+    "dst_gap_auto_shift_failures": 0,
+    "guessed_unknown_hour": 0,
+    "heuristic_fact_leaks": 0,
+    "profile_id_failures": 0,
+    "source_version_id_failures": 0,
+    "unknown_range_cases": 500,
+    "unsupported_foreign_cases": 20,
+    "unsupported_foreign_failures": 0
+  },
+  "training_promotion_allowed": false
+}

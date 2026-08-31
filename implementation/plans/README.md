@@ -4,6 +4,7 @@
 
 - `kanana_saju_dataset_guide.html`: 모델·데이터셋 조사 내용을 한 화면에서 확인하는 종합 참고 자료
 - `saju_1b_10k_20k_baseline/README.md`: 실제 구현 순서, 버전, Gate를 결정하는 정본
+- `saju_runtime_calculator_adoption.md`: 한국 만세력 계산 core·공식 conformance·v3.1 이관을 결정하는 독립 정본
 
 종합 가이드와 정본이 충돌하면 `saju_1b_10k_20k_baseline/README.md` 및 각 Phase 문서를 따른다. 데이터 감사용 HTML은 계획 문서에 복제하지 않고 다음 버전 경로에 둔다.
 

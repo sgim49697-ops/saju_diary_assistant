@@ -1,0 +1,9 @@
+{
+  "aggregate_sha256": "4459ae9c5f5aa8fa898cbca495ade7d86a513924b66aaccadc84622f456212a2",
+  "build_id": "build-8db2f43d91ca",
+  "phase5_training_performed": false,
+  "report_type": "saju_runtime_conformance_v2",
+  "runtime_gate_passed": false,
+  "schema_version": "1.0.0",
+  "training_promotion_allowed": false
+}

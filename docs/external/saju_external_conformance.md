@@ -56,6 +56,11 @@ KASI 공개 API 페이지는 무료·이용허락범위 제한 없음으로 표�
 - fixture schema·원천 revision·SHA-256·라이선스 고지: 구현 완료
 - KASI 달력 간지와 사주 연주·월주 semantic alias 차단: 구현 완료
 - 학습·blind 혼입 차단: 구현 완료
-- runtime adapter별 실제 conformance 실행: 미구현
-- 앱 runtime 계산 엔진 승인: 보류
+- `KR_CIVIL_MIDNIGHT_V1` Python 후보 runtime과 conformance v2 실행: 구현 완료
+- 공개 KASI 지원 범위 63건과 단일 profile 비교 16건: mismatch 0
+- KASI 54,787일·12절 경계 5,400건 공식 snapshot: 미확보
+- 앱 runtime 계산 엔진 승인: 공식 전수 Gate 미충족으로 보류
+- MIX20K-v3.1 재생성·학습: 보류
 - 전문가 해석 Gold 승인: 보류
+
+실행 정본과 최신 공개 보고서는 [`saju_runtime_calculator_adoption.md`](../../implementation/plans/saju_runtime_calculator_adoption.md) 및 `data/reports/saju_runtime_conformance/v1.0.0/`에서 확인한다. 후보 runtime은 기본 off이며, 승인 전 결과는 `HARD_CANDIDATE`를 넘지 않는다.

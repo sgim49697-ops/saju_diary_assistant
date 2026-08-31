@@ -1,0 +1,61 @@
+{
+  "_description": "한국 출생정보를 계산 core에 넘기기 전 정규화한 내부 입력 계약이다.",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "saju-birth-input-v1.0.0",
+  "schema_version": "1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "calendar": {"type": "string", "enum": ["solar", "lunar"]},
+    "local_birth_date": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"},
+    "solar_birth_date": {"type": "string", "format": "date"},
+    "lunar_birth_date": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "year": {"type": "integer"},
+        "month": {"type": "integer", "minimum": 1, "maximum": 12},
+        "day": {"type": "integer", "minimum": 1, "maximum": 30},
+        "leap_month": {"type": "boolean"}
+      },
+      "required": ["year", "month", "day", "leap_month"]
+    },
+    "lunar_leap_month": {"type": ["boolean", "null"]},
+    "birth_time_precision": {"type": "string", "enum": ["exact", "range", "unknown"]},
+    "local_birth_time": {"type": ["string", "null"], "pattern": "^(?:[01][0-9]|2[0-3]):[0-5][0-9]$"},
+    "birth_time_range": {
+      "anyOf": [
+        {"type": "null"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "start": {"type": "string", "pattern": "^(?:[01][0-9]|2[0-3]):[0-5][0-9]$"},
+            "end": {"type": "string", "pattern": "^(?:[01][0-9]|2[0-3]):[0-5][0-9]$"}
+          },
+          "required": ["start", "end"]
+        }
+      ]
+    },
+    "country_code": {"const": "KR"},
+    "city": {"type": "string", "minLength": 1},
+    "iana_time_zone": {"const": "Asia/Seoul"},
+    "fold": {"type": ["integer", "null"], "enum": [0, 1, null]},
+    "policy_id": {"const": "KR_CIVIL_MIDNIGHT_V1"}
+  },
+  "required": [
+    "calendar",
+    "local_birth_date",
+    "solar_birth_date",
+    "lunar_birth_date",
+    "lunar_leap_month",
+    "birth_time_precision",
+    "local_birth_time",
+    "birth_time_range",
+    "country_code",
+    "city",
+    "iana_time_zone",
+    "fold",
+    "policy_id"
+  ]
+}

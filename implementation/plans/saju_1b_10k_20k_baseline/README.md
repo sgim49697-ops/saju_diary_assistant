@@ -4,8 +4,8 @@
 
 | 항목 | 값 |
 |---|---|
-| 문서 버전 | `3.4.0` |
-| 정본화 기준일 | 2026-08-29 |
+| 문서 버전 | `3.5.0` |
+| 정본화 기준일 | 2026-08-31 |
 | 주 장비 | NVIDIA GeForce RTX 5070 Ti 16GiB, WSL2 |
 | 주 모델 | `kakaocorp/kanana-2-1.3b-instruct@bf4786aa2a1908adce942d53976270132732f720` |
 | 실험 범위 | 1K smoke, 독립 10K·20K Full FT, 사후 평가와 v2 Lite 결정 |
@@ -36,7 +36,7 @@
 | 2 | [데이터 전처리](phase-2-data-preprocessing.md) | 완료 | 품질 보정 7축 24K와 로컬 전용 AI Hub 후보 10K 완결, 학습 승격은 Phase 4 Gate로 분리 |
 | 3 | [학습 모델·환경 준비](phase-3-model-preparation.md) | 완료 | 고정 PyTorch cu130 환경에서 모델·tokenizer·template 전체 BF16 오프라인 로드 성공 |
 | 4 | [학습 전 데이터·모델 검증](phase-4-preflight-validation.md) | 완료 | 품질 보정 staging의 A~E·1,020case·Full FT 200-step resume와 768 canonical 승격 통과 |
-| 5 | [Baseline 학습](phase-5-baseline-training.md) | 진행 중 | KI10·Gate v2·KI20 preflight 완료, `run-1f5d732cae67` 1 epoch 본학습 실행 중 |
+| 5 | [Baseline 학습](phase-5-baseline-training.md) | 완료 | `run-1f5d732cae67` 1 epoch·2,500 step과 final 새 process 재로딩 완료, production 승격 금지 유지 |
 | 6 | [평가·검수·v2 결정](phase-6-evaluation-v2-decision.md) | 미시작 | 고정 평가 후 50K 또는 v2 Lite 경로 결정 |
 
 Phase 상태 값은 `미시작`, `부분 진행`, `진행 중`, `차단`, `완료`만 사용한다. 앞 Phase가 `완료`가 아니면 뒤 Phase의 공식 산출물을 만들지 않는다.
@@ -45,6 +45,8 @@ Phase 상태 값은 `미시작`, `부분 진행`, `진행 중`, `차단`, `완�
 Phase 0 → Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5 → Phase 6
                          데이터 Gate ─┘       └─ 모델 Gate
 ```
+
+생년월일시에서 구조화 원국을 계산하는 앱 runtime은 학습 Phase와 분리한 [`한국식 만세력 Runtime 계산기 도입 정본`](../saju_runtime_calculator_adoption.md)을 따른다. Runtime Gate가 통과해도 그 사실만으로 새 학습을 허용하지 않으며, 기존 데이터·평가 Gate를 다시 통과해야 한다.
 
 ## 예정 산출물 경로
 
@@ -228,6 +230,12 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
 - 원본 SHA-256: `11dde66505aa3ca90834488a877a0f4db42512d9cb377880d935f71bc71d3724`
 
 ## 진행 기록
+
+- 2026-08-31
+  - 작업 요약: 완료된 KI20 baseline과 MIX20K-v3.0.1을 보존한 채 한국 만세력 runtime workstream을 독립 정본으로 연결했다. Phase 5 인덱스의 실행 중 표기를 실제 `trained_and_reloaded` 상태로 바로잡았다.
+  - 변경 범위: 이 문서의 상태·링크만 갱신했으며 모델, checkpoint, 기존 데이터 build, split, sealed blind는 변경하지 않았다.
+  - 검증: runtime 공개 KASI 63건·단일 profile 16건의 mismatch 0과 candidate 불변 검사를 통과했지만 공식 전수 fixture 부족으로 runtime·v3.1·학습 승격은 모두 false다.
+  - 남은 이슈·후속 작업: Runtime Gate 완료 뒤에도 v3.1 새 build·split·preflight와 기존 대화 품질 Gate가 별도로 필요하다.
 
 - 2026-08-31
   - 작업 요약: 외부 `saju-mix20k-v3-review-ready`를 원본 불변으로 감사하고 `v3.0.1-repaired` private 보정 build와 public 집계 intake, 고정 Kanana tokenizer 비학습 preflight를 생성했다. 실제 학습은 실행하지 않았다.

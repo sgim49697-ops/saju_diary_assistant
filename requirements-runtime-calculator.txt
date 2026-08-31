@@ -1,0 +1,7 @@
+# requirements-runtime-calculator.txt - 한국 만세력 후보 runtime의 CPU 전용 고정 의존성
+--index-url https://pypi.org/simple
+--only-binary :all:
+
+astronomy-engine @ https://files.pythonhosted.org/packages/67/87/47c093c8ac29ee737de6d6a8957ff9e2dc3a36427b392fdca2d1b05bdab0/astronomy_engine-2.1.19-py3-none-any.whl#sha256=232ba7dd2bbf42225c48be6721b676e8c6c079dbd4588d2781dfa68adcb6f67f
+korean-lunar-calendar @ https://files.pythonhosted.org/packages/c1/88/f56033b09fdca5c8c5e5fc2f3513950a05cd62caa9bd8e6d2750a887c86e/korean_lunar_calendar-0.4.0-py3-none-any.whl#sha256=c042e20de0bb702add6bec8d0f6da1ea8d3b170838e63846f70420cf341fe4e7
+tzdata @ https://files.pythonhosted.org/packages/e5/6d/b53b99a9f2766d095985947a5782f1702cabb129a34f7a802d7197af832f/tzdata-2026.3-py2.py3-none-any.whl#sha256=dc096730c87af6cab1b171c9d532be840741ff5d459015e7f6947bd7d7e54931

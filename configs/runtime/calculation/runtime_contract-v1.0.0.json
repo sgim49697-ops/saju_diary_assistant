@@ -1,0 +1,104 @@
+{
+  "_description": "기존 saju-tools-v1을 보존하면서 한국 만세력 계산 core를 붙이는 fail-closed 계약이다.",
+  "schema_version": "1.0.0",
+  "runtime_contract_version": "saju-runtime-contract-v1.0.0",
+  "engine_version": "saju-runtime-python-v1.0.0",
+  "status": "implemented_candidate_runtime_gate_blocked",
+  "runtime_approved": false,
+  "feature_flag_default": false,
+  "parents": {
+    "tool_schema": {
+      "path": "configs/runtime/tool_schema_v1.json",
+      "sha256": "f437b3de82d8c264e59eac6e4e42e99c6cffecf4c4c23e0752fdec4bf23ee601"
+    },
+    "session_state_schema": {
+      "path": "configs/runtime/session_state_schema_v1.json",
+      "sha256": "29fcf12560a314568b85af174684e4f99db6958f63473d3170c614e799af6802"
+    },
+    "workflow_calculation_policy": {
+      "path": "configs/runtime/calculation_policy_v1.json",
+      "sha256": "b62771053044088ea27ec98b44b9fc09b4aaccfa0525939db54a05275c41d007"
+    },
+    "approved_table_policy": {
+      "path": "configs/saju_calculation_policy-v1.0.0.json",
+      "sha256": "d6a20582dd52d3928674b3e6a65a586d6f71c1e22e2ab8b925ca431debf3286c"
+    }
+  },
+  "scope": {
+    "country_code": "KR",
+    "iana_time_zone": "Asia/Seoul",
+    "solar_year_min": 1900,
+    "solar_year_max": 2049,
+    "calendars": ["solar", "lunar"],
+    "time_precisions": ["exact", "range", "unknown"],
+    "colloquial_time_normalization": {
+      "am": {"time_precision": "range", "start": "00:00", "end": "11:59"},
+      "pm": {"time_precision": "range", "start": "12:00", "end": "23:59"},
+      "new_tool_enum_added": false
+    }
+  },
+  "profile_id": "KR_CIVIL_MIDNIGHT_V1",
+  "candidate_enabled_fields": [
+    "solar_lunar_normalization",
+    "year_pillar",
+    "month_pillar",
+    "day_pillar",
+    "hour_pillar_when_exact",
+    "stem_branch_identity",
+    "yin_yang_elements",
+    "surface_five_elements",
+    "hidden_stems",
+    "stem_ten_gods",
+    "branch_ten_gods_main_hidden_stem",
+    "period_boundary_date_ganzhi"
+  ],
+  "excluded_fields": [
+    "daeun",
+    "gongmang",
+    "twelve_stages",
+    "branch_relations",
+    "day_strength",
+    "geukguk",
+    "yongsin",
+    "automatic_interpretation",
+    "future_event_prediction"
+  ],
+  "llm_visible_allowlist": [
+    "status",
+    "hard_facts",
+    "fact_authority",
+    "code",
+    "message",
+    "limitations"
+  ],
+  "internal_only": [
+    "normalized_input",
+    "source_versions",
+    "alternative_charts",
+    "internal_trace",
+    "chart_id",
+    "chart_set_id",
+    "calculation_run_id"
+  ],
+  "fail_closed": {
+    "unsupported_region_code": "UNSUPPORTED_REGION",
+    "unsupported_year_code": "UNSUPPORTED_YEAR",
+    "nonexistent_local_time_code": "NONEXISTENT_LOCAL_TIME",
+    "runtime_gate_pending_code": "RUNTIME_GATE_PENDING",
+    "guess_unknown_hour_allowed": false,
+    "shift_dst_gap_allowed": false,
+    "pick_dst_fold_without_evidence_allowed": false,
+    "fallback_to_comparative_engine_allowed": false
+  },
+  "data_migration": {
+    "source_build": "mix20k-v3.0.1-repaired/build-94eb7b543490",
+    "target_version": "mix20k-v3.1-runtime-grounded",
+    "regenerate_all_chart_tool_calls": 4350,
+    "regenerate_all_period_tool_calls": 900,
+    "foreign_rows_replace_with_kr": 180,
+    "foreign_rows_convert_to_unsupported": 20,
+    "preserve_total_rows": 20000,
+    "allowed_before_runtime_gate": false,
+    "training_allowed_by_runtime_gate_alone": false
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "inputs": {
+    "implementation": {
+      "path": "scripts/data/mix20k_v3_runtime_plan.py",
+      "sha256": "712525e40fc8e659819e96749b1886fda979e9f3ba7bd3c47cc5dfeb8faf5b6b"
+    },
+    "runtime_registry_sha256": "a85849bc6728ba7b9c0bd31a062b18e8fc15f176dcf60ea680ca34e79755e299"
+  },
+  "migration_contract": {
+    "foreign_convert_to_unsupported_region": 20,
+    "foreign_replace_with_kr": 180,
+    "mutate_source_build": false,
+    "new_build_fingerprint_required": true,
+    "new_split_leakage_preflight_required": true,
+    "preserve_conversation_and_scenario_ids": true,
+    "preserve_total_rows": 20000,
+    "regenerate_chart_tool_calls": 4350,
+    "regenerate_period_tool_calls": 900,
+    "replacement_selection_fingerprint": "c76a4998edbb1df8333b505a12e2d9a0ddf3220aee6f1119958359b15b81ffa8",
+    "target_version": "mix20k-v3.1-runtime-grounded",
+    "training_execution_allowed": false
+  },
+  "observed": {
+    "chart_calendar_counts": {
+      "lunar": 964,
+      "solar": 3386
+    },
+    "chart_time_precision_counts": {
+      "exact": 3417,
+      "unknown": 933
+    },
+    "chart_year_max": 2005,
+    "chart_year_min": 1960,
+    "foreign_by_axis": {
+      "calendar_time_edge": 50,
+      "chart_tool_call": 150
+    },
+    "foreign_chart_rows": 200,
+    "hard_candidate_rows": 3800,
+    "task_axis_counts": {
+      "birth_intake": 1600,
+      "calendar_time_edge": 700,
+      "chart_tool_call": 1500,
+      "completion_truthfulness": 500,
+      "correction_conflict": 800,
+      "domain_consultation": 2800,
+      "general_korean_replay": 1300,
+      "hard_policy_qa": 1000,
+      "intent_routing": 1000,
+      "invalid_unverifiable_correction": 500,
+      "non_saju_empathy": 1200,
+      "optin_saju_diary_bridge": 700,
+      "stateful_followup": 2200,
+      "tool_result_interpretation": 3200,
+      "verified_period_handling": 1000
+    },
+    "tool_call_counts": {
+      "calculate_saju_chart": 4350,
+      "calculate_saju_period": 900
+    }
+  },
+  "phase5_training_performed": false,
+  "plan_version": "mix20k-v3.1-runtime-migration-v1.0.0",
+  "raw_rows_in_report": false,
+  "regeneration_allowed": false,
+  "runtime_gate": {
+    "passed": false,
+    "provided": true,
+    "sha256": "4459ae9c5f5aa8fa898cbca495ade7d86a513924b66aaccadc84622f456212a2"
+  },
+  "schema_version": "1.0.0",
+  "sealed_blind_accessed": false,
+  "source_build": {
+    "build_id": "build-94eb7b543490",
+    "build_sha256": "94eb7b5434907539d7041fc81846169dc2e80f332e99b53d710722dcd5564454",
+    "rows": 20000,
+    "training_projection_sha256": "80ada883094dda4b0f3c1dfacfb01e70f54b9da6f57f8af7faf7b76489f5456c"
+  },
+  "status": "blocked_runtime_gate_pending",
+  "training_promotion_allowed": false
+}

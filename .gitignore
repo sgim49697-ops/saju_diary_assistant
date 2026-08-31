@@ -16,5 +16,6 @@
 /saju-mix20k-v3-review-ready/
 /.venv/
 /.venv-data/
+/.venv-runtime/
 __pycache__/
 *.py[cod]

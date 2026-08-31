@@ -1,0 +1,21 @@
+{
+  "_description": "runtime conformance 차이를 설명 없이 통과시키지 않기 위한 고정 분류다.",
+  "schema_version": "1.0.0",
+  "taxonomy_version": "saju-runtime-mismatch-v1.0.0",
+  "categories": {
+    "official_fact_mismatch": ["solar_lunar_conversion", "leap_month", "day_ganzhi", "civil_time_offset"],
+    "policy_profile_mismatch": ["year_boundary", "month_boundary", "day_boundary", "branch_ten_god_basis"],
+    "timezone_or_dst_mismatch": ["wrong_offset", "ambiguous_local_time", "nonexistent_local_time", "tzdb_version_drift"],
+    "solar_term_boundary_mismatch": ["instant_difference", "wrong_jie_mapping"],
+    "input_normalization_mismatch": [],
+    "source_version_mismatch": [],
+    "unsupported_range": [],
+    "implementation_bug": [],
+    "non_comparable_interpretation": []
+  },
+  "gate_rules": {
+    "unclassified_mismatch_allowed": 0,
+    "engine_majority_vote_allowed": false,
+    "silent_fallback_allowed": false
+  }
+}

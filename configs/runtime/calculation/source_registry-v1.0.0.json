@@ -1,0 +1,67 @@
+{
+  "_description": "runtime 후보와 공식 검증 원천을 역할별로 고정한다.",
+  "schema_version": "1.0.0",
+  "registry_version": "saju-runtime-sources-v1.0.0",
+  "reviewed_at": "2026-08-31",
+  "sources": {
+    "kasi_lunisolar_openapi": {
+      "role": "official_conformance_oracle",
+      "url": "https://www.data.go.kr/data/15012679/openapi.do",
+      "service_operation": "getLunCalInfo",
+      "collector_version": "kasi-lunisolar-collector-v1.0.0",
+      "collector_sha256": "f3d1ae71969dcfda948a4a76b38b9d04fa51cfbdeb3472cffd180cc9ebb6579b",
+      "credential_required": true,
+      "full_snapshot_available": false,
+      "required_supported_rows": 54787
+    },
+    "kasi_calendar_data": {
+      "role": "official_solar_term_display_reference",
+      "url": "https://astro.kasi.re.kr/life/post/calendardata",
+      "provides": ["solar_term_date", "solar_term_hour", "solar_term_minute"],
+      "full_boundary_snapshot_available": false
+    },
+    "iana_tzdb": {
+      "role": "official_timezone_source",
+      "release": "2026c",
+      "url": "https://www.iana.org/time-zones/repository/releases/tzdata2026c.tar.gz"
+    },
+    "python_tzdata": {
+      "role": "runtime_timezone_distribution",
+      "version": "2026.3",
+      "wheel_url": "https://files.pythonhosted.org/packages/e5/6d/b53b99a9f2766d095985947a5782f1702cabb129a34f7a802d7197af832f/tzdata-2026.3-py2.py3-none-any.whl",
+      "wheel_sha256": "dc096730c87af6cab1b171c9d532be840741ff5d459015e7f6947bd7d7e54931",
+      "license": "Apache-2.0",
+      "copyright": "Copyright (c) 2020 Paul Ganssle (Google); Copyright (c) 2026 Stan Ulbrych"
+    },
+    "korean_lunar_calendar": {
+      "role": "candidate_runtime_calendar_provider_pending_full_kasi_conformance",
+      "version": "0.4.0",
+      "wheel_url": "https://files.pythonhosted.org/packages/c1/88/f56033b09fdca5c8c5e5fc2f3513950a05cd62caa9bd8e6d2750a887c86e/korean_lunar_calendar-0.4.0-py3-none-any.whl",
+      "wheel_sha256": "c042e20de0bb702add6bec8d0f6da1ea8d3b170838e63846f70420cf341fe4e7",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2022 Jinil Lee"
+    },
+    "astronomy_engine": {
+      "role": "candidate_runtime_solar_term_provider_pending_full_kasi_conformance",
+      "repository": "https://github.com/cosinekitty/astronomy",
+      "revision": "61dc07020aaa6885d2c7f688a4d82beaf6edb9ef",
+      "version": "2.1.19",
+      "wheel_url": "https://files.pythonhosted.org/packages/67/87/47c093c8ac29ee737de6d6a8957ff9e2dc3a36427b392fdca2d1b05bdab0/astronomy_engine-2.1.19-py3-none-any.whl",
+      "wheel_sha256": "232ba7dd2bbf42225c48be6721b676e8c6c079dbd4588d2781dfa68adcb6f67f",
+      "runtime_approved": false,
+      "blocker": "KASI 1900-2049 twelve-Jie boundary snapshot is unavailable",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2019-2023 Don Cross <cosinekitty@gmail.com>"
+    },
+    "manseryeok": {
+      "role": "development_comparator_only",
+      "repository": "https://github.com/yhj1024/manseryeok",
+      "revision": "fba3253d7305b8b61189bd78318a7a27ed8c9b09",
+      "package_version": "2.0.0",
+      "npm_integrity": "sha512-h4YeuKP+vsAa01K72v/H+5MwxEZd1Sv7H2hC8YU7r05JjNaCDvVhGaIot0zxrktyZVU6SGN5Ed9d1coTWW8rpQ==",
+      "production_dependency": false,
+      "license": "MIT",
+      "copyright": "Copyright (c) 2025 Yoohyojun"
+    }
+  }
+}

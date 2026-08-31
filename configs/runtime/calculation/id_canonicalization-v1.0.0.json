@@ -1,0 +1,25 @@
+{
+  "_description": "chart와 chart set 식별자의 byte-level 재현 규칙이다.",
+  "schema_version": "1.0.0",
+  "canonicalization_id": "saju-runtime-canonical-json-v1",
+  "encoding": "UTF-8",
+  "unicode_normalization": "NFC",
+  "sort_object_keys": true,
+  "separators": [",", ":"],
+  "distinguish_null_and_omitted": true,
+  "forbid_nan_and_infinity": true,
+  "hash": "SHA-256",
+  "prefixes": {
+    "birth_input_id": "sbi1_",
+    "chart_id": "sc1_",
+    "chart_set_id": "scs1_",
+    "calculation_run_id": "scr1_"
+  },
+  "hash_inputs": [
+    "normalized_birth_input",
+    "policy_id",
+    "engine_version",
+    "calculation_schema_version",
+    "source_versions"
+  ]
+}

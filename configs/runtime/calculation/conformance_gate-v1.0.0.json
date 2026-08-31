@@ -1,0 +1,32 @@
+{
+  "_description": "KR_CIVIL_MIDNIGHT_V1을 승인하기 전에 모두 만족해야 하는 hard Gate다.",
+  "schema_version": "1.0.0",
+  "gate_version": "saju-runtime-gate-v1.0.0",
+  "status": "blocked_missing_official_full_snapshots",
+  "profile_id": "KR_CIVIL_MIDNIGHT_V1",
+  "minimum_cases": {
+    "kasi_supported_solar_days": 54787,
+    "jie_boundary_before_at_after": 5400,
+    "unknown_range": 500,
+    "canonical_hash_vectors": 200,
+    "unsupported_foreign": 20
+  },
+  "maximum_failures": {
+    "official_hard_mismatch": 0,
+    "profile_boundary_mismatch": 0,
+    "guessed_unknown_hour": 0,
+    "dst_gap_auto_shift": 0,
+    "dst_fold_auto_pick": 0,
+    "host_timezone_or_locale_drift": 0,
+    "heuristic_fact_leak": 0,
+    "unclassified_mismatch": 0,
+    "silent_unsupported_fallback": 0,
+    "id_version_instability": 0
+  },
+  "promotion_effects": {
+    "runtime_feature_flag_default": false,
+    "training_promotion_allowed": false,
+    "mix20k_v3_1_regeneration_allowed_only_after_pass": true,
+    "sealed_blind_access_allowed": false
+  }
+}

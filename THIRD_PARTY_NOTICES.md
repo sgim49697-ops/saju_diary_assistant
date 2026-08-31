@@ -22,4 +22,21 @@
 - 저작권: Copyright (c) 2025 Yoohyojun
 - 전체 라이선스: [`licenses/third_party/manseryeok-MIT.txt`](licenses/third_party/manseryeok-MIT.txt)
 
+## Astronomy Engine runtime 후보 의존성
+
+- 원천: `cosinekitty/astronomy@61dc07020aaa6885d2c7f688a4d82beaf6edb9ef`
+- 고정 배포본: `astronomy-engine==2.1.19`, wheel SHA-256 `232ba7dd2bbf42225c48be6721b676e8c6c079dbd4588d2781dfa68adcb6f67f`
+- 사용 범위: 24절기의 겉보기 태양 황경 도달 순간을 계산하는 후보 provider. KASI 1900~2049 경계 전수 Gate 전에는 runtime·학습 Gold로 승인하지 않음
+- 라이선스: MIT
+- 저작권: Copyright (c) 2019-2023 Don Cross `<cosinekitty@gmail.com>`
+- 전체 라이선스: [`licenses/third_party/astronomy-engine-MIT.txt`](licenses/third_party/astronomy-engine-MIT.txt)
+
+## Python tzdata runtime 의존성
+
+- 원천: `python/tzdata@a44279419071b7aa41ebe7eca301ebb2e759571a`, tag `2026.3`
+- 고정 배포본: `tzdata==2026.3`, wheel SHA-256 `dc096730c87af6cab1b171c9d532be840741ff5d459015e7f6947bd7d7e54931`
+- 사용 범위: system tzdb가 없는 환경에서도 IANA tzdb `2026c`를 제공하는 fallback 배포본
+- 라이선스: Apache-2.0. 배포 wheel 안의 `licenses/LICENSE`와 `licenses/licenses/LICENSE_APACHE`가 전문·저작권 고지를 포함한다.
+- 저작권: Copyright (c) 2020 Paul Ganssle (Google); Copyright (c) 2026 Stan Ulbrych
+
 `oh-my-saju`, `korean_saju`, `lunar-python`, `ssaju`의 코드는 복제하거나 의존성으로 추가하지 않았다. 이들의 고정 revision은 비교 근거로만 기록했으며, 이후 코드 또는 실질적 부분을 복제하면 해당 라이선스 전문과 저작권 고지를 추가로 보존해야 한다.
