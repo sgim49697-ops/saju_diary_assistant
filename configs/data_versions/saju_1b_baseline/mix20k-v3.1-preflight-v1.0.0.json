@@ -1,0 +1,61 @@
+{
+  "_description": "MIX20K-v3.1의 leakage·tokenizer·assistant mask·tool round-trip 비학습 검증 계약이다.",
+  "schema_version": "1.0.0",
+  "preflight_version": "mix20k-v3.1-preflight-v1.0.0",
+  "dataset_version": "mix20k-v3.1-runtime-grounded",
+  "rows": 20000,
+  "training_projection": "training/training_mix20k_v3.1_runtime_grounded.jsonl",
+  "model": {
+    "repo_id": "kakaocorp/kanana-2-1.3b-instruct",
+    "revision": "bf4786aa2a1908adce942d53976270132732f720",
+    "snapshot": "models/saju_1b_baseline/kanana-2-1.3b-instruct/bf4786aa2a1908adce942d53976270132732f720",
+    "chat_template_sha256": "b8ee6b31575eada17ebbe73d3f1ac65d3efde64f0a25ff922031dec7e1cae3e3",
+    "max_length": 768,
+    "assistant_only_loss": true,
+    "model_weights_loaded": false
+  },
+  "nonsealed_evaluation": {
+    "dev_monitor": {
+      "path": "data/derived/saju_1b_baseline/phase5-readiness/v1.2.0/build-e325f16096dd/eval/dev_monitor_70.jsonl",
+      "sha256": "aa61d2a763e3194e3a25561a3030c74bebb002c702ef8469c27a1bc22a2bcb31",
+      "rows": 70
+    },
+    "dev_diagnostic": {
+      "path": "data/derived/saju_1b_baseline/evaluation-split/v1.0.0/build-a5a04ab96594/eval/dev_diagnostic_930.jsonl",
+      "sha256": "0b6f62ad9f5849e24bf96f613f173be922aeaf1b9d149f72b2d37abf19a74676",
+      "rows": 930
+    },
+    "persona_guard": {
+      "path": "data/derived/saju_1b_baseline/evaluation-split/v1.1.0/build-d2f9e1623e96/eval/persona_causalization_guard_50.jsonl",
+      "sha256": "cb5d2f6548d8ca2721c29dec59575c0e98532084fa3c0fe7a432c23a680f82b2",
+      "rows": 50
+    }
+  },
+  "sealed_blind_hash_only": {
+    "path": "data/derived/saju_1b_baseline/evaluation-split/v1.0.0/build-a5a04ab96594/manifests/blind_components_350.jsonl",
+    "sha256": "43fd009804b5a3293a1b48c902b73e19b274bde8e9d9b8869354a222c6835be4",
+    "components": 350,
+    "payload_access_allowed": false
+  },
+  "gates": {
+    "over_max_length_rows": 0,
+    "zero_assistant_mask_rows": 0,
+    "pre_last_user_supervised_rows": 0,
+    "missing_final_assistant_eos_rows": 0,
+    "serialization_mismatch_rows": 0,
+    "tool_roundtrip_errors": 0,
+    "nonsealed_eval_prompt_overlap": 0,
+    "sealed_blind_content_hash_overlap": 0
+  },
+  "outputs": {
+    "private_root": "data/derived/saju_1b_baseline/mix20k-v3.1-preflight/v1.0.0",
+    "public_root": "data/reports/saju_1b_baseline/mix20k-v3.1-preflight/v1.0.0"
+  },
+  "governance": {
+    "training_method_called": false,
+    "backward_performed": false,
+    "optimizer_step_performed": false,
+    "training_promotion_allowed": false,
+    "sealed_blind_payload_accessed": false
+  }
+}

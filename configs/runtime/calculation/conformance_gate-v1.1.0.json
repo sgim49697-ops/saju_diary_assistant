@@ -1,0 +1,52 @@
+{
+  "_description": "공식 날짜·분 근거와 독립 천문 엔진을 분리하는 KR_CIVIL_MIDNIGHT_V1 계층형 Gate다.",
+  "schema_version": "1.1.0",
+  "gate_version": "saju-runtime-gate-v1.1.0",
+  "suite_version": "saju-runtime-conformance-v3.0.0",
+  "status": "blocked_official_snapshots_pending",
+  "profile_id": "KR_CIVIL_MIDNIGHT_V1",
+  "minimum_cases": {
+    "kasi_lunar_days": 54787,
+    "kasi_all_solar_term_dates_collected": 3600,
+    "kasi_jie_dates_compared": 1800,
+    "kasi_jie_minute_references": 84,
+    "independent_jie_instants": 1800,
+    "jie_boundary_before_at_after": 5400,
+    "unknown_range": 500,
+    "canonical_hash_vectors": 200,
+    "unsupported_foreign": 20
+  },
+  "maximum_failures": {
+    "kasi_lunar_conversion_mismatch": 0,
+    "kasi_day_ganzhi_mismatch": 0,
+    "runtime_kasi_jie_date_mismatch": 0,
+    "runtime_kasi_minute_delta_seconds": 60,
+    "independent_kasi_minute_delta_seconds": 60,
+    "independent_jie_delta_seconds": 120,
+    "independent_term_identity_mismatch": 0,
+    "independent_chronological_order_failure": 0,
+    "profile_boundary_mismatch": 0,
+    "guessed_unknown_hour": 0,
+    "dst_gap_auto_shift": 0,
+    "dst_fold_auto_pick": 0,
+    "host_timezone_or_locale_drift": 0,
+    "heuristic_fact_leak": 0,
+    "unclassified_mismatch": 0,
+    "silent_unsupported_fallback": 0,
+    "id_version_instability": 0
+  },
+  "adjudication": {
+    "official_solar_term_local_date": "kasi_24_divisions_openapi",
+    "official_available_minute": "kasi_calendar_data",
+    "independent_time_crosscheck": "skyfield_1.55_jpl_de440s",
+    "independent_local_date_disagreement_is_reported_not_self_adjudicating": true,
+    "missing_official_evidence_may_be_filled_by_generated_values": false
+  },
+  "promotion_effects": {
+    "runtime_feature_flag_default": false,
+    "training_promotion_allowed": false,
+    "release_registry_required": true,
+    "mix20k_v3_1_regeneration_allowed_only_after_pass": true,
+    "sealed_blind_access_allowed": false
+  }
+}

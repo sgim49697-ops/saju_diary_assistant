@@ -1,0 +1,34 @@
+{
+  "_description": "통과한 conformance v3 보고서를 runtime 승인에 결합하는 release registry schema다.",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "saju-runtime-release-registry-v1.1.0",
+  "schema_version": "1.1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "release_id": {"type": "string", "pattern": "^saju-runtime-release-v1\\.1\\.0-[0-9a-f]{12}$"},
+    "status": {"const": "approved_runtime_feature_default_off"},
+    "engine_version": {"const": "saju-runtime-python-v1.1.0"},
+    "profile_id": {"const": "KR_CIVIL_MIDNIGHT_V1"},
+    "runtime_registry_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "conformance_report": {"type": "object"},
+    "official_snapshots": {"type": "object"},
+    "implementation_sha256": {"type": "object"},
+    "runtime_feature_flag_default": {"const": false},
+    "training_promotion_allowed": {"const": false},
+    "sealed_blind_accessed": {"const": false}
+  },
+  "required": [
+    "release_id",
+    "status",
+    "engine_version",
+    "profile_id",
+    "runtime_registry_sha256",
+    "conformance_report",
+    "official_snapshots",
+    "implementation_sha256",
+    "runtime_feature_flag_default",
+    "training_promotion_allowed",
+    "sealed_blind_accessed"
+  ]
+}

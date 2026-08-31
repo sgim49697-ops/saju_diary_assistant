@@ -1,0 +1,11 @@
+{
+  "aggregate_sha256": "d5c109a9f07cae2238af8f10a25ca973da0185a0b76d7300ec803a26f3a48579",
+  "build_id": "build-2702394cde89",
+  "mix20k_v3_1_regeneration_allowed": false,
+  "phase5_training_performed": false,
+  "release_registry_creation_allowed": false,
+  "report_type": "saju_runtime_conformance_v3",
+  "runtime_gate_passed": false,
+  "schema_version": "1.1.0",
+  "training_promotion_allowed": false
+}

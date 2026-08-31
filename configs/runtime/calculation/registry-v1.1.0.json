@@ -1,0 +1,36 @@
+{
+  "_description": "계층형 Gate와 동적 release 계약 파일의 SHA-256을 고정한다.",
+  "schema_version": "1.1.0",
+  "registry_id": "saju-runtime-calculation-registry-v1.1.0",
+  "status": "tiered_runtime_gate_release_pending",
+  "artifacts": [
+    {
+      "path": "configs/runtime/calculation/runtime_contract-v1.1.0.json",
+      "sha256": "d7ed082b5e700410adff1b6639206ef394f781f197e7787bcc8c89a12dc25605"
+    },
+    {
+      "path": "configs/runtime/calculation/calculation_output_schema-v1.1.0.json",
+      "sha256": "17a1470d2fc1ff679960b8bea7ebc3f117d0d86a3bd305274905aefcc8495aef"
+    },
+    {
+      "path": "configs/runtime/calculation/source_registry-v1.1.0.json",
+      "sha256": "8ad6d9bc294368900fe66f158b8d04d2fe6f8c4f966f56e250ea8675538b8377"
+    },
+    {
+      "path": "configs/runtime/calculation/conformance_gate-v1.1.0.json",
+      "sha256": "8df24cb9b2300150622eea844ebc869ae9313585578c697bc483c27e74d7a771"
+    },
+    {
+      "path": "configs/runtime/calculation/profiles/KR_CIVIL_MIDNIGHT_V1-v1.1.0.json",
+      "sha256": "61437a83693851b580627a1f693d42cd932dbc5c6698b876372f67479eaf5653"
+    },
+    {
+      "path": "configs/runtime/calculation/release_registry_schema-v1.1.0.json",
+      "sha256": "a20badfebb65d5af4b13c63b60ef1bd7a6b74d9ec299c2d876f8d470673f5d40"
+    },
+    {
+      "path": "requirements-runtime-calculator-v1.1.txt",
+      "sha256": "7383f6357e7dec1fe90d17b84de6363aeac2f63c3cbd66b49cbba93e1357e1a1"
+    }
+  ]
+}

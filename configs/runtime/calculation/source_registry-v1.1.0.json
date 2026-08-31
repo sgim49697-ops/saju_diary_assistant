@@ -1,0 +1,80 @@
+{
+  "_description": "KASI 계층형 공식 근거와 독립 Skyfield/JPL 검증 원천을 고정한다.",
+  "schema_version": "1.1.0",
+  "registry_version": "saju-runtime-sources-v1.1.0",
+  "reviewed_at": "2026-08-31",
+  "sources": {
+    "kasi_lunisolar_openapi": {
+      "role": "official_lunar_and_day_ganzhi_oracle",
+      "url": "https://www.data.go.kr/data/15012679/openapi.do",
+      "endpoint": "https://apis.data.go.kr/B090041/openapi/service/LrsrCldInfoService/getLunCalInfo",
+      "service_operation": "getLunCalInfo",
+      "collector_version": "kasi-runtime-collector-v1.1.0",
+      "collector_sha256": "819b909acf4933f567ee930405aa8c09001f852e6c51751805290eb816a1b3f2",
+      "credential_required": true,
+      "required_supported_rows": 54787,
+      "request_granularity": "solar_month",
+      "expected_requests": 1800
+    },
+    "kasi_24_divisions_openapi": {
+      "role": "official_solar_term_date_oracle",
+      "url": "https://www.data.go.kr/data/15012690/openapi.do",
+      "endpoint": "https://apis.data.go.kr/B090041/openapi/service/SpcdeInfoService/get24DivisionsInfo",
+      "service_operation": "get24DivisionsInfo",
+      "collector_version": "kasi-runtime-collector-v1.1.0",
+      "collector_sha256": "819b909acf4933f567ee930405aa8c09001f852e6c51751805290eb816a1b3f2",
+      "credential_required": true,
+      "required_all_term_rows": 3600,
+      "required_jie_rows": 1800,
+      "request_granularity": "solar_year",
+      "expected_requests": 150
+    },
+    "kasi_calendar_data": {
+      "role": "institutional_minute_display_reference_not_formal_almanac",
+      "url": "https://astro.kasi.re.kr/kor/life/post/calendarData",
+      "collector_version": "kasi-minute-reference-collector-v1.1.0",
+      "collector_sha256": "9dc93bdf7f400e6957ebd5011d9406decd1910092ca3a5f4833957cda1ca1cec",
+      "required_jie_rows": 84,
+      "years": [2021, 2022, 2023, 2024, 2025, 2026, 2027],
+      "precision": "displayed_minute",
+      "generated_substitution_allowed": false
+    },
+    "jpl_de440s": {
+      "role": "independent_ephemeris_for_validator_only",
+      "url": "https://ssd.jpl.nasa.gov/ftp/eph/planets/bsp/de440s.bsp",
+      "sha256": "c1c7feeab882263fc493a9d5a5b2ddd71b54826cdf65d8d17a76126b260a49f2",
+      "bytes": 32726016,
+      "coverage_years": [1849, 2150],
+      "git_tracked": false
+    },
+    "skyfield": {
+      "role": "independent_solar_longitude_validator_only",
+      "version": "1.55",
+      "wheel_sha256": "9f98964855067460c94aa81a337194136f4a97a62ba8bbbfac1b8556f2b66ad4",
+      "crosscheck_version": "saju-jie-crosscheck-v1.1.0",
+      "crosscheck_sha256": "26592152a4b205b22a1d722b4b31e4278afeb0ebf6d1c02f2abeeddb14e71adc",
+      "production_runtime_dependency": false
+    },
+    "astronomy_engine": {
+      "role": "runtime_solar_term_provider_pending_tiered_gate",
+      "version": "2.1.19",
+      "revision": "61dc07020aaa6885d2c7f688a4d82beaf6edb9ef",
+      "wheel_sha256": "232ba7dd2bbf42225c48be6721b676e8c6c079dbd4588d2781dfa68adcb6f67f"
+    },
+    "korean_lunar_calendar": {
+      "role": "runtime_calendar_provider_pending_full_kasi_conformance",
+      "version": "0.4.0",
+      "wheel_sha256": "c042e20de0bb702add6bec8d0f6da1ea8d3b170838e63846f70420cf341fe4e7"
+    },
+    "iana_tzdb": {
+      "role": "official_timezone_source",
+      "release": "2026c",
+      "url": "https://www.iana.org/time-zones/repository/releases/tzdata2026c.tar.gz"
+    },
+    "python_tzdata": {
+      "role": "runtime_timezone_distribution",
+      "version": "2026.3",
+      "wheel_sha256": "dc096730c87af6cab1b171c9d532be840741ff5d459015e7f6947bd7d7e54931"
+    }
+  }
+}

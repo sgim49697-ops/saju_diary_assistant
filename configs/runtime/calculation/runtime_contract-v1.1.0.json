@@ -1,0 +1,61 @@
+{
+  "_description": "v1 계산 구현을 보존하면서 계층형 Gate와 release registry로 권위를 승격하는 계약이다.",
+  "schema_version": "1.1.0",
+  "runtime_contract_version": "saju-runtime-contract-v1.1.0",
+  "engine_version": "saju-runtime-python-v1.1.0",
+  "status": "implemented_tiered_gate_release_pending",
+  "runtime_approved_in_static_contract": false,
+  "approval_requires_release_registry": true,
+  "feature_flag_default": false,
+  "profile_id": "KR_CIVIL_MIDNIGHT_V1",
+  "parents": {
+    "candidate_runtime_registry": {
+      "path": "configs/runtime/calculation/registry-v1.0.0.json",
+      "sha256": "a85849bc6728ba7b9c0bd31a062b18e8fc15f176dcf60ea680ca34e79755e299"
+    },
+    "birth_input_schema": {
+      "path": "configs/runtime/calculation/birth_input_schema-v1.0.0.json",
+      "sha256": "c50befbfb8307ad82cb46ea835f900e25e3445fb546defffab0dd0d8cf62c1e3"
+    },
+    "id_canonicalization": {
+      "path": "configs/runtime/calculation/id_canonicalization-v1.0.0.json",
+      "sha256": "96397d953fb4a601d2d6056f5e45d68f7088833255b71ca89da870e53d94dd49"
+    },
+    "mismatch_taxonomy": {
+      "path": "configs/runtime/calculation/mismatch_taxonomy-v1.0.0.json",
+      "sha256": "4d00bf2ecac1fbb97aeedd0cc1a8167ef6b2dfa021ae3bbb4229935e3a2da452"
+    }
+  },
+  "authority": {
+    "exact_after_valid_release": "HARD_GT",
+    "range_or_unknown_after_valid_release": "POLICY_BOUND_RULE",
+    "candidate_before_release": "HARD_CANDIDATE",
+    "heuristic_fields_may_be_upgraded": false
+  },
+  "llm_visible_allowlist": [
+    "status",
+    "hard_facts",
+    "fact_authority",
+    "code",
+    "message",
+    "limitations"
+  ],
+  "release_fail_closed": {
+    "missing_release_code": "RUNTIME_RELEASE_REQUIRED",
+    "feature_disabled_code": "RUNTIME_FEATURE_DISABLED",
+    "report_or_manifest_hash_mismatch_allowed": false,
+    "implementation_hash_mismatch_allowed": false,
+    "generated_official_evidence_allowed": false
+  },
+  "data_migration": {
+    "source_build": "mix20k-v3.0.1-repaired/build-94eb7b543490",
+    "target_version": "mix20k-v3.1-runtime-grounded",
+    "execute_all_chart_tool_calls": 4350,
+    "execute_all_period_tool_calls": 900,
+    "update_stored_tool_result_trajectories": 2200,
+    "validate_call_only_trajectories": 3050,
+    "preserve_total_rows": 20000,
+    "allowed_before_valid_release": false,
+    "training_allowed_by_runtime_gate_alone": false
+  }
+}

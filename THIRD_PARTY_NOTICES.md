@@ -39,4 +39,17 @@
 - 라이선스: Apache-2.0. 배포 wheel 안의 `licenses/LICENSE`와 `licenses/licenses/LICENSE_APACHE`가 전문·저작권 고지를 포함한다.
 - 저작권: Copyright (c) 2020 Paul Ganssle (Google); Copyright (c) 2026 Stan Ulbrych
 
+## Skyfield/JPL 독립 절입 validator 의존성
+
+- 고정 배포본: `skyfield==1.55` (`9f989648…b66ad4`), `jplephem==2.24` (`2de15608…629ac`), `sgp4==2.27` (`d2fc2f68…3b630`), `numpy==2.2.6` (`fc7b73d0…e8915`), `certifi==2026.7.22` (`62f22742…83775`)
+- 사용 범위: JPL DE440s와 함께 1900~2049년 12절 순간 1,800건을 독립 계산하는 검증 전용 경로. `skyfield`, `jplephem`, `sgp4`는 production 계산 결과를 만들지 않는다.
+- 라이선스: Skyfield·jplephem·sgp4는 MIT, NumPy는 BSD-3-Clause와 wheel에 동봉된 제3자 고지, certifi CA bundle은 MPL-2.0이다. 각 고정 wheel의 `.dist-info` license 전문을 재배포 시 함께 보존한다.
+- 저작권: Skyfield Copyright © 2013–2018 Brandon Rhodes; jplephem Copyright 2012–2018 Brandon Rhodes; sgp4 Copyright © 2012–2016 Brandon Rhodes; NumPy Copyright (c) 2005–2024 NumPy Developers.
+
+## JPL DE440s 독립 검증 ephemeris
+
+- 공식 배포 URL: <https://ssd.jpl.nasa.gov/ftp/eph/planets/bsp/de440s.bsp>
+- 고정 identity: 32,726,016 bytes, SHA-256 `c1c7feeab882263fc493a9d5a5b2ddd71b54826cdf65d8d17a76126b260a49f2`
+- 사용 범위: 독립 validator의 태양 위치 계산 입력만 허용한다. 파일은 Git·모델·데이터 bundle에 포함하지 않으며, 재배포가 필요해지면 JPL/NASA의 당시 배포 조건을 별도로 확인한다.
+
 `oh-my-saju`, `korean_saju`, `lunar-python`, `ssaju`의 코드는 복제하거나 의존성으로 추가하지 않았다. 이들의 고정 revision은 비교 근거로만 기록했으며, 이후 코드 또는 실질적 부분을 복제하면 해당 라이선스 전문과 저작권 고지를 추가로 보존해야 한다.
