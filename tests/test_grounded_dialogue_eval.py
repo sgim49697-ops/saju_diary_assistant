@@ -268,6 +268,11 @@ class FixedSuiteTest(unittest.TestCase):
                 b"{}\n",
                 mode=PRIVATE_FILE_MODE,
             )
+            write_once(
+                context["private_root"] / "execution.lock",
+                b"",
+                mode=PRIVATE_FILE_MODE,
+            )
             for arm_id, arm_rows in rows_by_arm.items():
                 write_once(
                     context["private_root"] / "arms" / f"{arm_id}.jsonl",

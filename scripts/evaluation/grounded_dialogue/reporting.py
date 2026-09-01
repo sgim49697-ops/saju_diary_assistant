@@ -258,6 +258,41 @@ def write_reports(
 
 
 def verify(context: Mapping[str, Any]) -> dict[str, Any]:
+    public_root = context["public_root"]
+    private_root = context["private_root"]
+    if (
+        public_root.is_symlink()
+        or not public_root.is_dir()
+        or stat.S_IMODE(public_root.stat().st_mode) != 0o755
+        or {path.name for path in public_root.iterdir()}
+        != {"aggregate.json", "build_manifest.json"}
+    ):
+        raise ArtifactError("공개 root 파일 집합·mode가 다릅니다.")
+    expected_arm_files = {
+        f"arms/{arm['arm_id']}.jsonl" for arm in context["config"]["arms"]
+    }
+    expected_private_files = {"run_metadata.json", *expected_arm_files}
+    if (
+        private_root.is_symlink()
+        or not private_root.is_dir()
+        or stat.S_IMODE(private_root.stat().st_mode) != 0o700
+        or {path.name for path in private_root.iterdir()}
+        != {
+            "arms",
+            "completed.json",
+            "execution.lock",
+            "private_manifest.json",
+            "run_metadata.json",
+        }
+        or (private_root / "arms").is_symlink()
+        or not (private_root / "arms").is_dir()
+        or stat.S_IMODE((private_root / "arms").stat().st_mode) != 0o700
+        or {
+            f"arms/{path.name}" for path in (private_root / "arms").iterdir()
+        }
+        != expected_arm_files
+    ):
+        raise ArtifactError("private root 파일 집합·mode가 다릅니다.")
     aggregate = load_json(context["public_root"] / "aggregate.json", "public aggregate")
     manifest_path = context["public_root"] / "build_manifest.json"
     manifest = load_json(manifest_path, "public build manifest")
@@ -274,6 +309,9 @@ def verify(context: Mapping[str, Any]) -> dict[str, Any]:
     if (
         manifest.get("evaluation_build_id") != context["evaluation_build_id"]
         or manifest.get("build_sha256") != context["build_sha256"]
+        or manifest.get("implementation_sha256")
+        != sha256_json(context["build_inputs"]["implementation_hashes"])
+        or set(manifest.get("public_files", {})) != {"aggregate.json"}
         or stat.S_IMODE(manifest_path.stat().st_mode) != PUBLIC_FILE_MODE
     ):
         raise ArtifactError("공개 manifest identity·mode가 다릅니다.")
@@ -292,6 +330,7 @@ def verify(context: Mapping[str, Any]) -> dict[str, Any]:
     if (
         private_manifest.get("evaluation_build_id") != context["evaluation_build_id"]
         or private_manifest.get("build_sha256") != context["build_sha256"]
+        or set(private_manifest.get("files", {})) != expected_private_files
         or stat.S_IMODE(private_manifest_path.stat().st_mode) != PRIVATE_FILE_MODE
     ):
         raise ArtifactError("private manifest identity·mode가 다릅니다.")
