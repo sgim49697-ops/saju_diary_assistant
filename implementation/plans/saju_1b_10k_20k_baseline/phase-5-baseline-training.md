@@ -133,7 +133,7 @@ PHASE5_TRAINING=KI10-MIX-v2 .venv/bin/python scripts/training/phase5_train.py tr
 .venv/bin/python scripts/training/phase5_train.py evaluate-ki10 --execute
 ```
 
-위 KI10 명령은 실행 이력 재현용이며 다시 실행하지 않는다. KI20은 Gate v2 hard gate와 preflight가 통과했어도 자동 실행하지 않는다. 현재 readiness는 `experiment_continuation_allowed=true`, `quality_target_status=not_met`, `full_training_execution_enabled=false`, `production_promotion_allowed=false`다.
+위 KI10 명령은 실행 이력 재현용이며 다시 실행하지 않는다. KI20도 Gate v2 hard gate와 preflight만으로 자동 실행하지 않았다. readiness v1.3의 불변 당시 상태는 `experiment_continuation_allowed=true`, `quality_target_status=not_met`, `full_training_execution_enabled=false`, `production_promotion_allowed=false`다.
 
 2026-08-29 사용자가 KI20 1 epoch 본학습을 별도로 명시 확인했다. readiness v1.3의 당시 상태는 소급 변경하지 않고 `phase5-training-v1.2.0.json`과 registry 실행 승인 포인터로 새 이력을 만든다. 실행은 기본 dry-run과 환경변수 이중 확인을 유지한다.
 
@@ -145,6 +145,8 @@ PHASE5_TRAINING=KI20-MIX-v2 .venv/bin/python scripts/training/phase5_ki20_train.
 ```
 
 시작 상태 검증은 정확히 첫 optimizer step에서 loss·grad norm·전체 gradient가 유한하고 gradient가 nonzero이며, 기록된 PID와 systemd service가 같은 runner로 계속 실행 중일 때만 통과한다. WSL2의 `nvidia-smi --query-compute-apps`가 빈 목록을 반환하는 환경에서는 WSL2 여부와 시작 전 대비 4,096MiB 이상의 GPU 메모리 증가를 함께 요구한다. 이 판정은 실험 시작 확인일 뿐 학습 완료·품질 인증·배포 승격이 아니다.
+
+실제 v1.2 run은 `run-1f5d732cae67`로 1 epoch·2,500 optimizer step을 중단·resume 없이 완료했고 final checkpoint를 새 프로세스에서 5/5 재로딩했다. 이 실행 완료는 readiness snapshot을 소급 변경하거나 품질·production 승격을 뜻하지 않는다. Phase 5는 완료됐고 다음 단계는 동일 checkpoint로 Phase 6 평가를 시작하는 것이며, 이 명령들을 다시 실행하지 않는다.
 
 ## Run 시작 전 동등성 검사
 

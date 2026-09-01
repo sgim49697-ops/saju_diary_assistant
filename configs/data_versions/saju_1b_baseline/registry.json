@@ -126,15 +126,15 @@
     "version": "v1.2.0"
   },
   "approved_project_status": {
-    "build_id": "build-e23e3501a200",
-    "build_manifest_sha256": "c19ab12b61e72b147672fe19813a6f5c89b11ea3d5c0eab58fffc7fe1c86520d",
-    "build_sha256": "e23e3501a200f51e1644158af84ea64b4339a0ef1d335e66cf812f4befbbcbcf",
-    "config_sha256": "253e3e020e88b29d3658928addb1b6655d70a642b2d0daa3ae88bca52b7b294a",
-    "html_sha256": "895d60f81630cd8a9a5fe641abd4a8da6cc213e3113701fb2ad7a09b153ff40c",
+    "build_id": "build-c64657e7aa8f",
+    "build_manifest_sha256": "d6a0a1c0c4a40e996e776e5d68c2bf542cee0927bbb1d3638dfa4abb27f70aa9",
+    "build_sha256": "c64657e7aa8f5446b275b49e25a01229087208ce7790cc710d226fd6250a5040",
+    "config_sha256": "06b46122216e1b496fa1b57d49124de305d8959b14c260cad9f7612f7c0e0f42",
+    "html_sha256": "73a1e1bf635c226cbe2bf4b6b079255e1b71b015b5ac21c0351a2de030382900",
     "restricted_content_included": false,
-    "stage": "ki20_preflight_ready",
+    "stage": "ki20_trained_phase6_pending",
     "status": "published",
-    "version": "v1.0.0"
+    "version": "v1.1.0"
   },
   "approved_staging": {
     "approval_basis": "explicit_owner_automated_technical_acceptance",
@@ -522,6 +522,17 @@
       "stage": "ki20_preflight_ready",
       "status": "published",
       "version": "v1.0.0"
+    },
+    {
+      "build_id": "build-c64657e7aa8f",
+      "build_manifest_sha256": "d6a0a1c0c4a40e996e776e5d68c2bf542cee0927bbb1d3638dfa4abb27f70aa9",
+      "build_sha256": "c64657e7aa8f5446b275b49e25a01229087208ce7790cc710d226fd6250a5040",
+      "config_sha256": "06b46122216e1b496fa1b57d49124de305d8959b14c260cad9f7612f7c0e0f42",
+      "html_sha256": "73a1e1bf635c226cbe2bf4b6b079255e1b71b015b5ac21c0351a2de030382900",
+      "restricted_content_included": false,
+      "stage": "ki20_trained_phase6_pending",
+      "status": "published",
+      "version": "v1.1.0"
     }
   ],
   "schema_version": "1.0.0",

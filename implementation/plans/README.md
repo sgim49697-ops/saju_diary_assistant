@@ -4,9 +4,22 @@
 
 - `kanana_saju_dataset_guide.html`: 모델·데이터셋 조사 내용을 한 화면에서 확인하는 종합 참고 자료
 - `saju_1b_10k_20k_baseline/README.md`: 실제 구현 순서, 버전, Gate를 결정하는 정본
+- `mix20k_v3_repair_plan.md`: 외부 MIX20K-v3 후보의 감사·보정·검수·학습 차단 정본
 - `saju_runtime_calculator_adoption.md`: 한국 만세력 계산 core·공식 conformance·v3.1 이관을 결정하는 독립 정본
 
-종합 가이드와 정본이 충돌하면 `saju_1b_10k_20k_baseline/README.md` 및 각 Phase 문서를 따른다. 데이터 감사용 HTML은 계획 문서에 복제하지 않고 다음 버전 경로에 둔다.
+종합 가이드와 정본이 충돌하면 해당 workstream 정본을 따른다. 학습 Phase·현재 모델 상태는 `saju_1b_10k_20k_baseline/README.md`, v3 후보는 `mix20k_v3_repair_plan.md`, 계산기·공식 근거·release 경계는 `saju_runtime_calculator_adoption.md`가 우선한다.
+
+## 현재 정본 상태
+
+| workstream | 현재 상태 | 승인 경계 |
+|---|---|---|
+| 10K/20K baseline | Phase 0~5 완료, KI20 `run-1f5d732cae67` 학습·재로딩 완료 | Phase 6 미시작, sealed blind 미열람, production 금지 |
+| MIX20K-v3 | `v3.0.1-repaired/build-94eb7b543490` 기술 후보·비학습 preflight 완료 | canonical 3,800행·검수·다양성·state/grounding·serving blocker, v3.1·학습 금지 |
+| 만세력 runtime | Skyfield v1.3 candidate와 conformance v8 `build-8bd88d6db03a` 통과 | strict Gate·release·앱 연결 차단, 결과는 `HARD_CANDIDATE` |
+
+루트 [`PROJECT_STATUS.html`](../../PROJECT_STATUS.html)은 위 세 workstream의 공개 가능한 현재 집계를 보여준다. 과거 진행 기록과 versioned config/report는 당시 판단의 불변 이력이며 현재 포인터로 읽지 않는다.
+
+데이터 감사용 HTML은 계획 문서에 복제하지 않고 다음 버전 경로에 둔다.
 
 ```text
 data/reports/<dataset>/audit-review/<audit-version>/<audit-build-id>/reviewer-<reviewer-version>/

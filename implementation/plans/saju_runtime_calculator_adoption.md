@@ -4,7 +4,7 @@
 
 | 항목 | 값 |
 |---|---|
-| 문서 버전 | `runtime-calculator-adoption-v2.6.1` |
+| 문서 버전 | `runtime-calculator-adoption-v2.6.2` |
 | 정본화 기준일 | 2026-09-01 |
 | 구현 시작 기준 `master` | `22fa6943c625b7caad7a7fb9cfd174a6a01992e6` |
 | 기준 모델 run | `KI20-MIX-v2/run-1f5d732cae67` |
@@ -100,8 +100,9 @@ saju-tools-v1
   → 입력 검증·한국 범위 정규화
   → IANA Asia/Seoul fold/gap 판정
   → 한국 양음력 후보 provider
-  → Astronomy Engine 절입 순간
-  → KR_CIVIL_MIDNIGHT_V1 4주 core
+  ├─ v1/v1.2 이력: Astronomy Engine 절입 순간·승인 wrapper
+  └─ v1.3 활성 후보: Skyfield/DE440s TT 절입 경계·내장 UT1 표시
+  → KR_CIVIL_MIDNIGHT_V1 versioned 4주 core
   → 오행·지장간·십신 파생
   → exact chart 또는 range/unknown chart set
   → conformance v4: 공식 날짜 판정 + 최근접 분 표기 + 비권위 120초 회귀 가드
@@ -478,6 +479,12 @@ release가 생긴 뒤에만 v3.1 생성과 비학습 preflight를 순서대로 �
 - [ ] 승인 release와 feature flag 기본 off 상태로 앱·대시보드 canary를 검증한다.
 
 ## 진행 기록
+
+- 2026-09-01
+  - 작업 요약: runtime 보조 문서와 저장소 상위 정본을 Skyfield 1.55·DE440s·builtin UT1 기반 v1.3 candidate 및 conformance v8 최종 상태로 맞췄다. 과거 Astronomy Engine 경로는 이력·비교기로, 현재 후보 경로와 strict/release Gate는 별도 상태로 명시했다.
+  - 변경 범위: 정본 버전을 `runtime-calculator-adoption-v2.6.2`로 올리고 profile ADR, 정책, 알려진 제한, 외부 conformance, 제3자 고지와 상위 상태 문서의 포인터를 갱신했다. runtime 구현·공식 snapshot·불변 conformance build는 수정하지 않았고 release registry, feature flag 기본값, 앱 연결, v3.1 생성과 학습도 수행하지 않았다.
+  - 검증: KASI 음양력 54,787/54,787일, 공식 현재 계산 절입 2,172/2,172행과 runtime 대상 1,560행, Skyfield 날짜 mismatch 0·원시 분 mismatch 22, runtime↔독립 validator 1,800건과 경계 5,400건 mismatch 0인 기존 hash chain을 계약 테스트로 재검증했다. runtime v1.3/v8 연계 23건과 저장소 전체 unittest 429건, Ruff, Phase 1 원천 검증, `uv pip check`, 로컬 문서 링크, `git diff --check`를 통과했다.
+  - 남은 이슈·후속 작업: 과거 14건은 KASI 1초 불확실성 안이지만 미래 8건은 비승인 진단이며 strict Gate는 닫혀 있다. KASI 반올림·미래 지구 자전 불확실성의 독립 판정과 운영 key·persistence 승인을 마치기 전까지 `runtime_approved=false`, release·앱·v3.1·학습 차단을 유지한다.
 
 - 2026-08-31
   - 작업 요약: 루트 조사 초안을 현재 KI20·MIX20K-v3.0.1 상태에 맞는 Korea-only 실행 정본으로 축소·재작성하고, versioned 계약과 Python candidate runtime을 구현했다.

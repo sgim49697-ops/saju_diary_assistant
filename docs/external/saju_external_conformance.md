@@ -12,7 +12,7 @@
 2. 구조화 명식 deterministic QA의 독립 검산
 3. 명식이 없는 LLM 입력에서 계산기 handoff를 요구하는 통합 테스트
 
-기존 10K/20K, source blind test, 사람 해석 Gold에는 섞지 않는다. runtime engine은 아직 승인하지 않았으며 `configs/saju_calculation_policy.json`의 `runtime_enabled=false`를 유지한다.
+기존 10K/20K, source blind test, 사람 해석 Gold에는 섞지 않는다. Skyfield 기반 v1.3 candidate runtime은 구현·검증됐지만 release·production engine은 승인하지 않았으며 `configs/saju_calculation_policy.json`의 `runtime_enabled=false`를 유지한다.
 
 ## 근거 계층
 
@@ -56,11 +56,15 @@ KASI 공개 API 페이지는 무료·이용허락범위 제한 없음으로 표�
 - fixture schema·원천 revision·SHA-256·라이선스 고지: 구현 완료
 - KASI 달력 간지와 사주 연주·월주 semantic alias 차단: 구현 완료
 - 학습·blind 혼입 차단: 구현 완료
-- `KR_CIVIL_MIDNIGHT_V1` Python 후보 runtime과 conformance v2 실행: 구현 완료
-- 공개 KASI 지원 범위 63건과 단일 profile 비교 16건: mismatch 0
-- KASI 54,787일·12절 경계 5,400건 공식 snapshot: 미확보
-- 앱 runtime 계산 엔진 승인: 공식 전수 Gate 미충족으로 보류
+- KASI 음양력 1900~2049년 54,787/54,787일: 양음력·일진 mismatch 0
+- KASI 24절기 OpenAPI 1900~2049년: 150/150년 scan 완료, 실제 반환 2000~2028년 696건
+- KASI 공식 현재 계산 1920~2100년: 4,343/4,344행, 유일한 누락은 비절입인 2030년 우수, 절입 2,172/2,172행
+- `KR_CIVIL_MIDNIGHT_V1` v1.3 candidate runtime: Skyfield 1.55·고정 DE440s·내장 UT1 결합 완료
+- runtime↔독립 validator: 1,800개 TT root·UTC·표시 분 mismatch 0, 전·정확·후 5,400개 경계 mismatch 0
+- 권한 분리: `PROFILE_DETERMINISTIC` 240, `PAST_OFFICIAL_CORROBORATED` 1,280, `FORECAST_DIAGNOSTIC_NONAPPROVAL` 280
+- strict runtime provider: 공식 원시 분 라벨 mismatch 22/1,560과 미래 물리 순간 미판정으로 실패
+- 앱 runtime 계산 엔진 승인: `runtime_approved=false`, release registry 없음, feature flag 기본 off
 - MIX20K-v3.1 재생성·학습: 보류
 - 전문가 해석 Gold 승인: 보류
 
-실행 정본과 최신 공개 보고서는 [`saju_runtime_calculator_adoption.md`](../../implementation/plans/saju_runtime_calculator_adoption.md) 및 `data/reports/saju_runtime_conformance/v1.0.0/`에서 확인한다. 후보 runtime은 기본 off이며, 승인 전 결과는 `HARD_CANDIDATE`를 넘지 않는다.
+실행 정본과 최신 공개 보고서는 [`saju_runtime_calculator_adoption.md`](../../implementation/plans/saju_runtime_calculator_adoption.md) 및 [`data/reports/saju_runtime_conformance/v1.6.0/build-8bd88d6db03a/`](../../data/reports/saju_runtime_conformance/v1.6.0/build-8bd88d6db03a/)에서 확인한다. 후보 runtime은 기본 off이며, 승인 전 결과는 `HARD_CANDIDATE`를 넘지 않는다.

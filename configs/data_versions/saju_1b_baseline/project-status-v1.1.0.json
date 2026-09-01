@@ -1,0 +1,193 @@
+{
+  "schema_version": "1.1.0",
+  "canonical_plan_version": "3.5.1",
+  "dataset_name": "saju_1b_baseline",
+  "status_version": "v1.1.0",
+  "as_of": "2026-09-01",
+  "stage": "ki20_trained_phase6_pending",
+  "decision": {
+    "stage_label": "KI20 COMPLETE · PHASE 6 PENDING",
+    "stage_status": "대기",
+    "signal": "WAIT",
+    "signal_tone": "wait",
+    "headline": "KI20 baseline은 완료됐고,",
+    "headline_accent": "평가·Runtime release·새 학습은 아직 차단되어 있습니다.",
+    "summary": "KI20은 독립 1 epoch·2,500 optimizer step과 최종 새 프로세스 재로딩을 완료했습니다. Phase 6 sealed blind는 미착수이며, MIX20K-v3.0.1은 검수 후보, Skyfield v1.3은 candidate runtime이므로 production·앱·v3.1·추가 학습 승격은 허용되지 않습니다.",
+    "ki10_baseline": "완료",
+    "ki20_promotion": "완료",
+    "expert_quality": "금지",
+    "sealed_blind": "금지",
+    "runtime_release": "차단",
+    "mix20k_v3_training": "금지",
+    "phase4_rerun": "불필요 · canonical MIX20-v2 fingerprint 불변"
+  },
+  "components": [
+    {
+      "name": "원천 bundle",
+      "version": "v1.1.0",
+      "build_id": "build-9462ec148dcd",
+      "sha256": "9462ec148dcd93328b3b68522ad6c6f0d2c3694161d32a2d54332e8069d82f0a",
+      "status": "완료"
+    },
+    {
+      "name": "승인 audit",
+      "version": "v1.2.0",
+      "build_id": "build-ca756f3eb89f",
+      "sha256": "ca756f3eb89fa404c08dc49215b540b3294ed195c39c597303ec14777bb9c4f1",
+      "status": "완료"
+    },
+    {
+      "name": "품질 보정 staging",
+      "version": "v1.0.0",
+      "build_id": "build-a5a9e76d6a8c",
+      "sha256": "a5a9e76d6a8cd524314fbdb0d4ebf11f0b984c3748606eda56de2d7708d3cd23",
+      "status": "완료"
+    },
+    {
+      "name": "고정 모델·환경",
+      "version": "v1.0.0",
+      "build_id": "build-32e2c84af3d3",
+      "sha256": "32e2c84af3d3da1c2938f21d368453185535340fbbb281382a1051a2f789451d",
+      "status": "완료"
+    },
+    {
+      "name": "canonical MIX20-v2",
+      "version": "v2.0.0",
+      "build_id": "build-6f32d52c2868",
+      "sha256": "6f32d52c2868bb8b5e07724cbdc00a6bc0b2f1608fe53ac54c357a6ec0832ee9",
+      "status": "완료"
+    },
+    {
+      "name": "평가 역할 계약",
+      "version": "v1.2.0",
+      "build_id": "build-e885b47cae74",
+      "sha256": "e885b47cae74c63dec1e813f6223df064cb01e507f85717eaa9bcccbe8f21759",
+      "status": "완료"
+    },
+    {
+      "name": "KI10 Gate v2",
+      "version": "v2.0.0",
+      "build_id": "gate-df26e962e145",
+      "sha256": "df26e962e1450b5b2c956b3b0f96531fa567c0c7ac897be233d5375879d878f4",
+      "status": "완료"
+    },
+    {
+      "name": "KI10 Full FT",
+      "version": "v1.0.0",
+      "build_id": "run-e6b712f0d45e",
+      "sha256": "e6b712f0d45e8a12602c586ae8921df0dec758d3bb5eadef23a65f3efc97a0d6",
+      "status": "완료"
+    },
+    {
+      "name": "KI20 preflight",
+      "version": "v1.1.0",
+      "build_id": "preflight-b47fe12f03a4",
+      "sha256": "b47fe12f03a4114a8b9c30bb39b1cc57c12bcfc0525747209b50d0113fcbcd2e",
+      "status": "완료"
+    },
+    {
+      "name": "KI20 Full FT",
+      "version": "v1.2.0",
+      "build_id": "run-1f5d732cae67",
+      "sha256": "1f5d732cae67c9d0988d587b8a6354967b69c1ad6436c90b9a93bb73fdb1d174",
+      "status": "완료"
+    },
+    {
+      "name": "MIX20K-v3.0.1 후보",
+      "version": "v3.0.1",
+      "build_id": "build-94eb7b543490",
+      "sha256": "94eb7b5434907539d7041fc81846169dc2e80f332e99b53d710722dcd5564454",
+      "status": "차단"
+    },
+    {
+      "name": "Skyfield runtime v8",
+      "version": "v1.6.0",
+      "build_id": "build-8bd88d6db03a",
+      "sha256": "8bd88d6db03a2c76bae12e3e530631795d76fe86347cc99159dac4bb176d687c",
+      "status": "주의"
+    }
+  ],
+  "phases": [
+    {"phase": 0, "title": "범위 고정", "status": "완료", "note": "1.3B·10K/20K baseline과 비공개 경계를 고정"},
+    {"phase": 1, "title": "원천 수집·감사", "status": "완료", "note": "고정 revision·라이선스·AI Hub 로컬 경계 고정"},
+    {"phase": 2, "title": "품질 보정 전처리", "status": "완료", "note": "7축 24K staging과 로컬 reservoir 완결"},
+    {"phase": 3, "title": "모델·CUDA 환경", "status": "완료", "note": "Kanana BF16·torch 2.13.0+cu130 smoke 통과"},
+    {"phase": 4, "title": "학습 전 기술 검증", "status": "완료", "note": "768 Full FT 200-step resume와 canonical v2 승인"},
+    {"phase": 5, "title": "10K·20K baseline 학습", "status": "완료", "note": "KI10·KI20 독립 Full FT와 final reload 완료, production 승격 금지"},
+    {"phase": 6, "title": "봉인 평가·다음 결정", "status": "미시작", "note": "sealed blind 미열람, K0·KI10·KI20 동일 설정 평가부터 시작"}
+  ],
+  "dataset_axes": [
+    {"label": "Nemotron 사주 해석", "rows": 6800, "assistant_token_share_percent": 58.080955, "evidence": "SOFT_GT"},
+    {"label": "bazi-sft 규칙 파생", "rows": 4000, "assistant_token_share_percent": 25.218343, "evidence": "RULE_GT"},
+    {"label": "AI Hub 단일턴", "rows": 1500, "assistant_token_share_percent": 0.861964, "evidence": "HUMAN_REF"},
+    {"label": "AI Hub 멀티턴", "rows": 1500, "assistant_token_share_percent": 0.906623, "evidence": "HUMAN_REF"},
+    {"label": "YEJI 신살 파생", "rows": 1000, "assistant_token_share_percent": 2.890489, "evidence": "RULE_GT"},
+    {"label": "deterministic 사주 QA", "rows": 2000, "assistant_token_share_percent": 3.589891, "evidence": "HARD_GT"},
+    {"label": "사주 일기 브리지", "rows": 3200, "assistant_token_share_percent": 8.451735, "evidence": "GROUNDED_BRIDGE"}
+  ],
+  "evidence_tiers": [
+    {"code": "HARD_GT", "title": "결정론적 사실", "description": "고정 계산 정책으로 독립 재계산 가능한 사실이며 승인된 계약 안에서만 사용", "tone": "hard"},
+    {"code": "RULE_GT", "title": "검산 규칙 파생", "description": "고정 조건·긍부정 계약을 통과한 규칙형 답변", "tone": "rule"},
+    {"code": "HUMAN_REF", "title": "사람 대화 참조", "description": "AI Hub 승인 범위의 로컬 전용 공감·대화 문체", "tone": "human"},
+    {"code": "SOFT_GT", "title": "합성 해석 참조", "description": "전문가 Gold가 아닌 소프트 해석·문체 자료", "tone": "soft"},
+    {"code": "GROUNDED_BRIDGE", "title": "구조화 사실 연결", "description": "입력으로 제공된 구조화 명식을 상담·기록 대화로 연결", "tone": "rule"},
+    {"code": "HARD_CANDIDATE", "title": "승격 전 계산 후보", "description": "후보 runtime·재검산 대기 자료이며 학습 Gold나 production 사실로 승격 금지", "tone": "soft"}
+  ],
+  "gates": [
+    {"name": "원천·Phase 4 hash chain", "status": "통과", "criterion": "고정 source·audit·staging·canonical MIX20-v2 재검증", "result": "build-9462ec148dcd → build-6f32d52c2868"},
+    {"name": "평가 봉인", "status": "통과", "criterion": "membership·blind bytes 보존", "result": "evaluation v1.2 고정, sealed blind 미열람"},
+    {"name": "KI10 Full FT·reload", "status": "통과", "criterion": "1,250 step·유한 loss/gradient·새 프로세스 reload 5/5", "result": "run-e6b712f0d45e"},
+    {"name": "KI10 Gate v2 hard gate", "status": "통과", "criterion": "기술·안전 10/10", "result": "추가 baseline 실험 허용, 품질 목표 8개 미달"},
+    {"name": "KI20 Full FT·reload", "status": "통과", "criterion": "독립 1 epoch·2,500 step·새 프로세스 reload 5/5", "result": "run-1f5d732cae67 · train loss 0.687154 · production=false"},
+    {"name": "KI20 품질 판정", "status": "대기", "criterion": "Phase 6 동일 설정 자동·사람·sealed blind 평가", "result": "비봉인 소표본·상태형 진단만 존재, 최종 품질 주장 금지"},
+    {"name": "Phase 6 sealed blind", "status": "금지", "criterion": "고정 checkpoint로 단회 평가", "result": "미착수·payload 미열람"},
+    {"name": "MIX20K-v3 기술 preflight", "status": "통과", "criterion": "20K tokenization·mask·tool round-trip·기본 leakage", "result": "build-94eb7b543490 · preflight-aea1c001126e"},
+    {"name": "MIX20K-v3 학습 적격성", "status": "차단", "criterion": "canonical·전문가·다양성·state·grounding·serving 검증", "result": "HARD_CANDIDATE 3,800행과 검수·parser blocker 잔존"},
+    {"name": "KASI 데이터 가용성", "status": "통과", "criterion": "음양력 전수·OpenAPI 전수 scan·공식 절입 가용분 전량", "result": "54,787/54,787 · 150/150년 scan · 절입 2,172/2,172"},
+    {"name": "Skyfield provider 후보", "status": "통과", "criterion": "과거 공식 허용범위·identity·순서·경계", "result": "날짜 mismatch 0, 과거 14건은 KASI 1초 불확실성 안"},
+    {"name": "candidate runtime conformance v8", "status": "통과", "criterion": "runtime↔독립 validator 1,800·경계 5,400·권한 분리", "result": "TT/UTC/표시 분 mismatch 0 · 권한 240/1,280/280"},
+    {"name": "strict runtime provider", "status": "차단", "criterion": "공식 원시 분 라벨 mismatch 0·미래 물리 순간 판정", "result": "22/1,560 mismatch·미래 280행 비승인 진단"},
+    {"name": "Runtime release·앱 연결", "status": "차단", "criterion": "strict Gate·release registry·production key·adapter/persistence", "result": "runtime_approved=false · app_binding_performed=false"},
+    {"name": "MIX20K-v3.1·추가 학습", "status": "금지", "criterion": "승인 release와 새 data/split/preflight", "result": "v3.1 미생성·학습 미실행"}
+  ],
+  "known_risks": [
+    {"id": "R-TOKEN-DOMINANCE", "severity": "주의", "title": "canonical MIX20-v2 token 편중", "finding": "Nemotron+bazi가 assistant loss token의 83.299298%를 차지합니다.", "disposition": "행 비율과 token 비율을 함께 공개하고 축별 macro 지표로 회귀를 분리합니다."},
+    {"id": "R-NO-EXPERT-GOLD", "severity": "주의", "title": "전문가 Gold 부재", "finding": "사람 전문 항목 검수와 품질 인증을 수행하지 않았습니다.", "disposition": "KI10·KI20을 baseline 실험으로만 취급하고 배포·전문가 정확성 주장을 금지합니다."},
+    {"id": "R-KI20-UNEVALUATED", "severity": "주의", "title": "KI20 정식 품질 평가 미실행", "finding": "학습·재로딩은 끝났지만 Phase 6 자동·사람·sealed blind 평가는 시작하지 않았습니다.", "disposition": "고정 checkpoint와 설정으로 Phase 6을 실행하기 전 성능 향상이나 production 적격성을 주장하지 않습니다."},
+    {"id": "R-STATEFUL-BEHAVIOR", "severity": "주의", "title": "상태형 handoff 진단 미달", "finding": "비봉인 합성 100건에서 필수 행동 14/100, 무조작 84/100, 제공 필드 재질문 18건이었습니다.", "disposition": "후보 2,000건을 그대로 Gold로 쓰지 않고 자연어 다양화·검수·새 split 계약 뒤에만 재학습을 검토합니다."},
+    {"id": "R-MIX20K-V3-BLOCKERS", "severity": "주의", "title": "MIX20K-v3 검수 후보 blocker", "finding": "canonical 3,800행, expert 1,500행, 내부 4K, 다양성·state·grounding·실 serving parser 검증이 남았습니다.", "disposition": "v3.0.1을 후보로 유지하고 v3.1 생성·2K/10K/20K 학습을 금지합니다."},
+    {"id": "R-RUNTIME-STRICT", "severity": "주의", "title": "Runtime strict Gate 미달", "finding": "Skyfield candidate는 공식 1,560행에서 날짜 오류 0이지만 원시 분 라벨 22건과 미래 물리 순간 판정이 남았습니다.", "disposition": "candidate conformance와 release 승인을 분리하고 HARD_CANDIDATE·feature flag 기본 off를 유지합니다."},
+    {"id": "R-FUTURE-AUTHORITY", "severity": "주의", "title": "미래 절입 권한 제한", "finding": "snapshot 이후 280행은 지구 자전 예측 불확실성 때문에 FORECAST_DIAGNOSTIC_NONAPPROVAL입니다.", "disposition": "미래 계산값을 SOURCE_HARD_FACT나 HARD_GT로 표시하지 않습니다."}
+  ],
+  "web_sources": [
+    {"name": "Kanana 2 1.3B Instruct", "url": "https://huggingface.co/kakaocorp/kanana-2-1.3b-instruct", "revision": "bf4786aa2a1908adce942d53976270132732f720", "role": "학습 시작 모델", "decision": "고정 BF16 snapshot만 사용"},
+    {"name": "Nemotron-Personas-Korea-Saju", "url": "https://huggingface.co/datasets/rayraykim/Nemotron-Personas-Korea-Saju", "revision": "ffb934248746a2dea64ef771c0d86e1743d25702", "role": "합성 해석 원천", "decision": "SOFT_GT·페르소나 비인과 검사"},
+    {"name": "bazi-sft", "url": "https://huggingface.co/datasets/AmareshHebbar/bazi-sft", "revision": "fad87063b317612e4164dfb0e0e08572c3831df4", "role": "규칙 구조 원천", "decision": "원문 답변 대신 검산 파생만 사용"},
+    {"name": "KASI 음양력 정보", "url": "https://www.data.go.kr/data/15012679/openapi.do", "revision": "2026-08-31 snapshot", "role": "양음력·일진 공식 근거", "decision": "54,787일 전수 대조"},
+    {"name": "KASI 공식 24기", "url": "https://astro.kasi.re.kr/kor/almanac/solarTerms/download", "revision": "2026-08-31 snapshot", "role": "1920~2100 절입 분 라벨", "decision": "가용성·provider·strict Gate 분리"},
+    {"name": "Skyfield", "url": "https://rhodesmill.org/skyfield/", "revision": "1.55", "role": "candidate 절입 provider", "decision": "DE440s·builtin UT1·오프라인 고정"},
+    {"name": "JPL DE440s", "url": "https://ssd.jpl.nasa.gov/ftp/eph/planets/bsp/de440s.bsp", "revision": "c1c7feeab882…0a49f2", "role": "태양 위치 ephemeris", "decision": "Git 제외 고정 hash, 자동 다운로드 금지"},
+    {"name": "TRL SFTTrainer", "url": "https://huggingface.co/docs/trl/v1.12.0/en/sft_trainer", "revision": "v1.12.0", "role": "SFT 목적함수·mask 계약", "decision": "assistant-only chunked_nll"}
+  ],
+  "validation_summary": [
+    "canonical MIX20-v2 20,000행·7축 수량·record hash와 승인 chain 재검증",
+    "KI10·KI20을 같은 고정 Instruct snapshot에서 독립 시작한 run identity 확인",
+    "KI20 2,500 optimizer step·유한 loss/gradient·최종 새 프로세스 reload 5/5 확인",
+    "KI20 공개 training summary와 private run 집계 일치·production_promotion_allowed=false 확인",
+    "평가 v1.2 membership·sealed blind bytes 보존, blind payload 미열람 확인",
+    "MIX20K-v3.0.1 20K·preflight identity 보존과 training_promotion_allowed=false 확인",
+    "KASI 음양력 54,787일·공식 절입 가용분 전량·1964 역서 hash chain 확인",
+    "Skyfield candidate runtime과 독립 validator 1,800 TT/UTC/분·5,400 경계 mismatch 0 확인",
+    "절입 권한 PROFILE 240·PAST 1,280·FORECAST 280과 미래 HARD_GT 0 확인",
+    "release registry·앱 binding·MIX20K-v3.1·Phase 6 산출물이 생성되지 않았음을 확인",
+    "AI Hub 원문·ID·개별 hash·checkpoint를 공개 현황 산출물에서 제외",
+    "문서 정합성·현황 렌더링 회귀와 저장소 전체 테스트 통과"
+  ],
+  "outputs": {
+    "root_html": "PROJECT_STATUS.html",
+    "snapshot_root": "data/reports/saju_1b_baseline/project-status/v1.1.0/{build_id}"
+  },
+  "implementation_files": [
+    "scripts/status/project_status.py"
+  ]
+}

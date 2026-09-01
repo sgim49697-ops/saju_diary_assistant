@@ -22,11 +22,11 @@
 - 저작권: Copyright (c) 2025 Yoohyojun
 - 전체 라이선스: [`licenses/third_party/manseryeok-MIT.txt`](licenses/third_party/manseryeok-MIT.txt)
 
-## Astronomy Engine runtime 후보 의존성
+## Astronomy Engine 비교·과거 후보 의존성
 
 - 원천: `cosinekitty/astronomy@61dc07020aaa6885d2c7f688a4d82beaf6edb9ef`
 - 고정 배포본: `astronomy-engine==2.1.19`, wheel SHA-256 `232ba7dd2bbf42225c48be6721b676e8c6c079dbd4588d2781dfa68adcb6f67f`
-- 사용 범위: 24절기의 겉보기 태양 황경 도달 순간을 계산하는 후보 provider. KASI 1900~2049 경계 전수 Gate 전에는 runtime·학습 Gold로 승인하지 않음
+- 사용 범위: 과거 v1.2 candidate runtime과 Skyfield/JPL 독립 비교에서 24절기의 겉보기 태양 황경 도달 순간을 계산한다. 공식 현재 계산 1,560행에서 분 mismatch 303·날짜 mismatch 1이므로 v1.3 우선 provider가 아니며 production·학습 Gold로 승인하지 않음
 - 라이선스: MIT
 - 저작권: Copyright (c) 2019-2023 Don Cross `<cosinekitty@gmail.com>`
 - 전체 라이선스: [`licenses/third_party/astronomy-engine-MIT.txt`](licenses/third_party/astronomy-engine-MIT.txt)
@@ -39,10 +39,10 @@
 - 라이선스: Apache-2.0. 배포 wheel 안의 `licenses/LICENSE`와 `licenses/licenses/LICENSE_APACHE`가 전문·저작권 고지를 포함한다.
 - 저작권: Copyright (c) 2020 Paul Ganssle (Google); Copyright (c) 2026 Stan Ulbrych
 
-## Skyfield/JPL 독립 절입 validator·후보 provider 의존성
+## Skyfield/JPL 독립 validator·v1.3 candidate provider 의존성
 
 - 고정 배포본: `skyfield==1.55` (`9f989648…b66ad4`), `jplephem==2.24` (`2de15608…629ac`), `sgp4==2.27` (`d2fc2f68…3b630`), `numpy==2.2.6` (`fc7b73d0…e8915`), `certifi==2026.7.22` (`62f22742…83775`)
-- 사용 범위: JPL DE440s와 함께 1900~2049년 12절 순간 1,800건을 독립 계산하고 Astronomy Engine과 provider 적격성을 비교하는 검증 경로. conformance v5에서 선택되지 않았으며 `skyfield`, `jplephem`, `sgp4`는 production 계산 결과를 만들지 않는다.
+- 사용 범위: JPL DE440s와 함께 1900~2049년 12절 순간 1,800건을 독립 계산하고, Skyfield 1.55 내장 UT1을 적용한 v1.3 candidate runtime의 TT 경계·공식 표시 분·과거/미래 권한을 생성한다. conformance v8 `build-8bd88d6db03a`의 candidate 결합은 통과했지만 원시 분 라벨 mismatch 22와 미래 물리 순간 미판정으로 strict Gate·release·production 연결은 차단돼 있다.
 - 라이선스: Skyfield·jplephem·sgp4는 MIT, NumPy는 BSD-3-Clause와 wheel에 동봉된 제3자 고지, certifi CA bundle은 MPL-2.0이다. 각 고정 wheel의 `.dist-info` license 전문을 재배포 시 함께 보존한다.
 - 저작권: Skyfield Copyright © 2013–2018 Brandon Rhodes; jplephem Copyright 2012–2018 Brandon Rhodes; sgp4 Copyright © 2012–2016 Brandon Rhodes; NumPy Copyright (c) 2005–2024 NumPy Developers.
 

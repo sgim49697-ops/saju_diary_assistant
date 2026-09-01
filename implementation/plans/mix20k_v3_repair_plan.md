@@ -9,6 +9,8 @@
 - 모델: `kakaocorp/kanana-2-1.3b-instruct@bf4786aa2a1908adce942d53976270132732f720`
 - 결론: 기술 preflight 통과, 학습·production 승격 차단
 
+2026-09-01 현재 Skyfield v1.3 candidate runtime과 conformance v8은 구현됐지만 strict Gate·release는 승인되지 않았다. 따라서 이 문서의 canonical 3,800행 재검산 blocker는 닫히지 않았고, `v3.0.1-repaired`를 v3.1 또는 학습 승인본으로 승격하지 않는다.
+
 ## 범위와 불변 경계
 
 외부 패키지의 review JSONL을 부모 정본으로 읽고 원본 파일은 수정하지 않는다. 보정 review·Trainer projection·검수 큐는 Git 제외 private build로 새로 만들며, Git에는 코드·계약·원문 없는 집계 보고서만 둔다. AI Hub #86 파생 3,200행은 `restricted_local_only=true`로 전파하고 외부 안전 큐에서 제외한다. 기존 MIX20K-v2, KI20 run, checkpoint와 봉인 blind payload는 수정하거나 읽지 않는다.
@@ -112,6 +114,12 @@ private build는 review·training 각 20,000행, diagnostic 2,000행, 내부/ext
 이번 구현에서는 2K/10K/20K 학습, 기존 KI20 이어학습, checkpoint 생성, registry 학습 승인 포인터 변경을 하지 않았다.
 
 ## 진행 기록
+
+- 2026-09-01
+  - 작업 요약: 저장소 정본화 과정에서 `v3.0.1-repaired`의 현재 역할을 다시 확인하고, Skyfield runtime v1.3 candidate와 conformance v8 통과가 곧 v3.1 생성·학습 승인이 아님을 문서 전반에 일치시켰다.
+  - 변경 범위: 기존 private `build-94eb7b543490`, public `intake-99c0b48231d6`, preflight와 20K 원문은 수정하지 않았다. 현재 상태 설명과 정본 연결만 갱신했으며 v3.1, 새 split, checkpoint, 학습 산출물은 만들지 않았다.
+  - 검증: private 20,000행·restricted 3,200행·검수 큐 4,000행과 public aggregate-only intake의 manifest/hash chain을 재검증했다. runtime v1.3/v8 연계 계약 23건과 저장소 전체 unittest 429건, Ruff, `uv pip check`, 로컬 문서 링크, `git diff --check`를 통과했다.
+  - 남은 이슈·후속 작업: canonical 3,800행 전수 재계산, exact target 다양성, 전체 state/grounding, 내부 4K·expert 1.5K 검수, serving parser 검증이 남아 있다. `training_promotion_allowed=false`와 production 차단을 유지한다.
 
 - 2026-08-31
   - 작업 요약: 외부 v3 review candidate를 원본 불변으로 감사하고 runtime/tool/state 계약, 품질 보정판, 검수 큐와 exact-tokenizer 비학습 preflight를 구현했다.

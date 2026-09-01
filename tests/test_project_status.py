@@ -16,7 +16,7 @@ from scripts.status.project_status import (
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CONFIG_PATH = (
     REPO_ROOT
-    / "configs/data_versions/saju_1b_baseline/project-status-v1.0.0.json"
+    / "configs/data_versions/saju_1b_baseline/project-status-v1.1.0.json"
 )
 
 
@@ -26,16 +26,29 @@ class ProjectStatusTests(unittest.TestCase):
         result = validate_contract(config, REPO_ROOT)
         context = prepare_context(REPO_ROOT, CONFIG_PATH)
         self.assertEqual(result["status"], "valid")
-        self.assertEqual(context["build_id"], "build-e23e3501a200")
+        self.assertEqual(context["build_id"], "build-c64657e7aa8f")
+
+    def test_historical_v1_contract_remains_recognized(self) -> None:
+        historical = REPO_ROOT / (
+            "configs/data_versions/saju_1b_baseline/project-status-v1.0.0.json"
+        )
+        result = validate_contract(
+            json.loads(historical.read_text(encoding="utf-8")), REPO_ROOT
+        )
+        self.assertEqual(result["status_version"], "v1.0.0")
 
     def test_html_is_self_contained_and_carries_governance(self) -> None:
         context = prepare_context(REPO_ROOT, CONFIG_PATH)
         payload = render_html(context)
         text = payload.decode("utf-8")
-        self.assertIn("KI20 PREFLIGHT READY", text)
-        self.assertIn("실제 학습은 아직 실행하지 않았습니다.", text)
-        self.assertIn("train peak 10,634 MiB·eval peak 11,802 MiB", text)
-        self.assertIn("full_training_execution_enabled=false", text)
+        self.assertIn("KI20 COMPLETE · PHASE 6 PENDING", text)
+        self.assertIn("KI20 baseline은 완료됐고,", text)
+        self.assertIn("run-1f5d732cae67", text)
+        self.assertIn("2,500 step", text)
+        self.assertIn("build-8bd88d6db03a", text)
+        self.assertIn("22/1,560 mismatch", text)
+        self.assertIn("MIX20K-v3 학습", text)
+        self.assertIn("runtime_approved=false", text)
         self.assertIn("sealed blind", text)
         self.assertNotIn("<script", text)
         self.assertNotIn("src=\"http", text)

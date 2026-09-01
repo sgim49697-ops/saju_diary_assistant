@@ -26,10 +26,27 @@ from scripts.preflight.phase4_common import (
 )
 
 DEFAULT_CONFIG = Path(
-    "configs/data_versions/saju_1b_baseline/project-status-v1.0.0.json"
+    "configs/data_versions/saju_1b_baseline/project-status-v1.1.0.json"
 )
 PUBLIC_FILE_MODE = 0o644
 BUILD_PATTERN = re.compile(r"^(?:build|run|gate|preflight)-[0-9a-f]{12}$")
+
+STATUS_CONTRACTS = {
+    "v1.0.0": {
+        "schema_version": "1.0.0",
+        "canonical_plan_version": "3.3.0",
+        "as_of": "2026-08-29",
+        "stages": {"pre_ki10", "ki10_gate_failed", "ki20_preflight_ready"},
+        "decision_extra_keys": set(),
+    },
+    "v1.1.0": {
+        "schema_version": "1.1.0",
+        "canonical_plan_version": "3.5.1",
+        "as_of": "2026-09-01",
+        "stages": {"ki20_trained_phase6_pending"},
+        "decision_extra_keys": {"runtime_release", "mix20k_v3_training"},
+    },
+}
 
 
 class ProjectStatusError(RuntimeError):
@@ -51,14 +68,16 @@ def _json_bytes(value: Any) -> bytes:
 
 
 def validate_contract(config: dict[str, Any], repo_root: Path) -> dict[str, Any]:
+    status_version = config.get("status_version")
+    contract = STATUS_CONTRACTS.get(status_version)
     if (
-        config.get("schema_version") != "1.0.0"
-        or config.get("canonical_plan_version") != "3.3.0"
+        contract is None
+        or config.get("schema_version") != contract["schema_version"]
+        or config.get("canonical_plan_version")
+        != contract["canonical_plan_version"]
         or config.get("dataset_name") != "saju_1b_baseline"
-        or config.get("status_version") != "v1.0.0"
-        or config.get("as_of") != "2026-08-29"
-        or config.get("stage")
-        not in {"pre_ki10", "ki10_gate_failed", "ki20_preflight_ready"}
+        or config.get("as_of") != contract["as_of"]
+        or config.get("stage") not in contract["stages"]
     ):
         raise ProjectStatusError("project status identity가 다릅니다.")
     components = config.get("components")
@@ -110,7 +129,14 @@ def validate_contract(config: dict[str, Any], repo_root: Path) -> dict[str, Any]
         "expert_quality",
         "sealed_blind",
         "phase4_rerun",
-    }
+    } | contract["decision_extra_keys"]
+    decision_status_keys = {
+        "stage_status",
+        "ki10_baseline",
+        "ki20_promotion",
+        "expert_quality",
+        "sealed_blind",
+    } | contract["decision_extra_keys"]
     if (
         not isinstance(decision, dict)
         or set(decision) != decision_keys
@@ -118,20 +144,17 @@ def validate_contract(config: dict[str, Any], repo_root: Path) -> dict[str, Any]
         or decision["signal_tone"] not in {"ok", "stop", "wait"}
         or any(
             decision[key] not in {"완료", "허용", "금지", "차단", "대기"}
-            for key in (
-                "stage_status",
-                "ki10_baseline",
-                "ki20_promotion",
-                "expert_quality",
-                "sealed_blind",
-            )
+            for key in decision_status_keys
         )
     ):
         raise ProjectStatusError("project status 현재 결정 형식이 다릅니다.")
     outputs = config.get("outputs")
     if outputs != {
         "root_html": "PROJECT_STATUS.html",
-        "snapshot_root": "data/reports/saju_1b_baseline/project-status/v1.0.0/{build_id}",
+        "snapshot_root": (
+            "data/reports/saju_1b_baseline/project-status/"
+            f"{status_version}/{{build_id}}"
+        ),
     }:
         raise ProjectStatusError("project status 출력 경로가 다릅니다.")
     _safe_path(repo_root, outputs["root_html"])
@@ -140,7 +163,7 @@ def validate_contract(config: dict[str, Any], repo_root: Path) -> dict[str, Any]
         "scripts/status/project_status.py"
     ]:
         raise ProjectStatusError("project status 구현 fingerprint가 다릅니다.")
-    return {"status": "valid", "status_version": "v1.0.0"}
+    return {"status": "valid", "status_version": status_version}
 
 
 def prepare_context(repo_root: Path, config_path: Path) -> dict[str, Any]:
@@ -261,6 +284,22 @@ def render_html(context: dict[str, Any]) -> bytes:
         f'<li><span aria-hidden="true">✓</span>{_esc(value)}</li>'
         for value in config["validation_summary"]
     )
+    current_decisions = [
+        ("KI10 baseline", decision["ki10_baseline"]),
+        ("KI20 baseline", decision["ki20_promotion"]),
+        ("전문가 품질 인증", decision["expert_quality"]),
+        ("sealed blind 접근", decision["sealed_blind"]),
+    ]
+    if "runtime_release" in decision:
+        current_decisions.append(("Runtime release", decision["runtime_release"]))
+    if "mix20k_v3_training" in decision:
+        current_decisions.append(
+            ("MIX20K-v3 학습", decision["mix20k_v3_training"])
+        )
+    current_decision_rows = "".join(
+        f"<tr><th>{_esc(label)}</th><td>{_badge(value)}</td></tr>"
+        for label, value in current_decisions
+    )
     html_value = f"""<!doctype html>
 <html lang="ko">
 <head>
@@ -277,11 +316,11 @@ def render_html(context: dict[str, Any]) -> bytes:
   <div class="intro"><div class="eyebrow">Saju Diary Assistant · {_esc(config['status_version'])}</div><h1>{_esc(decision['headline'])}<span>{_esc(decision['headline_accent'])}</span></h1><p class="lede">{_esc(decision['summary'])}</p></div>
   <div class="decision"><div><span class="badge {_esc(decision['signal_tone'])}">{_esc(decision['stage_label'])}</span><div class="signal {_esc(decision['signal_tone'])}">{_esc(decision['signal'])}</div><p>{_esc(decision['summary'])}</p></div><div class="meta"><div><small>기준일</small><strong>{_esc(config['as_of'])}</strong></div><div><small>현황 build</small><code>{_esc(context['build_id'])}</code></div><div><small>계획 버전</small><strong>{_esc(config['canonical_plan_version'])}</strong></div><div><small>현재 상태</small><strong>{_esc(decision['stage_status'])}</strong></div></div></div>
 </header>
-<section class="grid-2"><div class="panel"><h2>Phase 타임라인</h2><ol class="timeline">{phases}</ol></div><div class="panel"><h2>현재 결정</h2><table><tbody><tr><th>KI10 baseline</th><td>{_badge(decision['ki10_baseline'])}</td></tr><tr><th>KI20 promotion</th><td>{_badge(decision['ki20_promotion'])}</td></tr><tr><th>전문가 품질 인증</th><td>{_badge(decision['expert_quality'])}</td></tr><tr><th>sealed blind 접근</th><td>{_badge(decision['sealed_blind'])}</td></tr><tr><th>Phase 4 재실행</th><td>{_esc(decision['phase4_rerun'])}</td></tr></tbody></table></div></section>
+<section class="grid-2"><div class="panel"><h2>Phase 타임라인</h2><ol class="timeline">{phases}</ol></div><div class="panel"><h2>현재 결정</h2><table><tbody>{current_decision_rows}<tr><th>Phase 4 재실행</th><td>{_esc(decision['phase4_rerun'])}</td></tr></tbody></table></div></section>
 <section class="panel"><h2>버전·해시 연결</h2><div class="chain" aria-label="모델과 데이터 버전 hash chain">{components}</div></section>
-<section class="panel"><h2>20K 구성 — 행보다 supervised token을 함께 봅니다</h2><div class="table-wrap"><table><thead><tr><th>축</th><th>행</th><th>assistant token 분포</th><th>비율</th><th>근거</th></tr></thead><tbody>{axes}</tbody></table></div></section>
+<section class="panel"><h2>canonical MIX20-v2 구성 — 행보다 supervised token을 함께 봅니다</h2><div class="table-wrap"><table><thead><tr><th>축</th><th>행</th><th>assistant token 분포</th><th>비율</th><th>근거</th></tr></thead><tbody>{axes}</tbody></table></div></section>
 <section class="panel"><h2>근거 등급</h2><div class="evidence-grid">{evidence}</div></section>
-<section class="panel"><h2>학습·품질 Gate</h2><div class="table-wrap"><table><thead><tr><th>Gate</th><th>상태</th><th>기준</th><th>결과</th></tr></thead><tbody>{gates}</tbody></table></div></section>
+<section class="panel"><h2>학습·품질·Runtime Gate</h2><div class="table-wrap"><table><thead><tr><th>Gate</th><th>상태</th><th>기준</th><th>결과</th></tr></thead><tbody>{gates}</tbody></table></div></section>
 <section class="panel"><h2>남은 위험과 처리</h2><div class="risk-grid">{risks}</div></section>
 <section class="panel"><h2>웹·외부 구현 비교</h2><div class="table-wrap"><table><thead><tr><th>근거</th><th>확인 revision</th><th>역할</th><th>판정</th></tr></thead><tbody>{sources}</tbody></table></div></section>
 <section class="panel"><h2>재현 검증</h2><ul class="checks">{checks}</ul></section>
@@ -294,7 +333,7 @@ def render_html(context: dict[str, Any]) -> bytes:
 def _manifest(context: dict[str, Any], payload: bytes) -> bytes:
     return _json_bytes(
         {
-            "schema_version": "1.0.0",
+            "schema_version": context["config"]["schema_version"],
             "report_type": "project_status_public_manifest",
             "status_version": context["config"]["status_version"],
             "build_id": context["build_id"],
@@ -357,9 +396,9 @@ def verify_status(context: dict[str, Any], *, require_registry: bool) -> dict[st
     for required in (
         "Phase 타임라인",
         "버전·해시 연결",
-        "20K 구성",
+        "canonical MIX20-v2 구성",
         "근거 등급",
-        "학습·품질 Gate",
+        "학습·품질·Runtime Gate",
         "남은 위험과 처리",
         "웹·외부 구현 비교",
         "재현 검증",

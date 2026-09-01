@@ -4,8 +4,8 @@
 
 | 항목 | 값 |
 |---|---|
-| 문서 버전 | `3.5.0` |
-| 정본화 기준일 | 2026-08-31 |
+| 문서 버전 | `3.5.1` |
+| 정본화 기준일 | 2026-09-01 |
 | 주 장비 | NVIDIA GeForce RTX 5070 Ti 16GiB, WSL2 |
 | 주 모델 | `kakaocorp/kanana-2-1.3b-instruct@bf4786aa2a1908adce942d53976270132732f720` |
 | 실험 범위 | 1K smoke, 독립 10K·20K Full FT, 사후 평가와 v2 Lite 결정 |
@@ -86,7 +86,8 @@ data/
         ├── phase5-gate/v2.0.0/KI10-MIX-v2/gate-df26e962e145/ # 기술/안전·품질 목표 분리
         ├── phase5-preflight/v1.1.0/preflight-b47fe12f03a4/ # KI20 비학습 처리량 검증
         ├── phase5-readiness/v1.3.0/build-7eb4c34364cc/ # KI20 preflight readiness
-        ├── project-status/v1.0.0/build-e23e3501a200/ # KI20 preflight 대기 현황
+        ├── project-status/v1.0.0/build-e23e3501a200/ # 과거 KI20 preflight 대기 현황
+        ├── project-status/v1.1.0/build-c64657e7aa8f/ # 현재 KI20 완료·Phase 6 대기 현황
         └── phase-verification/v1.0.0/review-20260828/
 
 configs/data_versions/saju_1b_baseline/
@@ -109,7 +110,8 @@ configs/data_versions/saju_1b_baseline/
 ├── phase5-readiness-v1.2.0.json
 ├── evaluation-split-v1.2.0.json
 ├── phase5-readiness-v1.3.0.json
-├── project-status-v1.0.0.json
+├── project-status-v1.0.0.json              # 과거 KI20 preflight 현황 계약
+├── project-status-v1.1.0.json              # 현재 KI20 완료·runtime/v3 Gate 현황 계약
 └── registry.json
 
 configs/model_versions/saju_1b_baseline/
@@ -230,6 +232,12 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
 - 원본 SHA-256: `11dde66505aa3ca90834488a877a0f4db42512d9cb377880d935f71bc71d3724`
 
 ## 진행 기록
+
+- 2026-09-01
+  - 작업 요약: 저장소의 활성 문서를 실제 산출물과 다시 대조해 KI20 학습 완료·Phase 6 미시작, MIX20K-v3 후보 차단, Skyfield runtime v1.3 candidate·conformance v8 상태를 하나의 현재 정본으로 맞췄다. 프로젝트 상태 계약을 `v1.1.0`으로 올리고 `build-c64657e7aa8f`과 루트 `PROJECT_STATUS.html`을 같은 바이트로 발행했다.
+  - 변경 범위: 루트 안내·상태 페이지, plan 인덱스와 Phase 5·6 문서, runtime·MIX20K-v3·외부 conformance·제3자 고지·원천 다운로드 manifest를 갱신했다. 과거 versioned 문서와 build는 이력으로 보존했으며 데이터, 모델, checkpoint, sealed blind, release registry, 앱 연결, v3.1 생성과 학습은 변경하지 않았다.
+  - 검증: 프로젝트 상태 계약·registry·root/snapshot 동일성과 KI20 `run-1f5d732cae67`의 2,500 step·새 process 재로딩을 확인했다. MIX20K-v3 private/public build, Phase 1 원천 4종과 Nemotron 1,000,000행, runtime v1.3/v8 표적 23건, 저장소 전체 unittest 429건, Ruff, `uv pip check`, 로컬 문서 링크, `git diff --check`를 모두 통과했다.
+  - 남은 이슈·후속 작업: Phase 6 평가와 sealed blind 개봉은 미시작이다. MIX20K-v3는 canonical 3,800행·검수·다양성 blocker가 남아 있고, runtime은 strict Gate·release·앱 연결이 승인되지 않았으므로 v3.1 생성·재학습·production 승격을 계속 금지한다.
 
 - 2026-08-31
   - 작업 요약: 완료된 KI20 baseline과 MIX20K-v3.0.1을 보존한 채 한국 만세력 runtime workstream을 독립 정본으로 연결했다. Phase 5 인덱스의 실행 중 표기를 실제 `trained_and_reloaded` 상태로 바로잡았다.

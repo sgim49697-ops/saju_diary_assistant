@@ -9,33 +9,40 @@
 
 ## 현재 다운로드 범위
 
-전체 저장소에는 학습 데이터 외 모델 어댑터와 평가 자료도 포함되어 있으므로, 초기 내용 분석용으로 데이터 카드와 v6·v7 학습 Parquet shard를 각각 하나씩 받았다.
+초기 조사 때 받은 v6·v7 각 1개 shard는 이력용 경로에 보존한다. Phase 1 정본은 같은 고정 revision의 v6 3개와 v7 17개 Parquet 전량이다.
 
-| 파일 | 크기 | SHA-256 |
-|---|---:|---|
-| `README.md` | 33,122 bytes | Hugging Face 데이터 카드 |
-| `data/train-00000-of-00003.parquet` | 190,451,215 bytes | `0ad75fedcd4df967592b510c9c31b3250123ef33933a281463323601506a1f22` |
-| `data/train-extra-00000.parquet` | 129,879,649 bytes | `97616a1ae8725c68a665e9aef5396988cf16acfce1cc271a2c209c2b671d687a` |
+| 항목 | 값 |
+|---|---:|
+| Parquet | 20개 |
+| 전체 행 | 1,000,000 |
+| v6 / v7 | 199,996 / 800,004 |
+| 전체 bytes | 2,648,680,663 |
+| UUID 중복 | 0 |
+| row hash 중복 추정 | 0 |
+| schema 일치 | 20/20 |
 
-두 Parquet 파일은 총 116,666행, 각각 40개 컬럼을 포함하며 스키마가 서로 일치한다. 파일 내부와 파일 간 UUID 중복, 핵심 필드 누락, 주요 JSON 필드 파싱 오류는 초기 검사에서 발견되지 않았다. v7 shard의 평균 사주 서사 길이는 552.5자로 v6 shard의 696.2자보다 짧아, 생성 버전별 문체·길이 차이를 후속 분석에서 분리해 다뤄야 한다.
+정본 원본은 다음 Git 제외 경로에 있다.
 
-Phase 1 실행으로 원본은 복사 없이 다음 Git 제외 경로로 이동했다.
+```text
+data/raw/nemotron_saju/ffb934248746a2dea64ef771c0d86e1743d25702-full-1m/
+```
 
-`data/raw/nemotron_saju/ffb934248746a2dea64ef771c0d86e1743d25702/`
+이 경로의 `SOURCE_MANIFEST.json` SHA-256은 `df200cd8faf366bcc45d595b5d1c0a9f2ff422df5c33aaf2b5d71406938dc383`이다. 공개 가능한 전수 집계는 `data/reports/saju_1b_baseline/source/v1.1.0/build-9462ec148dcd/source_inventory.json`에 있으며 원문 행은 포함하지 않는다.
 
-이동 후 두 Parquet의 bytes와 SHA-256을 다시 확인했으며 위 값과 일치했다. 원래 `data/nemotron_saju/`에는 공개 가능한 다운로드 명세만 남긴다.
+초기 2-shard 조사본은 아래 별도 경로에 남아 있고 Phase 1·2의 정본 입력으로 사용하지 않는다.
+
+```text
+data/raw/nemotron_saju/ffb934248746a2dea64ef771c0d86e1743d25702/
+```
 
 ## 재현 명령
 
 ```bash
 hf download rayraykim/Nemotron-Personas-Korea-Saju \
-  README.md \
-  data/train-00000-of-00003.parquet \
-  data/train-extra-00000.parquet \
   --repo-type dataset \
   --revision ffb934248746a2dea64ef771c0d86e1743d25702 \
-  --local-dir data/raw/nemotron_saju/ffb934248746a2dea64ef771c0d86e1743d25702 \
+  --local-dir data/raw/nemotron_saju/ffb934248746a2dea64ef771c0d86e1743d25702-full-1m \
   --max-workers 2
 ```
 
-원본 파일은 크기가 크므로 Git 추적 대상에서 제외한다.
+다운로드 뒤에는 `SOURCE_MANIFEST.json`과 승인 source bundle을 다시 생성·검증해야 한다. 원본 파일은 크기가 크므로 Git 추적 대상에서 제외하며 기존 정본 snapshot을 덮어쓰지 않는다.

@@ -7,16 +7,17 @@
 - 자정을 넘는 단일 시간 범위는 지원하지 않는다.
 - 생시 미상·범위 입력은 단일 chart로 확정하지 않는다.
 - DST gap은 차단하고 fold는 후보를 유지한다.
-- 음양력 provider와 절입 provider는 공식 전수 Gate 전 후보 상태다.
+- `saju-runtime-python-v1.3.0`은 Skyfield/DE440s provider가 실제 결합된 candidate runtime이지만 release·production 승인 상태는 아니다. 기본 feature flag는 꺼져 있고 결과는 `HARD_CANDIDATE`다.
 - KASI 자격 증명은 저장소 밖 0600 runtime 파일로만 사용했다. 음양력 54,787일 수집은 완료했지만 key 값이나 hash는 기록하지 않았다.
-- KASI 24절기 OpenAPI는 1900~2049년을 모두 조회한 2026-08-31 snapshot에서 2000~2028년 696건만 반환했다. 121개 0건 연도를 계산 provider로 채우지 않으므로 공식 전수 Gate는 계속 차단된다.
-- 1964년 백로 1건은 Astronomy Engine과 Skyfield가 서로 다른 한국 날짜를 반환한다. KASI 디지털 역서의 `9월 7일 24시 00분`을 `9월 8일 00:00`으로 정규화한 civil date 판정은 Astronomy Engine과 일치한다. 다만 분 정밀도 원문으로 sub-minute 물리 정확도를 판정하지 않는다.
-- KASI 달력자료는 초를 공개하지 않는 분 표기다. v1.2는 84건에서 Skyfield가 84/84 일치한 관측을 근거로 KST 최근접 분·30초 half-up을 프로젝트 등가 규칙으로 쓰며, 이를 KASI 공식 반올림 규정이라고 주장하지 않는다.
-- 이 등가 규칙에서 Astronomy Engine은 84건 중 16건이 표시 분과 다르므로 현재 production 절입 provider로 승인되지 않았다.
-- Skyfield는 표시 분 84/84를 통과하지만 1964년 공식 역서의 normalized civil date와 다르므로 production 절입 provider로 승인되지 않았다. v5 provider 선택 결과는 `null`이다.
-- Astronomy Engine과 Skyfield/JPL DE440s의 1,800건 차이는 최대 80.666231초다. ΔT 모델을 맞춘 진단 뒤에도 평균 절대 차이가 100.11913% 남아 ΔT는 주원인이 아니며, 나머지는 천문 모델 차이와 일치하지만 완전히 분리·입증하지 못했다.
+- KASI 24절기 OpenAPI는 1900~2049년 전수 scan에서 2000~2028년 696건만 반환했다. 별도 공식 현재 계산 다운로드는 1920~2100년 4,343/4,344행을 제공하며 유일한 누락은 비절입인 2030년 우수다. 절입은 2,172/2,172행이지만, 두 원천의 2011년 대한 1건은 날짜·분이 충돌한다.
+- 1900~1919년 절입 240행은 공식 coverage가 없다. provider 생성값을 공식 snapshot에 채우지 않고 `PROFILE_DETERMINISTIC`으로 표시한다.
+- 1964년 백로의 공식 현재 계산 `9월 7일 23:59`와 과거 디지털 역서 `9월 7일 24:00`은 서로 다른 vintage의 문서 사실이다. 후자는 다음 날 `00:00`으로 정규화되며, 어느 하나로 다른 원천을 덮어쓰거나 sub-minute 물리 정확도를 주장하지 않는다.
+- KASI 공식 현재 계산은 최근접 분 표시와 과거 일반 오차 1초 이내를 설명하지만, 공개 행은 초 단위 oracle이 아니다. 미래 계산은 지구 자전 불규칙성 때문에 수초~수분 달라질 수 있다.
+- Skyfield 1.55·고정 DE440s·내장 UT1은 공식 1,560행에서 날짜 mismatch 0, 원시 분 라벨 mismatch 22다. 과거 1,280행의 14건은 선언된 1초 불확실성 안이지만 미래 280행의 8건은 물리 순간 미판정 진단이므로 strict runtime provider Gate는 실패한다.
+- Astronomy Engine은 공식 1,560행에서 분 mismatch 303, 날짜 mismatch 1이어서 우선 후보가 아니다. 독립 비교와 과거 v1.2 회귀 경로는 불변으로 보존한다.
+- Astronomy Engine과 Skyfield/JPL DE440s의 1,800건 차이는 최대 80.666231초다. 동일 TT root 비교에도 평균 절대 11.513609초가 남지만 Skyfield root의 32회↔48회 차이는 최대 `101.09µs`라 근찾기 수렴 허용오차가 원인은 아니다. 잔여 차이를 단일 천문 모델 요인으로 완전히 분리·입증하지는 않았다.
 - 120초 기준은 공식 정답이나 물리적 오차 예산이 아니라 고정 회귀 가드다. 날짜·사용 가능한 분 표기의 정확성은 공식 KASI 근거가 판정한다.
-- `internal_profile_boundary_assignment_checks` 5,400건은 runtime이 만든 경계 순간 전후의 배정 로직만 검증하며 그 순간 자체의 천문 정확성을 검증하지 않는다.
+- candidate runtime과 독립 validator의 1,800개 TT root·UTC·표시 분 mismatch는 0이고 전·정확·후 5,400개 경계 배정도 mismatch 0이다. 이는 구현 결합의 일관성이지 strict release나 미래 순간 정확도 승인이 아니다.
 - 대운·공망·12운성·합충형파해·신강약·격국·용신·자동 해석은 제공하지 않는다.
 - 기간 결과는 날짜·간지 경계만 제공하며 길흉이나 미래 사건을 뜻하지 않는다.
 - `chart_id` cache는 process 메모리에만 존재해 재시작 뒤 period 호출에 재사용할 수 없다.
@@ -25,6 +26,6 @@
 - 과거 `session_state_schema_v2.json`에는 최상위 `period` key가 중복돼 일반 JSON parser가 상세 계약을 약한 object 계약으로 덮어쓰는 결함이 있다. 과거 파일은 불변 보존하되 앱 연결에는 중복 key를 거부하는 `session_state_schema_v2.1.0.json`과 `intake_registry-v1.1.0.json`만 사용한다.
 - 구조화 intake FSM v1.1은 slot·provenance·입력 fingerprint를 재검증하고 현재 `scr2_` HMAC call ID와 일치하는 tool 결과만 받는다. 이 call ID는 결과 내용의 전문적 정확성을 보증하지 않으며 앱 adapter가 요청과 응답에 그대로 결합해야 한다.
 - 구조화 intake FSM의 합성 app Gate는 100/100이고 계산된 구조·변조 검사도 모두 통과하지만 실제 앱 adapter·암호화 저장소 통합 검사는 아직 없다. `app_integration_allowed=false`이며 기존 KI20 모델의 `required_handoff_action` 평가는 14/100 그대로다. FSM 통과를 모델 대화능력 개선으로 해석하지 않는다.
-- 미래 MIX20K-v3.1 생성기는 v1.2 release와 production HMAC key가 모두 준비되기 전에는 기존 20K source도 읽지 않는다. 현재 release가 없어 v3.1 데이터 생성·preflight는 실행하지 않았다.
-- 기존 dashboard v1.8 runtime canary는 v1.1 소비 경로다. v1.2 FSM·key·persistence 통합 검증 전에는 v1.2 승인 경로로 사용하지 않는다.
-- Runtime Gate 통과 전 대시보드나 앱의 기본 경로에 연결하지 않는다.
+- 기존 MIX20K-v3.1 생성기는 승인된 release와 production HMAC key가 모두 준비되기 전에는 부모 20K source도 읽지 않는다. v1.3 candidate는 release가 아니므로 v3.1 데이터 생성·preflight는 실행하지 않았다.
+- 기존 dashboard v1.8 runtime canary는 과거 v1.1 소비 경로다. v1.3 candidate provider·권한 계약을 소비하지 않으며 현재 release 승인 근거로 사용할 수 없다.
+- release registry, production key 수명주기, 암호화 persistence·보존 정책과 실제 adapter 통합 Gate가 없다. Runtime을 대시보드나 앱의 기본 경로에 연결하지 않는다.

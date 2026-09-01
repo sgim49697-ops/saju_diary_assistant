@@ -2,6 +2,8 @@
 
 # `golbin/ssaju` 외부 참고 구현 검토
 
+> 현재 상태 안내(2026-09-01): 아래 본문은 2026-08-29 고정 revision을 당시 프로젝트 상태에서 검토한 역사 기록이다. 이후 KI20 `run-1f5d732cae67`은 학습·재로딩을 완료했고, 활성 절입 후보는 Skyfield 기반 v1.3/conformance v8로 바뀌었다. `ssaju`의 advisory-only 판정과 휴리스틱 Gold 금지는 그대로이며, 현재 실행 상태는 [프로젝트 현황판](../../PROJECT_STATUS.html)과 [Runtime 정본](../../implementation/plans/saju_runtime_calculator_adoption.md)을 우선한다.
+
 ## 결론
 
 도입 결론은 **일부 모듈만 참고 구현**이다. `ssaju`를 dependency, submodule, runtime oracle로 그대로 넣지 않는다. 천간·지지·오행·음양·십신 대응 구조처럼 작은 순수 계산 단위는 독립 Gold fixture를 통과한 뒤 clean-room 성격의 프로젝트 구현에 참고할 수 있지만, 생년월일시→원국 전체와 합충형파해 전체를 현재 상태 그대로 정답 엔진으로 채택할 근거는 부족하다.
