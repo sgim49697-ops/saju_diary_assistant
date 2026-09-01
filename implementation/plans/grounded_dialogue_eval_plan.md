@@ -3,6 +3,7 @@
 # 계산기 연결 grounded dialogue 진단
 
 - 문서·평가 버전: `grounded-dialogue-eval-v0.1.0`
+- 후속 진단 버전: `grounded-dialogue-followup-v0.2.0` · 재채점 완료, 장문 GPU 실행 대기
 - 구현 상태: **GPU 진단 완료, 자동 목표 미달**
 - 성격: 공개 합성 100건을 쓰는 비봉인·진단 전용 inference lane
 - 권한: runtime release, 앱 연결, 학습, 모델 승격을 승인하지 않음
@@ -238,3 +239,12 @@ data/reports/saju_1b_baseline/grounded-dialogue/v0.1.0/eval-<fingerprint>/
 - 권한 경계: candidate 결과는 계속 `HARD_CANDIDATE`이고 앱 FSM에 삽입하지 않았다. sealed blind 접근, Phase 6 상태 변경, runtime release, 앱 연결, 학습, 모델 승격은 모두 수행하지 않았다.
 - 공개 산출물: `data/reports/saju_1b_baseline/grounded-dialogue/v0.1.0/eval-b6221e5eb03c/`의 `aggregate.json`과 `build_manifest.json`만 Git 대상으로 삼는다. 원시 추출·응답은 Git 제외 private root에만 유지한다.
 - 검증 결과: `.venv/bin/python -m scripts.evaluation.grounded_dialogue verify`가 `status=verified`를 반환했고 공개 aggregate SHA-256은 `3445bd75dc26df4f8213bf7cad876ef022ff118350c24294722673466a2bd95f`다. 전용 테스트 21건, `uvx ruff check scripts tests`, 전체 회귀 475건, Phase 6 완료 검증, 공개 파일 집합·manifest·누출·mode 검사와 `git diff --check`가 모두 통과했다. 전체 회귀의 Phase 6 dry-run도 `blind_payload_opened=false`를 유지했다.
+
+### 2026-09-01 — 결정 인식 재채점과 장문 진단 계약
+
+- 작업 요약: 기존 `v0.1.0` 코드·원시 출력·공개 report를 수정하지 않고 이를 부모 hash로 고정하는 `grounded-dialogue-followup-v0.2.0`을 추가했다. FSM의 현재 요청을 반영해 윤달·평달 질문을 양·음력 재질문으로 중복 계산하지 않는 채점기와 KI20 2,048↔3,584 token paired 진단을 별도 build로 분리했다.
+- 재채점 결과: 기존 응답 500건을 재생성 없이 전수 재채점한 `eval-34d2c461b3c0`을 발행했다. R1·R3의 기제공 필드 재질문은 각각 7%에서 2%로 정정되어 arm별 자동 목표를 통과했다. R0는 6%→1%, K0는 29%→24%였고 전체 `diagnostic_target_met=false`는 유지됐다.
+- 장문 dry-run: 기존 100건을 4개 token band에 25건씩 배치했다. history 제거 후 최소 prompt 최대는 1,235 token이고 합성 원본 prompt는 1,068~3,931 token이다. 완전한 오래된 user·assistant 쌍만 제거하며 GPU 응답 200건은 아직 실행하지 않았다.
+- 변경 범위: 후속 평가 계약, 독립 패키지, 테스트, 공개 재채점 aggregate/build manifest와 이 진행 기록. 기존 Phase 6·runtime·모델·원시 결과는 수정하지 않았다.
+- 검증 결과: 후속 테스트 10건, 전체 회귀 485건, `uvx ruff check scripts tests`, 기존 grounded dialogue verify, Phase 6 완료 검증, Phase 1 source verify, 공개 누출·mode·manifest와 `git diff --check`가 모두 통과했다.
+- 남은 후속 작업: GPU가 유휴이고 free VRAM 12,000 MiB 이상일 때 확인값과 오프라인 환경을 고정해 장문 2-arm 200건을 실행·검증한다. 그 결과만으로 runtime 설정·release·앱 연결·학습·승격 상태를 바꾸지 않는다.

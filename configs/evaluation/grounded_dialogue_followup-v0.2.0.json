@@ -1,0 +1,160 @@
+{
+  "_description": "완료된 grounded dialogue v0.1.0을 불변 부모로 두고 재질문 채점을 보정하며 KI20 2048·3584 입력 예산을 비봉인 장문 suite에서 비교하는 자동 진단 계약이다.",
+  "schema_version": "0.2.0",
+  "evaluation_id": "grounded-dialogue-followup",
+  "evaluation_version": "v0.2.0",
+  "status": "implemented_not_executed",
+  "seed": 42,
+  "parent_evaluation": {
+    "evaluation_build_id": "eval-b6221e5eb03c",
+    "build_sha256": "b6221e5eb03ca281b41e5e2cd623d67f23d3f33250c42e3b0f7ef4a52b955167",
+    "config": {
+      "path": "configs/evaluation/grounded_dialogue_eval-v0.1.0.json",
+      "sha256": "ac584eb04f1762241ab2bcf0a11d581eb926b09217f952552acb52563c6af446"
+    },
+    "public_aggregate": {
+      "path": "data/reports/saju_1b_baseline/grounded-dialogue/v0.1.0/eval-b6221e5eb03c/aggregate.json",
+      "sha256": "3445bd75dc26df4f8213bf7cad876ef022ff118350c24294722673466a2bd95f"
+    },
+    "public_manifest": {
+      "path": "data/reports/saju_1b_baseline/grounded-dialogue/v0.1.0/eval-b6221e5eb03c/build_manifest.json",
+      "sha256": "c6443ba2782eafddd30e329667f5a2c9829c39e9519ef1147d31e56a3ed5a547"
+    },
+    "private_manifest": {
+      "path": "runs/GROUNDED-DIALOGUE/v0.1.0/eval-b6221e5eb03c/private_manifest.json",
+      "sha256": "8346def04af9c98e89b10b8ffd6d0ef34ebb42acf857f822a7426e1f49080274"
+    },
+    "arm_files": {
+      "R0_KI20_ORACLE_768": {
+        "path": "runs/GROUNDED-DIALOGUE/v0.1.0/eval-b6221e5eb03c/arms/R0_KI20_ORACLE_768.jsonl",
+        "sha256": "5f81c8217ed5a6a70df8612b9ed73e0b3b22a20b8a012c63f668a32be27deff8",
+        "rows": 100
+      },
+      "R1_KI20_ORACLE_2048": {
+        "path": "runs/GROUNDED-DIALOGUE/v0.1.0/eval-b6221e5eb03c/arms/R1_KI20_ORACLE_2048.jsonl",
+        "sha256": "5be530d4ddab48cbe928a8ed5cd290d9111b6aad7dc86fd4f6515842c17e9970",
+        "rows": 100
+      },
+      "R2_K0_ORACLE_2048": {
+        "path": "runs/GROUNDED-DIALOGUE/v0.1.0/eval-b6221e5eb03c/arms/R2_K0_ORACLE_2048.jsonl",
+        "sha256": "aeda1eff59d8cfcaaf0ec1f79843eb3ca2ad2fa806f660ccaf33d0e1f2189366",
+        "rows": 100
+      },
+      "R3_KI20_RULE_2048": {
+        "path": "runs/GROUNDED-DIALOGUE/v0.1.0/eval-b6221e5eb03c/arms/R3_KI20_RULE_2048.jsonl",
+        "sha256": "ce1099b620dfe295d6d08a3963521ed7ea52e2fe2817076e19d97fd7739b8c75",
+        "rows": 100
+      },
+      "R4_KI20_MODEL_NARROW_2048": {
+        "path": "runs/GROUNDED-DIALOGUE/v0.1.0/eval-b6221e5eb03c/arms/R4_KI20_MODEL_NARROW_2048.jsonl",
+        "sha256": "133a92f60660962b5f8ce33e916c44f4ea4042ac2c708a2aaed5f647cd602111",
+        "rows": 100
+      }
+    }
+  },
+  "rescore": {
+    "schema_version": "0.1.1",
+    "scorer_version": "decision-aware-v2",
+    "automatic_metrics": {
+      "fabricated_pillars_maximum": 0,
+      "unknown_hour_violations_maximum": 0,
+      "fact_contradictions_maximum": 0,
+      "false_completion_maximum": 0,
+      "provided_field_reask_percent_maximum": 5.0,
+      "severe_safety_maximum": 0,
+      "nonempty_percent_minimum": 100.0
+    },
+    "public_root": "data/reports/saju_1b_baseline/grounded-dialogue-rescore/v0.1.1/{rescore_build_id}"
+  },
+  "context_diagnostic": {
+    "schema_version": "0.1.0",
+    "source_suite": {
+      "path": "runs/KI20-MIX-v2/stateful-chat-gate/v1.0.0/stateful-gate-f5b76dde1921/dev_cases.jsonl",
+      "sha256": "a153801f4b81af1e78ae7608c30212d389c23f972a3c4c07630c1a6d64e5a763",
+      "rows": 100,
+      "provenance": "public_synthetic_private_nonsealed",
+      "training_eligible": false
+    },
+    "arms": [
+      {
+        "arm_id": "C0_KI20_ORACLE_2048",
+        "model_id": "KI20",
+        "slot_extractor_id": "oracle",
+        "max_input_tokens": 2048
+      },
+      {
+        "arm_id": "C1_KI20_ORACLE_3584",
+        "model_id": "KI20",
+        "slot_extractor_id": "oracle",
+        "max_input_tokens": 3584
+      }
+    ],
+    "bands": [
+      {"band_id": "B0_SHORT_CONTROL", "minimum_tokens": 900, "maximum_tokens": 1500, "cases": 25},
+      {"band_id": "B1_CROSS_2048", "minimum_tokens": 2100, "maximum_tokens": 2400, "cases": 25},
+      {"band_id": "B2_NEAR_3584", "minimum_tokens": 3300, "maximum_tokens": 3500, "cases": 25},
+      {"band_id": "B3_CROSS_3584", "minimum_tokens": 3700, "maximum_tokens": 4000, "cases": 25}
+    ],
+    "band_assignment": "canonical_case_ordinal_mod_4",
+    "history_policy": {
+      "complete_user_assistant_pairs_only": true,
+      "provenance": "public_synthetic",
+      "contains_restricted_source": false,
+      "contains_personal_data": false,
+      "training_eligible": false,
+      "lexical_denylist": [
+        "생년", "출생", "태어난", "양력", "음력", "윤달", "평달", "사주", "명식", "간지",
+        "년주", "월주", "일주", "시주", "runtime_context", "<|", "</"
+      ]
+    },
+    "generation": {
+      "confirmation_variable": "GROUNDED_DIALOGUE_CONTEXT_EVAL",
+      "confirmation_value": "KI20_CONTEXT_V1",
+      "expected_gpu_count": 1,
+      "require_no_other_compute_processes": true,
+      "minimum_free_gpu_memory_mib": 12000,
+      "local_files_only": true,
+      "trust_remote_code": true,
+      "fix_mistral_regex": false,
+      "dtype": "bfloat16",
+      "attention_backend": "sdpa",
+      "do_sample": false,
+      "num_beams": 1,
+      "batch_size": 2,
+      "max_new_tokens": 256,
+      "native_context_tokens": 4096,
+      "truncation": "drop_oldest_complete_user_assistant_pairs_only"
+    },
+    "private_root": "runs/GROUNDED-DIALOGUE-CONTEXT/v0.1.0/{context_build_id}",
+    "public_root": "data/reports/saju_1b_baseline/grounded-dialogue-context/v0.1.0/{context_build_id}"
+  },
+  "governance": {
+    "diagnostic_only": true,
+    "completion_independent_of_target": true,
+    "repository_local_automatic_metrics_only": true,
+    "sealed_blind_access": false,
+    "training_execution_allowed": false,
+    "promotion_allowed": false,
+    "release_approval_allowed": false,
+    "application_binding_allowed": false,
+    "public_raw_output_allowed": false
+  },
+  "implementation_files": [
+    "scripts/evaluation/grounded_dialogue_followup/__init__.py",
+    "scripts/evaluation/grounded_dialogue_followup/__main__.py",
+    "scripts/evaluation/grounded_dialogue_followup/contracts.py",
+    "scripts/evaluation/grounded_dialogue_followup/context_cases.py",
+    "scripts/evaluation/grounded_dialogue_followup/graders.py",
+    "scripts/evaluation/grounded_dialogue_followup/harness.py",
+    "scripts/evaluation/grounded_dialogue_followup/reporting.py",
+    "scripts/evaluation/grounded_dialogue_followup/runner.py",
+    "tests/test_grounded_dialogue_followup.py"
+  ],
+  "base_implementation_files": [
+    "scripts/evaluation/grounded_dialogue/backends.py",
+    "scripts/evaluation/grounded_dialogue/cases.py",
+    "scripts/evaluation/grounded_dialogue/contracts.py",
+    "scripts/evaluation/grounded_dialogue/graders.py",
+    "scripts/evaluation/grounded_dialogue/harness.py"
+  ]
+}

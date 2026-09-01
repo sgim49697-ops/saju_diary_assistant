@@ -1,0 +1,16 @@
+{
+  "build_sha256": "34d2c461b3c0bca2ac240dc39f14435f0df35e27eb97874c9a44074c4c2dde82",
+  "implementation_sha256": "a0e031957921e782789d345338797e250c8450602a056a080296c6624aa46699",
+  "parent_private_manifest_sha256": "8346def04af9c98e89b10b8ffd6d0ef34ebb42acf857f822a7426e1f49080274",
+  "parent_public_aggregate_sha256": "3445bd75dc26df4f8213bf7cad876ef022ff118350c24294722673466a2bd95f",
+  "private_paths_included": false,
+  "public_files": {
+    "aggregate.json": {
+      "bytes": 21799,
+      "sha256": "7f5461328818ab72705ccfe285ff2f4615e4859ae04eb2baa5964c2b6a11670b"
+    }
+  },
+  "raw_outputs_included": false,
+  "rescore_build_id": "eval-34d2c461b3c0",
+  "schema_version": "0.1.1"
+}
