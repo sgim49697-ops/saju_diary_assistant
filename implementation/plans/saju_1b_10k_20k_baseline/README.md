@@ -4,8 +4,8 @@
 
 | 항목 | 값 |
 |---|---|
-| 문서 버전 | `4.0.2` |
-| 정본화 기준일 | 2026-09-01 |
+| 문서 버전 | `4.0.3` |
+| 정본화 기준일 | 2026-09-02 |
 | 주 장비 | NVIDIA GeForce RTX 5070 Ti 16GiB, WSL2 |
 | 주 모델 | `kakaocorp/kanana-2-1.3b-instruct@bf4786aa2a1908adce942d53976270132732f720` |
 | 실험 범위 | 1K smoke, 같은 base에서 각각 시작하는 10K·20K Full FT, 사후 자동 기술평가와 baseline 결정 |
@@ -44,7 +44,7 @@
 
 Phase 상태 값은 `미시작`, `부분 진행`, `진행 중`, `차단`, `완료`만 사용한다. 앞 Phase가 `완료`가 아니면 뒤 Phase의 공식 산출물을 만들지 않는다.
 
-Phase 6 이후의 비봉인 계산기 연결 대화 진단은 [`grounded_dialogue_eval_plan.md`](../grounded_dialogue_eval_plan.md)를 따른다. 기존 500건 재채점과 2,048↔3,584 token 장문 GPU 진단은 완료됐다. 별도로 과거 공식 근거 전용 runtime 후보 화면의 120/120 자동 Gate도 완료했지만, 어느 결과도 Phase 6 결정, runtime release, production 앱 연결, 추가 학습과 모델 승격 권한을 변경하지 않는다.
+Phase 6 이후의 비봉인 계산기 연결 대화 진단은 [`grounded_dialogue_eval_plan.md`](../grounded_dialogue_eval_plan.md)를 따른다. 기존 500건 재채점과 2,048↔3,584 token 장문 GPU 진단은 완료됐다. 계산기는 이후 과거 공식 원국 전용 v1.4 chart-only release까지 완료했지만 feature 기본 off이고 앱·모델 context에 연결하지 않았다. 이 결과는 Phase 6 결정, v3.1, 추가 학습과 모델 승격 권한을 변경하지 않는다.
 
 ```text
 Phase 0 → Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5 → Phase 6

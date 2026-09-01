@@ -12,7 +12,7 @@
 2. 구조화 명식 deterministic QA의 교차 검산
 3. 명식이 없는 LLM 입력에서 계산기 handoff를 요구하는 통합 테스트
 
-기존 10K/20K와 source blind test에는 섞지 않는다. Skyfield 기반 v1.3 candidate runtime은 구현·검증됐지만 release·production engine은 승인하지 않았으며 `configs/saju_calculation_policy.json`의 `runtime_enabled=false`를 유지한다.
+기존 10K/20K와 source blind test에는 섞지 않는다. Skyfield 기반 v1.4 chart-only runtime은 과거 공식 범위의 원국만 release로 승인했지만 production 앱에는 연결하지 않았으며 `configs/saju_calculation_policy.json`의 `runtime_enabled=false`를 유지한다.
 
 ## 근거 계층
 
@@ -63,8 +63,11 @@ KASI 공개 API 페이지는 무료·이용허락범위 제한 없음으로 표�
 - runtime↔별도 validator: 1,800개 TT root·UTC·표시 분 mismatch 0, 전·정확·후 5,400개 경계 mismatch 0
 - 권한 분리: `PROFILE_DETERMINISTIC` 240, `PAST_OFFICIAL_CORROBORATED` 1,280, `FORECAST_DIAGNOSTIC_NONAPPROVAL` 280
 - strict runtime provider: 공식 원시 분 라벨 mismatch 22/1,560과 미래 물리 순간 미판정으로 실패
-- 앱 runtime 계산 엔진 승인: `runtime_approved=false`, release registry 없음, feature flag 기본 off
+- v1.4 chart-only Gate: scope 328,722건, exact 77,908건, 경계 probe 2,558건, range/unknown 2,660건 모두 실패 0
+- v1.4 경계 정책: 과거 원시 분 mismatch 14 보존, ±1초 격리 분·동일-분 range 차단·unknown 안정 각 50건
+- chart-only release: `saju-runtime-release-v1.4.0-63dc8d398e90`, chart만 승인·period 차단·feature 기본 off
+- 앱 runtime 연결: `production_application_binding=false`, `configs/saju_calculation_policy.json` 비활성 유지
 - MIX20K-v3.1 재생성·학습: 보류
 - 계약 밖 의미 품질: `not_measured`, runtime 승인 blocker로 사용하지 않음
 
-실행 정본과 최신 공개 보고서는 [`saju_runtime_calculator_adoption.md`](../../implementation/plans/saju_runtime_calculator_adoption.md) 및 [`data/reports/saju_runtime_conformance/v1.6.0/build-8bd88d6db03a/`](../../data/reports/saju_runtime_conformance/v1.6.0/build-8bd88d6db03a/)에서 확인한다. 후보 runtime은 기본 off이며, 승인 전 결과는 `HARD_CANDIDATE`를 넘지 않는다.
+실행 정본과 최신 공개 보고서는 [`saju_runtime_calculator_adoption.md`](../../implementation/plans/saju_runtime_calculator_adoption.md) 및 [`data/reports/saju_runtime_conformance/v1.7.0/build-9f1784e74a4e/`](../../data/reports/saju_runtime_conformance/v1.7.0/build-9f1784e74a4e/)에서 확인한다. chart-only runtime은 기본 off이며 승인 범위 밖 결과에는 사실 권한을 부여하지 않는다.

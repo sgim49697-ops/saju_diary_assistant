@@ -1,0 +1,43 @@
+{
+  "_description": "conformance v9 통과 보고서와 chart-only v1.4 운영 조건을 결합하는 release schema다.",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "saju-runtime-release-registry-v1.4.0",
+  "schema_version": "1.4.0",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "release_id": {"type": "string", "pattern": "^saju-runtime-release-v1\\.4\\.0-[0-9a-f]{12}$"},
+    "status": {"const": "approved_chart_only_feature_default_off"},
+    "engine_version": {"const": "saju-runtime-python-v1.4.0"},
+    "id_contract_version": {"const": "saju-runtime-id-hmac-v2.0.0"},
+    "profile_id": {"const": "KR_CIVIL_MIDNIGHT_V1"},
+    "approval_scope": {"const": "PAST_OFFICIAL_CHART_ONLY_1920_2026"},
+    "approved_tools": {"const": ["calculate_saju_chart"]},
+    "blocked_tools": {"const": ["calculate_saju_period"]},
+    "approved_solar_date_range": {"const": {"minimum": "1920-01-07", "maximum": "2026-08-31"}},
+    "boundary_uncertainty_seconds": {"const": 1.0},
+    "quarantined_boundary_minutes": {"const": 50},
+    "runtime_registry_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "conformance_report": {"type": "object"},
+    "official_snapshots": {"type": "object"},
+    "implementation_sha256": {"type": "object"},
+    "production_id_key_required": {"const": true},
+    "runtime_feature_flag_default": {"const": false},
+    "strict_runtime_provider_gate_passed": {"const": false},
+    "full_runtime_gate_passed": {"const": false},
+    "production_application_binding": {"const": false},
+    "mix20k_v3_1_regeneration_allowed": {"const": false},
+    "training_promotion_allowed": {"const": false},
+    "sealed_blind_accessed": {"const": false}
+  },
+  "required": [
+    "release_id", "status", "engine_version", "id_contract_version", "profile_id",
+    "approval_scope", "approved_tools", "blocked_tools", "approved_solar_date_range",
+    "boundary_uncertainty_seconds", "quarantined_boundary_minutes",
+    "runtime_registry_sha256", "conformance_report", "official_snapshots",
+    "implementation_sha256", "production_id_key_required", "runtime_feature_flag_default",
+    "strict_runtime_provider_gate_passed", "full_runtime_gate_passed",
+    "production_application_binding", "mix20k_v3_1_regeneration_allowed",
+    "training_promotion_allowed", "sealed_blind_accessed"
+  ]
+}

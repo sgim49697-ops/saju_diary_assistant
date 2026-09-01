@@ -1,0 +1,48 @@
+{
+  "_description": "과거 공식 완전 일자의 원국만 자동 승인하는 conformance v9 Gate다.",
+  "schema_version": "1.7.0",
+  "gate_version": "saju-runtime-gate-v1.7.0",
+  "suite_version": "saju-runtime-conformance-v9.0.0",
+  "status": "chart_only_release_gate",
+  "profile_id": "KR_CIVIL_MIDNIGHT_V1",
+  "approval_scope": "PAST_OFFICIAL_CHART_ONLY_1920_2026",
+  "parent": {
+    "path": "configs/runtime/calculation/conformance_gate-v1.6.0.json",
+    "sha256": "ac8d805d2b69c792d451f0040a0482f2c8a4edcc712bae11cdaa5333d4acb6fe"
+  },
+  "minimum_cases": {
+    "parent_kasi_lunar_days": 54787,
+    "parent_provider_jie_instants": 1800,
+    "parent_tt_boundary_assignment": 5400,
+    "scope_matrix": 328722,
+    "scope_allowed": 233724,
+    "scope_blocked": 94998,
+    "exact_chart_calculations": 77908,
+    "past_jie_rows_in_scope": 1279,
+    "boundary_probe_cases": 2558,
+    "range_unknown_month_cases": 2560,
+    "range_unknown_total_cases": 2660,
+    "boundary_range_blocked_cases": 50,
+    "boundary_unknown_stable_cases": 50
+  },
+  "boundary_policy": {
+    "kasi_declared_past_uncertainty_seconds": 1.0,
+    "expected_past_raw_minute_mismatches": 14,
+    "expected_quarantined_boundary_minutes": 50,
+    "exact_intersection_policy": "block",
+    "range_unknown_stability_required": true,
+    "strict_raw_minute_mismatch_zero_required_for_chart_only": false,
+    "strict_runtime_provider_gate_passed": false
+  },
+  "expected_report_state": {
+    "chart_only_gate_passed": true,
+    "chart_release_registry_creation_allowed": true,
+    "strict_runtime_provider_gate_passed": false,
+    "full_runtime_gate_passed": false,
+    "runtime_feature_flag_default": false,
+    "production_application_binding": false,
+    "mix20k_v3_1_regeneration_allowed": false,
+    "training_promotion_allowed": false,
+    "sealed_blind_accessed": false
+  }
+}
