@@ -152,15 +152,15 @@
     "version": "v1.0.0"
   },
   "approved_project_status": {
-    "build_id": "build-84cf0ec3010d",
-    "build_manifest_sha256": "192d7388b6ce0c935186a98a3be7f8877de9783a1c2e4702391cfa899021d9b5",
-    "build_sha256": "84cf0ec3010d62f2dce2f793328de413328d01c9cfb4be6b9359d1dde7922771",
-    "config_sha256": "f6979f4a4553882f03afbf8f24549fdf1306b7f27a454ea9431cdfe3b5accf1d",
-    "html_sha256": "57fa3e3d037fea9d4ee2a1429b37a203ba6cffe256084aaa6dbf7795359d976d",
+    "build_id": "build-38b9ca77ce45",
+    "build_manifest_sha256": "4976eac32397b87c5f0528ba391a2b25ba9467637f6001c31ca94d5532f2584c",
+    "build_sha256": "38b9ca77ce4585bea888a1b6cdb19af2a1f4617d32647a286632bd39213340c3",
+    "config_sha256": "f4b7309cc4f32ee871de1c3bd041ae4cde3427176d6b182baf7f765eb22fb571",
+    "html_sha256": "2973eeb5bda963167504fb0142b32bd16a2ccd15544699fe67cb93ad351f8eaf",
     "restricted_content_included": false,
     "stage": "phase6_completed_automatic_repair_required",
     "status": "published",
-    "version": "v1.2.0"
+    "version": "v1.3.0"
   },
   "approved_staging": {
     "approval_basis": "explicit_owner_automated_technical_acceptance",
@@ -595,6 +595,17 @@
       "stage": "phase6_completed_automatic_repair_required",
       "status": "published",
       "version": "v1.2.0"
+    },
+    {
+      "build_id": "build-38b9ca77ce45",
+      "build_manifest_sha256": "4976eac32397b87c5f0528ba391a2b25ba9467637f6001c31ca94d5532f2584c",
+      "build_sha256": "38b9ca77ce4585bea888a1b6cdb19af2a1f4617d32647a286632bd39213340c3",
+      "config_sha256": "f4b7309cc4f32ee871de1c3bd041ae4cde3427176d6b182baf7f765eb22fb571",
+      "html_sha256": "2973eeb5bda963167504fb0142b32bd16a2ccd15544699fe67cb93ad351f8eaf",
+      "restricted_content_included": false,
+      "stage": "phase6_completed_automatic_repair_required",
+      "status": "published",
+      "version": "v1.3.0"
     }
   ],
   "schema_version": "1.0.0",

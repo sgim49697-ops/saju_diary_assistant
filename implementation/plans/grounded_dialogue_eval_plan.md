@@ -4,7 +4,7 @@
 
 - 문서·평가 버전: `grounded-dialogue-eval-v0.1.0`
 - 후속 진단 버전: `grounded-dialogue-followup-v0.2.0` · 재채점·장문 GPU·scope-aware 후처리 완료
-- 구현 상태: **GPU 진단 완료, 자동 목표 미달**
+- 구현 상태: **GPU 진단·재채점 완료, 전체 baseline 자동 목표 미달**
 - 성격: 공개 합성 100건을 쓰는 비봉인·진단 전용 inference lane
 - 권한: runtime release, 앱 연결, 학습, 모델 승격을 승인하지 않음
 
@@ -258,3 +258,4 @@ data/reports/saju_1b_baseline/grounded-dialogue/v0.1.0/eval-<fingerprint>/
 - 누적 재채점: `eval-562c07d0e2e6`에서 K0의 입력 확인형 완료 오탐 5건은 0건, model-narrow는 2건에서 실제 1건으로 정정됐다. K0의 임의 네 기둥·재질문과 model-narrow 추출 실패가 남아 전체 baseline 진단 목표는 계속 미달이다.
 - 공개·비공개 경계: 장문 최초 aggregate `grounded-dialogue-context/v0.1.0/eval-7f67d5200b31`, 최종 후처리 aggregate `v0.1.1/eval-56d1357560d5`, 누적 재채점 `grounded-dialogue-rescore/v0.1.2/eval-562c07d0e2e6`만 공개한다. 200개 응답과 합성 history suite는 Git 제외 `runs/GROUNDED-DIALOGUE-CONTEXT/`에 0600으로 유지한다.
 - 권한 경계: 모델 설정의 YaRN 경고는 기록했으나 입력 3,584+출력 256으로 원본 4,096 이내만 사용했다. sealed blind 접근, Phase 6 상태 변경, runtime release, 앱 연결, 학습, 모델 승격은 수행하지 않았다.
+- 정본 연결: 최종 재채점·장문 결과를 공개 현황 `project-status/v1.3.0/build-38b9ca77ce45`에 연결했다. 이 연결은 결과 가시성만 갱신하며 기존 `AUTOMATED_REPAIR_REQUIRED`와 모든 승인 차단을 유지한다.

@@ -4,7 +4,7 @@
 
 | 항목 | 값 |
 |---|---|
-| 문서 버전 | `4.0.0` |
+| 문서 버전 | `4.0.1` |
 | 정본화 기준일 | 2026-09-01 |
 | 주 장비 | NVIDIA GeForce RTX 5070 Ti 16GiB, WSL2 |
 | 주 모델 | `kakaocorp/kanana-2-1.3b-instruct@bf4786aa2a1908adce942d53976270132732f720` |
@@ -43,6 +43,8 @@
 | 6 | [자동 기술평가·baseline 결정](phase-6-evaluation-v2-decision.md) | 완료 | `eval-e8630962cab2` 단회 실행 완료 · `AUTOMATED_REPAIR_REQUIRED` |
 
 Phase 상태 값은 `미시작`, `부분 진행`, `진행 중`, `차단`, `완료`만 사용한다. 앞 Phase가 `완료`가 아니면 뒤 Phase의 공식 산출물을 만들지 않는다.
+
+Phase 6 이후의 비봉인 계산기 연결 대화 진단은 [`grounded_dialogue_eval_plan.md`](../grounded_dialogue_eval_plan.md)를 따른다. 기존 500건 재채점과 2,048↔3,584 token 장문 GPU 진단은 완료됐지만 Phase 6 결정, runtime release, 앱 연결, 추가 학습과 모델 승격 권한은 변경하지 않는다.
 
 ```text
 Phase 0 → Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5 → Phase 6
@@ -90,8 +92,13 @@ data/
         ├── phase5-readiness/v1.3.0/build-7eb4c34364cc/ # KI20 preflight readiness
         ├── project-status/v1.0.0/build-e23e3501a200/ # 과거 KI20 preflight 대기 현황
         ├── project-status/v1.1.0/build-c64657e7aa8f/ # 과거 KI20 완료·Phase 6 대기 현황
-        ├── project-status/v1.2.0/build-84cf0ec3010d/ # 현재 Phase 6 완료·자동 보정 필요 현황
+        ├── project-status/v1.2.0/build-84cf0ec3010d/ # 과거 Phase 6 완료 현황
+        ├── project-status/v1.3.0/build-38b9ca77ce45/ # 현재 대화 자동 진단 포함 현황
         ├── phase6-technical/v1.0.0/eval-e8630962cab2/ # 집계 전용 자동 평가 결과
+        ├── grounded-dialogue/v0.1.0/eval-b6221e5eb03c/ # 최초 500건 자동 진단 집계
+        ├── grounded-dialogue-rescore/v0.1.2/eval-562c07d0e2e6/ # 누적 scope-aware 재채점
+        ├── grounded-dialogue-context/v0.1.0/eval-7f67d5200b31/ # 최초 장문 GPU 집계
+        ├── grounded-dialogue-context/v0.1.1/eval-56d1357560d5/ # 현재 장문 후처리 집계
         └── phase-verification/v1.0.0/review-20260828/
 
 configs/data_versions/saju_1b_baseline/
@@ -116,7 +123,8 @@ configs/data_versions/saju_1b_baseline/
 ├── phase5-readiness-v1.3.0.json
 ├── project-status-v1.0.0.json              # 과거 KI20 preflight 현황 계약
 ├── project-status-v1.1.0.json              # 과거 KI20 완료·Phase 6 대기 현황 계약
-├── project-status-v1.2.0.json              # 현재 Phase 6 완료·자동 보정 필요 현황 계약
+├── project-status-v1.2.0.json              # 과거 Phase 6 완료 현황 계약
+├── project-status-v1.3.0.json              # 현재 대화 자동 진단 포함 현황 계약
 └── registry.json
 
 configs/model_versions/saju_1b_baseline/
@@ -136,6 +144,8 @@ runs/
 ├── KI10-MIX-v2/
 ├── KI20-MIX-v2/v1.2.0/run-1f5d732cae67/
 ├── PHASE6-TECHNICAL/v1.0.0/eval-e8630962cab2/ # Git 제외 private 결과
+├── GROUNDED-DIALOGUE/v0.1.0/eval-b6221e5eb03c/ # Git 제외 500건 원시 응답
+├── GROUNDED-DIALOGUE-CONTEXT/v0.1.0/eval-7f67d5200b31/ # Git 제외 장문 200건 원시 응답
 └── KI20-MIX-v2-LITE/  # 별도 승인 전 미생성
 ```
 
@@ -239,6 +249,12 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
 - 원본 SHA-256: `11dde66505aa3ca90834488a877a0f4db42512d9cb377880d935f71bc71d3724`
 
 ## 진행 기록
+
+- 2026-09-01
+  - 작업 요약: 기존 grounded dialogue 500건을 응답 재생성 없이 decision-aware·completion-scope-v3로 재채점하고, RTX 5070 Ti에서 KI20 2,048↔3,584 token 장문 200건을 완료했다. 공개 현황을 `v1.3.0/build-38b9ca77ce45`로 올려 결과를 정본에 연결했다.
+  - 변경 범위: 재채점 `eval-562c07d0e2e6`, 장문 최종 `eval-56d1357560d5`, 새 status 계약·snapshot·registry 포인터와 관련 문서를 추가했다. 기존 v0.1.0 응답·Phase 6 봉인 결과·모델·runtime 설정은 수정하지 않았다.
+  - 검증: R1·R3 재질문 7%→2%, K0 입력 확인형 완료 오탐 5→0, 장문 두 arm의 자동 목표 통과와 max-token hit 2→0을 확인했다. 원시 응답은 Git 제외 경로에 유지했고 공개 누출·부모 hash·v1.2 status 불변성·v1.3 재현성을 검증했다.
+  - 남은 이슈·후속 작업: 전체 baseline은 K0 임의 네 기둥·재질문과 KI20 model-narrow 추출 실패 때문에 `AUTOMATED_REPAIR_REQUIRED`다. runtime release, 앱 연결, MIX20K-v3.1, 추가 학습, 모델 승격은 계속 차단한다.
 
 - 2026-09-01
   - 작업 요약: Phase 6 `eval-e8630962cab2`의 자동 기술평가를 완료하고 현재 baseline 결정을 `AUTOMATED_REPAIR_REQUIRED`로 정본화했다. sealed blind는 500행·350 component를 K0·KI10·KI20에 한 번만 사용했다.

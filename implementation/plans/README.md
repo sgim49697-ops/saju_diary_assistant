@@ -6,8 +6,9 @@
 - `saju_1b_10k_20k_baseline/README.md`: 실제 구현 순서, 버전, Gate를 결정하는 정본
 - `mix20k_v3_repair_plan.md`: 외부 MIX20K-v3 후보의 감사·자동 보정·학습 차단 정본
 - `saju_runtime_calculator_adoption.md`: 한국 만세력 계산 core·공식 conformance·v3.1 이관을 결정하는 runtime 정본
+- `grounded_dialogue_eval_plan.md`: 계산기 연결 대화의 자동 사실·상태·장문 진단 정본
 
-종합 가이드와 정본이 충돌하면 해당 workstream 정본을 따른다. 학습 Phase·현재 모델 상태는 `saju_1b_10k_20k_baseline/README.md`, v3 후보는 `mix20k_v3_repair_plan.md`, 계산기·공식 근거·release 경계는 `saju_runtime_calculator_adoption.md`가 우선한다.
+종합 가이드와 정본이 충돌하면 해당 workstream 정본을 따른다. 학습 Phase·현재 모델 상태는 `saju_1b_10k_20k_baseline/README.md`, v3 후보는 `mix20k_v3_repair_plan.md`, 계산기·공식 근거·release 경계는 `saju_runtime_calculator_adoption.md`, 계산기 연결 대화 진단은 `grounded_dialogue_eval_plan.md`가 우선한다.
 
 ## 현재 정본 상태
 
@@ -16,8 +17,9 @@
 | 10K/20K baseline | Phase 0~6 완료, `eval-e8630962cab2` 단회 자동 평가 완료 | `AUTOMATED_REPAIR_REQUIRED`, production 금지 |
 | MIX20K-v3 | `v3.0.1-repaired/build-94eb7b543490` 기술 후보·비학습 preflight 완료 | canonical 3,800행·다양성·state/grounding·serving 자동 blocker, v3.1·학습 금지 |
 | 만세력 runtime | Skyfield v1.3 candidate와 conformance v8 `build-8bd88d6db03a` 통과 | strict Gate·release·앱 연결 차단, 결과는 `HARD_CANDIDATE` |
+| 계산기 연결 대화 | 기존 500건을 `eval-562c07d0e2e6`으로 재채점하고 2,048↔3,584 장문 200건 `eval-56d1357560d5` 완료 | 두 장문 arm 자동 목표 통과·3,584 상한 유지 후보, 전체 baseline·release·학습 권한 불변 |
 
-루트 [`PROJECT_STATUS.html`](../../PROJECT_STATUS.html)은 위 세 workstream의 공개 가능한 현재 집계를 보여준다. 과거 진행 기록과 versioned config/report는 당시 판단의 불변 이력이며 현재 포인터로 읽지 않는다.
+루트 [`PROJECT_STATUS.html`](../../PROJECT_STATUS.html)은 위 네 workstream의 공개 가능한 현재 집계를 보여준다. 현재 포인터는 `project-status/v1.3.0/build-38b9ca77ce45`이며, 과거 진행 기록과 versioned config/report는 당시 판단의 불변 이력으로만 보존한다.
 
 ## 현재 평가 기본값
 
