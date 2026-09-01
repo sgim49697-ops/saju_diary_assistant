@@ -1,0 +1,15 @@
+{
+  "build_sha256": "562c07d0e2e6954afa16e4032fc3ca70c4a6d25e0af78a087be2061955ba357f",
+  "implementation_sha256": "16bb73b0f8546fdaa20af372cf17629611b5a6ff6b1df37fa48e144dbff9aa22",
+  "parent_aggregate_sha256": "7f5461328818ab72705ccfe285ff2f4615e4859ae04eb2baa5964c2b6a11670b",
+  "private_paths_included": false,
+  "public_files": {
+    "aggregate.json": {
+      "bytes": 22601,
+      "sha256": "a8c1dc0b0b6ffb09cf67157d942fc536a445dbe8ec571578b7ba21b3a7c7f5eb"
+    }
+  },
+  "raw_outputs_included": false,
+  "rescore_build_id": "eval-562c07d0e2e6",
+  "schema_version": "0.1.2"
+}

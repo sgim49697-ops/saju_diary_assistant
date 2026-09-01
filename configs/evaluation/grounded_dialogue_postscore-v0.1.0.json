@@ -1,0 +1,83 @@
+{
+  "_description": "불변 grounded dialogue 재채점과 장문 GPU 출력을 재생성하지 않고 입력 확인 문구의 완료 오탐만 scope-aware 규칙으로 정정하는 자동 후처리 계약이다.",
+  "schema_version": "0.1.0",
+  "evaluation_id": "grounded-dialogue-postscore",
+  "evaluation_version": "v0.1.0",
+  "status": "implemented_not_executed",
+  "parent_followup_config": {
+    "path": "configs/evaluation/grounded_dialogue_followup-v0.2.0.json",
+    "sha256": "d18e6701810d50043a6ef1bade23f3a8d58fdbf17e8bca452987328cc3135249"
+  },
+  "parent_rescore": {
+    "build_id": "eval-34d2c461b3c0",
+    "aggregate": {
+      "path": "data/reports/saju_1b_baseline/grounded-dialogue-rescore/v0.1.1/eval-34d2c461b3c0/aggregate.json",
+      "sha256": "7f5461328818ab72705ccfe285ff2f4615e4859ae04eb2baa5964c2b6a11670b"
+    },
+    "manifest": {
+      "path": "data/reports/saju_1b_baseline/grounded-dialogue-rescore/v0.1.1/eval-34d2c461b3c0/build_manifest.json",
+      "sha256": "a1320a851c18b29bc29d973d2cd8c68526ef085a14ca2690ad93e6213a1f24ad"
+    }
+  },
+  "parent_context": {
+    "build_id": "eval-7f67d5200b31",
+    "build_sha256": "7f67d5200b31f107acda3a4b1f030850809c6f33f9f4bc98c5bdc7441ab56446",
+    "aggregate": {
+      "path": "data/reports/saju_1b_baseline/grounded-dialogue-context/v0.1.0/eval-7f67d5200b31/aggregate.json",
+      "sha256": "d1a46e7d7cf09096a80e3b193d4cd0b5ba7ee39a0e840596b3bf095de181b1ea"
+    },
+    "manifest": {
+      "path": "data/reports/saju_1b_baseline/grounded-dialogue-context/v0.1.0/eval-7f67d5200b31/build_manifest.json",
+      "sha256": "bf5ee6b2b79f8a7c83ff5451af84725302fd7cd47a9486c7fab4da28b26516c7"
+    },
+    "private_manifest": {
+      "path": "runs/GROUNDED-DIALOGUE-CONTEXT/v0.1.0/eval-7f67d5200b31/private_manifest.json",
+      "sha256": "b7df63a696badd8afdd3c7ec399e02740bfc0c9e778f06c8e7cf89873cc95974"
+    },
+    "arm_files": {
+      "C0_KI20_ORACLE_2048": {
+        "path": "runs/GROUNDED-DIALOGUE-CONTEXT/v0.1.0/eval-7f67d5200b31/arms/C0_KI20_ORACLE_2048.jsonl",
+        "sha256": "94ef174d5bf56f97ca72ea1dc5d7bb74f6f4b44bbd1c5c45d13ba2f60b9006e9",
+        "rows": 100
+      },
+      "C1_KI20_ORACLE_3584": {
+        "path": "runs/GROUNDED-DIALOGUE-CONTEXT/v0.1.0/eval-7f67d5200b31/arms/C1_KI20_ORACLE_3584.jsonl",
+        "sha256": "6f9b896a989decacea749614b509e0822de9fb69d1934ba1c934d0e97c1eca0b",
+        "rows": 100
+      }
+    }
+  },
+  "scorer": {
+    "version": "completion-scope-v3",
+    "generic_confirmation_requires_domain_scope": true,
+    "domain_scope_terms": ["분석", "계산", "해석", "검증", "명식", "원국", "결과", "사주"]
+  },
+  "outputs": {
+    "rescore_public_root": "data/reports/saju_1b_baseline/grounded-dialogue-rescore/v0.1.2/{rescore_build_id}",
+    "context_public_root": "data/reports/saju_1b_baseline/grounded-dialogue-context/v0.1.1/{context_rescore_build_id}"
+  },
+  "governance": {
+    "diagnostic_only": true,
+    "response_regeneration_allowed": false,
+    "repository_local_automatic_metrics_only": true,
+    "sealed_blind_access": false,
+    "training_execution_allowed": false,
+    "promotion_allowed": false,
+    "release_approval_allowed": false,
+    "application_binding_allowed": false,
+    "runtime_configuration_change_allowed": false,
+    "public_raw_output_allowed": false
+  },
+  "implementation_files": [
+    "scripts/evaluation/grounded_dialogue_postscore.py",
+    "tests/test_grounded_dialogue_postscore.py"
+  ],
+  "base_implementation_files": [
+    "scripts/evaluation/grounded_dialogue/graders.py",
+    "scripts/evaluation/grounded_dialogue/contracts.py",
+    "scripts/evaluation/grounded_dialogue/reporting.py",
+    "scripts/evaluation/grounded_dialogue_followup/graders.py",
+    "scripts/evaluation/grounded_dialogue_followup/reporting.py",
+    "scripts/evaluation/grounded_dialogue_followup/runner.py"
+  ]
+}

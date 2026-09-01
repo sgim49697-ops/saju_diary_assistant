@@ -3,7 +3,7 @@
 # 계산기 연결 grounded dialogue 진단
 
 - 문서·평가 버전: `grounded-dialogue-eval-v0.1.0`
-- 후속 진단 버전: `grounded-dialogue-followup-v0.2.0` · 재채점 완료, 장문 GPU 실행 대기
+- 후속 진단 버전: `grounded-dialogue-followup-v0.2.0` · 재채점·장문 GPU·scope-aware 후처리 완료
 - 구현 상태: **GPU 진단 완료, 자동 목표 미달**
 - 성격: 공개 합성 100건을 쓰는 비봉인·진단 전용 inference lane
 - 권한: runtime release, 앱 연결, 학습, 모델 승격을 승인하지 않음
@@ -248,3 +248,13 @@ data/reports/saju_1b_baseline/grounded-dialogue/v0.1.0/eval-<fingerprint>/
 - 변경 범위: 후속 평가 계약, 독립 패키지, 테스트, 공개 재채점 aggregate/build manifest와 이 진행 기록. 기존 Phase 6·runtime·모델·원시 결과는 수정하지 않았다.
 - 검증 결과: 후속 테스트 10건, 전체 회귀 485건, `uvx ruff check scripts tests`, 기존 grounded dialogue verify, Phase 6 완료 검증, Phase 1 source verify, 공개 누출·mode·manifest와 `git diff --check`가 모두 통과했다.
 - 남은 후속 작업: GPU가 유휴이고 free VRAM 12,000 MiB 이상일 때 확인값과 오프라인 환경을 고정해 장문 2-arm 200건을 실행·검증한다. 그 결과만으로 runtime 설정·release·앱 연결·학습·승격 상태를 바꾸지 않는다.
+
+### 2026-09-01 — 2,048↔3,584 장문 GPU 진단과 완료 오탐 보정
+
+- GPU 실행: RTX 5070 Ti·PyTorch 2.13.0+cu130·BF16·native JIT·오프라인 환경에서 `eval-7f67d5200b31`의 2개 arm × 100건을 모두 생성했다. prompt budget failure는 0건이고 pre-generation FSM·route·tool·extraction identity는 100/100 유지됐다.
+- token 결과: 2,048 arm은 최종 입력 1,068~2,047 token, 오래된 완전 대화쌍 제거 최대 9개였다. 3,584 arm은 최종 입력 1,068~3,495 token, 제거 최대 2개였다. 두 arm 모두 nonempty 100%, 기제공 필드 재질문·임의 네 기둥·사실 모순·중대 안전 위반 0건이었다.
+- 디버깅: 최초 장문 aggregate에서 두 arm에 공통으로 남은 `false_completion` 1건은 계산 완료가 아니라 입력 정보 수신을 표현한 `확인되었습니다` 문구였다. 기존 build를 덮어쓰지 않고 원 응답을 재생성하지 않는 `completion-scope-v3` 후처리를 별도 구현해 입력 확인은 제외하고 분석·계산·해석·검증·명식·원국·결과·사주 scope의 완료 주장만 차단했다.
+- 최종 자동 결과: `eval-56d1357560d5`에서 2,048·3,584 arm 모두 자동 목표를 통과했다. 2,048 arm의 max-token hit 2건은 3,584 arm에서 0건이 되어 `3584_strict_advantage=true`, `capacity_recommendation=retain_3584_as_runtime_candidate_ceiling`이다. 이는 이미 사용 중인 대시보드 3,584 상한을 유지하라는 진단이며 runtime 설정 변경은 수행하지 않았다.
+- 누적 재채점: `eval-562c07d0e2e6`에서 K0의 입력 확인형 완료 오탐 5건은 0건, model-narrow는 2건에서 실제 1건으로 정정됐다. K0의 임의 네 기둥·재질문과 model-narrow 추출 실패가 남아 전체 baseline 진단 목표는 계속 미달이다.
+- 공개·비공개 경계: 장문 최초 aggregate `grounded-dialogue-context/v0.1.0/eval-7f67d5200b31`, 최종 후처리 aggregate `v0.1.1/eval-56d1357560d5`, 누적 재채점 `grounded-dialogue-rescore/v0.1.2/eval-562c07d0e2e6`만 공개한다. 200개 응답과 합성 history suite는 Git 제외 `runs/GROUNDED-DIALOGUE-CONTEXT/`에 0600으로 유지한다.
+- 권한 경계: 모델 설정의 YaRN 경고는 기록했으나 입력 3,584+출력 256으로 원본 4,096 이내만 사용했다. sealed blind 접근, Phase 6 상태 변경, runtime release, 앱 연결, 학습, 모델 승격은 수행하지 않았다.
