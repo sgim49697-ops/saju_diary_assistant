@@ -281,7 +281,11 @@ class SkyfieldSolarTermProvider:
 
     def boundary(self, year: int, term_index: int) -> SolarTermBoundary:
         if (
-            not RUNTIME_MINIMUM_BOUNDARY_YEAR <= year <= RUNTIME_MAXIMUM_BOUNDARY_YEAR
+            isinstance(year, bool)
+            or not isinstance(year, int)
+            or not RUNTIME_MINIMUM_BOUNDARY_YEAR <= year <= RUNTIME_MAXIMUM_BOUNDARY_YEAR
+            or isinstance(term_index, bool)
+            or not isinstance(term_index, int)
             or not 0 <= term_index <= 23
         ):
             raise RuntimeCalculationError(
@@ -391,12 +395,29 @@ class SkyfieldSolarTermProvider:
     def compare_instant(
         self, instant: datetime, boundary: SolarTermBoundary
     ) -> int:
-        if instant.tzinfo is None or instant.utcoffset() is None:
+        if (
+            not isinstance(instant, datetime)
+            or instant.tzinfo is None
+            or instant.utcoffset() is None
+        ):
             raise RuntimeCalculationError(
                 "INVALID_INSTANT", "절입 비교 instant에는 timezone이 필요합니다."
             )
+        if (
+            not isinstance(boundary, SolarTermBoundary)
+            or boundary.provider_id != self.provider_id
+        ):
+            raise RuntimeCalculationError(
+                "SOLAR_TERM_EVIDENCE_INVALID",
+                "절입 비교 경계와 provider identity가 다릅니다.",
+            )
         with self._lock:
             self._ensure_open()
+            if self.boundary(boundary.year, boundary.term_index) != boundary:
+                raise RuntimeCalculationError(
+                    "SOLAR_TERM_EVIDENCE_INVALID",
+                    "절입 비교 경계가 provider 계산값과 다릅니다.",
+                )
             value = self._timescale.from_datetime(instant.astimezone(UTC))
             delta = (float(value.whole) - boundary.tt_whole) + (
                 float(value.tt_fraction) - boundary.tt_fraction

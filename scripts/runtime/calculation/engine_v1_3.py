@@ -282,57 +282,60 @@ class _SkyfieldCandidateEngine(SajuRuntimeEngine):
         zone = ZoneInfo("Asia/Seoul")
         start_instant = datetime.combine(start, time(12, 0), tzinfo=zone)
         end_instant = datetime.combine(end, time(12, 0), tzinfo=zone)
-        start_ganzhi = period_point_facts_v1_3(
-            start,
-            start_instant,
-            solar_term_provider=self.solar_term_provider,
-        )
-        end_ganzhi = period_point_facts_v1_3(
-            end,
-            end_instant,
-            solar_term_provider=self.solar_term_provider,
-        )
-        jie_boundaries = jie_boundaries_between_v1_3(
-            datetime.combine(start, time.min, tzinfo=zone),
-            datetime.combine(end, time.max, tzinfo=zone),
-            solar_term_provider=self.solar_term_provider,
-        )
-        point_evidence: list[dict[str, Any]] = []
-        for point in (start_ganzhi, end_ganzhi):
-            evidence = point.pop("solar_term_evidence", None)
-            if not isinstance(evidence, dict):
-                return self._blocked(
-                    "SOLAR_TERM_EVIDENCE_INVALID",
-                    "기간 기준점의 절입 근거가 없습니다.",
-                )
-            point_evidence.append(evidence)
-        boundary_evidence = [
-            build_solar_term_evidence(
-                self.solar_term_provider,
-                (
+        try:
+            start_ganzhi = period_point_facts_v1_3(
+                start,
+                start_instant,
+                solar_term_provider=self.solar_term_provider,
+            )
+            end_ganzhi = period_point_facts_v1_3(
+                end,
+                end_instant,
+                solar_term_provider=self.solar_term_provider,
+            )
+            jie_boundaries = jie_boundaries_between_v1_3(
+                datetime.combine(start, time.min, tzinfo=zone),
+                datetime.combine(end, time.max, tzinfo=zone),
+                solar_term_provider=self.solar_term_provider,
+            )
+            point_evidence: list[dict[str, Any]] = []
+            for point in (start_ganzhi, end_ganzhi):
+                evidence = point.pop("solar_term_evidence", None)
+                if not isinstance(evidence, dict):
+                    raise RuntimeCalculationError(
+                        "SOLAR_TERM_EVIDENCE_INVALID",
+                        "기간 기준점의 절입 근거가 없습니다.",
+                    )
+                point_evidence.append(evidence)
+            boundary_evidence = [
+                build_solar_term_evidence(
+                    self.solar_term_provider,
                     (
-                        "period_returned_jie",
-                        self.solar_term_provider.boundary(
-                            int(boundary["year"]), int(boundary["index"])
+                        (
+                            "period_returned_jie",
+                            self.solar_term_provider.boundary(
+                                int(boundary["year"]), int(boundary["index"])
+                            ),
                         ),
                     ),
+                )
+                for boundary in jie_boundaries
+            ]
+            hard_facts: dict[str, Any] = {
+                "period": {
+                    "period_type": arguments["period_type"],
+                    "start_date": start.isoformat(),
+                    "end_date": end.isoformat(),
+                    "start_ganzhi": start_ganzhi,
+                    "end_ganzhi": end_ganzhi,
+                    "jie_boundaries": jie_boundaries,
+                },
+                "solar_term_evidence": merge_solar_term_evidence(
+                    [*point_evidence, *boundary_evidence]
                 ),
-            )
-            for boundary in jie_boundaries
-        ]
-        hard_facts: dict[str, Any] = {
-            "period": {
-                "period_type": arguments["period_type"],
-                "start_date": start.isoformat(),
-                "end_date": end.isoformat(),
-                "start_ganzhi": start_ganzhi,
-                "end_ganzhi": end_ganzhi,
-                "jie_boundaries": jie_boundaries,
-            },
-            "solar_term_evidence": merge_solar_term_evidence(
-                [*point_evidence, *boundary_evidence]
-            ),
-        }
+            }
+        except RuntimeCalculationError as exc:
+            return self._blocked(exc.code, exc.message)
         preimage = {
             "arguments": arguments,
             "hard_facts": hard_facts,

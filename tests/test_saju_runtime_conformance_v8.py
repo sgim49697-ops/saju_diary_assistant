@@ -8,6 +8,7 @@ import unittest
 from collections import Counter
 from pathlib import Path
 
+from scripts.evaluation.saju_runtime.conformance_v8 import IMPLEMENTATION_PATHS
 from scripts.runtime.calculation.canonical import canonical_json_bytes
 from scripts.runtime.calculation.contracts import REPO_ROOT, sha256_file
 from scripts.runtime.calculation.contracts_v1_3 import (
@@ -25,13 +26,23 @@ REPORT_ROOT = REPO_ROOT / "data/reports/saju_runtime_conformance/v1.6.0"
 
 
 def _successful_build() -> tuple[dict, Path]:
+    current_implementation = {
+        path: sha256_file(REPO_ROOT / path) for path in sorted(IMPLEMENTATION_PATHS)
+    }
     candidates: list[tuple[dict, Path]] = []
     for path in sorted(REPORT_ROOT.glob("build-*/aggregate.json")):
         report = json.loads(path.read_text(encoding="utf-8"))
-        if report.get("candidate_runtime_conformance_passed") is True:
+        if (
+            report.get("candidate_runtime_conformance_passed") is True
+            and report.get("inputs", {}).get("implementation_sha256")
+            == current_implementation
+        ):
             candidates.append((report, path.parent))
     if len(candidates) != 1:
-        raise AssertionError(f"통과한 conformance v8 build가 하나가 아닙니다: {len(candidates)}")
+        raise AssertionError(
+            "현재 구현과 일치하는 conformance v8 통과 build가 "
+            f"하나가 아닙니다: {len(candidates)}"
+        )
     return candidates[0]
 
 

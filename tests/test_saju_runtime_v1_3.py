@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import tempfile
 import unittest
+from copy import deepcopy
+from dataclasses import replace
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -191,6 +193,46 @@ class SolarTermEvidenceTests(unittest.TestCase):
         self.assertEqual(merged["boundaries"][0]["roles"], ["month", "year"])
         self.assertFalse(merged["provider_generated_value_is_official"])
 
+    def test_rejects_foreign_boundary_empty_roles_and_tampered_summary(self) -> None:
+        provider = _EvidenceProvider()
+        past = _boundary(1964, 2, PAST_OFFICIAL_CORROBORATED)
+        with self.assertRaisesRegex(RuntimeCalculationError, "provider identity"):
+            build_solar_term_evidence(
+                provider,
+                (("year", replace(past, provider_id="foreign-provider")),),
+            )
+
+        evidence = build_solar_term_evidence(provider, (("year", past),))
+        empty_roles = deepcopy(evidence)
+        empty_roles["boundaries"][0]["roles"] = []
+        with self.assertRaisesRegex(RuntimeCalculationError, "role"):
+            merge_solar_term_evidence((empty_roles,))
+
+        tampered = deepcopy(evidence)
+        tampered["overall_authority"] = PROFILE_DETERMINISTIC
+        with self.assertRaisesRegex(RuntimeCalculationError, "요약 값"):
+            merge_solar_term_evidence((tampered,))
+
+        integer_boolean = deepcopy(evidence)
+        integer_boolean["provider_generated_value_is_official"] = 0
+        with self.assertRaisesRegex(RuntimeCalculationError, "context"):
+            merge_solar_term_evidence((integer_boolean,))
+
+        integer_boolean = deepcopy(evidence)
+        integer_boolean["contains_future_nonapproval"] = 0
+        with self.assertRaisesRegex(RuntimeCalculationError, "요약 계약"):
+            merge_solar_term_evidence((integer_boolean,))
+
+    def test_boundary_constructor_rejects_noncanonical_coordinates(self) -> None:
+        past = _boundary(1964, 2, PAST_OFFICIAL_CORROBORATED)
+        with self.assertRaisesRegex(RuntimeCalculationError, "물리시각"):
+            replace(past, instant_utc=past.instant_utc.replace(tzinfo=None))
+        with self.assertRaisesRegex(RuntimeCalculationError, "표시 분"):
+            replace(
+                past,
+                official_display_minute_fixed_kst="1964-02-04T09:00:30+09:00",
+            )
+
 
 @unittest.skipUnless(EPHEMERIS.is_file(), "로컬 Git 제외 DE440s가 필요합니다.")
 class RuntimeV13SkyfieldIntegrationTests(unittest.TestCase):
@@ -230,6 +272,32 @@ class RuntimeV13SkyfieldIntegrationTests(unittest.TestCase):
         identity = self.provider.identity()
         self.assertFalse(identity["automatic_download_or_fallback"])
         self.assertFalse(identity["astronomy_engine_fallback"])
+
+    def test_compare_rejects_foreign_or_modified_boundary(self) -> None:
+        boundary = self.provider.boundary(1964, 16)
+        for year, index in (("1964", 16), (1964, True)):
+            with (
+                self.subTest(year=year, index=index),
+                self.assertRaisesRegex(RuntimeCalculationError, "범위"),
+            ):
+                self.provider.boundary(year, index)  # type: ignore[arg-type]
+        with self.assertRaisesRegex(RuntimeCalculationError, "timezone"):
+            self.provider.compare_instant(  # type: ignore[arg-type]
+                "1964-09-07T15:00:00Z", boundary
+            )
+        with self.assertRaisesRegex(RuntimeCalculationError, "provider identity"):
+            self.provider.compare_instant(
+                boundary.instant_utc,
+                replace(boundary, provider_id="foreign-provider"),
+            )
+        with self.assertRaisesRegex(RuntimeCalculationError, "계산값"):
+            self.provider.compare_instant(
+                boundary.instant_utc,
+                replace(
+                    boundary,
+                    instant_utc=boundary.instant_utc + timedelta(microseconds=1),
+                ),
+            )
 
     def test_chart_authority_is_visible_without_hard_gt_promotion(self) -> None:
         expected = {
@@ -324,6 +392,27 @@ class RuntimeV13SkyfieldIntegrationTests(unittest.TestCase):
         provider.close()
         with self.assertRaisesRegex(RuntimeCalculationError, "종료"):
             provider.boundary(1964, 16)
+
+    def test_period_after_provider_close_fails_closed(self) -> None:
+        provider = SkyfieldSolarTermProvider(EPHEMERIS)
+        engine = SajuRuntimeEngineV13(
+            signer=self.signer,
+            enable_candidate_runtime=True,
+            solar_term_provider=provider,
+        )
+        chart = engine.calculate_chart(_chart_arguments())
+        provider.close()
+        period = engine.calculate_period(
+            {
+                "chart_id": chart["chart_id"],
+                "period_type": "day",
+                "start_date": "2026-09-07",
+                "end_date": None,
+                "timezone": "Asia/Seoul",
+            }
+        )
+        self.assertEqual(period["status"], "blocked")
+        self.assertEqual(period["code"], "SOLAR_TERM_PROVIDER_CLOSED")
 
 
 if __name__ == "__main__":

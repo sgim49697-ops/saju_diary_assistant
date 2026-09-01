@@ -4,13 +4,13 @@
 
 | 항목 | 값 |
 |---|---|
-| 문서 버전 | `runtime-calculator-adoption-v2.6.0` |
+| 문서 버전 | `runtime-calculator-adoption-v2.6.1` |
 | 정본화 기준일 | 2026-09-01 |
 | 구현 시작 기준 `master` | `22fa6943c625b7caad7a7fb9cfd174a6a01992e6` |
 | 기준 모델 run | `KI20-MIX-v2/run-1f5d732cae67` |
 | 모델 run 상태 | `trained_and_reloaded`, production 승격 금지 |
 | runtime profile | `KR_CIVIL_MIDNIGHT_V1` |
-| runtime 상태 | Skyfield/DE440s+builtin UT1을 v1.3 candidate runtime에 TT 기준으로 결합하고 과거·미래 권한을 분리함. conformance v8.0.0 통과, strict runtime Gate·release·production 연결은 차단 |
+| runtime 상태 | Skyfield/DE440s+builtin UT1을 v1.3 candidate runtime에 TT 기준으로 결합하고 과거·미래 권한을 분리함. 증거 fail-closed 보강 뒤 conformance v8.0.0 `build-8bd88d6db03a` 통과, strict runtime Gate·release·production 연결은 차단 |
 | 데이터 상태 | v3.1 생성·비학습 preflight 구현, release 전 실행 차단 |
 
 이 문서는 앞서 제공된 `SAJU_RUNTIME_CALCULATOR_ADOPTION_PLAN.md` 조사 초안을 대체하는 저장소 실행 정본이다. 기존 데이터 보정 정본인 [`mix20k_v3_repair_plan.md`](mix20k_v3_repair_plan.md)와 역할을 나눈다.
@@ -36,6 +36,8 @@
 기존 v1 candidate와 v1.1 산출물은 보존하고, v1.2 승인 wrapper·동적 release registry·HMAC ID·구조화 intake FSM을 새 버전으로 구현했다. R4~R5 실행으로 음양력 54,787일, OpenAPI 150년 전수 scan, KASI 공식 현재 계산 24기 다운로드 1920~2100년, 1964년 역서 근거를 확보했다. v1.4 Gate에서 “가용한 공식 데이터를 모두 수집했는가”와 “그 데이터에 맞는 provider가 있는가”를 분리했고, v1.5 Gate는 provider 후보 선정과 strict runtime 승인을 다시 분리한다. Skyfield/DE440s의 같은 TT root를 Skyfield 1.55 내장 UT1로 표시하면 공식 현재 계산 1,560행 중 날짜 mismatch 0, 원시 분 라벨 mismatch 22로 줄고 과거 1,280행의 14건은 KASI가 밝힌 1초 불확실성 범위 안이라 후보 Gate를 통과한다.
 
 v1.3 candidate runtime은 이 후보를 실제 계산 경로에 결합했다. 절입 root 탐색과 경계 전·정확·후 판정은 TT로 수행하고, 공식 분 라벨은 `UT1_NOMINAL_PLUS_FIXED_KST`로만 분리해 표시한다. 1900~1919년은 `PROFILE_DETERMINISTIC`, snapshot 수집시점까지의 공식 과거는 `PAST_OFFICIAL_CORROBORATED`, 이후 미래는 `FORECAST_DIAGNOSTIC_NONAPPROVAL`로 결과에 구조화한다. conformance v8은 runtime과 독립 validator의 1,800개 TT root·UTC·표시 분이 모두 일치하고 5,400개 경계 배정 오류가 0임을 확인했다. 그러나 미래 280행은 지구 자전 예측 불확실성 때문에 물리 순간이 판정되지 않았고 원시 분 mismatch도 0이 아니므로 strict runtime Gate는 계속 차단한다. 따라서 v1.3은 `HARD_CANDIDATE`·feature flag 기본 off이며 `runtime_approved=false`; 새 release registry도 생성하지 않았다. 기존 v1.2 release 경로를 v1.3 승인으로 재사용하지 않으며, release·앱 연결·v3.1 생성·학습은 진행하지 않는다.
+
+후속 디버깅에서는 다른 provider 경계, 빈 role, 변조된 권한 요약과 JSON integer/boolean 혼동을 절입 증거로 받아들이던 경로를 차단했다. provider가 계산하지 않은 경계와 비정상 연도·index 타입도 거부하고, provider 종료 뒤 기간 계산은 예외를 누출하지 않고 `blocked`로 닫는다. 이 보강은 정상 계산값을 바꾸지 않았으며 최종 conformance 보고서는 최초 v8과 구현 hash를 제외한 집계가 같다.
 
 ## 2. 불변 보존 범위
 
@@ -241,11 +243,12 @@ data/reports/saju_runtime_conformance/v1.3.1/build-1e754de17c82/
 data/reports/saju_runtime_conformance/v1.4.0/build-3366c5069a26/
 data/reports/saju_runtime_conformance/v1.5.0/build-01111af7e09c/
 data/reports/saju_runtime_conformance/v1.6.0/build-a49aed186743/
+data/reports/saju_runtime_conformance/v1.6.0/build-8bd88d6db03a/
 data/reports/saju_runtime_intake_fsm/v1.1.0/build-3366376bb01b/
 data/reports/saju_runtime_migration/v1.0.0/build-94eb7b543490/analysis.json
 ```
 
-`build-08ea29de9e94`, FSM v1.0 `build-571d0e82ee0e`, conformance v5.0.0 `build-ef1b8ddb527e`, v5.0.1 `build-1e754de17c82`, v6.0.0 `build-3366c5069a26`, v7.0.0 `build-01111af7e09c`은 당시 코드의 이력 산출물로 보존한다. 현재 candidate runtime 판단은 기존 KASI·IERS raw를 수정하지 않고 Skyfield provider 실제 결합과 권한 분리를 검증한 v8.0.0 `build-a49aed186743`을 따른다.
+`build-08ea29de9e94`, FSM v1.0 `build-571d0e82ee0e`, conformance v5.0.0 `build-ef1b8ddb527e`, v5.0.1 `build-1e754de17c82`, v6.0.0 `build-3366c5069a26`, v7.0.0 `build-01111af7e09c`과 최초 v8 `build-a49aed186743`은 당시 코드의 이력 산출물로 보존한다. 현재 candidate runtime 판단은 기존 KASI·IERS raw를 수정하지 않고 Skyfield provider 실제 결합·권한 분리·증거 fail-closed를 검증한 v8.0.0 `build-8bd88d6db03a`를 따른다.
 
 | 검사 | 결과 |
 |---|---:|
@@ -411,7 +414,7 @@ IERS 수집기는 HTTPS same-origin redirect, regular file·symlink, 0600 권한
   --kasi-minute-snapshot data/raw/saju_runtime/kasi/v1.1.0/minute-references/kasi_minute_references.jsonl \
   --kasi-almanac-1964-snapshot data/raw/saju_runtime/kasi/v1.2.0/almanac-1964/kasi_almanac_1964_baengno.json \
   --iers-snapshot data/raw/saju_runtime/iers/v1.0.0/snapshot-2026-09-01-v3/finals2000A.all \
-  --ephemeris data/raw/saju_runtime/ephemeris/v1.1.0/de440s.bsp
+  --ephemeris "$(pwd -P)/data/raw/saju_runtime/ephemeris/v1.1.0/de440s.bsp"
 
 .venv-runtime/bin/python -m scripts.evaluation.saju_runtime.intake_fsm_gate run
 ```
@@ -535,3 +538,9 @@ release가 생긴 뒤에만 v3.1 생성과 비학습 preflight를 순서대로 �
   - 변경 범위: v1.3 runtime contract·output schema·profile·requirements와 v1.6 source/Gate, Skyfield provider·절입 권한 type·v1.3 전용 계산 adapter·HMAC v2 wrapper, conformance v8 및 공개 보고서 `build-a49aed186743`, 회귀 테스트를 추가했다. 기존 v1/v1.2 구현 네 파일은 불변 Gate hash로 복원·보존했다. Git 제외 DE440s 외에는 raw를 만들거나 수정하지 않았고 release 승인·production provider 연결·앱 연결·MIX20K-v3.1 생성·preflight·학습·dashboard 재기동은 수행하지 않았다.
   - 검증: runtime과 독립 validator의 1,800개 TT root 최대·평균 차이 `0.0µs`, UTC·UT1 표시 분 mismatch 0, 전/정확/후 5,400건 배정 실패 0을 확인했다. 권한은 profile 240·과거 공식 corroborated 1,280·미래 forecast nonapproval 280으로 정확히 분리됐다. v8을 두 번 실행해 같은 `build-a49aed186743`을 재현했고 표적 19건, 전체 `unittest` 424건(39.749초), `uvx ruff check scripts tests`, `uv pip check`, Phase 1 source 계약·원본 verify, `git diff --check`를 통과했다.
   - 남은 이슈·후속 작업: candidate runtime conformance는 통과했지만 공식 원시 분 라벨 mismatch 22건(과거 14·미래 8)과 미래 물리 순간 미판정 때문에 `strict_runtime_provider_gate_passed=false`, `runtime_gate_passed=false`, `runtime_approved=false`다. release·앱·v3.1·학습은 별도 승인 전까지 차단한다.
+
+- 2026-09-01
+  - 작업 요약: v1.3 candidate runtime과 conformance v8을 변조·오류 경계에서 다시 감사해 절입 증거의 provider 결속과 구조 검증을 fail-closed로 보강했다.
+  - 변경 범위: 다른 provider 또는 provider 계산값과 다른 절입 경계, 빈·비정규 role, 변조된 summary/context, JSON의 `0`과 `false` 혼동을 거부한다. 비정상 연도·절기 index·timezone 타입도 도메인 오류로 닫고, provider 종료 뒤 기간 계산이 예외 대신 blocked 결과를 반환하게 했다. 현재 구현 hash와 맞는 v8 보고서만 선택하도록 회귀 테스트를 고쳤으며, DE440s 절대경로 계약과 충돌하던 정본 재현 명령도 바로잡았다. 최종 코드와 대응하는 `build-8bd88d6db03a`만 새 write-once 이력으로 보존했다.
+  - 검증: 최종 수동 fault injection 27종에서 비정상 입력 수용·예외 누출 0건, v1.3 표적 16건과 v8 artifact 3건을 통과했다. 최종 v8을 두 번 실행해 같은 `build-8bd88d6db03a`를 재현했고 최초 v8과 구현 hash 세 파일 외의 집계가 같았다. 1,800개 TT root의 최대·평균 차이 `0.0µs`, UTC·표시 분 mismatch 0, 5,400개 경계 실패 0, 권한 240/1,280/280을 유지했다. 전체 `unittest` 428건(40.028초), `uvx ruff check scripts tests`, `uv pip check`, Phase 1 source 계약·1,000,000행 원본 verify, 보고서 manifest·민감 경로 검사와 `git diff --check`를 통과했다. 기존 v1/v1.2 구현 네 파일은 HEAD·과거 보고서 hash와 동일하다.
+  - 남은 이슈·후속 작업: 추가 진단용 최신 Ruff formatter는 저장소 기존 파일 다수의 포맷 차이를 보고해 이번 범위에서 일괄 수정하지 않았다. 기능 Gate는 그대로이며 원시 분 라벨 mismatch 22건과 미래 물리 순간 미판정 때문에 strict runtime Gate·release·앱·MIX20K-v3.1·학습은 계속 차단한다.
