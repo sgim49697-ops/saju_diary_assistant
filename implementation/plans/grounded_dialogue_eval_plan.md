@@ -3,7 +3,7 @@
 # 계산기 연결 grounded dialogue 진단
 
 - 문서·평가 버전: `grounded-dialogue-eval-v0.1.0`
-- 구현 상태: **구현 완료, GPU 진단 미실행**
+- 구현 상태: **GPU 진단 완료, 자동 목표 미달**
 - 성격: 공개 합성 100건을 쓰는 비봉인·진단 전용 inference lane
 - 권한: runtime release, 앱 연결, 학습, 모델 승격을 승인하지 않음
 
@@ -111,7 +111,7 @@ model-narrow 슬롯 지표는 진단 결과다. 이 버전에는 합격 임계�
 
 기존 초안의 A0와 A1은 입력 예산과 system prompt를 함께 바꿔 효과를 분리할 수 없었다. 현재 계약은 모든 대조에서 한 축만 바꾼다.
 
-총 응답 생성은 5 arm × 100건 = 500건이다. model-narrow arm은 별도로 사용자 turn 120개를 추출한다.
+총 평가 대상은 5 arm × 100건 = 500 case다. 최소 prompt가 입력 상한을 넘는 case는 계약대로 생성하지 않고 prompt budget failure로 기록하므로 실제 응답 생성 수와 분리한다. model-narrow arm은 별도로 사용자 turn 120개를 추출한다.
 
 ## 6. prompt와 token 정책
 
@@ -153,15 +153,17 @@ model-narrow 슬롯 지표는 진단 결과다. 이 버전에는 합격 임계�
 CLI는 다음 네 명령을 제공한다.
 
 ```bash
-.venv-data/bin/python -m scripts.evaluation.grounded_dialogue validate-contract
-.venv-data/bin/python -m scripts.evaluation.grounded_dialogue plan
-.venv-data/bin/python -m scripts.evaluation.grounded_dialogue execute
+.venv/bin/python -m scripts.evaluation.grounded_dialogue validate-contract
+.venv/bin/python -m scripts.evaluation.grounded_dialogue plan
+.venv/bin/python -m scripts.evaluation.grounded_dialogue execute
+CPATH="$(pwd)/.venv/phase4-runtime/libpython3.10-dev-3.10.12-1~22.04.16/usr/include/python3.10:$(pwd)/.venv/phase4-runtime/libpython3.10-dev-3.10.12-1~22.04.16/usr/include" \
+HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 HF_DATASETS_OFFLINE=1 \
 GROUNDED_DIALOGUE_EVAL=K0_KI20_V1 \
-  .venv-data/bin/python -m scripts.evaluation.grounded_dialogue execute --execute
-.venv-data/bin/python -m scripts.evaluation.grounded_dialogue verify
+  .venv/bin/python -m scripts.evaluation.grounded_dialogue execute --execute
+.venv/bin/python -m scripts.evaluation.grounded_dialogue verify
 ```
 
-실제 실행은 확인 환경변수, 단일 CUDA GPU, 다른 compute process 없음, 최소 free VRAM 12,000 MiB, 모든 입력·모델 hash 일치를 요구한다. `execute`만 호출하면 dry-run이며 생성과 쓰기를 하지 않는다.
+GPU 모델 실행은 고정 PyTorch cu130 환경인 `.venv`를 사용한다. `.venv-data`는 CPU 데이터 환경이므로 이 진단의 실행 환경으로 확장하지 않는다. 실제 실행은 확인 환경변수, 단일 CUDA GPU, 다른 compute process 없음, 최소 free VRAM 12,000 MiB, 모든 입력·모델 hash 일치를 요구한다. `execute`만 호출하면 dry-run이며 생성과 쓰기를 하지 않는다.
 
 원시 추출·응답은 다음 private root에 `0700/0600`으로 저장한다.
 
@@ -183,7 +185,6 @@ data/reports/saju_1b_baseline/grounded-dialogue/v0.1.0/eval-<fingerprint>/
 
 ## 9. 범위 밖
 
-- 실제 GPU 진단 실행과 결과 해석
 - sealed blind 접근 또는 Phase 6 소비 상태 변경
 - KI20 weight, checkpoint, run manifest 수정
 - candidate runtime을 앱 FSM의 승인된 chart로 저장
@@ -221,3 +222,19 @@ data/reports/saju_1b_baseline/grounded-dialogue/v0.1.0/eval-<fingerprint>/
   - 실제 raw·derived·staging·모델·run 산출물을 연결한 `.venv-data/bin/python -m unittest discover -s tests -q`: 475건 통과
   - `git diff --check origin/master...HEAD`: 통과
 - 남은 후속 작업: GPU 진단은 아직 실행하지 않았다. 결과 생성 전까지 runtime release, 앱 연결, 추가 학습, 모델 승격은 계속 미승인이다.
+
+### 2026-09-01 — 실장비 GPU 진단 완료
+
+- 작업 요약: `master`의 `c8e3ab0`에서 RTX 5070 Ti 단일 GPU로 `eval-b6221e5eb03c`를 끝까지 실행했다. 5개 arm의 500 case를 모두 처리했고 KI20 model-narrow 추출 120회를 완료했다. `.venv-data`에는 `torch`·`transformers`가 없어서, 정본 PyTorch 2.13.0+cu130·Transformers 4.57.6 환경인 `.venv`를 사용하도록 실행 명령을 바로잡았다.
+- 생성 결과: R0의 768-token 최소 prompt가 상한을 넘은 34건은 계약대로 prompt budget failure로 기록되어 실제 응답 생성은 466/500회였다. 나머지 R1·R2·R3·R4는 각각 100/100회 생성됐으며 `diagnostic_completed=true`, `diagnostic_target_met=false`다.
+- 자동 목표 미달 원인:
+  - R0: prompt budget failure 34건, nonempty 66%, 재질문 6%
+  - R1: 재질문 7%
+  - R2: fabricated pillar 3건, false completion 5건, 재질문 29%
+  - R3: 재질문 7%
+  - R4: false completion 2건. 별도 진단 지표인 model-narrow는 invalid 100건, exact state 20%, 시간 의미 38/100, 정정 0/3이었다.
+- arm 대조: R0→R1은 nonempty `+34%p`, 재질문 `+1%p`; R2→R1은 fabricated pillar `-3건`, 재질문 `-22%p`; R1→R3은 공개 contrast 전 항목 변화 0; R1→R4와 R3→R4는 각각 slot exact `-80%p`, 재질문 `-7%p`였다. KI20 oracle·rule arm은 fabricated pillar, contradiction, unknown-hour violation, false completion, severe safety가 모두 0건이었다.
+- 결과 해석: 2,048-token KI20은 K0보다 fabricated pillar·false completion·재질문을 줄였지만 재질문 7%로 자동 목표에는 미달했다. rule 추출은 고정 suite에서 oracle 대비 측정 손실이 없었다. 768-token arm은 production prompt를 34건에서 수용하지 못했으므로 전체 응답 경로로 부적합하다. model-narrow의 재질문 감소는 invalid 100건과 slot exact 20%에서 나온 값이므로 품질 개선으로 해석하지 않는다.
+- 권한 경계: candidate 결과는 계속 `HARD_CANDIDATE`이고 앱 FSM에 삽입하지 않았다. sealed blind 접근, Phase 6 상태 변경, runtime release, 앱 연결, 학습, 모델 승격은 모두 수행하지 않았다.
+- 공개 산출물: `data/reports/saju_1b_baseline/grounded-dialogue/v0.1.0/eval-b6221e5eb03c/`의 `aggregate.json`과 `build_manifest.json`만 Git 대상으로 삼는다. 원시 추출·응답은 Git 제외 private root에만 유지한다.
+- 검증 결과: `.venv/bin/python -m scripts.evaluation.grounded_dialogue verify`가 `status=verified`를 반환했고 공개 aggregate SHA-256은 `3445bd75dc26df4f8213bf7cad876ef022ff118350c24294722673466a2bd95f`다. 전용 테스트 21건, `uvx ruff check scripts tests`, 전체 회귀 475건, Phase 6 완료 검증, 공개 파일 집합·manifest·누출·mode 검사와 `git diff --check`가 모두 통과했다. 전체 회귀의 Phase 6 dry-run도 `blind_payload_opened=false`를 유지했다.

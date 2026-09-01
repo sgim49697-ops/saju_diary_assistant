@@ -1,0 +1,14 @@
+{
+  "build_sha256": "b6221e5eb03ca281b41e5e2cd623d67f23d3f33250c42e3b0f7ef4a52b955167",
+  "evaluation_build_id": "eval-b6221e5eb03c",
+  "implementation_sha256": "837937d20bed4d235b0e05dbcac36cb948aa0c9b43f1f163e4df0434cfefc712",
+  "private_paths_included": false,
+  "public_files": {
+    "aggregate.json": {
+      "bytes": 19301,
+      "sha256": "3445bd75dc26df4f8213bf7cad876ef022ff118350c24294722673466a2bd95f"
+    }
+  },
+  "raw_outputs_included": false,
+  "schema_version": "0.1.0"
+}
