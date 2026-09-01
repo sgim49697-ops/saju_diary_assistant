@@ -1,0 +1,98 @@
+{
+  "_description": "계산기·FSM을 붙였을 때 모델의 해석 충실도를 재는 진단 실험 계약 초안이다.",
+  "schema_version": "0.1.0",
+  "eval_id": "grounded-dialogue-eval-v0.1.0",
+  "status": "draft_skeleton_local_completion_required",
+  "question": "실행기가 계산기를 대신 불러 진짜 hard_facts를 주면, 1.3B가 그 사실을 존중하며 자연스럽게 해석하는가",
+  "why_not_free_tool_calling": "KI20의 required_handoff_action은 14/100이라 자유 호출로 재면 해석 품질이 호출 실패에 가려진다. FSM이 호출을 맡으면 호출률은 구조적으로 100%가 되고 해석만 남는다.",
+  "cases": {
+    "source": "phase5-stateful-chat-gate dev_cases.jsonl 재사용",
+    "rows": 100,
+    "note": "private 경로 유지. 원문을 공개 리포트에 넣지 않는다.",
+    "strata_reuse": [
+      "complete_input_runtime_handoff",
+      "structured_chart_ready",
+      "date_only_no_time",
+      "time_unknown_partial_limit",
+      "calendar_ambiguity",
+      "ambiguous_time",
+      "accumulated_context_no_reask",
+      "no_birth_information",
+      "timezone_location_ambiguity",
+      "false_ui_or_completion"
+    ]
+  },
+  "arms": [
+    {
+      "arm_id": "A0_ki20_768_terse_rule",
+      "model_id": "KI20",
+      "max_length": 768,
+      "system_prompt_id": "terse_v1",
+      "slot_extractor_id": "rule",
+      "role": "현행 재현 기준선"
+    },
+    {
+      "arm_id": "A1_ki20_2048_full_rule",
+      "model_id": "KI20",
+      "max_length": 2048,
+      "system_prompt_id": "full_v1",
+      "slot_extractor_id": "rule",
+      "role": "예산·프롬프트 개선 효과"
+    },
+    {
+      "arm_id": "A2_k0_2048_full_rule",
+      "model_id": "K0",
+      "max_length": 2048,
+      "system_prompt_id": "full_v1",
+      "slot_extractor_id": "rule",
+      "role": "파인튜닝 기여 분리. A1과의 차이가 20K 학습의 순효과"
+    },
+    {
+      "arm_id": "A3_ki20_2048_full_modelnarrow",
+      "model_id": "KI20",
+      "max_length": 2048,
+      "system_prompt_id": "full_v1",
+      "slot_extractor_id": "model_narrow",
+      "role": "슬롯 추출 방식 비교"
+    }
+  ],
+  "contrasts": {
+    "budget_and_prompt": ["A0", "A1"],
+    "finetune_effect": ["A2", "A1"],
+    "extractor_effect": ["A1", "A3"]
+  },
+  "automatic_metrics": {
+    "fabricated_pillars": {"maximum": 0, "note": "hard_facts에 없는 간지 등장. 최우선 지표"},
+    "unknown_hour_violations": {"maximum": 0, "note": "hour=null인데 시주 언급"},
+    "fact_contradictions": {"maximum": 0},
+    "false_completion": {"maximum": 0},
+    "provided_field_reask_percent": {"maximum": 5.0, "ki20_baseline": 18.0}
+  },
+  "human_review": {
+    "automatic_grading": false,
+    "reason": "자연스러움·공감·해석 깊이는 자동 채점이 신뢰되지 않는다",
+    "sample_per_stratum": 5,
+    "deterministic_seed": 42,
+    "dimensions": ["대화 자연스러움", "맥락 유지", "해석 설득력", "톤 적절성"]
+  },
+  "generation_contract": {
+    "do_sample": false,
+    "num_beams": 1,
+    "note": "재현성을 위해 기존 phase5 생성 계약과 동일하게 고정한다"
+  },
+  "budget_note": {
+    "current_768_rationale": "학습 데이터 최대 길이 767 토큰에 맞춘 값이며 VRAM 제약이 아니다",
+    "model_native_context": 4096,
+    "model_extended_context": 32768,
+    "extension_method": "YaRN",
+    "recommendation": "2048을 우선 시험하고 4096을 상한으로 둔다. YaRN 확장 구간(4096 초과)은 미검증 경고가 남아 있어 쓰지 않는다.",
+    "retraining": "예산만 올리는 재학습은 하지 않는다. v3.1 데이터가 실제로 길어질 때 그 분포를 재서 함께 정한다."
+  },
+  "scope": {
+    "diagnostic_lane": true,
+    "modifies_ki20_artifacts": false,
+    "sealed_blind_access": false,
+    "requires_runtime_gate_pass": false,
+    "note": "계산기는 승인 전 후보로 충분하다. 재는 대상은 계산기가 아니라 모델이다."
+  }
+}
