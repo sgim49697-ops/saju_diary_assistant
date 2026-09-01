@@ -1,0 +1,38 @@
+{
+  "_description": "runtime v1.3과 intake v1.1을 보존한 채 과거 공식 근거 후보 진단 전용 session v2.2·FSM v1.2·Gate를 고정한다.",
+  "schema_version": "1.2.0",
+  "registry_id": "saju-runtime-intake-registry-v1.2.0",
+  "status": "historical_candidate_contract_implemented_dashboard_gate_pending",
+  "parent_runtime_registry": {
+    "path": "configs/runtime/calculation/registry-v1.3.0.json",
+    "sha256": "556e99a076511bb99b65a9dae155fe93b9a33de4d0f2f57cee009461d2befd07"
+  },
+  "parent_intake_registry": {
+    "path": "configs/runtime/intake_registry-v1.1.0.json",
+    "sha256": "9fd5c179d3980c2d192d596d5158645062931f5c191c2c35e382fc59ec42184a"
+  },
+  "artifacts": [
+    {
+      "path": "configs/runtime/session_state_schema_v2.2.0.json",
+      "sha256": "6ff5acf9c00343627390c26411f83feeac9cbea774bd6c137c733d4759f39635"
+    },
+    {
+      "path": "configs/runtime/intake_fsm-v1.2.0.json",
+      "sha256": "b604a787021676685297504c3fdea0d232028a7099470433dcaf2dd6da460deb"
+    },
+    {
+      "path": "configs/runtime/historical_candidate_gate-v1.0.0.json",
+      "sha256": "d9a9027cd12743221238768b34aaaf9c00db78f5c3329697da152089c0865768"
+    }
+  ],
+  "candidate_scope": "historical_official_corroborated_only",
+  "diagnostic_dashboard_binding_allowed_on_gate_pass": true,
+  "diagnostic_dashboard_binding_performed": false,
+  "production_application_binding_allowed": false,
+  "runtime_release_approved": false,
+  "context_window_change_allowed": false,
+  "mix20k_v3_1_generation_allowed": false,
+  "additional_training_allowed": false,
+  "model_promotion_allowed": false,
+  "sealed_blind_access_allowed": false
+}

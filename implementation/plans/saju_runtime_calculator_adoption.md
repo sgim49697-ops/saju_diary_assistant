@@ -4,13 +4,13 @@
 
 | 항목 | 값 |
 |---|---|
-| 문서 버전 | `runtime-calculator-adoption-v2.6.2` |
+| 문서 버전 | `runtime-calculator-adoption-v2.7.0` |
 | 정본화 기준일 | 2026-09-01 |
 | 구현 시작 기준 `master` | `22fa6943c625b7caad7a7fb9cfd174a6a01992e6` |
 | 기준 모델 run | `KI20-MIX-v2/run-1f5d732cae67` |
 | 모델 run 상태 | `trained_and_reloaded`, production 승격 금지 |
 | runtime profile | `KR_CIVIL_MIDNIGHT_V1` |
-| runtime 상태 | Skyfield/DE440s+builtin UT1을 v1.3 candidate runtime에 TT 기준으로 결합하고 과거·미래 권한을 분리함. 증거 fail-closed 보강 뒤 conformance v8.0.0 `build-8bd88d6db03a` 통과, strict runtime Gate·release·production 연결은 차단 |
+| runtime 상태 | Skyfield/DE440s+builtin UT1을 v1.3 candidate runtime에 TT 기준으로 결합하고 과거·미래 권한을 분리함. 증거 fail-closed 보강 뒤 conformance v8.0.0 `build-8bd88d6db03a` 통과. 과거 공식 근거 전용 session v2.2/FSM v1.2 계약은 구현됐고 별도 진단 Gate 전이며, strict runtime Gate·release·production 연결은 차단 |
 | 데이터 상태 | v3.1 생성·비학습 preflight 구현, release 전 실행 차단 |
 
 이 문서는 앞서 제공된 `SAJU_RUNTIME_CALCULATOR_ADOPTION_PLAN.md` 조사 초안을 대체하는 저장소 실행 정본이다. 기존 데이터 보정 정본인 [`mix20k_v3_repair_plan.md`](mix20k_v3_repair_plan.md)와 역할을 나눈다.
@@ -44,7 +44,7 @@ v1.3 candidate runtime은 이 후보를 실제 계산 경로에 결합했다. �
 다음 산출물은 수정하거나 재해석하지 않는다.
 
 - 기존 `saju-tools-v1`, `saju-session-state-v1`(학습·과거 세션 계약).
-- `session_state_schema_v2.json`·FSM/Gate v1.0은 과거 불변 산출물로 보존한다. session v2의 중복 `period` key 결함을 고치기 위해 앱 후보는 별도 `session_state_schema_v2.1.0.json`·FSM/Gate v1.1·`intake_registry-v1.1.0.json`만 사용한다.
+- `session_state_schema_v2.json`·FSM/Gate v1.0은 과거 불변 산출물로 보존한다. session v2의 중복 `period` key 결함을 고친 일반 앱 후보는 `session_state_schema_v2.1.0.json`·FSM/Gate v1.1·`intake_registry-v1.1.0.json`이다. 새 session v2.2/FSM v1.2는 runtime v1.3 중 과거 공식 근거만 확인하는 별도 진단용이며 production 앱 후보를 대체하지 않는다.
 - `configs/saju_calculation_policy-v1.0.0.json`
 - MIX20K-v2와 `mix20k-v3.0.1-repaired/build-94eb7b543490`
 - KI10·KI20 checkpoint, manifest, training summary
@@ -479,6 +479,12 @@ release가 생긴 뒤에만 v3.1 생성과 비학습 preflight를 순서대로 �
 - [ ] 승인 release와 feature flag 기본 off 상태로 앱·대시보드 canary를 검증한다.
 
 ## 진행 기록
+
+- 2026-09-01
+  - 작업 요약: runtime v1.3 결과 중 모든 절입 경계와 생시 대안이 `PAST_OFFICIAL_CORROBORATED`이고 가능한 출생시각 전체가 공식 snapshot cutoff 이전인 경우만 수용하는 session v2.2/FSM v1.2 계약을 구현했다.
+  - 변경 범위: 기존 session v2.1/FSM v1.1을 보존하고 새 state schema·FSM·120건 Gate 계약·hash registry를 추가했다. exact 단일 결과는 `chart_id`, 범위·미상·fold 대안은 `chart_set_id`를 HMAC으로 재검산하며, 기간 요청은 `CANDIDATE_PERIOD_OUT_OF_SCOPE`로 고정 차단한다.
+  - 검증: 1964년 백로 `23:59+09:00`, profile 구간, snapshot 직후, 복수 대안 중 권한 혼입, stale call, 변조 HMAC, cutoff 분, 교정 무효화와 공개 `chart_result` 차단을 포함한 새 11건과 기존 intake v1.1 10건을 통과했다. release·production 앱·context·v3.1·학습·승격 상태는 모두 false를 유지한다.
+  - 남은 이슈·후속 작업: 기존 dashboard assets와 분리된 loopback 진단 화면·메모리 세션 API를 연결하고 실제 runtime을 사용하는 12개 층화 120건 Gate를 완료해야 한다. 기존 8765 서비스는 변경하거나 재시작하지 않는다.
 
 - 2026-09-01
   - 작업 요약: runtime 보조 문서와 저장소 상위 정본을 Skyfield 1.55·DE440s·builtin UT1 기반 v1.3 candidate 및 conformance v8 최종 상태로 맞췄다. 과거 Astronomy Engine 경로는 이력·비교기로, 현재 후보 경로와 strict/release Gate는 별도 상태로 명시했다.

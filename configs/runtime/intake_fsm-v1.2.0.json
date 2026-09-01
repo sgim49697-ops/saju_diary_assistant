@@ -1,0 +1,56 @@
+{
+  "_description": "runtime v1.3 결과 중 공식 근거가 있는 과거 구간만 별도 로컬 진단 화면에 수용하는 FSM 계약이다.",
+  "schema_version": "1.2.0",
+  "fsm_version": "saju-intake-fsm-v1.2.0",
+  "session_state_schema_version": "saju-session-state-v2.2",
+  "parent_fsm": "saju-intake-fsm-v1.1.0",
+  "input_mode": "structured_events_only",
+  "free_text_parser_in_fsm": false,
+  "candidate_scope": "historical_official_corroborated_only",
+  "event_types": [
+    "opt_in", "set_slot", "correct_slot", "set_time_unknown", "request_chart",
+    "chart_result", "request_period", "reset"
+  ],
+  "public_event_types": [
+    "opt_in", "set_slot", "correct_slot", "set_time_unknown", "request_chart",
+    "request_period", "reset"
+  ],
+  "decision_actions": [
+    "ask_birth_date", "ask_calendar", "ask_leap_month", "ask_time_precision",
+    "ask_exact_time_or_range", "ask_birthplace", "call_candidate_chart",
+    "explain_candidate_blocked", "render_candidate"
+  ],
+  "runtime_status_fields": [
+    "candidate_runtime_enabled", "candidate_id_key_ready",
+    "candidate_fsm_gate_passed", "ephemeris_ready", "loopback_only",
+    "ephemeral_session_store"
+  ],
+  "never_request_slots": ["name", "family_relationship", "job", "gender_for_daeun"],
+  "deterministic_defaults": {"gender_for_daeun": "unspecified"},
+  "accepted_runtime_identity": {
+    "engine_version": "saju-runtime-python-v1.3.0",
+    "calculation_schema_version": "1.3.0",
+    "id_contract_version": "saju-runtime-id-hmac-v2.0.0",
+    "solar_term_provider": "skyfield-1.55-jpl-de440s-builtin-ut1"
+  },
+  "accepted_result": {
+    "status": "partial",
+    "code": "RUNTIME_RELEASE_PENDING",
+    "fact_authority": "HARD_CANDIDATE",
+    "overall_solar_term_authority": "PAST_OFFICIAL_CORROBORATED",
+    "boundary_solar_term_authority": "PAST_OFFICIAL_CORROBORATED",
+    "official_source_evidence_class": "SOURCE_HARD_FACT",
+    "contains_future_nonapproval": false,
+    "official_snapshot_collected_at": "2026-08-31T15:16:50+00:00",
+    "all_possible_birth_instants_must_be_at_or_before_snapshot": true,
+    "all_alternative_charts_must_pass": true
+  },
+  "id_policy": "recompute_birth_chart_chart_set_run_and_fsm_call_hmac_before_acceptance",
+  "correction_policy": "invalidate_chart_and_hmac_fingerprint",
+  "period_policy": "always_block_with_CANDIDATE_PERIOD_OUT_OF_SCOPE",
+  "persistence_policy": "bounded_process_memory_only_no_disk",
+  "render_policy": "render_candidate_never_release_or_production_result",
+  "production_application_binding": false,
+  "runtime_release_approved": false,
+  "training_promotion_allowed": false
+}
