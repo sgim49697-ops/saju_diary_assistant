@@ -18,7 +18,7 @@
 
 완료 여부와 목표 달성 여부도 분리한다. 고정 실행이 정상 종료되면 `diagnostic_completed=true`이며, 자동 지표 임계를 모두 만족했는지는 별도 `diagnostic_target_met`으로 기록한다. 목표 미달이어도 결과를 숨기거나 실행 실패로 바꾸지 않는다.
 
-자연스러움과 의미 품질은 이 버전에서 `not_measured`다. 신뢰할 수 없는 자동 점수나 사람 표본 Gate를 추가하지 않는다.
+자연스러움과 의미 품질은 이 버전에서 `not_measured`다. 저장소 내부 자동 기술 지표 외의 표본 Gate를 추가하지 않는다.
 
 ## 2. 현재 저장소 계약 재사용
 
@@ -189,7 +189,7 @@ data/reports/saju_1b_baseline/grounded-dialogue/v0.1.0/eval-<fingerprint>/
 - candidate runtime을 앱 FSM의 승인된 chart로 저장
 - runtime release·feature flag·app binding 변경
 - 추가 학습, v3.1 생성, 모델 promotion
-- 자동 의미·자연스러움 점수 또는 사람 Gate
+- 추가 의미·자연스러움 Gate
 
 ## 진행 기록
 
@@ -209,3 +209,15 @@ data/reports/saju_1b_baseline/grounded-dialogue/v0.1.0/eval-<fingerprint>/
   - `uv run python -m scripts.evaluation.grounded_dialogue validate-contract`: 통과
 - 실행하지 않은 항목: K0·KI20 GPU 생성 500건과 KI20 narrow 추출 120건. PR 전 구현 검증 범위에서는 의도적으로 실행하지 않는다.
 - 남은 후속 작업: GPU가 유휴 상태일 때 확인 환경변수를 명시해 `execute --execute`를 1회 실행하고, 생성된 aggregate의 `diagnostic_target_met` 및 arm contrast를 해석한다.
+
+### 2026-09-01 — Phase 6 정본 통합 및 전체 회귀
+
+- 작업 요약: 최신 `master`의 Phase 6 자동 기술평가 완료 상태를 브랜치에 병합하고, 저장소 내부 자동 기술 지표만 사용하는 현재 문서 계약에 맞춰 진단 범위 표현을 정렬했다.
+- 변경 범위: 이 plan 문서의 Gate 경계 표현과 진행 기록. 진단 코드·계약·runtime 동작은 바꾸지 않았다.
+- 검증 결과:
+  - `.venv-data/bin/python -m unittest tests.test_grounded_dialogue_eval -v`: 21건 통과
+  - `.venv-data/bin/python -m scripts.evaluation.grounded_dialogue validate-contract`: `status=valid`, 고정 suite 100건 확인
+  - `uvx ruff check scripts tests`: 통과
+  - 실제 raw·derived·staging·모델·run 산출물을 연결한 `.venv-data/bin/python -m unittest discover -s tests -q`: 475건 통과
+  - `git diff --check origin/master...HEAD`: 통과
+- 남은 후속 작업: GPU 진단은 아직 실행하지 않았다. 결과 생성 전까지 runtime release, 앱 연결, 추가 학습, 모델 승격은 계속 미승인이다.
