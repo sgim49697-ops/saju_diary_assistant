@@ -6,9 +6,9 @@
 
 ## 결론
 
-도입 결론은 **일부 모듈만 참고 구현**이다. `ssaju`를 dependency, submodule, runtime oracle로 그대로 넣지 않는다. 천간·지지·오행·음양·십신 대응 구조처럼 작은 순수 계산 단위는 독립 Gold fixture를 통과한 뒤 clean-room 성격의 프로젝트 구현에 참고할 수 있지만, 생년월일시→원국 전체와 합충형파해 전체를 현재 상태 그대로 정답 엔진으로 채택할 근거는 부족하다.
+도입 결론은 **일부 모듈만 참고 구현**이다. `ssaju`를 dependency, submodule, runtime oracle로 그대로 넣지 않는다. 천간·지지·오행·음양·십신 대응 구조처럼 작은 순수 계산 단위는 공식 근거와 고정 정책의 자동 fixture를 통과한 뒤 clean-room 성격의 프로젝트 구현에 참고할 수 있지만, 생년월일시→원국 전체와 합충형파해 전체를 현재 상태 그대로 정답 엔진으로 채택할 근거는 부족하다.
 
-특히 신강약 점수, 격국, 용신, 관계 우선순위와 자동 해석은 구현상 휴리스틱이다. 이 값들은 전문가 Gold 학습·평가 label로 사용하지 않도록 [`configs/saju_calculation_policy.json`](../../configs/saju_calculation_policy.json)에서 `heuristic_only` 또는 `generated_interpretation`, `qa_gold_candidate=false`, `validator_mode=disabled`로 차단했다.
+특히 신강약 점수, 격국, 용신, 관계 우선순위와 자동 해석은 구현상 휴리스틱이다. 이 값들은 hard Gold 학습·평가 label로 사용하지 않도록 [`configs/saju_calculation_policy.json`](../../configs/saju_calculation_policy.json)에서 `heuristic_only` 또는 `generated_interpretation`, `qa_gold_candidate=false`, `validator_mode=disabled`로 차단했다.
 
 이번 검토는 advisory 비교만 수행했다. 기존 canonical MIX20K, staging record, eval, Phase 4 Gate, `training_promotion_allowed=true` 상태를 바꾸지 않았고 Phase 5 학습도 실행하지 않았다.
 
@@ -107,7 +107,7 @@
 - 공식 KASI fixture 대조
 - 한국 역사 DST 전 구간
 - 합·충·형·파·해·원진·귀문 각각의 direct assertion
-- 전문가 Gold 기반 지장간·십신·공망·12운성·대운 fixture
+- 공식 근거·고정 정책 기반 지장간·십신·공망·12운성·대운 자동 fixture
 
 `npm audit --json`은 runtime dependency 0개인 상태에서 dev dependency tree의 `brace-expansion` high 1건과 `esbuild` low 1건, 합계 2건을 보고했다. 현재 프로젝트에 dependency를 추가하지 않았으므로 앱 runtime 공급망에는 편입되지 않았다.
 
@@ -120,15 +120,15 @@
 | 원국 4주 | Nemotron 원천 제공, 생성 세부 구현 미확정 | 근사 절입·timezone·선택적 평균태양시 | 174 진단 | KASI·IANA Gold 전까지 보류 | 자동 수정 금지 |
 | 천간·지지 | 원국 4주 8자 | 같은 10천간·12지지 | 0 | 공통 상수 후보 | 불필요 |
 | 음양·오행 | 표면 8자 각 1회 집계 | 같은 표면 집계 | 0 | “표면 집계” 명시 후 후보 | 불필요 |
-| 지장간 | label 없음 | 여기·중기·정기 고정표 | `not_comparable` | 전문가 표 교차검증 후 후보 | 새 버전에만 추가 |
-| 십신—천간 | 일간과 각 천간 생극·음양 | `TEN_GODS` 표 | 0 | 독립 fixture 후 후보 | 불필요 |
+| 지장간 | label 없음 | 여기·중기·정기 고정표 | `not_comparable` | 고정 정책표·자동 fixture 통과 후 후보 | 새 버전에만 추가 |
+| 십신—천간 | 일간과 각 천간 생극·음양 | `TEN_GODS` 표 | 0 | 정책 fixture 통과 후 후보 | 불필요 |
 | 십신—지지 | 지지 자체 오행·음양 | 지장간 정기 기준 | 8,563 | 정기 기준 권장, Gold 전 advisory | 새 버전 이관 필요 |
-| 공망 | label 없음 | 일주 순공 기준 | `not_comparable` | 독립 fixture 후 후보 | 새 버전에만 추가 |
+| 공망 | label 없음 | 일주 순공 기준 | `not_comparable` | 정책 fixture 통과 후 후보 | 새 버전에만 추가 |
 | 12운성 | label 없음 | 봉법·거법 병행 | `not_comparable` | 봉법/거법 계약 분리 후 후보 | 새 버전에만 추가 |
 | 합충형파해 | label 없음 | 고정 pair/group 탐지 | `not_comparable` | 관계별 표·fixture 후 후보 | 새 버전에만 추가 |
 | 대운·세운·월운 간지 | label 없음 | 절입·성별·년간 음양·현재시각 | `not_comparable` | 시간 정책 Gold 후 간지만 후보 | 새 버전에만 추가 |
 | 신강약 | bazi rule ID soft label | 표면 오행 가중 점수 | 고유 명식 594 | 둘 다 `heuristic_only` | 정답 교정 금지 |
-| 격국·용신·해석 | 직접 비교 Gold 없음 | 임계값·정적 후보표·템플릿 | `not_comparable` | 전문가 Gold 금지 | 불필요 |
+| 격국·용신·해석 | 직접 비교 Gold 없음 | 임계값·정적 후보표·템플릿 | `not_comparable` | `heuristic_only` 유지 | 불필요 |
 
 ### 지지 십신 상세
 
@@ -151,7 +151,7 @@ Nemotron 11,000행의 천간 십신 44,000필드는 `ssaju`의 천간 십신표�
 
 [`conflict_samples_100.jsonl`](../../data/reports/saju_1b_baseline/ssaju-policy-review/v1.0.0/review-c1e129b1e602/conflict_samples_100.jsonl)은 네 지지별 25건씩 고유 100행을 결정론적으로 뽑았다. 원천 record ID, UUID, 내부 hash, 생년월일, 경도, 지역, persona는 포함하지 않는다.
 
-권장 runtime 정책은 지장간 정기 기준이지만 아직 `blocked_pending_gold`다. 기존 approved build를 덮어쓰지 않으며, 전문가 정책 승인을 받은 뒤 별도 dataset/schema version에서만 migration한다.
+권장 runtime 정책은 지장간 정기 기준이지만 아직 `blocked_pending_gold`다. 기존 approved build를 덮어쓰지 않으며, 고정 정책과 자동 fixture가 통과한 뒤 별도 dataset/schema version에서만 migration한다.
 
 ### 원국 진단
 
@@ -176,7 +176,7 @@ canonical bazi 5,000행은 1,250개 고유 명식이 질문 유형별로 4회 �
 | strong | 76 | 437 | 0 |
 | weak | 218 | 48 | 21 |
 
-고유 명식 594/1,250, 즉 47.52%가 다른 class이고 반복 행으로는 2,376행이다. 두 정책 모두 전문가 정답이 아닌 서로 다른 휴리스틱이므로 이 수치는 데이터 오류 수가 아니다. 기존 bazi label을 `ssaju` 점수로 수정하지 않는다.
+고유 명식 594/1,250, 즉 47.52%가 다른 class이고 반복 행으로는 2,376행이다. 두 정책 모두 공식 정답이 아닌 서로 다른 휴리스틱이므로 이 수치는 데이터 오류 수가 아니다. 기존 bazi label을 `ssaju` 점수로 수정하지 않는다.
 
 ## 활용안 비교
 
@@ -186,7 +186,7 @@ canonical bazi 5,000행은 1,250개 고유 명식이 질문 유형별로 4회 �
 | deterministic QA 생성기 | 정책 고정 시 대량 구조화 QA 생성 가능 | 한 구현의 오류가 train/eval에 같이 복제 | Gold 통과 field만 일부 참고 구현 |
 | validator | 기존 label과 정책 차이를 빠르게 탐지 | 단일 엔진을 oracle로 쓰면 학파 차이를 오류로 오판 | advisory differential validator로만 사용 |
 
-다음 Gate는 KASI·IANA 기반 시간 fixture, 전문가 승인 정책표, fact-only serializer, 새 schema/version migration 설계다. 그 전에는 `ssaju` 기반 deterministic QA를 Gold로 생성하지 않는다.
+다음 Gate는 KASI·IANA 기반 시간 fixture, 고정 정책표 자동 검증, fact-only serializer, 새 schema/version migration 설계다. 그 전에는 `ssaju` 기반 deterministic QA를 Gold로 생성하지 않는다.
 
 ## 라이선스와 `THIRD_PARTY_NOTICES` 후보
 

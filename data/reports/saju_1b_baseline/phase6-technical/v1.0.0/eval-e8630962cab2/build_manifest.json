@@ -1,0 +1,16 @@
+{
+  "evaluation_build_id": "eval-e8630962cab2",
+  "private_content_included": false,
+  "public_files": {
+    "aggregate.json": {
+      "bytes": 58402,
+      "sha256": "8d1fde689b30842e5af59895beb92fda95cdf97d92e24d7e4faf49021c396581"
+    },
+    "decision.md": {
+      "bytes": 922,
+      "sha256": "5154a698d1e4d70541c36ea64a805b9daf89f391b966501eaf4e07a7bc1b45b4"
+    }
+  },
+  "raw_outputs_included": false,
+  "schema_version": "1.0.0"
+}

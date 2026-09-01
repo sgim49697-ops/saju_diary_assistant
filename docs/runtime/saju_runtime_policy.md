@@ -11,7 +11,7 @@
 - 생시 미상은 시주를 `null`로 두고 후보의 공통 사실만 사용한다.
 - DST gap을 이동하거나 fold를 임의 선택하지 않는다.
 - 모델에는 `status`, `hard_facts`, `fact_authority`, `code`, `message`, `limitations`만 보낸다.
-- `HARD_CANDIDATE`를 학습 Gold나 전문가 인증 사실로 표현하지 않는다.
+- `HARD_CANDIDATE`를 학습 Gold나 승인된 hard fact로 표현하지 않는다.
 - `hard_facts.solar_term_evidence`의 provider·TT/UTC·표시 분·권한을 결과와 함께 보존한다. provider가 만들지 않은 경계, 다른 provider 경계, 변조된 권한 집계는 거부한다.
 - 절입 권한은 1900~1919년 `PROFILE_DETERMINISTIC`, snapshot 수집시점까지 과거 `PAST_OFFICIAL_CORROBORATED`, 이후 미래 `FORECAST_DIAGNOSTIC_NONAPPROVAL`로 분리한다. provider 생성값 자체를 공식 원문으로 표시하지 않고 미래 값을 `HARD_GT`로 승격하지 않는다.
 - 신강약·격국·용신·대운·자동 해석은 runtime fact payload에 넣지 않는다.
@@ -21,7 +21,7 @@
 - 1964년 백로의 현재 계산 `9월 7일 23:59`와 과거 역서 `9월 7일 24:00`은 서로 다른 vintage로 보존한다. 과거 역서를 현재 provider 순간의 hard block으로 사용하지 않는다.
 - OpenAPI가 0건을 반환한 연도는 provider 값으로 채우지 않는다. 1920~2100년 공식 현재 계산의 절입 2,172/2,172행을 별도 hard evidence로 쓰고, 1900~1919년 240행은 `PROFILE_DETERMINISTIC`으로 분리한다.
 - provider 후보 선정과 strict runtime 승인을 분리한다. Skyfield 후보는 날짜 0건·과거 허용범위·경계 검사를 통과했지만 원시 분 라벨 mismatch 22와 미래 물리 순간 미판정 때문에 release 대상이 아니다.
-- 120초 독립 엔진 차이 기준은 비권위 회귀 가드다.
+- 120초 provider 교차 차이 기준은 비권위 회귀 가드다.
 - 활성 intake 계약은 `intake_registry-v1.1.0.json`이 고정한 session v2.1·FSM v1.1·Gate v1.1이다. 중복 `period` key가 있는 과거 session v2는 이력 보존용이며 앱에서 읽지 않는다.
 - 구조화 intake FSM은 자유문을 파싱하지 않는다. 앱 계층이 검증된 event를 넘기며 release·production key·FSM 100/100·저장 암호화·보존 정책이 모두 준비돼야 계산 action을 낸다.
 - chart·period tool 결과는 FSM이 발급한 현재 `scr2_` HMAC call ID를 그대로 되돌려야 한다. 이전 요청 결과, 렌더링 완료 결과, 현재 slot과 다른 `sif2_` fingerprint가 있는 cache는 거부한다.

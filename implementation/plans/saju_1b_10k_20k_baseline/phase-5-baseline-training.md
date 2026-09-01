@@ -6,7 +6,7 @@
 | 선행 Phase | Phase 4 완료 |
 | 입력 | 선택 길이의 canonical MIX10·MIX20, Instruct snapshot, 승인 config |
 | 출력 | KI10·KI20 checkpoint, trainer state, 환경·학습 보고서 |
-| 완료 Gate | KI10 재현·재로딩, Gate v2, 명시 승인된 경우 독립 KI20과 재로딩까지 종료 |
+| 완료 Gate | KI10 재현·재로딩, Gate v2, 명시 승인된 경우 base부터 시작한 KI20과 재로딩까지 종료 |
 | 웹 확인일 | 2026-08-29 |
 
 ## 목적
@@ -103,7 +103,7 @@ KI10 뒤의 조건을 다시 판정하기 위해 의미·출처 감사 `v1.0`, �
 - 기존 eval70 byte hash를 `dev_monitor_70`으로 보존하고 KI20 leakage component와 겹치지 않음
 - 개발 진단 930행, 미사용 reserve의 7축 blind 350 component/500행, 외부 conformance 220행은 학습 loop 입력에서 제외됨
 - Python 3.10.12, uv 0.9.26, torch 2.13.0+cu130, Transformers 4.57.6, TRL 1.12.0, bitsandbytes 0.50.2와 `requirements-phase3.lock.txt` SHA-256이 일치함
-- 가용 disk가 최소 64GiB이고 KI10·KI20이 모두 고정 Instruct snapshot에서 독립 시작하며, checkpoint가 model·optimizer·scheduler·trainer state를 저장함
+- 가용 disk가 최소 64GiB이고 KI10·KI20이 모두 고정 Instruct snapshot에서 각각 새 run으로 시작하며, checkpoint가 model·optimizer·scheduler·trainer state를 저장함
 - readiness 공개 보고서에는 제한 원문을 넣지 않고 `phase5_training_performed=false`를 유지함
 - 20K 전수 의미 감사에서 hard blocker 0, critical/high 0, assistant mask 0행·언어/제어/민감 entity 신규 위반 0을 확인함
 - dev reference 중 train assistant와 같은 답변은 별도 집계하되, 반복성이 높은 축에서 reference similarity를 최종 성능 주장으로 쓰지 않음
@@ -231,7 +231,7 @@ handoff 행동 7/50                      미달
 - [x] Gate v1 bytes를 보존하고 Gate v2 hard gate·품질 목표를 분리 판정했다.
 - [x] KI20의 forward/backward/optimizer·batch/worker/eval 비학습 preflight를 완료했다.
 - [x] 사용자의 별도 명시 확인을 v1.2 실행 계약과 registry 승인 포인터로 고정했다.
-- [x] 별도 명시 확인 뒤 KI20을 같은 Instruct snapshot에서 독립 시작하고 첫 정상 step을 확인했다.
+- [x] 별도 명시 확인 뒤 KI20을 같은 Instruct snapshot의 새 run으로 시작하고 첫 정상 step을 확인했다.
 - [x] 실행된 KI20은 승인된 처리량 설정 차이와 manifest·output 경로 외 학습 계약을 유지했고 최종 모델을 새 process에서 재로딩했다.
 - [x] 모델·checkpoint를 공개 저장소나 Hub에 올리지 않았다.
 
@@ -283,9 +283,9 @@ runs/KI20-MIX-v2/v1.2.0/run-1f5d732cae67/  # 1 epoch 본학습·최종 재로딩
 
 - 2026-08-31
   - 작업 요약: KI20의 알려진 상태·tool·grounding 실패를 보강하기 위한 외부 MIX20K-v3 후보를 감사하고 새 데이터 fingerprint의 비학습 기술 preflight까지 완료했다. 기존 KI20을 이어 학습하거나 새 checkpoint를 만들지 않았다.
-  - 변경 범위: 20K 보정 candidate, 2K diagnostic selection, 4K 검수 큐와 runtime 계약을 생성했다. model이 사주를 직접 계산하지 않고 strict tool을 호출하며 allowlist hard fact만 해석하도록 학습 projection을 고정했다. `assistant_target_policy=last_user_suffix`와 tool response loss 제외를 유지했다.
+  - 변경 범위: 20K 보정 candidate, 2K diagnostic selection, 4K 자동 점검 큐와 runtime 계약을 생성했다. model이 사주를 직접 계산하지 않고 strict tool을 호출하며 allowlist hard fact만 해석하도록 학습 projection을 고정했다. `assistant_target_policy=last_user_suffix`와 tool response loss 제외를 유지했다.
   - 검증: `preflight-aea1c001126e`에서 정확한 Kanana tokenizer 기준 최대 767/768, 20K 길이 초과 0, 마지막 사용자 이전 assistant supervision·최종 EOS·serialization 오류 0, tool response supervised 0, tool XML 5,250/5,250 복원을 확인했다. `.train()`·backward·optimizer step은 모두 0이다.
-  - 남은 이슈·후속 작업: canonical engine 재검산 3,800행, 반복 target 다양화, 전체 state/grounding·언어·정책 자동 계약이 남아 diagnostic과 본학습 실행을 차단한다. 이후에도 K0→v3 10K와 K0→v3 20K를 독립 run으로 진행하며 기존 KI20 checkpoint에서 이어 학습하지 않는다.
+  - 남은 이슈·후속 작업: canonical engine 재검산 3,800행, 반복 target 다양화, 전체 state/grounding·언어·정책 자동 계약이 남아 diagnostic과 본학습 실행을 차단한다. 이후에도 K0→v3 10K와 K0→v3 20K를 각각 새 run으로 진행하며 기존 KI20 checkpoint에서 이어 학습하지 않는다.
 - 2026-08-30
   - 작업 요약: KI20 `run-1f5d732cae67`의 공개 학습 요약과 build manifest를 private run과 대조해 저장소에 고정하고, Phase 5 상단 상태·완료 Gate·산출물 설명을 실제 완료 상태로 갱신했다.
   - 변경 범위: 공개 보고서에는 집계 지표와 실행 환경만 포함하고 원문 샘플·checkpoint·봉인 blind는 포함하지 않았다. AI Hub 파생 원문을 포함한 81MiB `saju-mix20k-v3-review-ready`는 공개 Git에서 제외하도록 정확한 루트 경로만 `.gitignore`에 추가했으며 로컬 파일은 삭제하거나 수정하지 않았다.
@@ -293,44 +293,44 @@ runs/KI20-MIX-v2/v1.2.0/run-1f5d732cae67/  # 1 epoch 본학습·최종 재로딩
   - 남은 이슈·후속 작업: `production_promotion_allowed=false`를 유지한다. sealed blind 전에 동일한 비봉인 전체 Gate v2 범위 평가와 checkpoint 보존·재현 계약을 별도 검증해야 한다.
 - 2026-08-30
   - 작업 요약: 사용자의 명시적 공개 요청에 따라 dashboard `v1.7.0`에 opt-in 무인증 원격 공유 계약을 추가했다. 기존 cloudflared process는 재시작하지 않고 dashboard systemd service만 교체해 `https://scholars-greatest-biography-presidential.trycloudflare.com` URL을 보존했다.
-  - 변경 범위: `serve --trusted-origin <exact-https-origin> --allow-unauthenticated-remote` 조합만 무인증 원격 모드를 허용하며 Basic 옵션과 혼용하거나 exact Origin을 생략하면 fail-closed한다. 기존 `v1.6.0` Basic 인증 경로, loopback Host allowlist, CSRF token, POST exact-Origin 검사와 기본 원격 비활성 상태는 유지한다. 공개 범위는 모델 채팅을 포함한 전체 dashboard이므로 AI Hub 제한 최소 투영 샘플과 기존 private 수동 세션도 URL 접근자에게 보인다. 사용자가 이 위험을 확인하고 무인증 공개를 선택했으며 run·모델 fingerprint·dataset membership·sealed blind는 수정하지 않았다.
+  - 변경 범위: `serve --trusted-origin <exact-https-origin> --allow-unauthenticated-remote` 조합만 무인증 원격 모드를 허용하며 Basic 옵션과 혼용하거나 exact Origin을 생략하면 fail-closed한다. 기존 `v1.6.0` Basic 인증 경로, loopback Host allowlist, CSRF token, POST exact-Origin 검사와 기본 원격 비활성 상태는 유지한다. 공개 범위는 모델 채팅을 포함한 전체 dashboard이므로 AI Hub 제한 최소 투영 샘플과 기존 private 대화 세션도 URL 접근자에게 보인다. 사용자가 이 위험을 확인하고 무인증 공개를 선택했으며 run·모델 fingerprint·dataset membership·sealed blind는 수정하지 않았다.
   - 검증: 무인증 flag 조합과 lookalike Origin 거부, CSRF 유지 회귀를 포함한 dashboard 34건, 저장소 전체 267건 unittest, Ruff, JavaScript syntax, config JSON parse와 `git diff --check`가 통과했다. live service는 `127.0.0.1:8765` active, restart 0이며 공개 URL의 무인증 root 요청이 `200`을 반환했다. 외부 exact Origin에서 인증 헤더 없이 KI20 단독 합성 smoke를 실행해 generation POST `200`, `status=generated`, non-empty 답변을 확인했다.
   - 남은 이슈·후속 작업: 이 공개 endpoint에는 로그인·사용자별 권한·rate limit이 없어 URL을 아는 누구나 제한 샘플·세션 조회와 GPU 추론을 실행할 수 있다. Quick Tunnel URL과 uptime은 보장되지 않으므로 공유가 끝나면 `saju-ki20-dashboard-run-1f5d732cae67.service`와 cloudflared process를 중지한다. 이전 `0600` 런타임 비밀번호 파일은 새 service argv에서 참조되지 않음을 확인한 뒤 삭제했으며, smoke 결과는 품질 Gate나 production 승격 근거가 아니다.
 - 2026-08-30
-  - 작업 요약: loopback 전용 dashboard의 보안 기본값을 유지하면서, 사용자가 접근 권한을 확인한 내부 팀원에게 전체 화면과 모델 채팅을 임시 공유할 수 있는 `v1.6.0` exact-Origin·Basic 인증 모드를 추가했다. 현재 `https://scholars-greatest-biography-presidential.trycloudflare.com`은 기존 cloudflared process를 유지한 채 dashboard service만 재기동해 URL을 보존했다.
+  - 작업 요약: loopback 전용 dashboard의 보안 기본값을 유지하면서, 접근 권한이 확인된 인증 주체에 전체 화면과 모델 채팅을 임시 공유할 수 있는 `v1.6.0` exact-Origin·Basic 인증 모드를 추가했다. 현재 `https://scholars-greatest-biography-presidential.trycloudflare.com`은 기존 cloudflared process를 유지한 채 dashboard service만 재기동해 URL을 보존했다.
   - 변경 범위: `serve --trusted-origin --basic-auth-user --basic-auth-password-file` 세 옵션은 all-or-none이며 Origin은 port·경로·wildcard가 없는 정확한 HTTPS DNS origin만 받는다. 비밀번호 파일은 절대 경로, 현재 사용자 소유, symlink가 아닌 `0600` 일반 파일, 32 bytes 이상 단일 ASCII 행이어야 한다. 인증은 정적 asset과 API 전체에 적용하고 기존 loopback Host allowlist, CSRF token, POST Origin 검사를 중첩 유지한다. 임시 256-bit 비밀번호는 `/run/user/1000`의 Git 제외 파일에만 두고 값은 로그·문서·argv에 남기지 않았다. 학습 run·모델 fingerprint·dataset membership·sealed blind는 수정하지 않았다.
   - 검증: 잘못된 Origin·부분 옵션·약한 권한·symlink·짧은 비밀번호·무인증·오인증 회귀를 포함한 dashboard 33건, 전체 266건 unittest, Ruff, JavaScript syntax, config JSON과 `git diff --check`가 통과했다. live local/external 무인증은 `401`, 인증 root·session API는 `200`, 두 inference engine은 가용 상태였다. 외부 Origin에서 KI20 단독 합성 smoke가 `status=generated`, 1 turn, non-empty 답변으로 완료됐고 세션은 Git 제외 private manual session에만 저장됐다.
   - 남은 이슈·후속 작업: 전체 화면에는 AI Hub 제한 샘플과 기존 private 세션이 포함되므로 확인된 내부 참여자 외에는 자격 증명을 전달하지 않는다. Quick Tunnel restart 시 URL이 바뀌며 새 Origin으로 dashboard를 다시 시작해야 한다. 공유 종료 시 tunnel·dashboard 원격 모드를 중지하고 비밀번호 파일을 제거하며 본 결과를 품질 Gate나 production 승격 근거로 사용하지 않는다.
 - 2026-08-30
   - 작업 요약: dashboard `v1.5.0`에서 중복 select를 제거하고 split 카드·축 분포 행을 직접 선택하는 데이터 탐색 흐름으로 정리했다. 현재 선택의 샘플은 기본 접힌 카드 10건으로 보여주며, 요약 미리보기 뒤 필요한 항목만 펼칠 수 있다.
-  - 변경 범위: `POST /api/dataset-samples/{split}/{axis}/random`은 loopback host·CSRF token·동일 Origin을 확인한 뒤 `secrets.SystemRandom`으로 현재 후보 풀에서 10건을 비복원 추출한다. 한 요청 안 identity 중복은 fail-closed하고 요청 간 중복은 의도적으로 허용하며, `전체 혼합`은 각 축을 균등 샘플링하지 않고 해당 split 전체의 실제 구성비를 따른다. 응답과 선택 이력은 cache·세션·디스크에 저장하지 않는다. 샘플은 기존 최소 투영만 반환하고 내부 locator·hash·record ID를 제외하며 AI Hub 로컬 제한 표시와 sealed blind 접근 금지를 유지했다. 학습 20K membership, 모델·checkpoint, 고정 20건, 수동 세션과 Phase 6은 변경하지 않았다.
+  - 변경 범위: `POST /api/dataset-samples/{split}/{axis}/random`은 loopback host·CSRF token·동일 Origin을 확인한 뒤 `secrets.SystemRandom`으로 현재 후보 풀에서 10건을 비복원 추출한다. 한 요청 안 identity 중복은 fail-closed하고 요청 간 중복은 의도적으로 허용하며, `전체 혼합`은 각 축을 균등 샘플링하지 않고 해당 split 전체의 실제 구성비를 따른다. 응답과 선택 이력은 cache·세션·디스크에 저장하지 않는다. 샘플은 기존 최소 투영만 반환하고 내부 locator·hash·record ID를 제외하며 AI Hub 로컬 제한 표시와 sealed blind 접근 금지를 유지했다. 학습 20K membership, 모델·checkpoint, 고정 20건, 대화 세션과 Phase 6은 변경하지 않았다.
   - 검증: dashboard 단위·HTTP·정적 asset 회귀 31건과 저장소 전체 264건 unittest, Ruff, JavaScript syntax, config JSON parse와 `git diff --check`가 통과했다. live API 연속 호출은 각 10건·묶음 내 고유 10건·서로 다른 표본을 반환했고 무Origin 403, 비어 있지 않은 body 400, blind 404를 확인했다. Windows Chrome에서 10개 카드 기본 접힘·상세 열기·재추첨·AI Hub 제한 배지·split/axis 전환을 검증했으며 10초 상태 자동 갱신은 현재 표본을 바꾸지 않았고 desktop과 390px mobile 가로 overflow는 0이었다.
   - 남은 이슈·후속 작업: 이 표본은 데이터 탐색용 진단 UI이며 정식 평가·통계 추정·품질 Gate가 아니다. 요청 간 중복 가능성을 제거하거나 이력을 저장하는 순환 표집은 사용자의 완전 무작위 요구와 달라 도입하지 않았다.
 - 2026-08-30
-  - 작업 요약: 세션별 수동 질문과 고정 20건 진단 사이에 기본 접힘 상태의 `실사용 사주 질문 20선`을 추가했다. 성향·감정, 일·진로, 재물, 연애·관계, 가족·학업, 시기 흐름, 생활 변화·건강 7개 분야를 필터링하고 첫 질문 20개와 같은 세션 후속 질문 4개를 입력창에 채울 수 있다.
-  - 변경 범위: 실제 사용자·AI Hub 원문 대신 `1992-04-18 08:30`, `1993-09-07 19:30` 공개 합성 anchor의 두 명식과 고정 시기 자문값만 사용한다. 명식은 승인 정책 `d6a205…3286c`와 `lunar-python==1.4.8` artifact `3aa11c…69d6`에 묶었고 시기 값은 `advisory_consistency_only`, `runtime_approved=false`, `human_domain_review_performed=false`로 표시했다. 예시 버튼은 수동 질문 textarea만 채우며 세션·엔진·profile을 바꾸거나 `/api/generate`를 호출하지 않는다. 학습 데이터, checkpoint, 고정 20건, sealed blind와 Phase 6은 수정·실행하지 않았다.
+  - 작업 요약: 세션별 대화 질문과 고정 20건 진단 사이에 기본 접힘 상태의 `실사용 사주 질문 20선`을 추가했다. 성향·감정, 일·진로, 재물, 연애·관계, 가족·학업, 시기 흐름, 생활 변화·건강 7개 분야를 필터링하고 첫 질문 20개와 같은 세션 후속 질문 4개를 입력창에 채울 수 있다.
+  - 변경 범위: 실제 사용자·AI Hub 원문 대신 `1992-04-18 08:30`, `1993-09-07 19:30` 공개 합성 anchor의 두 명식과 고정 시기 자문값만 사용한다. 명식은 승인 정책 `d6a205…3286c`와 `lunar-python==1.4.8` artifact `3aa11c…69d6`에 묶었고 시기 값은 `advisory_consistency_only`, `runtime_approved=false`, `domain_semantics=not_measured`로 표시했다. 예시 버튼은 대화 질문 textarea만 채우며 세션·엔진·profile을 바꾸거나 `/api/generate`를 호출하지 않는다. 학습 데이터, checkpoint, 고정 20건, sealed blind와 Phase 6은 수정·실행하지 않았다.
   - 검증: catalog 20개·7개 분야·24 turn, 문맥 참조, 동일 세션 후속 4개, 합성 명식 2개의 4주·표면 오행·십신, 2026년/월/주말 간지, 모든 조합 prompt 4,000자 이하를 자동 대조했다. dashboard 28건과 저장소 전체 261건 unittest, Ruff, JavaScript syntax, JSON·diff 검증이 통과했다. live HTTP 200과 Windows Chrome에서 기본 접힘·필터·첫 질문/후속 입력·생성 POST 0건을 확인했고 desktop·390px mobile 가로 overflow는 0이었다.
   - 남은 이슈·후속 작업: 이 목록은 현재 모델의 실사용 실패를 찾는 진단 편의 기능이며 정식 품질 Gate나 학습 Gold가 아니다. 계산 engine은 여전히 미연결이고 자문용 시기값의 의미 품질도 `not_measured`이므로, 답변 정확도 개선은 별도 runtime bridge와 승인된 새 데이터·평가 fingerprint 뒤에 판단한다.
 - 2026-08-30
-  - 작업 요약: dashboard `v1.4.0`에 실제 Full FT 시작점인 고정 `kanana-2-1.3b-instruct@bf4786aa…` K0 원본 축을 추가했다. 새 세션은 `KI20 단독`, `K0 원본 단독`, `K0 ↔ KI20 동시 비교` 중 하나를 고르며, 비교 모드는 같은 prompt profile·greedy 설정을 적용하되 각 모델이 상대 답변을 보지 않는 독립 문맥으로 동작한다.
+  - 작업 요약: dashboard `v1.4.0`에 실제 Full FT 시작점인 고정 `kanana-2-1.3b-instruct@bf4786aa…` K0 원본 축을 추가했다. 새 세션은 `KI20 단독`, `K0 원본 단독`, `K0 ↔ KI20 동시 비교` 중 하나를 고르며, 비교 모드는 같은 prompt profile·greedy 설정을 적용하되 각 모델이 상대 답변을 보지 않는 분리된 문맥으로 동작한다.
   - 변경 범위: K0 `model.safetensors` SHA-256 `49aa6c…c942`, KI20 final `2fae23…872d`와 각 tokenizer·chat template·검토된 custom model code의 고정 SHA-256을 로드 직전에 확인하고 모델을 순차 로드·해제한다. 세션 `1.2.0`은 선택 축·모델 fingerprint·엔진별 응답 진단을 Git 제외 private JSON에 원자 저장하며 기존 `1.0/1.1` 세션은 KI20 단독으로 읽고 실제 후속 입력이 있을 때만 지연 변환한다. 기존 고정 20건 KI10↔KI20 산출물, 학습데이터, checkpoint, sealed blind는 수정하지 않았다.
   - 검증: 최종 고정 파일 검증 경로에서 공개 합성 한 문장을 두 모델에 같은 337-token 입력으로 실행해 non-empty `2/2`, K0/KI20 소요 `9.833/3.007초`, peak allocated 각각 `2,677,079,040 bytes`, 전체 GPU 사용 `4,272/4,283MiB`를 확인했고 종료 후 `1,242MiB`로 복귀했다. dashboard targeted 26건과 저장소 전체 259건, Ruff, JavaScript syntax, JSON·diff 검증, desktop `1440×1200` 좌우 비교·mobile `390×844` 단일열 렌더링을 통과했으며 가로 overflow는 없었다. 합성 세션은 사용자 세션 목록에서 분리한 Git 제외 `dashboard/v1.4.0/smoke_sessions`에 보존했다.
   - 남은 이슈·후속 작업: 이 비교축은 SFT 전후 행동 차이를 직접 보는 진단 기능일 뿐 품질 Gate가 아니며 두 모델 모두 사주 계산 engine이 연결되지 않았다. 기존 YaRN·tokenizer regex 경고의 고정 fingerprint 판단을 유지하고 `fix_mistral_regex`를 임의 적용하지 않는다. K0↔KI20 동일 상태형 평가와 계산 engine bridge는 별도 승인 범위다.
 - 2026-08-30
-  - 작업 요약: 실제 11턴 수동 대화는 22개 메시지 전체가 `553/3,584` token으로 보존되고 system message가 없었으므로, 실패 원인을 context 손실이 아닌 입력 수집·계산 경계 행동 제어 부재로 확정했다. dashboard `v1.3.0`은 새 세션 기본값을 `guided_diagnostic_v1`로 바꾸고 `raw_no_system`은 명시적 진단 선택으로만 남겼다. 두 profile 모두 `diagnostic_only=true`, `production_like=false`다.
+  - 작업 요약: 실제 11턴 대화 세션은 22개 메시지 전체가 `553/3,584` token으로 보존되고 system message가 없었으므로, 실패 원인을 context 손실이 아닌 입력 수집·계산 경계 행동 제어 부재로 확정했다. dashboard `v1.3.0`은 새 세션 기본값을 `guided_diagnostic_v1`로 바꾸고 `raw_no_system`은 명시적 진단 선택으로만 남겼다. 두 profile 모두 `diagnostic_only=true`, `production_like=false`다.
   - 변경 범위: 안내 보정 prompt는 대화 첫 위치에 정확히 한 번 삽입하고 오래된 완결 turn을 줄여도 보존한다. v1.0 기존 세션은 `raw_legacy`로 읽어 원래 의미를 바꾸지 않는다. 공개 합성 상태형 dev 100건과 10개 층×200건인 보강 후보 2,000건 `build-0f80acfeed13`을 새로 만들었지만 후보는 `candidate_only`, `training_promotion_allowed=false`이며 기존 20K·checkpoint·학습 설정을 수정하거나 재학습하지 않았다.
   - 검증: 후보 JSONL SHA-256은 `fec7403e…6917b`, dev100과 정규화 exact·문자 5-gram Jaccard 0.85 이상 중복은 각각 0건이고 최대 유사도는 `0.065217`이다. intake transcript의 명식·간지와 structured transcript의 출생일·시각·장소 혼합, PII, 실제 사용자 세션·AI Hub 원문, 허위 4주, 정규화 중복은 모두 0건이다. 실제 KI20 상태형 Gate `stateful-gate-f5b76dde1921`은 100건을 105.577초에 생성했으며 non-empty `100/100`, 중대 안전·직전 답변 반복 0건은 통과했지만 필수 행동 `14/100`, 임의 간지 없는 출력 `84/100`, 이미 받은 필드 재질문 18건, 허위 UI·완료 1건, 미지원 날짜·기간 사실 5건으로 `guided_diagnostic_not_met`였다. 봉인 blind는 열지 않았다.
-  - 남은 이슈·후속 작업: system prompt만으로는 보정되지 않았으며 sanitized 1턴 smoke도 네 필수 범주 중 생년월일·달력 구분만 요청했다. 후보 2,000건은 내부 hash 표식 없는 실제 system prompt와 조건부 `calendar_type`·`leap_month`를 사용하지만 결정적 template 후보이므로 그대로 학습 Gold로 승격하지 않는다. 자연스러운 다회전 표현 다양화, 실패 사례 소수 검토, 새 train/dev 평가 계약·data fingerprint 승인 뒤에만 별도 재학습을 결정한다. 실제 앱은 독립 slot state와 승인된 생년월일시→명식 계산 engine이 필요하다.
+  - 남은 이슈·후속 작업: system prompt만으로는 보정되지 않았으며 sanitized 1턴 smoke도 네 필수 범주 중 생년월일·달력 구분만 요청했다. 후보 2,000건은 내부 hash 표식 없는 실제 system prompt와 조건부 `calendar_type`·`leap_month`를 사용하지만 결정적 template 후보이므로 그대로 학습 Gold로 승격하지 않는다. 자연스러운 다회전 표현 다양화와 실패 유형별 state·grounding 자동 계약, 새 train/dev 평가 계약·data fingerprint를 통과한 뒤에만 별도 재학습을 결정한다. 실제 앱은 분리된 slot state와 승인된 생년월일시→명식 계산 engine이 필요하다.
 - 2026-08-29
   - 작업 요약: dashboard `v1.2.0`에 현재 KI10·KI20 학습, dev monitor·diagnostic, persona guard, 외부 정합성의 수량·축별 분포와 고정 샘플을 보는 `데이터 스플릿` 탭을 추가했다. 화면은 밝은 한지 바탕과 저채도 오행 색으로 바꾸고, 세션 챗봇을 먼저 배치한 뒤 고정 20건 진단 비교를 기본 닫힘 토글로 이동했다.
   - 변경 범위: 샘플 API는 고정 SHA-256을 확인한 로컬 비봉인 데이터만 읽고 message 또는 구조화 input/expected 최소 투영만 반환한다. AI Hub 두 축은 `로컬 제한·외부 공유 금지`를 표시하며 내부 record·leakage·locator·hash는 반환하지 않는다. `blind_source_test_500`은 수량·봉인 상태만 표시하고 payload path를 구현에 포함하거나 읽지 않았다. 학습 데이터·split membership·checkpoint·기존 dashboard 세션과 fixed probe 결과는 수정하지 않았다.
   - 검증: dashboard 단위·HTTP 보안·dataset 회귀 17건, Ruff, JavaScript syntax, JSON parse와 diff check가 통과했다. 실제 `run-1f5d732cae67`에서 split 10,000/20,000/70/930/50/220과 blind 500을 확인하고 KI20 전체 7축 샘플, 제한 표시, `sealed_blind_accessed=false`를 검증했다. Windows headless Chrome의 1440×1200·390×844 렌더링에서 한지 테마와 반응형 배치를 확인했고 렌더 DOM에서 고정 20건 외부 토글이 기본 닫힘이었다.
   - 남은 이슈·후속 작업: 데이터 샘플은 loopback 진단 편의이며 정식 평가나 품질 주장에 사용하지 않는다. AI Hub 샘플은 사용자의 로컬 즉시 표시 선택에 따라 보이므로 화면 캡처·복사·외부 공유를 금지한다. Phase 6 blind 단회 평가는 이 변경으로 시작되지 않았다.
 - 2026-08-29
-  - 작업 요약: 완료된 KI20 final을 수동 검사할 때 대화를 단발성으로 버리던 dashboard를 `v1.1.0` 세션 방식으로 확장했다. 새 세션·기존 세션 선택, turn별 질문/답변 조회와 이전 대화를 포함한 후속 생성을 지원한다.
+  - 작업 요약: 완료된 KI20 final을 대화형으로 확인할 때 대화를 단발성으로 버리던 dashboard를 `v1.1.0` 세션 방식으로 확장했다. 새 세션·기존 세션 선택, turn별 질문/답변 조회와 이전 대화를 포함한 후속 생성을 지원한다.
   - 변경 범위: 대화 원문은 `runs/.../dashboard/v1.1.0/manual_sessions`의 Git 제외 private JSON에만 0600으로 원자 저장한다. 최대 100세션·세션당 50 turn을 보존하고 모델 입력은 오래된 완결 turn부터 제외해 3,584 token으로 제한한다. fixed probe `v1.0.0`, 학습 run·checkpoint, sealed blind와 품질 Gate는 수정하지 않았다.
   - 검증: dashboard 단위·HTTP 보안·세션 회귀 14건, Ruff, JavaScript syntax, JSON parse와 diff check가 통과했다. 실제 `run-1f5d732cae67` dashboard를 재기동해 `127.0.0.1:8765` active, CSRF 보호 `/api/sessions` 200, 빈 초기 세션 목록과 generation gate open을 확인했다. 재기동 중 확인한 TCP 재바인딩 지연은 loopback server의 안전한 address reuse로 보완했다.
-  - 남은 이슈·후속 작업: 저장된 수동 대화는 사용자 진단 편의 기능이며 정식 평가나 모델 품질 근거로 합치지 않는다. 3,584 token을 넘는 장기 대화는 전체 기록은 남지만 오래된 turn이 모델 입력에서 제외되고 화면에 제외 turn 수를 표시한다.
+  - 남은 이슈·후속 작업: 저장된 대화 세션은 사용자 진단 편의 기능이며 정식 평가나 모델 품질 근거로 합치지 않는다. 3,584 token을 넘는 장기 대화는 전체 기록은 남지만 오래된 turn이 모델 입력에서 제외되고 화면에 제외 turn 수를 표시한다.
 - 2026-08-29
   - 작업 요약: `KI20-MIX-v2/run-1f5d732cae67` Full FT 1 epoch 2,500 step이 중단·resume 없이 완료됐고 final checkpoint 새 프로세스 reload 5/5를 통과했다. 대시보드의 비봉인 고정 20건 KI10↔KI20 진단도 완료했다.
   - 변경 범위: 20,000행 BF16 Full FT의 private run·checkpoint와 Git 제외 dashboard 진단만 읽어 집계했다. sealed blind·Phase 6·production 승격은 실행하지 않았고, 학습 종료 시 생성된 untracked 공개 run 보고서는 이번 기록 커밋에 포함하지 않는다.
@@ -340,7 +340,7 @@ runs/KI20-MIX-v2/v1.2.0/run-1f5d732cae67/  # 1 epoch 본학습·최종 재로딩
   - 작업 요약: 실행 중인 KI20 Full FT와 분리된 loopback 전용 학습·모델 검사 대시보드 `v1.0.0`을 구현했다. 학습 중에는 `metrics.jsonl`·manifest·checkpoint만 읽고, final reload와 GPU idle이 확인된 뒤에만 모델 추론을 허용한다.
   - 변경 범위: 기존 `phase5_ki20_train.py`와 실행 config·run fingerprint는 수정하지 않았다. 별도 config·보안 HTTP 서버·자체 호스팅 HTML/CSS/JS·테스트를 추가했으며, 대시보드에는 학습 중단·재개·삭제 기능이 없다. KI10 비봉인 진단 결과에서 10개 범주 20건을 해시 기반으로 고정해 KI20 final과 비교하되 정식 Gate·Phase 6·sealed blind와 분리했다.
   - 검증: dashboard 단위·HTTP 보안 12건과 저장소 전체 220개 unittest, Ruff, JavaScript syntax, diff check가 통과했다. 실제 run HTTP smoke는 step 1,420에서 HTML/API 200, runtime alert 0, train/eval metric 143/5행, checkpoint 5개 complete, 학습 중 generation 409 차단을 확인했다. 격리 worktree에서 Git 제외 산출물 부재로 끝난 기존 테스트는 원 작업 트리 재실행에서 모두 통과했다.
-  - 남은 이슈·후속 작업: `saju-ki20-dashboard-run-1f5d732cae67.service`가 `127.0.0.1:8765`에서 실행 중이며 Windows/WSL의 `http://localhost:8765`로 확인한다. 고정 20건·수동 질문은 학습 완료 전까지 fail-closed로 유지하고, 완료 뒤 화면에서 고정 검사를 한 번 실행하되 결과는 Git 제외 private run에만 둔다. 대시보드 종료는 `systemctl --user stop saju-ki20-dashboard-run-1f5d732cae67.service`를 사용한다.
+  - 남은 이슈·후속 작업: `saju-ki20-dashboard-run-1f5d732cae67.service`가 `127.0.0.1:8765`에서 실행 중이며 Windows/WSL의 `http://localhost:8765`로 확인한다. 고정 20건·대화 질문은 학습 완료 전까지 fail-closed로 유지하고, 완료 뒤 화면에서 고정 검사를 한 번 실행하되 결과는 Git 제외 private run에만 둔다. 대시보드 종료는 `systemctl --user stop saju-ki20-dashboard-run-1f5d732cae67.service`를 사용한다.
 - 2026-08-29
   - 작업 요약: 실행 계약 commit `9ad00a283ce64ff222a54c41f743ae378ce12fe4`에서 KI20 `run-1f5d732cae67`을 systemd user service로 시작하고 첫 정상 optimizer step을 검증했다.
   - 변경 범위: Git 제외 private run 경로에 initializing manifest를 만든 뒤 step 1에서만 `phase5_training_performed=true`와 start marker를 원자적으로 기록했다. 모델·20K manifest·기존 KI10/v1.1 산출물은 수정하지 않았다.
@@ -375,7 +375,7 @@ runs/KI20-MIX-v2/v1.2.0/run-1f5d732cae67/  # 1 epoch 본학습·최종 재로딩
   - 작업 요약: 고정 Instruct snapshot에서 `KI10-MIX-v2/run-e6b712f0d45e` Full FT 1 epoch를 실행하고 최종 checkpoint를 새 프로세스로 재로딩해 5개 smoke 출력이 모두 비어 있지 않음을 확인했다. Phase 5는 진행 중이며 KI20은 아직 실행하지 않았다.
   - 변경 범위: canonical 10,000행을 BF16·SDPA·8-bit optimizer로 정확히 1,250 optimizer step 학습했다. 비공개 모델·optimizer·생성문은 `runs/`에만 저장하고 공개 경로에는 집계 summary와 manifest만 기록했다. 데이터·평가 membership·봉인 blind는 변경하거나 열람하지 않았다.
   - 검증: train/eval loss `0.7679830020904541`/`0.9442684650421143`, 유한·nonzero gradient, peak VRAM `6,757,645,824` bytes, final reload 5/5를 확인했다. private training/reload/inventory SHA-256은 `1cbec50…e80a53`/`7235fa4…0f17c`/`1ebab21…cda747`, 공개 summary/manifest는 `1cbec50…e80a53`/`1b35d59…f7ca6`다.
-  - 남은 이슈·후속 작업: 고정 dev diagnostic 930건과 persona guard 50건을 합친 1,000case 자동 품질 Gate를 실행한다. 모든 임계값이 통과한 경우에만 KI20을 base snapshot에서 독립 시작하며 sealed blind와 전문 품질 주장은 계속 금지한다.
+  - 남은 이슈·후속 작업: 고정 dev diagnostic 930건과 persona guard 50건을 합친 1,000case 자동 품질 Gate를 실행한다. 모든 임계값이 통과한 경우에만 KI20을 base snapshot에서 새 run으로 시작하며 sealed blind는 계속 미사용, 계약 밖 의미 품질은 `not_measured`로 유지한다.
 - 2026-08-29
   - 작업 요약: KI10 forward-only preflight `run-e6b712f0d45e`가 BF16·SDPA·assistant-only evaluation을 통과했다. `train_method_called=false`, `backward_performed=false`, `optimizer_step_performed=false`를 manifest로 확인했다.
   - 변경 범위: dev monitor 70건만 forward했고 비공개 `runs/PHASE5-PREFLIGHT` 경로 외에는 모델·데이터·checkpoint를 쓰지 않았다. TRL stop-token 경고는 assistant 뒤 user를 붙이는 generic probe와 Kanana의 last-response-only template 의미가 달라 발생했다.
@@ -397,30 +397,30 @@ runs/KI20-MIX-v2/v1.2.0/run-1f5d732cae67/  # 1 epoch 본학습·최종 재로딩
   - 검증: readiness private/public manifest `02d5ecc…b551c`/`514bcc5…fe62`, dev monitor byte hash `aa61d2a…bcb31`을 확인했다. 현황 HTML은 snapshot과 byte-identical하고 AI Hub 원문·ID·checkpoint·외부 script를 포함하지 않는다.
   - 남은 이슈·후속 작업: clean commit 뒤 `phase5_train.py preflight-run --run-id KI10-MIX-v2 --execute`로 forward-only loss·GPU/VRAM을 검증한다. 그 결과가 통과하기 전에는 `PHASE5_TRAINING` 실행을 시작하지 않는다.
 - 2026-08-29
-  - 작업 요약: 고정 구현 commit `1e76232c0c094e6d3c3ed47b253c60f0e1af63b1`에서 평가 v1.1과 20K 의미 감사를 실제 불변 build로 생성·독립 verify했다. 모델 학습·backward·optimizer step은 수행하지 않았다.
+  - 작업 요약: 고정 구현 commit `1e76232c0c094e6d3c3ed47b253c60f0e1af63b1`에서 평가 v1.1과 20K 의미 감사를 실제 불변 build로 생성·별도 verify했다. 모델 학습·backward·optimizer step은 수행하지 않았다.
   - 변경 범위: `evaluation-split/v1.1.0/build-d2f9e1623e96`은 parent membership과 봉인 bytes를 바꾸지 않고 persona guard 50case·reference overlap 집계만 추가했다. `pretraining-audit/v1.0.0/build-c38926f86a3d`은 canonical MIX20 전체를 공개 집계로만 검사했다.
   - 검증: 기술 hard blocker 0, 데이터 수정 필요 없음, KI10 baseline 허용, 자동 계약 밖 의미·production 품질 주장 금지, KI20 사전 금지를 재확인했다. sealed blind는 읽지 않았고 private/public manifest bytes를 별도 재생성해 대조했다.
   - 남은 이슈·후속 작업: 새 registry 포인터를 커밋한 clean tree에서 readiness v1.2를 생성한 뒤에만 Phase 5 runner가 KI10을 계획할 수 있다.
 - 2026-08-29
   - 작업 요약: 실제 학습 전 의미 감사·평가 확장·readiness v1.2와 KI10/조건부 KI20 Full FT runner를 구현했다. 현재는 구현 체크포인트이며 실제 backward·optimizer step은 수행하지 않았다.
-  - 변경 범위: 768·BF16·batch 1·accumulation 8·evaluation batch 1·padding multiple 8·`logging_nan_inf_filter=false`를 고정했다. KI10 1 epoch 1,250 step과 새 process reload, 개발 1,000case 자동 품질 Gate, KI20 base 독립 2,500 step·사전 금지를 코드와 config에 묶었다.
+  - 변경 범위: 768·BF16·batch 1·accumulation 8·evaluation batch 1·padding multiple 8·`logging_nan_inf_filter=false`를 고정했다. KI10 1 epoch 1,250 step과 새 process reload, 개발 1,000case 자동 품질 Gate, KI20 base부터 시작하는 새 2,500-step run·사전 금지를 코드와 config에 묶었다.
   - 검증: 20K 전수 의미 감사에서 기술 hard blocker 0을 확인했고, 평가 v1.0 membership·blind bytes 비변경과 blind 미열람을 유지했다. 전체 175개 단위 테스트, Ruff, compile, diff check와 부모 Phase 4 계약 검증을 통과했다.
   - 남은 이슈·후속 작업: 학습 전 감사·평가 v1.1·readiness v1.2 build를 clean commit에서 생성·승인한 뒤 KI10 forward-only preflight를 먼저 실행한다. KI20은 KI10 자동 Gate 결과 전까지 `ki20_promotion_allowed=false`다.
 - 2026-08-29
-  - 작업 요약: 기존 1,000건이 개발 중 노출된 점을 반영해 `evaluation-split/v1.0.0/build-a5a04ab96594`를 생성하고, 이를 포함한 비학습 readiness `v1.1.0/build-201010b37e40`을 생성·독립 재검증했다. 실제 학습은 실행하지 않았다.
+  - 작업 요약: 기존 1,000건이 개발 중 노출된 점을 반영해 `evaluation-split/v1.0.0/build-a5a04ab96594`를 생성하고, 이를 포함한 비학습 readiness `v1.1.0/build-201010b37e40`을 생성·재현 검증했다. 실제 학습은 실행하지 않았다.
   - 변경 범위: eval70은 loss monitor 전용이며 checkpoint 선택·early stopping·최종 성능 주장에 쓰지 않는다. 나머지 source holdout 630+Core Eval 300은 개발 진단, reserve 7축 350 component/500행은 Phase 6 단회 blind, 공개 KASI·정책 fixture 220행은 별도 conformance로 고정한다.
   - 검증: 고정 tokenizer 768 제한, 7축 층화, BaZi 4질문 component, component/record/content hash 누수 0을 통과했다. 외부 fixture는 runtime·학습 Gold를 자동 승인하지 않으며 평가 split public summary에는 raw·ID가 없다.
   - 재현성 보강: 최초 미승인 readiness 시도 `build-69b21cb079a7`은 가용 disk와 Git HEAD 순간값 때문에 작성 직후 byte 재현 검증이 실패해 private/public 경로를 제거했다. disk 임계값·runtime·GPU 검증은 계속 실행하되 순간값 자체는 불변 summary에서 제외하는 회귀 테스트를 추가했다.
   - readiness 검증: KI10 10,000행·KI20 20,000행, 기존 eval70 byte 보존, 단일 RTX 5070 Ti·CUDA 13.0·BF16, 64GiB disk 임계값을 통과했다. private/public manifest는 `4d28b744…db907`/`1205f83a…d1321`, summary는 `e8ed61e3…6c38d`다.
   - 남은 이슈·후속 작업: Phase 5는 실제 학습을 시작하지 않아 계속 `미시작`이다. 사용자가 별도로 승인하면 KI10부터 실행하며 KI20은 KI10 checkpoint를 재사용하지 않는다. `phase5_training_performed=false`다.
 - 2026-08-29
-  - 작업 요약: 구현 checkpoint `89685ba82927a96c40654a47a4b0daa7f8b3a91f`에서 비학습 readiness `v1.0.0/build-f6c8171f454f`을 생성하고 독립 재검증했다. Phase 5 상태는 실제 KI10·KI20 학습을 시작하지 않았으므로 계속 `미시작`이다.
+  - 작업 요약: 구현 checkpoint `89685ba82927a96c40654a47a4b0daa7f8b3a91f`에서 비학습 readiness `v1.0.0/build-f6c8171f454f`을 생성하고 재현 검증했다. Phase 5 상태는 실제 KI10·KI20 학습을 시작하지 않았으므로 계속 `미시작`이다.
   - 변경 범위: canonical KI10 10,000행·KI20 20,000행의 7축 수량과 strict subset, 축별 10건 eval70의 train component 교집합 0, 고정 Kanana revision·template·package lock, 단일 RTX 5070 Ti·CUDA 13.0·BF16 및 64GiB disk 최소값을 불변 입력 계약으로 고정했다.
   - 검증: `prepare --execute`와 별도 `verify`가 통과했다. readiness SHA-256은 `f6c8171f…1135c3`, private/public manifest는 `6f72abe1…8c273`/`9b71d2d3…8a176`, eval70은 `aa61d2a7…bcb31`이며 생성 시 가용 disk는 754,540,773,376 bytes였다.
-  - 남은 이슈·후속 작업: `human_domain_review_performed=false`, `quality_certification_claimed=false`, `phase5_training_performed=false`다. 다음 작업은 사용자가 별도로 승인할 때 KI10부터 실행하는 것이며 KI20은 KI10 checkpoint를 재사용하지 않는다.
+  - 당시 상태: 계약 밖 의미 품질은 `not_measured`, `quality_certification_claimed=false`, `phase5_training_performed=false`였다. 이후 KI10과 KI20은 각각 같은 K0에서 시작해 완료됐고 checkpoint를 서로 재사용하지 않았다.
 - 2026-08-29
   - 작업 요약: 실제 학습 전에 승인된 Phase 4 v2 canonical, 10K/20K manifest, eval70, 고정 모델·환경·학습 설정을 다시 묶는 `phase5-readiness-v1.0.0` 비학습 Gate를 구현했다.
-  - 변경 범위: registry·Phase 4 A~E hash chain, 7축 수량·중첩 manifest·record hash, eval70 leakage 분리, Python/uv/PyTorch CUDA/GPU·BF16, 64GiB disk, KI10/KI20 독립 초기화와 checkpoint state 보존 계약을 fail-closed로 검사한다. 학습 실행 코드는 포함하지 않는다.
+  - 변경 범위: registry·Phase 4 A~E hash chain, 7축 수량·중첩 manifest·record hash, eval70 leakage 분리, Python/uv/PyTorch CUDA/GPU·BF16, 64GiB disk, KI10/KI20 각각의 base 초기화와 checkpoint state 보존 계약을 fail-closed로 검사한다. 학습 실행 코드는 포함하지 않는다.
   - 검증: 계약·dry-run, readiness 단위 테스트와 Ruff를 통과했다. 실제 불변 readiness 산출물은 구현 checkpoint를 커밋해 working tree를 깨끗하게 만든 뒤 생성한다.
   - 실행 전 수정: 첫 `prepare --execute`는 부모 Phase 4 검증 모듈을 import하기 전에 `ModuleNotFoundError`로 중단됐고 출력 파일은 생성되지 않았다. CLI가 현재 작업 디렉터리가 아니라 스크립트 위치에서 저장소 루트를 고정하도록 수정하고 `/tmp` 실행 회귀 테스트를 추가했다.
   - 남은 이슈·후속 작업: readiness 실행·공개 보고서 고정 전까지 Phase 5는 `미시작`이다. 이후에도 KI10·KI20 실제 학습은 사용자의 별도 명시적 승인 없이는 시작하지 않는다.

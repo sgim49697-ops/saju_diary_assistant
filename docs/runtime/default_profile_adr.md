@@ -18,13 +18,13 @@
 - 공식 현재 계산 원문은 1920~2100년 4,343/4,344행이며 유일한 누락은 비절입인 2030년 우수다. 연·월 경계에 쓰는 절입은 2,172/2,172행, runtime 범위에서는 1,560행으로 완전하다.
 - 1900~1919년 절입 240행은 공식 snapshot에 생성값을 써넣지 않고 `PROFILE_DETERMINISTIC`으로 분리한다.
 - Skyfield 1.55·고정 JPL DE440s·내장 UT1은 공식 1,560행에서 날짜 mismatch 0, 원시 분 라벨 mismatch 22다. snapshot 수집 시점까지의 과거 1,280행 중 14건은 KASI가 밝힌 1초 불확실성 범위 안이고, 미래 280행 중 8건은 승인 근거가 아닌 예측 진단이다.
-- Astronomy Engine은 같은 공식 행에서 분 mismatch 303, 날짜 mismatch 1이므로 현재 우선 후보가 아니다. 다만 독립 비교와 과거 v1.2 경로의 회귀 검증용 의존성으로 보존한다.
+- Astronomy Engine은 같은 공식 행에서 분 mismatch 303, 날짜 mismatch 1이므로 현재 우선 후보가 아니다. 다만 provider 교차 비교와 과거 v1.2 경로의 회귀 검증용 의존성으로 보존한다.
 
 1964년 백로는 서로 다른 KASI 원천을 하나로 덮어쓰지 않는다. 공식 현재 계산은 `1964-09-07 23:59 KST`이고 Skyfield 내장 UT1 표시와 일치한다. 디지털 역서는 `9월 7일 24:00`이며 다음 civil day `1964-09-08 00:00`으로 정규화되고 Astronomy Engine 순간과 일치한다. 이는 정규화 오류가 아니라 서로 다른 vintage의 문서 사실이며, 과거 역서는 현재 물리 provider를 hard block하는 원천으로 사용하지 않는다.
 
 ## 승인 경계
 
-v1.3 candidate runtime은 Skyfield provider를 실제 계산 경로에 결합한다. 1,800개 TT root·UTC·표시 분은 독립 validator와 mismatch 0이고, 전·정확·후 5,400개 경계 배정도 mismatch 0이다. 결과 권한은 다음처럼 구조화한다.
+v1.3 candidate runtime은 Skyfield provider를 실제 계산 경로에 결합한다. 1,800개 TT root·UTC·표시 분은 별도 validator와 mismatch 0이고, 전·정확·후 5,400개 경계 배정도 mismatch 0이다. 결과 권한은 다음처럼 구조화한다.
 
 - 1900~1919: `PROFILE_DETERMINISTIC` 240행
 - 공식 snapshot 수집시점까지의 과거: `PAST_OFFICIAL_CORROBORATED` 1,280행

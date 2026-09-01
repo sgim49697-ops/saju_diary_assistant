@@ -23,8 +23,10 @@
   },
   "approved_evaluation_split": {
     "blind_components": 350,
+    "blind_consumption_runs": 1,
     "blind_rows": 500,
-    "blind_source_test_inspected": false,
+    "blind_source_test_inspected": true,
+    "blind_source_test_status": "spent_completed",
     "build_id": "build-e885b47cae74",
     "build_sha256": "e885b47cae74c63dec1e813f6223df064cb01e507f85717eaa9bcccbe8f21759",
     "canonical_training_fingerprint_changed": false,
@@ -33,13 +35,14 @@
     "handoff_cases": 50,
     "parent_membership_modified": false,
     "parent_split_build_id": "build-d2f9e1623e96",
+    "phase6_evaluation_build_id": "eval-e8630962cab2",
     "phase4_smoke_reexecution_required": false,
     "phase5_training_performed": false,
     "public_manifest_sha256": "0fdeed9abbea900c344cab0cc1794601bf6d7f1c1863ce9c7c46fc48fecebb88",
     "scorer_mutation_reject_percent": 100.0,
     "scorer_reference_pass_percent": 100.0,
     "split_summary_sha256": "94c0bf0e22c4f05f9870bd15966b41df39f6c8f97b8744856883e5d40d0e4888",
-    "status": "gate_v2_contracts_ready_with_expanded_handoff",
+    "status": "sealed_blind_spent_completed",
     "version": "v1.2.0"
   },
   "approved_pretraining_audit": {
@@ -125,16 +128,39 @@
     "status": "approved_for_ki20_one_epoch_execution",
     "version": "v1.2.0"
   },
+  "approved_phase6_technical_evaluation": {
+    "additional_training_performed": false,
+    "aggregate_sha256": "8d1fde689b30842e5af59895beb92fda95cdf97d92e24d7e4faf49021c396581",
+    "application_binding_performed": false,
+    "baseline_decision": "AUTOMATED_REPAIR_REQUIRED",
+    "blind_components": 350,
+    "blind_consumption_runs": 1,
+    "blind_rows": 500,
+    "blind_status": "spent_completed",
+    "build_id": "eval-e8630962cab2",
+    "build_manifest_sha256": "08da0adf8b865a7f773c5d7dead630054b6071d99b4e8c84aa022090dafdf48c",
+    "build_sha256": "e8630962cab24c9c2d59721de2c4c92be55c4c621680bcdedb3fee1c3ae434f7",
+    "config_sha256": "b4eac8f6c052f7f9f068c47fe5b95b02080bea22a0084fe96269070936448cd1",
+    "decision_inputs": "repository_local_automatic_metrics_only",
+    "decision_sha256": "5154a698d1e4d70541c36ea64a805b9daf89f391b966501eaf4e07a7bc1b45b4",
+    "domain_semantics": "not_measured",
+    "evaluation_execution_commit": "8819b1753dfcf24367a902e3fa6b5fc0a94fbc0b",
+    "mix20k_v3_1_generated": false,
+    "phase6_completed": true,
+    "release_approved": false,
+    "status": "automatic_repair_required_phase6_completed",
+    "version": "v1.0.0"
+  },
   "approved_project_status": {
-    "build_id": "build-c64657e7aa8f",
-    "build_manifest_sha256": "d6a0a1c0c4a40e996e776e5d68c2bf542cee0927bbb1d3638dfa4abb27f70aa9",
-    "build_sha256": "c64657e7aa8f5446b275b49e25a01229087208ce7790cc710d226fd6250a5040",
-    "config_sha256": "06b46122216e1b496fa1b57d49124de305d8959b14c260cad9f7612f7c0e0f42",
-    "html_sha256": "73a1e1bf635c226cbe2bf4b6b079255e1b71b015b5ac21c0351a2de030382900",
+    "build_id": "build-84cf0ec3010d",
+    "build_manifest_sha256": "192d7388b6ce0c935186a98a3be7f8877de9783a1c2e4702391cfa899021d9b5",
+    "build_sha256": "84cf0ec3010d62f2dce2f793328de413328d01c9cfb4be6b9359d1dde7922771",
+    "config_sha256": "f6979f4a4553882f03afbf8f24549fdf1306b7f27a454ea9431cdfe3b5accf1d",
+    "html_sha256": "57fa3e3d037fea9d4ee2a1429b37a203ba6cffe256084aaa6dbf7795359d976d",
     "restricted_content_included": false,
-    "stage": "ki20_trained_phase6_pending",
+    "stage": "phase6_completed_automatic_repair_required",
     "status": "published",
-    "version": "v1.1.0"
+    "version": "v1.2.0"
   },
   "approved_staging": {
     "approval_basis": "explicit_owner_automated_technical_acceptance",
@@ -452,6 +478,31 @@
       "version": "v1.2.0"
     }
   ],
+  "phase6_technical_evaluation_builds": [
+    {
+      "additional_training_performed": false,
+      "aggregate_sha256": "8d1fde689b30842e5af59895beb92fda95cdf97d92e24d7e4faf49021c396581",
+      "application_binding_performed": false,
+      "baseline_decision": "AUTOMATED_REPAIR_REQUIRED",
+      "blind_components": 350,
+      "blind_consumption_runs": 1,
+      "blind_rows": 500,
+      "blind_status": "spent_completed",
+      "build_id": "eval-e8630962cab2",
+      "build_manifest_sha256": "08da0adf8b865a7f773c5d7dead630054b6071d99b4e8c84aa022090dafdf48c",
+      "build_sha256": "e8630962cab24c9c2d59721de2c4c92be55c4c621680bcdedb3fee1c3ae434f7",
+      "config_sha256": "b4eac8f6c052f7f9f068c47fe5b95b02080bea22a0084fe96269070936448cd1",
+      "decision_inputs": "repository_local_automatic_metrics_only",
+      "decision_sha256": "5154a698d1e4d70541c36ea64a805b9daf89f391b966501eaf4e07a7bc1b45b4",
+      "domain_semantics": "not_measured",
+      "evaluation_execution_commit": "8819b1753dfcf24367a902e3fa6b5fc0a94fbc0b",
+      "mix20k_v3_1_generated": false,
+      "phase6_completed": true,
+      "release_approved": false,
+      "status": "automatic_repair_required_phase6_completed",
+      "version": "v1.0.0"
+    }
+  ],
   "project_status_builds": [
     {
       "build_id": "build-f3ae22a8860e",
@@ -533,6 +584,17 @@
       "stage": "ki20_trained_phase6_pending",
       "status": "published",
       "version": "v1.1.0"
+    },
+    {
+      "build_id": "build-84cf0ec3010d",
+      "build_manifest_sha256": "192d7388b6ce0c935186a98a3be7f8877de9783a1c2e4702391cfa899021d9b5",
+      "build_sha256": "84cf0ec3010d62f2dce2f793328de413328d01c9cfb4be6b9359d1dde7922771",
+      "config_sha256": "f6979f4a4553882f03afbf8f24549fdf1306b7f27a454ea9431cdfe3b5accf1d",
+      "html_sha256": "57fa3e3d037fea9d4ee2a1429b37a203ba6cffe256084aaa6dbf7795359d976d",
+      "restricted_content_included": false,
+      "stage": "phase6_completed_automatic_repair_required",
+      "status": "published",
+      "version": "v1.2.0"
     }
   ],
   "schema_version": "1.0.0",

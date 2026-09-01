@@ -20,33 +20,38 @@ CONFIG = (
 
 class Phase6TechnicalTests(unittest.TestCase):
     def test_canonical_docs_forbid_person_dependent_gates(self) -> None:
-        paths = [
-            REPO_ROOT / "implementation/contracts/saju_1b_baseline/experiment_contract.md",
-            REPO_ROOT / "implementation/plans/saju_1b_10k_20k_baseline/README.md",
-            REPO_ROOT
-            / "implementation/plans/saju_1b_10k_20k_baseline/phase-0-governance.md",
-            REPO_ROOT
-            / "implementation/plans/saju_1b_10k_20k_baseline/phase-2-data-preprocessing.md",
-            REPO_ROOT
-            / "implementation/plans/saju_1b_10k_20k_baseline/phase-4-preflight-validation.md",
-            REPO_ROOT
-            / "implementation/plans/saju_1b_10k_20k_baseline/phase-5-baseline-training.md",
-            REPO_ROOT
-            / "implementation/plans/saju_1b_10k_20k_baseline/phase-6-evaluation-v2-decision.md",
-            REPO_ROOT / "implementation/plans/mix20k_v3_repair_plan.md",
-            REPO_ROOT / "implementation/plans/saju_runtime_calculator_adoption.md",
-        ]
+        roots = (
+            REPO_ROOT / "implementation/contracts",
+            REPO_ROOT / "implementation/plans",
+            REPO_ROOT / "docs",
+        )
+        paths = sorted(
+            path
+            for root in roots
+            for path in root.rglob("*")
+            if path.suffix in {".md", ".html"}
+            and "archive" not in path.parts
+            and "history" not in path.parts
+        )
         forbidden = re.compile(
-            r"사람\s*(?:평가|검수)|독립\s*평가(?!자)|독립\s*검수|전문가|"
-            r"KEEP/EDIT/DROP|선호\s*평가|expert",
+            r"검수|사람|전문가|팀원|reviewer|human_domain|domain_item_review|"
+            r"주관|수동|독립\s*(?:평가|검수)|KEEP/EDIT/DROP|선호\s*평가|expert",
             re.IGNORECASE,
         )
         for path in paths:
             text = path.read_text(encoding="utf-8")
             self.assertIsNone(forbidden.search(text), path.as_posix())
-        top_level = paths[1].read_text(encoding="utf-8")
-        phase_zero = paths[2].read_text(encoding="utf-8")
-        phase_six = paths[6].read_text(encoding="utf-8")
+        top_level = (
+            REPO_ROOT / "implementation/plans/saju_1b_10k_20k_baseline/README.md"
+        ).read_text(encoding="utf-8")
+        phase_zero = (
+            REPO_ROOT
+            / "implementation/plans/saju_1b_10k_20k_baseline/phase-0-governance.md"
+        ).read_text(encoding="utf-8")
+        phase_six = (
+            REPO_ROOT
+            / "implementation/plans/saju_1b_10k_20k_baseline/phase-6-evaluation-v2-decision.md"
+        ).read_text(encoding="utf-8")
         for text in (top_level, phase_zero, phase_six):
             self.assertIn("not_measured", text)
             self.assertIn("자동 기술", text)
@@ -268,13 +273,39 @@ class Phase6TechnicalTests(unittest.TestCase):
             {"status": "completed", "domain_semantics": "not_measured"}
         )
 
-    def test_dry_run_does_not_create_consumption_marker(self) -> None:
+    def test_dry_run_does_not_change_consumption_markers(self) -> None:
         context = technical.prepare_context(REPO_ROOT, CONFIG)
-        marker = technical._safe_path(
-            REPO_ROOT, context["config"]["blind_source"]["consumption_marker"]
+        markers = (
+            technical._safe_path(
+                REPO_ROOT, context["config"]["blind_source"]["consumption_marker"]
+            ),
+            context["private_root"] / "blind_access_started.json",
+            context["private_root"] / "blind_access_completed.json",
         )
-        self.assertFalse(marker.exists())
-        self.assertFalse((context["private_root"] / "blind_access_started.json").exists())
+        before = {
+            path: (
+                path.read_bytes() if path.exists() else None,
+                path.stat().st_mtime_ns if path.exists() else None,
+            )
+            for path in markers
+        }
+        with patch.object(
+            technical,
+            "_read_blind_rows",
+            side_effect=AssertionError("dry-run에서 blind payload를 읽었습니다."),
+        ):
+            self.assertEqual(
+                technical.main(["--config", str(CONFIG), "execute"]),
+                0,
+            )
+        after = {
+            path: (
+                path.read_bytes() if path.exists() else None,
+                path.stat().st_mtime_ns if path.exists() else None,
+            )
+            for path in markers
+        }
+        self.assertEqual(before, after)
 
 
 if __name__ == "__main__":
