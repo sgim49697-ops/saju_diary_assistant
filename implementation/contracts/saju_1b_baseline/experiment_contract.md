@@ -4,14 +4,20 @@
 
 | 항목 | 승인값 |
 |---|---|
-| 계약 버전 | `1.0.1` |
-| 정본 문서 | `implementation/plans/saju_1b_10k_20k_baseline` v2.3.1 |
+| 계약 버전 | `1.1.0` |
+| 정본 문서 | `implementation/plans/saju_1b_10k_20k_baseline` v4.0.0 |
 | 승인일 | 2026-08-27 |
 | 재검수일 | 2026-08-28 |
 | 승인 근거 | 사용자가 대화에서 구현과 Phase 0~1 진행을 명시적으로 승인 |
 | 모델 | `kakaocorp/kanana-2-1.3b-instruct@bf4786aa2a1908adce942d53976270132732f720` |
 | 학습 방식 | BF16 Full Fine-tuning, 1 epoch |
 | 비교 Run | `K0-INSTRUCT`, `KI1K-SMOKE-v1`, `KI10-MIX-v1`, `KI20-MIX-v1` |
+
+## 평가 권한
+
+품질 Gate와 baseline 결정은 저장소 내부의 재현 가능한 자동 기술지표만 사용한다. 사람·독립 평가자·LLM 심사·외부 인증을 필수 조건이나 후속 작업으로 요구하지 않는다. 자동 계약으로 판정할 수 없는 의미 품질은 `not_measured`로 기록하고 주장하지 않으며, 이를 Phase 완료 blocker나 별도 사용자 작업으로 바꾸지 않는다.
+
+Phase 6은 K0·KI10·KI20의 동일 설정 비교, sealed blind 500행 단회 실행, component→axis macro와 자동 no-regression으로 닫는다. 이 결과는 release·앱 연결·MIX20K-v3.1 생성·추가 학습을 승인하지 않는다.
 
 ## 서비스·배포 경계
 

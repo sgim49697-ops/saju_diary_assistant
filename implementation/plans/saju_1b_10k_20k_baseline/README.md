@@ -4,14 +4,17 @@
 
 | 항목 | 값 |
 |---|---|
-| 문서 버전 | `3.5.1` |
+| 문서 버전 | `4.0.0` |
 | 정본화 기준일 | 2026-09-01 |
 | 주 장비 | NVIDIA GeForce RTX 5070 Ti 16GiB, WSL2 |
 | 주 모델 | `kakaocorp/kanana-2-1.3b-instruct@bf4786aa2a1908adce942d53976270132732f720` |
-| 실험 범위 | 1K smoke, 독립 10K·20K Full FT, 사후 평가와 v2 Lite 결정 |
+| 실험 범위 | 1K smoke, 독립 10K·20K Full FT, 사후 자동 기술평가와 baseline 결정 |
 | 배포 성격 | 광고형 자체 서비스 후보. 원문·checkpoint 공개와 원격 모델 접근 판매는 별도 Gate |
 
 ## 고정 실험 계약
+
+- 모든 품질 Gate와 baseline 결정은 저장소 내부의 재현 가능한 자동 기술지표로만 수행한다. 사람·독립 평가자·LLM 심사·외부 인증을 필수 조건이나 후속 작업으로 요구하지 않는다.
+- 자동 계약이 없는 의미 품질은 `not_measured`로 기록하고 주장하지 않되 Phase 완료를 차단하지 않는다. 세부 계약은 [Phase 6 자동 기술평가](phase-6-evaluation-v2-decision.md)를 따른다.
 
 - 모델 학습 방식은 BF16 전체 파라미터 Full Fine-tuning이다. LoRA/QLoRA로 자동 전환하지 않는다.
 - 10K를 먼저 1 epoch 학습한다. Gate v2 기술·안전 hard gate는 추가 baseline 실험 허용 여부를, 품질 목표는 배포·품질 승격 여부를 판정한다. 20K는 같은 Instruct revision에서 독립 시작하며, 2026-08-29에 받은 별도 명시 확인은 v1.2 실행 계약에만 적용한다.
@@ -24,7 +27,7 @@
 - 모든 데이터 산출물은 `vMAJOR.MINOR.PATCH/build-<fingerprint>` 경로에 보관하고 기존 build를 덮어쓰지 않는다.
 - source 내부 묶음과 split 누수 경계를 분리하며, Nemotron·`bazi-sft`·향후 YEJI 파생본의 동일 8자 명식은 원천이 달라도 하나의 전역 leakage group으로 묶는다.
 - 해석 답변은 soft/reference label이며, 계산 가능한 구조만 검산 후 hard label로 승격한다.
-- 모델 출력은 사람 또는 규칙 검증 없이 학습 정답으로 재사용하지 않는다.
+- 모델 출력은 고정 자동 계약 검증 없이 학습 정답으로 재사용하지 않는다.
 - 모델은 생년월일에서 사주 원국을 계산하지 않는다. 런타임 계산기가 제공한 구조화 명식을 근거로 해석한다.
 
 ## 단계 지도
@@ -37,7 +40,7 @@
 | 3 | [학습 모델·환경 준비](phase-3-model-preparation.md) | 완료 | 고정 PyTorch cu130 환경에서 모델·tokenizer·template 전체 BF16 오프라인 로드 성공 |
 | 4 | [학습 전 데이터·모델 검증](phase-4-preflight-validation.md) | 완료 | 품질 보정 staging의 A~E·1,020case·Full FT 200-step resume와 768 canonical 승격 통과 |
 | 5 | [Baseline 학습](phase-5-baseline-training.md) | 완료 | `run-1f5d732cae67` 1 epoch·2,500 step과 final 새 process 재로딩 완료, production 승격 금지 유지 |
-| 6 | [평가·검수·v2 결정](phase-6-evaluation-v2-decision.md) | 미시작 | 고정 평가 후 50K 또는 v2 Lite 경로 결정 |
+| 6 | [자동 기술평가·baseline 결정](phase-6-evaluation-v2-decision.md) | 부분 진행 | 계약·scorer 구현 완료, sealed blind 단회 실행 전 |
 
 Phase 상태 값은 `미시작`, `부분 진행`, `진행 중`, `차단`, `완료`만 사용한다. 앞 Phase가 `완료`가 아니면 뒤 Phase의 공식 산출물을 만들지 않는다.
 
@@ -249,7 +252,7 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
   - 작업 요약: 외부 `saju-mix20k-v3-review-ready`를 원본 불변으로 감사하고 `v3.0.1-repaired` private 보정 build와 public 집계 intake, 고정 Kanana tokenizer 비학습 preflight를 생성했다. 실제 학습은 실행하지 않았다.
   - 변경 범위: strict chart/period tool, model-facing result allowlist, session/상대 날짜, provenance·권위·restricted 계약과 4K 검수 큐를 추가했다. 기간 hard fact 유실을 고치고 cached fixture까지 포함한 3,800행을 canonical 재검산 전 `HARD_CANDIDATE`로 차단했다. 기존 v2·KI20·checkpoint·blind payload는 변경하거나 읽지 않았다.
   - 검증: 최종 `build-94eb7b543490`, `intake-99c0b48231d6`, `preflight-aea1c001126e`에서 20K 최대 767/768, 초과·마지막 사용자 이전 mask·최종 EOS·serialization 오류 0, tool call 5,250/5,250 round-trip, 기간 grounding 오류 0, blind hash overlap 0을 확인했다.
-  - 남은 이슈·후속 작업: exact target 반복, canonical 3,800행, 전체 state/grounding, 내부 4K와 expert 1.5K 검수, 실제 serving parser 검증이 남았다. `training_promotion_allowed=false`, `production_promotion_allowed=false`를 유지하며 2K/10K/20K 재학습은 금지한다. 상세는 [MIX20K-v3 검수 후보 인수·보정 계획](../mix20k_v3_repair_plan.md)을 따른다.
+  - 남은 이슈·후속 작업: exact target 반복, canonical 3,800행, 전체 state/grounding·언어·정책 자동 계약, 실제 serving parser 검증이 남았다. `training_promotion_allowed=false`, `production_promotion_allowed=false`를 유지하며 2K/10K/20K 재학습은 금지한다. 상세는 [MIX20K-v3 기술 후보 인수·보정 계획](../mix20k_v3_repair_plan.md)을 따른다.
 - 2026-08-30
   - 작업 요약: dashboard `v1.7.0`에 사용자가 명시적으로 선택한 무인증 원격 공유 모드를 추가하고, 기존 Cloudflare Quick Tunnel URL을 유지한 채 `https://scholars-greatest-biography-presidential.trycloudflare.com`을 로그인 없이 공개했다.
   - 변경 범위: 무인증 공유는 `--allow-unauthenticated-remote`와 wildcard·경로·port가 없는 exact HTTPS Origin을 함께 지정한 경우에만 시작한다. 기본 loopback과 기존 Basic 인증 방식은 계속 지원하고 Host·CSRF·POST Origin 검사를 유지한다. 사용자가 공개 위험을 확인한 뒤 요청한 범위에 따라 AI Hub 제한 샘플과 기존 private 세션이 포함된 전체 dashboard를 URL 접근자에게 열었으며, 학습 데이터·checkpoint·sealed blind·Phase 6·승격 상태는 변경하지 않았다.
@@ -267,7 +270,7 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
   - 남은 이슈·후속 작업: 무작위 표본은 사람이 데이터 분포를 둘러보기 위한 로컬 진단 기능이며 평가 표본·품질 Gate·학습 재구성 근거가 아니다. 난수 특성상 연속 묶음 일부 또는 전부가 다시 나올 수 있다.
 - 2026-08-30
   - 작업 요약: 수동 모델 검사와 고정 20건 진단 사이에 기본 접힘 상태의 실사용 사주 질문 20선(7개 분야·같은 세션 후속 4개)을 추가했다. 예시 선택은 합성 명식이 포함된 prompt 또는 자연어 후속 질문을 입력창에만 채우며 자동 생성을 하지 않는다.
-  - 변경 범위: 두 공개 합성 명식은 승인 계산 정책과 고정 `lunar-python==1.4.8`로 재현하고, 2026년 시기 간지는 자문용·runtime 미승인·전문가 미검수로 명시했다. 실제 사용자·AI Hub 원문, 학습 20K, checkpoint, 고정 진단 결과, sealed blind와 Phase 6은 건드리지 않았다.
+  - 변경 범위: 두 공개 합성 명식은 승인 계산 정책과 고정 `lunar-python==1.4.8`로 재현하고, 2026년 시기 간지는 자문용·runtime 미승인·의미 품질 `not_measured`로 명시했다. 실제 사용자·AI Hub 원문, 학습 20K, checkpoint, 고정 진단 결과, sealed blind와 Phase 6은 건드리지 않았다.
   - 검증: 20개·24 turn·4,000자 상한과 명식·십신·시기 간지를 자동 대조했고 dashboard 28건·전체 261건, Ruff, JavaScript·JSON·diff 검증을 통과했다. live Chrome에서 분야 필터, 입력 채우기, 생성 POST 0건, desktop/mobile overflow 0을 확인했다.
   - 남은 이슈·후속 작업: 예시와 모델 출력은 진단 전용이며 계산 engine 또는 품질 Gate가 아니다. 답변 개선용 재학습은 새 데이터·평가 계약 승인 뒤 별도로 결정한다.
 - 2026-08-30

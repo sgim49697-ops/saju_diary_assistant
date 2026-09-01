@@ -285,7 +285,7 @@ runs/KI20-MIX-v2/v1.2.0/run-1f5d732cae67/  # 1 epoch 본학습·최종 재로딩
   - 작업 요약: KI20의 알려진 상태·tool·grounding 실패를 보강하기 위한 외부 MIX20K-v3 후보를 감사하고 새 데이터 fingerprint의 비학습 기술 preflight까지 완료했다. 기존 KI20을 이어 학습하거나 새 checkpoint를 만들지 않았다.
   - 변경 범위: 20K 보정 candidate, 2K diagnostic selection, 4K 검수 큐와 runtime 계약을 생성했다. model이 사주를 직접 계산하지 않고 strict tool을 호출하며 allowlist hard fact만 해석하도록 학습 projection을 고정했다. `assistant_target_policy=last_user_suffix`와 tool response loss 제외를 유지했다.
   - 검증: `preflight-aea1c001126e`에서 정확한 Kanana tokenizer 기준 최대 767/768, 20K 길이 초과 0, 마지막 사용자 이전 assistant supervision·최종 EOS·serialization 오류 0, tool response supervised 0, tool XML 5,250/5,250 복원을 확인했다. `.train()`·backward·optimizer step은 모두 0이다.
-  - 남은 이슈·후속 작업: canonical engine 재검산 3,800행, 반복 target 다양화, 전체 state/grounding evaluator, 4K·expert 검수가 남아 diagnostic과 본학습 실행을 차단한다. 이후에도 K0→v3 10K와 K0→v3 20K를 독립 run으로 진행하며 기존 KI20 checkpoint에서 이어 학습하지 않는다.
+  - 남은 이슈·후속 작업: canonical engine 재검산 3,800행, 반복 target 다양화, 전체 state/grounding·언어·정책 자동 계약이 남아 diagnostic과 본학습 실행을 차단한다. 이후에도 K0→v3 10K와 K0→v3 20K를 독립 run으로 진행하며 기존 KI20 checkpoint에서 이어 학습하지 않는다.
 - 2026-08-30
   - 작업 요약: KI20 `run-1f5d732cae67`의 공개 학습 요약과 build manifest를 private run과 대조해 저장소에 고정하고, Phase 5 상단 상태·완료 Gate·산출물 설명을 실제 완료 상태로 갱신했다.
   - 변경 범위: 공개 보고서에는 집계 지표와 실행 환경만 포함하고 원문 샘플·checkpoint·봉인 blind는 포함하지 않았다. AI Hub 파생 원문을 포함한 81MiB `saju-mix20k-v3-review-ready`는 공개 Git에서 제외하도록 정확한 루트 경로만 `.gitignore`에 추가했으며 로컬 파일은 삭제하거나 수정하지 않았다.
@@ -310,7 +310,7 @@ runs/KI20-MIX-v2/v1.2.0/run-1f5d732cae67/  # 1 epoch 본학습·최종 재로딩
   - 작업 요약: 세션별 수동 질문과 고정 20건 진단 사이에 기본 접힘 상태의 `실사용 사주 질문 20선`을 추가했다. 성향·감정, 일·진로, 재물, 연애·관계, 가족·학업, 시기 흐름, 생활 변화·건강 7개 분야를 필터링하고 첫 질문 20개와 같은 세션 후속 질문 4개를 입력창에 채울 수 있다.
   - 변경 범위: 실제 사용자·AI Hub 원문 대신 `1992-04-18 08:30`, `1993-09-07 19:30` 공개 합성 anchor의 두 명식과 고정 시기 자문값만 사용한다. 명식은 승인 정책 `d6a205…3286c`와 `lunar-python==1.4.8` artifact `3aa11c…69d6`에 묶었고 시기 값은 `advisory_consistency_only`, `runtime_approved=false`, `human_domain_review_performed=false`로 표시했다. 예시 버튼은 수동 질문 textarea만 채우며 세션·엔진·profile을 바꾸거나 `/api/generate`를 호출하지 않는다. 학습 데이터, checkpoint, 고정 20건, sealed blind와 Phase 6은 수정·실행하지 않았다.
   - 검증: catalog 20개·7개 분야·24 turn, 문맥 참조, 동일 세션 후속 4개, 합성 명식 2개의 4주·표면 오행·십신, 2026년/월/주말 간지, 모든 조합 prompt 4,000자 이하를 자동 대조했다. dashboard 28건과 저장소 전체 261건 unittest, Ruff, JavaScript syntax, JSON·diff 검증이 통과했다. live HTTP 200과 Windows Chrome에서 기본 접힘·필터·첫 질문/후속 입력·생성 POST 0건을 확인했고 desktop·390px mobile 가로 overflow는 0이었다.
-  - 남은 이슈·후속 작업: 이 목록은 현재 모델의 실사용 실패를 찾는 진단 편의 기능이며 정식 품질 Gate나 학습 Gold가 아니다. 계산 engine은 여전히 미연결이고 자문용 시기값도 전문가 해석이 아니므로, 답변 정확도 개선은 별도 runtime bridge와 승인된 새 데이터·평가 fingerprint 뒤에 판단한다.
+  - 남은 이슈·후속 작업: 이 목록은 현재 모델의 실사용 실패를 찾는 진단 편의 기능이며 정식 품질 Gate나 학습 Gold가 아니다. 계산 engine은 여전히 미연결이고 자문용 시기값의 의미 품질도 `not_measured`이므로, 답변 정확도 개선은 별도 runtime bridge와 승인된 새 데이터·평가 fingerprint 뒤에 판단한다.
 - 2026-08-30
   - 작업 요약: dashboard `v1.4.0`에 실제 Full FT 시작점인 고정 `kanana-2-1.3b-instruct@bf4786aa…` K0 원본 축을 추가했다. 새 세션은 `KI20 단독`, `K0 원본 단독`, `K0 ↔ KI20 동시 비교` 중 하나를 고르며, 비교 모드는 같은 prompt profile·greedy 설정을 적용하되 각 모델이 상대 답변을 보지 않는 독립 문맥으로 동작한다.
   - 변경 범위: K0 `model.safetensors` SHA-256 `49aa6c…c942`, KI20 final `2fae23…872d`와 각 tokenizer·chat template·검토된 custom model code의 고정 SHA-256을 로드 직전에 확인하고 모델을 순차 로드·해제한다. 세션 `1.2.0`은 선택 축·모델 fingerprint·엔진별 응답 진단을 Git 제외 private JSON에 원자 저장하며 기존 `1.0/1.1` 세션은 KI20 단독으로 읽고 실제 후속 입력이 있을 때만 지연 변환한다. 기존 고정 20건 KI10↔KI20 산출물, 학습데이터, checkpoint, sealed blind는 수정하지 않았다.
@@ -368,7 +368,7 @@ runs/KI20-MIX-v2/v1.2.0/run-1f5d732cae67/  # 1 epoch 본학습·최종 재로딩
   - 남은 이슈·후속 작업: 구현 commit SHA를 registry provenance로 사용해 HTML·manifest를 생성하고 byte-identical·restricted-content 검증 뒤 최신 포인터를 갱신한다.
 - 2026-08-29
   - 작업 요약: KI10 최종 checkpoint로 고정 dev diagnostic 930건과 persona guard 50건의 1,000case 자동 품질 Gate를 전수 실행했다. 4개 Gate가 미달해 `ki20_promotion_allowed=false`로 판정했으며 KI20은 실행하지 않았다.
-  - 변경 범위: deterministic greedy·`max_new_tokens=256`으로 1,000개 출력을 private run에만 저장하고 공개 경로에는 집계 Gate와 manifest만 추가했다. 봉인 blind·Phase 6·전문가 Gold는 열람하거나 사용하지 않았다.
+  - 변경 범위: deterministic greedy·`max_new_tokens=256`으로 1,000개 출력을 private run에만 저장하고 공개 경로에는 집계 Gate와 manifest만 추가했다. 봉인 blind·Phase 6·자동 계약 밖 의미 자료는 열람하거나 사용하지 않았다.
   - 검증: parseable 100%, special/control 0, severe safety 0, foreign sentence 1.4%, input fact violation 0%, empathy confusion 0%, persona causalization 0%는 통과했다. 반면 hard fact·branch policy `38/100`, 신살 `17/25`, missing-chart handoff `3/5`, target-only date `1건`으로 고정 기준을 미달했다. 같은 채점기의 고정 reference는 hard fact `60/60`, branch policy `40/40`, 신살 `25/25`를 통과해 채점기 오탐보다 모델 지식·정책 회귀로 판정했다.
   - 남은 이슈·후속 작업: 현재 Phase 5는 `차단`이며 임계값을 완화하거나 같은 run을 덮어쓰지 않는다. deterministic·branch-policy·신살·handoff 보강안을 새 데이터/평가/version 계약으로 설계하기 전까지 KI20과 sealed blind를 실행하지 않는다.
 - 2026-08-29
@@ -384,7 +384,7 @@ runs/KI20-MIX-v2/v1.2.0/run-1f5d732cae67/  # 1 epoch 본학습·최종 재로딩
 - 2026-08-29
   - 작업 요약: 수정 runner를 포함한 readiness `v1.2.0/build-e325f16096dd`을 clean commit에서 새로 생성하고 별도 프로세스로 재검증했다. 이전 readiness는 덮어쓰지 않았다.
   - 변경 범위: registry 최신 승인 포인터와 공개 현황판을 새 build로 연결했다. dev monitor 70건과 canonical KI10/20K fingerprint는 불변이며 봉인 blind·학습·backward·optimizer step은 수행하지 않았다.
-  - 검증: build SHA-256 `e325f160…fbf7775`, private/public manifest `fd7d2b0…67553`/`b0356b2…3b0e3`, summary `6ca7fb4…3d814`, dev monitor `aa61d2a…bcb31`을 확인했다. KI10 baseline 허용·KI20 금지·전문가 품질 주장 금지를 유지한다.
+  - 검증: build SHA-256 `e325f160…fbf7775`, private/public manifest `fd7d2b0…67553`/`b0356b2…3b0e3`, summary `6ca7fb4…3d814`, dev monitor `aa61d2a…bcb31`을 확인했다. KI10 baseline 허용·KI20 금지·자동 계약 밖 품질 주장 금지를 유지한다.
   - 남은 이슈·후속 작업: 이 승인 변경을 커밋·푸시하고 clean tree가 된 뒤 forward-only preflight를 재실행한다. 그 결과가 통과하기 전에는 `PHASE5_TRAINING`을 설정하지 않는다.
 - 2026-08-29
   - 작업 요약: 첫 KI10 forward-only preflight는 모델 load 뒤 TRL 1.12.0 `SFTTrainer`가 `train_dataset`을 필수로 검사해 evaluation 전에 중단됐다. 임시 경로는 atomic cleanup되어 partial run·backward·optimizer step·학습 데이터 변경이 없었다.
@@ -399,7 +399,7 @@ runs/KI20-MIX-v2/v1.2.0/run-1f5d732cae67/  # 1 epoch 본학습·최종 재로딩
 - 2026-08-29
   - 작업 요약: 고정 구현 commit `1e76232c0c094e6d3c3ed47b253c60f0e1af63b1`에서 평가 v1.1과 20K 의미 감사를 실제 불변 build로 생성·독립 verify했다. 모델 학습·backward·optimizer step은 수행하지 않았다.
   - 변경 범위: `evaluation-split/v1.1.0/build-d2f9e1623e96`은 parent membership과 봉인 bytes를 바꾸지 않고 persona guard 50case·reference overlap 집계만 추가했다. `pretraining-audit/v1.0.0/build-c38926f86a3d`은 canonical MIX20 전체를 공개 집계로만 검사했다.
-  - 검증: 기술 hard blocker 0, 데이터 수정 필요 없음, KI10 baseline 허용, 전문가·production 품질 주장 금지, KI20 사전 금지를 재확인했다. sealed blind는 읽지 않았고 private/public manifest bytes를 독립 재생성해 대조했다.
+  - 검증: 기술 hard blocker 0, 데이터 수정 필요 없음, KI10 baseline 허용, 자동 계약 밖 의미·production 품질 주장 금지, KI20 사전 금지를 재확인했다. sealed blind는 읽지 않았고 private/public manifest bytes를 별도 재생성해 대조했다.
   - 남은 이슈·후속 작업: 새 registry 포인터를 커밋한 clean tree에서 readiness v1.2를 생성한 뒤에만 Phase 5 runner가 KI10을 계획할 수 있다.
 - 2026-08-29
   - 작업 요약: 실제 학습 전 의미 감사·평가 확장·readiness v1.2와 KI10/조건부 KI20 Full FT runner를 구현했다. 현재는 구현 체크포인트이며 실제 backward·optimizer step은 수행하지 않았다.

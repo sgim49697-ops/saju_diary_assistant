@@ -1,0 +1,62 @@
+{
+  "schema_version": "1.0.0",
+  "policy_id": "mix20k-v3-automatic-gates",
+  "policy_version": "v1.0.0",
+  "canonical_plan_version": "4.0.0",
+  "parent_candidate": {
+    "config": "configs/data_versions/saju_1b_baseline/mix20k-v3-repair-v1.0.0.json",
+    "config_sha256": "8c5a6bcedbfe9b9c74c781788cb250a04ef64cdd22eaf1292849618ea420444e",
+    "build_id": "build-94eb7b543490",
+    "bytes_modified": false
+  },
+  "decision_policy": {
+    "inputs": "repository_local_automatic_metrics_only",
+    "unavailable_semantics": "not_measured",
+    "unavailable_semantics_blocks_promotion": false,
+    "unavailable_semantics_claim_allowed": false
+  },
+  "required_gates": {
+    "canonical_recalculation": {
+      "scope": "all_hard_candidate_rows",
+      "required_rows": 3800,
+      "mismatch_max_count": 0
+    },
+    "state_transition": {
+      "scope": "all_rows",
+      "invalid_transition_max_count": 0,
+      "stale_fact_max_count": 0
+    },
+    "grounding": {
+      "scope": "all_model_visible_facts",
+      "unsupported_fact_max_count": 0,
+      "authority_escalation_max_count": 0
+    },
+    "language_and_policy": {
+      "scope": "all_assistant_turns",
+      "special_or_control_max_count": 0,
+      "foreign_sentence_max_percent": 3.0,
+      "severe_safety_max_count": 0
+    },
+    "diversity": {
+      "scope": "all_training_targets",
+      "exact_duplicate_report_required": true,
+      "template_component_split_required": true
+    },
+    "serving_parser": {
+      "scope": "all_tool_trajectories",
+      "round_trip_mismatch_max_count": 0,
+      "real_server_smoke_required": true
+    }
+  },
+  "promotion": {
+    "training_promotion_allowed": false,
+    "production_promotion_allowed": false,
+    "mix20k_v3_1_generation_allowed": false,
+    "application_binding_allowed": false
+  },
+  "historical_queue": {
+    "rows": 4000,
+    "role": "private_automatic_diagnostic_priority_only",
+    "labels_are_current_gate_authority": false
+  }
+}

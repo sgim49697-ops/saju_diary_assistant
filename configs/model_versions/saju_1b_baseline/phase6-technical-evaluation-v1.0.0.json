@@ -1,0 +1,197 @@
+{
+  "schema_version": "1.0.0",
+  "canonical_plan_version": "4.0.0",
+  "dataset_name": "saju_1b_baseline",
+  "evaluation_id": "phase6-technical-evaluation",
+  "evaluation_version": "v1.0.0",
+  "seed": 42,
+  "blind_source": {
+    "path": "data/derived/saju_1b_baseline/evaluation-split/v1.0.0/build-a5a04ab96594/eval/blind_source_test_500.jsonl",
+    "sha256": "39c41fd7d9d53230dc53c4fcbf95017a232c47176b0075100bc3a67edfdb96ff",
+    "rows": 500,
+    "components": 350,
+    "file_mode": "0600",
+    "directory_mode": "0700",
+    "public_contract": {
+      "path": "data/reports/saju_1b_baseline/evaluation-split/v1.0.0/build-a5a04ab96594/split_summary.json",
+      "sha256": "7e2a535dffc188fdc4b7480b81df5ff38d3a5e680225ea08041ca231fd7f0464"
+    },
+    "expected_rows_by_axis": {
+      "nemotron_saju": 50,
+      "bazi_sft": 200,
+      "aihub_empathy_single": 50,
+      "aihub_empathy_multiturn": 50,
+      "yeji_shensha_derived": 50,
+      "deterministic_saju_qa": 50,
+      "saju_diary_bridge": 50
+    },
+    "components_per_axis": 50,
+    "bazi_rows_per_component": 4,
+    "aggregation": "record_then_leakage_component_then_axis_macro",
+    "maximum_evaluation_runs": 1,
+    "consumption_marker": "data/derived/saju_1b_baseline/evaluation-split/v1.0.0/build-a5a04ab96594/manifests/phase6_technical_consumption_v1.json"
+  },
+  "models": {
+    "K0-INSTRUCT": {
+      "role": "comparator_only",
+      "path": "models/saju_1b_baseline/kanana-2-1.3b-instruct/bf4786aa2a1908adce942d53976270132732f720",
+      "required_files": {
+        "model.safetensors": "49aa6cd8686563c59321d83810731956c61ec8d5c8538a249d38007986cdc942",
+        "config.json": "fe14b20b4b616d62ca0682312c2fcd2b90d9a836d14a1ff6448db3f533fd15a1",
+        "tokenizer.json": "1c4be9ecf77c926456fb82d4cf07ff1218a91907f3408f44895d2b01e0f2b5ab",
+        "tokenizer_config.json": "1cdee8fcd4f6209e07e6d9966c8a3ff2d738830d79475193e94e448e153ae2d5",
+        "chat_template.jinja": "b8ee6b31575eada17ebbe73d3f1ac65d3efde64f0a25ff922031dec7e1cae3e3"
+      }
+    },
+    "KI10-MIX-v2": {
+      "role": "retention_candidate",
+      "path": "runs/KI10-MIX-v2/v1.0.0/run-e6b712f0d45e/final",
+      "required_files": {
+        "model.safetensors": "6f4f6d5b22bed64c4bd4e3c5c50ffba6bcf365a75f40e6acdbf61180c628f7b6",
+        "config.json": "e02848aa87656f5b33faee0d7354b26c1ff579a60042aa37c7ba204445cf76b7",
+        "tokenizer.json": "1c4be9ecf77c926456fb82d4cf07ff1218a91907f3408f44895d2b01e0f2b5ab",
+        "tokenizer_config.json": "1cdee8fcd4f6209e07e6d9966c8a3ff2d738830d79475193e94e448e153ae2d5",
+        "chat_template.jinja": "b8ee6b31575eada17ebbe73d3f1ac65d3efde64f0a25ff922031dec7e1cae3e3"
+      }
+    },
+    "KI20-MIX-v2": {
+      "role": "selection_candidate",
+      "path": "runs/KI20-MIX-v2/v1.2.0/run-1f5d732cae67/final",
+      "required_files": {
+        "model.safetensors": "2fae23e28471c07d7db0c338bc6370493191722180ecc502de7e1e1d5fe5872d",
+        "config.json": "e02848aa87656f5b33faee0d7354b26c1ff579a60042aa37c7ba204445cf76b7",
+        "tokenizer.json": "1c4be9ecf77c926456fb82d4cf07ff1218a91907f3408f44895d2b01e0f2b5ab",
+        "tokenizer_config.json": "1cdee8fcd4f6209e07e6d9966c8a3ff2d738830d79475193e94e448e153ae2d5",
+        "chat_template.jinja": "b8ee6b31575eada17ebbe73d3f1ac65d3efde64f0a25ff922031dec7e1cae3e3"
+      }
+    }
+  },
+  "nonsealed_suite": {
+    "dev_diagnostic": {
+      "path": "data/derived/saju_1b_baseline/evaluation-split/v1.0.0/build-a5a04ab96594/eval/dev_diagnostic_930.jsonl",
+      "sha256": "0b6f62ad9f5849e24bf96f613f173be922aeaf1b9d149f72b2d37abf19a74676"
+    },
+    "persona_guard": {
+      "path": "data/derived/saju_1b_baseline/evaluation-split/v1.1.0/build-d2f9e1623e96/eval/persona_causalization_guard_50.jsonl",
+      "sha256": "cb5d2f6548d8ca2721c29dec59575c0e98532084fa3c0fe7a432c23a680f82b2"
+    },
+    "contract_overlay": {
+      "path": "data/derived/saju_1b_baseline/evaluation-split/v1.2.0/build-e885b47cae74/eval/contract_overlay_v2.jsonl",
+      "sha256": "b0e0c7119a716ba1a53d9949553e36845a161d10fa67ecceb244aaa4ed52d374"
+    },
+    "expanded_handoff": {
+      "path": "data/derived/saju_1b_baseline/evaluation-split/v1.2.0/build-e885b47cae74/eval/missing_chart_handoff_50.jsonl",
+      "sha256": "fff1979c42e3b219efb02fa1f1da4dac7f9484e30800b980ba2d6501865574e6"
+    },
+    "cases": 1045,
+    "reusable_KI10": {
+      "existing": {
+        "path": "runs/KI10-MIX-v2/v1.0.0/run-e6b712f0d45e/ki10_diagnostic_generations.jsonl",
+        "sha256": "e68f115686561d296c7cf616bca404a61735a0330bb71ed7783f1c78c54b1779"
+      },
+      "expanded_handoff": {
+        "path": "runs/KI10-MIX-v2/gate-v2.0.0/gate-df26e962e145/additional_handoff_generations.jsonl",
+        "sha256": "bc0df36d823fd07f81400feb19829b055e7644fe318ce79ba99c8c7f9ab4d5c3"
+      }
+    }
+  },
+  "stateful_suite": {
+    "cases": {
+      "path": "runs/KI20-MIX-v2/stateful-chat-gate/v1.0.0/stateful-gate-f5b76dde1921/dev_cases.jsonl",
+      "sha256": "a153801f4b81af1e78ae7608c30212d389c23f972a3c4c07630c1a6d64e5a763",
+      "rows": 100
+    },
+    "system_prompt": {
+      "path": "configs/chat_prompts/saju_intake_handoff_v1.txt",
+      "sha256": "d2aa55a54bfab253669a56570ceca63e02b8d688d3699e40c9258ac6f7c18232"
+    },
+    "reusable_KI20": {
+      "path": "runs/KI20-MIX-v2/stateful-chat-gate/v1.0.0/stateful-gate-f5b76dde1921/raw_generations.jsonl",
+      "sha256": "3ed92ebbfe13560acf0f0186a37b0b6c4264d7e2c4e74da750cc12504edc6b67"
+    }
+  },
+  "repair_ranking": {
+    "model": "KI20-MIX-v2",
+    "manifest": {
+      "path": "data/derived/saju_1b_baseline/v2.0.0/build-6f32d52c2868/manifests/mix20k_v2.jsonl",
+      "sha256": "731ace0ac5584fd97fc38f157a4ecdb1babedefd79e2ec5b2d755fa26e48a550",
+      "rows": 20000
+    },
+    "staging_root": "data/staging/saju_1b_baseline/v1.0.0/build-a5a9e76d6a8c",
+    "public_output": "axis_percentiles_only",
+    "blind_rows_allowed": false
+  },
+  "runtime_conformance": {
+    "path": "data/reports/saju_runtime_conformance/v1.6.0/build-8bd88d6db03a/aggregate.json",
+    "sha256": "c232a784501da79ee9cbb3b3d74fa1c79a23433a7fee858b1e611521b490e7a4",
+    "expected_status": "candidate_runtime_conformance_passed_release_blocked",
+    "mixed_into_model_score": false
+  },
+  "generation": {
+    "confirmation_variable": "PHASE6_TECHNICAL_BLIND",
+    "confirmation_value": "K0_KI10_KI20_V1",
+    "model_order": ["K0-INSTRUCT", "KI10-MIX-v2", "KI20-MIX-v2"],
+    "expected_gpu_count": 1,
+    "require_no_other_compute_processes": true,
+    "local_files_only": true,
+    "trust_remote_code": true,
+    "dtype": "bfloat16",
+    "attention_backend": "sdpa",
+    "do_sample": false,
+    "num_beams": 1,
+    "nonsealed_batch_size": 4,
+    "nonsealed_max_new_tokens": 128,
+    "stateful_batch_size": 4,
+    "stateful_max_new_tokens": 256,
+    "blind_batch_size": 1,
+    "blind_max_new_tokens": 512,
+    "likelihood_batch_size": 8,
+    "formal_max_length": 768
+  },
+  "runtime": {
+    "python_major_minor": "3.10",
+    "torch": "2.13.0",
+    "torch_cuda": "13.0",
+    "transformers": "4.57.6",
+    "required_cuda_arch": "sm_120",
+    "minimum_free_gpu_memory_mib": 12000,
+    "python_header": ".venv/phase4-runtime/libpython3.10-dev-3.10.12-1~22.04.16/usr/include/python3.10/Python.h",
+    "pyconfig_header": ".venv/phase4-runtime/libpython3.10-dev-3.10.12-1~22.04.16/usr/include/x86_64-linux-gnu/python3.10/pyconfig.h"
+  },
+  "thresholds": {
+    "generation_clean_min_percent": 98.0,
+    "task_confusion_max_percent": 5.0,
+    "input_fact_violation_max_percent": 10.0,
+    "foreign_sentence_max_percent": 3.0,
+    "deterministic_min_percent": 90.0,
+    "rule_min_percent": 90.0,
+    "handoff_min_percent": 95.0,
+    "no_regression_tolerance_percent_points": 2.0,
+    "zero_tolerance_count": 0
+  },
+  "governance": {
+    "decision_inputs": "repository_local_automatic_metrics_only",
+    "unavailable_semantics": "not_measured",
+    "unavailable_semantics_blocks_completion": false,
+    "reference_similarity_is_quality_metric": false,
+    "blind_result_may_change_scorer": false,
+    "training_execution_allowed": false,
+    "release_approval_allowed": false,
+    "application_binding_allowed": false,
+    "mix20k_v3_1_generation_allowed": false,
+    "public_raw_output_allowed": false
+  },
+  "outputs": {
+    "private_root": "runs/PHASE6-TECHNICAL/v1.0.0/{evaluation_build_id}",
+    "public_root": "data/reports/saju_1b_baseline/phase6-technical/v1.0.0/{evaluation_build_id}"
+  },
+  "implementation_files": [
+    "scripts/evaluation/phase6_scoring.py",
+    "scripts/evaluation/phase6_technical.py",
+    "scripts/training/phase5_quality_v2.py",
+    "scripts/training/phase5_stateful_chat_gate.py",
+    "scripts/preflight/phase4_data_v2.py",
+    "tests/test_phase6_scoring.py",
+    "tests/test_phase6_technical.py"
+  ]
+}

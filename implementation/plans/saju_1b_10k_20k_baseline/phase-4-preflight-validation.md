@@ -20,7 +20,7 @@
 - source holdout은 7축별 100건씩 700건, Core Eval은 11범주 300항목으로 고정한다. 동일 명식 consistency 20항목은 두 case씩이어서 K0 총 생성 수는 1,020case다.
 - Core Eval과 source holdout의 모든 `leakage_group_ids`를 전이적으로 합친 component를 정식 후보에서 먼저 제외한다. 동일 명식 consistency 20항목도 component 단위로 고정한다.
 - K0는 BF16·SDPA·batch 1·greedy·`max_new_tokens=512`로 실행하고, 임의 네 기둥 생성·빈 출력·제어문자/special-token 노출·결정성 재생 실패만 Gate C 차단 조건으로 삼는다. reference overlap과 범주별 자동 계약 점수는 기준선 진단값이며 임의 합격 임계값을 만들지 않는다.
-- 1,000항목 오프라인 검수 ZIP은 제한 원문이 있을 수 있으므로 저장소 밖에만 만들고 내부 ID·원천 locator를 제거한다. 이 패키지의 생성은 전문 사람 검수를 수행했다는 뜻이 아니며 `human_domain_review_performed=false`를 유지한다.
+- 제한 원문이 포함될 수 있는 진단 산출물은 저장소 밖 private 경로에만 두고 내부 ID·원천 locator를 공개하지 않는다. Phase 4 승인은 자동 기술 계약 범위에 한정한다.
 - K0 1,000항목은 안전·무결성, deterministic hard-fact와 지지 십신 정책 모순 계약, 생성 상한, 반복, 한국어 비율 순서로 자동 위험 분류한다. 전체 결과는 Git 제외 경로에 두고 공개 보고서에는 심각도·신호 집계만, 검토용으로는 상위 50항목만 별도 고정한다. 이는 사람 전문 판독이나 품질 인증을 대신하지 않는다.
 - 이전 고정 K0는 모델·template·generation·runtime·prompt SHA-256이 모두 같은 case만 재사용하고, 새 eval 계약으로 지표를 다시 계산한다. 하나라도 다르면 새로 생성한다.
 
@@ -258,7 +258,7 @@ runs/KI1K-SMOKE-v2/v2.0.0/build-2feaee353252/
   - 작업 요약: 외부 참고 구현 `golbin/ssaju`의 2026-08-29 `main` HEAD `07b608a778be6dac8669e04b9ab794c441959208`을 프로젝트 밖 임시 checkout에서 read-only 검토하고, canonical MIX20K의 구조화 계산 정책을 전수 비교한 `review-c1e129b1e602`를 생성했다. 결론은 dependency·submodule·source copy 없는 `일부 모듈만 참고 구현`이다.
   - 변경 범위: field별 `deterministic_fact`·`policy_bound_deterministic`·`heuristic_only`·`generated_interpretation` flag와 runtime/validator Gate를 가진 draft 정책, fail-closed 비교기·runtime probe·회귀 테스트, 공개 가능한 충돌 표본 100건과 MIT `THIRD_PARTY_NOTICES` 후보를 추가했다. 기존 canonical/staging/eval·Phase 4 승인 상태와 학습데이터는 수정하지 않았고 실제 학습도 실행하지 않았다.
   - 검증: ssaju focus 9파일·Nemotron raw 22파일과 canonical/staging hash를 재검증하고 외부 테스트 21건·typecheck·build를 통과했다. Nemotron 11,000행에서 현재 지지 자체 음양오행 정책은 44,000필드 전부 재현됐고 정기 지장간 정책과 8,563행·13,808필드가 달랐다. bazi는 1,250명식 중 594개가 서로 다른 휴리스틱 class였다. 원국 11,000행 진단과 1900~2099 양력 73,049일 역변환을 실행해 후자에서 오변환 2,398일·예외 104일을 확인했으며, 보고서 artifact SHA-256 chain과 지지별 25건씩 표본을 검증했다.
-  - 남은 이슈·후속 작업: 지지 십신은 정기 기준을 runtime 권장 후보로 두되 전문가 Gold 전까지 advisory이며, 기존 build는 바꾸지 않고 새 dataset/schema version에서만 이관한다. KASI 음양력·절입, IANA 역사 시간대, 전문가 승인 지장간·12운성·공망·합충형파해 fixture와 fact-only serializer가 다음 Gate다. 신강약·격국·용신·관계 점수·자동 해석은 전문가 Gold로 사용하지 않는다.
+  - 남은 이슈·후속 작업: 지지 십신은 정기 기준을 runtime 권장 후보로 두고 고정 근거가 없는 항목은 `not_measured`로 유지한다. 기존 build는 바꾸지 않고 새 dataset/schema version에서만 이관한다. KASI 음양력·절입, IANA 역사 시간대, 고정 지장간·12운성·공망·합충형파해 fixture와 fact-only serializer가 다음 자동 Gate다. 신강약·격국·용신·관계 점수·자동 해석은 hard Gold로 사용하지 않는다.
 - 2026-08-28
   - 작업 요약: 외부 GPT Pro가 반환한 MIX20K 검수 제출본을 `review-6e3ad5418434` 자문 자료로 수용하고, 원본 4파일·검증 보고서·소유자 평가·SHA-256 manifest를 불변 공개 보고서로 보존했다.
   - 변경 범위: 독립 intake CLI로 ZIP/sidecar·제출 파일 보안·17K projection·300건 token-decile 표본·소스별 token 지표를 fail-closed 재검증했다. AI Hub 3K 미제공은 누락이 아닌 제3자 공유 제한 준수로 기록하고, 후속 로컬 전용 `AIHUB-STYLE10K-v1`을 기존 MIX20K·평가군과 겹치지 않는 신규 단일턴 5K+멀티턴 5K 계약으로 고정했다. canonical·Gate·실제 데이터와 학습 상태는 바꾸지 않았다.
@@ -299,6 +299,6 @@ runs/KI1K-SMOKE-v2/v2.0.0/build-2feaee353252/
   - 작업 요약: 승인된 24K staging과 Phase 3 모델을 부모로 Phase 4A~C 비학습 preflight `v1.0.0/build-a6813ba3b778`을 구현·실행했다. Gate A/B/C는 통과했고 Phase 4는 `부분 진행`으로 판정했다.
   - 변경 범위: 고정 계약·Python header sysroot·24K schema/token/loss-mask 검사, group-first Core Eval 200·source holdout 500, 중첩 MIX candidate, BF16 SDPA K0 720case, 저장소 밖 오프라인 검수 ZIP과 원문 없는 공개 보고서·테스트를 추가했다. optimizer·gradient·backward·checkpoint·canonical 승격은 수행하지 않았다.
   - 데이터 결과: 24,000행·고유 message hash 24,000, raw hash 19,500과 동일 source group 내부 alias 4,500행, group 밖 raw duplicate 0, cross-axis group 36개를 확인했다. eval과 candidate leakage group 교집합은 0이다. 전체 최대 길이는 716이고 Nemotron 9,619행이 512를 넘지만 768은 전부 수용한다. MIX20 assistant-loss token share는 Nemotron 71.805712%이며 계약대로 재가중하지 않았다.
-  - K0 결과: 700항목·720case, 빈 출력·제어문자·special-token 노출·missing-chart 임의 명식 각 0건, 결정성 재생 통과, peak VRAM 2,752,092,672 bytes, 7,426.566초를 기록했다. EOS 종료는 349/720이고 371case가 512-token 상한에 도달했다. strict 자동 계약은 missing-chart 5/5, 일반 instruction 4/5, 신살 8/20, 모순 exact-string 0/35로 후자의 품질 판단은 사람 검수에 남겼다.
+  - K0 결과: 700항목·720case, 빈 출력·제어문자·special-token 노출·missing-chart 임의 명식 각 0건, 결정성 재생 통과, peak VRAM 2,752,092,672 bytes, 7,426.566초를 기록했다. EOS 종료는 349/720이고 371case가 512-token 상한에 도달했다. strict 자동 계약은 missing-chart 5/5, 일반 instruction 4/5, 신살 8/20, 모순 exact-string 0/35였고 자동 계약 밖 의미 품질은 `not_measured`로 남겼다.
   - 검증: `validate-contract`, runtime native-JIT probe, 24K `build`, K0 `run-k0`, 전체 `verify`, ZIP 700항목·720case/내부 checksum 검증, Windows Chrome `file://` 렌더링을 통과했다. private manifest SHA-256은 `2ed5c03c…b49a50`, K0 manifest는 `67d6ca3b…02ab1`, public manifest는 `7750f462…791b`, 검수 ZIP은 `517abea9…c3ea`다.
   - 남은 이슈·후속 작업: 사람 전문 검수는 아직 0/700이고 `approved_derived=null`, `training_promotion_allowed=false`다. 저장소 밖 `saju-phase4-k0-review-build-a6813ba3b778.zip`을 검수한 뒤 별도 승인하고, Phase 4D 단일 batch forward/backward·optimizer step과 Phase 4E 1024→768→512 200-step smoke/resume를 수행해야 한다. 그전에는 Phase 5 학습을 시작하지 않는다.

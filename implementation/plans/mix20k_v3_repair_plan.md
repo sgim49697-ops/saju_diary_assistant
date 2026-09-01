@@ -1,6 +1,6 @@
-<!-- mix20k_v3_repair_plan.md - 외부 MIX20K-v3 검수 후보의 감사·보정·비학습 승격 경계를 기록한다. -->
+<!-- mix20k_v3_repair_plan.md - 외부 MIX20K-v3 기술 후보의 감사·보정·비학습 승격 경계를 기록한다. -->
 
-# MIX20K-v3 검수 후보 인수·보정 계획
+# MIX20K-v3 기술 후보 인수·보정 계획
 
 - 기준일: 2026-08-31
 - 외부 후보: `saju-mix20k-v3-review-ready`
@@ -13,9 +13,11 @@
 
 ## 범위와 불변 경계
 
-외부 패키지의 review JSONL을 부모 정본으로 읽고 원본 파일은 수정하지 않는다. 보정 review·Trainer projection·검수 큐는 Git 제외 private build로 새로 만들며, Git에는 코드·계약·원문 없는 집계 보고서만 둔다. AI Hub #86 파생 3,200행은 `restricted_local_only=true`로 전파하고 외부 안전 큐에서 제외한다. 기존 MIX20K-v2, KI20 run, checkpoint와 봉인 blind payload는 수정하거나 읽지 않는다.
+외부 패키지의 review JSONL을 부모 정본으로 읽고 원본 파일은 수정하지 않는다. 보정 review·Trainer projection·자동 점검 우선순위 큐는 Git 제외 private build로 새로 만들며, Git에는 코드·계약·원문 없는 집계 보고서만 둔다. AI Hub #86 파생 3,200행은 `restricted_local_only=true`로 전파하고 외부 안전 큐에서 제외한다. 기존 MIX20K-v2, KI20 run, checkpoint와 봉인 blind payload는 수정하거나 읽지 않는다.
 
 이번 단계는 `.train()`, backward, optimizer step, checkpoint 생성을 호출하지 않는다. `training_promotion_allowed`, `production_promotion_allowed`, `phase5_training_performed`는 모두 `false`다.
+
+현재 Gate 권한은 `mix20k-v3-automatic-gates-v1.0.0.json`이다. canonical·state·grounding·언어·정책·다양성·serving parser를 자동 계약으로 판정하고, 계약 밖 의미 품질은 `not_measured`로 고정한다. 사람·독립 평가자·LLM 심사·외부 인증을 승격 조건이나 후속 작업으로 요구하지 않는다.
 
 ## 원본 무결성과 실제 감사 결과
 
@@ -62,7 +64,7 @@
 - cached fixture를 포함한 3,800행을 `HARD_CANDIDATE`로 격하해 canonical engine 재검산 전 학습을 막았다.
 - 비협조적 slot 회복 600 trajectory와 assistant 5-turn 상태형 600 trajectory를 추가해 5-turn 이상을 1,000행으로 맞췄다.
 - 한자 조사 오류와 stateful `왜` 답변의 새 근거 추가를 자동 보정했다.
-- 4,000행 내부 검수 큐를 expert 1,500, canonical engine 800, workflow 625, restricted empathy 700, policy 375로 서로 겹치지 않게 만들었다.
+- 기존 4,000행 큐는 자동 점검 우선순위 표본으로만 보존한다. 과거 category 명칭은 현재 Gate 권한이 아니며 새 계약에서는 canonical engine, workflow state, restricted empathy, policy, 의미 불확실성으로 재분류한다.
 - restricted 원문이 없는 별도 external-safe 큐 4,000행을 만들었지만, 이것은 원천 라이선스상 재배포 승인이라는 뜻이 아니다.
 
 ## 최종 불변 산출물
@@ -74,7 +76,7 @@
 | private 비학습 preflight | `data/derived/saju_1b_baseline/mix20k-v3.0.1-preflight/v1.0.0/preflight-aea1c001126e` | manifest `9f5177040dbc32c572bc01a7d651aa01d441d39b77a35e8a4762c08b0052832f` |
 | public 비학습 preflight | `data/reports/saju_1b_baseline/mix20k-v3-preflight/v1.0.0/preflight-aea1c001126e` | manifest `c32c3668dfedbc1e800054b1990c9f9531a517ae86444a47a158d61a77b8fca7` |
 
-private build는 review·training 각 20,000행, diagnostic 2,000행, 내부/external-safe 검수 큐 각 4,000행을 가진다. restricted 3,200행은 private에만 존재한다. public 보고서는 원문·개별 ID 없이 집계만 포함한다.
+private build는 review·training 각 20,000행, diagnostic 2,000행, 내부/external-safe 자동 점검 큐 각 4,000행을 가진다. restricted 3,200행은 private에만 존재한다. public 보고서는 원문·개별 ID 없이 집계만 포함한다.
 
 ## Gate 결과
 
@@ -87,7 +89,7 @@ private build는 review·training 각 20,000행, diagnostic 2,000행, 내부/ext
 | E parser | 조건부 통과 | 내부 Kanana XML 5,250/5,250 round-trip; SGLang 실서버 미설치·미검증 |
 | F state transition | 부분 통과 | schema·정정 invalidation·상대 날짜·5-turn 구조 검증, 제품 state evaluator 전수 평가는 미완료 |
 | G grounding | 부분 통과 | 기간 500행 오류 0, tool-result 3,200행 재grounding; 전체 entity validator 확장은 후속 |
-| H 언어·전문 검수 | 차단 | 4K 큐와 expert 1.5K 결정 미완료 |
+| H 자동 언어·정책 계약 | 차단 | 금지 문구·언어 혼입·근거·state·정책 전수 scorer 미완료 |
 | diversity | 차단 | exact message 최대 102, target 최대 intake 400·stateful 271; 임의 자동 패러프레이즈 금지 |
 | sealed blind | 보존 | hash-only 350 component와 부모·보정 content overlap 0, payload 미열람 |
 
@@ -107,7 +109,7 @@ private build는 review·training 각 20,000행, diagnostic 2,000행, 내부/ext
 1. 승인할 canonical birth/period engine과 정책 버전을 고정하고 3,800행을 전수 재계산한다.
 2. exact target 반복을 의미 보존 패러프레이즈·상태 조합 확장으로 낮추고, 자동 ID 삽입 같은 가짜 다양화는 사용하지 않는다.
 3. 새 부모 hash로 20K를 다시 build하고 tokenizer·mask·tool·grounding preflight를 재실행한다.
-4. internal 4K를 workflow/정책/언어 검수하고 최소 expert 1.5K를 별도 Gold로 확정한다.
+4. 전체 20K에 workflow·정책·언어·grounding 자동 계약을 실행하고 자동 계약이 없는 의미 품질은 `not_measured`로 고정한다.
 5. chart/input/template/source group 우선으로 dev·sealed blind를 나누고 기존 blind와 hash-only 누수 검사를 반복한다.
 6. 모든 blocker가 닫힌 뒤에만 2K diagnostic을 실행한다. 통과하면 동일 K0에서 v3 10K와 v3 20K를 독립 run으로 비교한다.
 
@@ -119,10 +121,10 @@ private build는 review·training 각 20,000행, diagnostic 2,000행, 내부/ext
   - 작업 요약: 저장소 정본화 과정에서 `v3.0.1-repaired`의 현재 역할을 다시 확인하고, Skyfield runtime v1.3 candidate와 conformance v8 통과가 곧 v3.1 생성·학습 승인이 아님을 문서 전반에 일치시켰다.
   - 변경 범위: 기존 private `build-94eb7b543490`, public `intake-99c0b48231d6`, preflight와 20K 원문은 수정하지 않았다. 현재 상태 설명과 정본 연결만 갱신했으며 v3.1, 새 split, checkpoint, 학습 산출물은 만들지 않았다.
   - 검증: private 20,000행·restricted 3,200행·검수 큐 4,000행과 public aggregate-only intake의 manifest/hash chain을 재검증했다. runtime v1.3/v8 연계 계약 23건과 저장소 전체 unittest 429건, Ruff, `uv pip check`, 로컬 문서 링크, `git diff --check`를 통과했다.
-  - 남은 이슈·후속 작업: canonical 3,800행 전수 재계산, exact target 다양성, 전체 state/grounding, 내부 4K·expert 1.5K 검수, serving parser 검증이 남아 있다. `training_promotion_allowed=false`와 production 차단을 유지한다.
+  - 남은 이슈·후속 작업: canonical 3,800행 전수 재계산, exact target 다양성, 전체 state/grounding·언어·정책 자동 계약, serving parser 검증이 남아 있다. `training_promotion_allowed=false`와 production 차단을 유지한다.
 
 - 2026-08-31
-  - 작업 요약: 외부 v3 review candidate를 원본 불변으로 감사하고 runtime/tool/state 계약, 품질 보정판, 검수 큐와 exact-tokenizer 비학습 preflight를 구현했다.
+  - 작업 요약: 외부 v3 review candidate를 원본 불변으로 감사하고 runtime/tool/state 계약, 품질 보정판, 자동 점검 큐와 exact-tokenizer 비학습 preflight를 구현했다.
   - 변경 범위: private `build-94eb7b543490`, public `intake-99c0b48231d6`, preflight `preflight-aea1c001126e`를 새 경로에 생성했다. public intake identity에 private build fingerprint를 포함하고 cross-link를 검증한다. AI Hub 제한 행과 model/checkpoint는 Git에 추가하지 않았다.
   - 검증: 20K 전수 최대 767/768, 길이·mask·EOS·serialization 오류 0, 5,250 tool round-trip 오류 0, 기간 grounding 오류 0, blind hash overlap 0을 확인했다.
-  - 남은 이슈·후속 작업: canonical 3,800행, exact target 다양성, 전체 state/grounding, 4K·expert 1.5K 검수와 실제 serving parser 검증이 남았다. 모든 학습·production 승인 플래그는 `false`다.
+  - 남은 이슈·후속 작업: canonical 3,800행, exact target 다양성, 전체 state/grounding·언어·정책 자동 계약과 실제 serving parser 검증이 남았다. 모든 학습·production 승인 플래그는 `false`다.

@@ -352,7 +352,7 @@ mix20k-v3.0.1-repaired/build-94eb7b543490 (불변)
 
 생성기는 release 검증을 source dataset 읽기보다 먼저 수행한다. 기존 20K·source attribution·앞선 멀티턴은 보존하고, 각 행에 단일 `runtime_release_id`와 tool 사용 여부에 맞는 `runtime_fact_source`를 기록한다. 새 split manifest는 20K 학습 membership을 새 hash로 만들되 기존 비봉인 eval을 hash로 재사용하고 sealed blind는 hash-only로만 비교한다. preflight는 고정 tokenizer·768 token·assistant-only mask·EOS·직렬화·tool round-trip·비봉인 prompt overlap·sealed content hash overlap을 학습 없이 검사한다.
 
-Runtime Gate만으로 학습을 허용하지 않는다. 생성 build와 preflight도 항상 `training_promotion_allowed=false`로 끝난다. 기존에 남은 대화 다양성, 4K/expert 1.5K 검수, state/grounding 품질 Gate와 별도의 학습 승격 판단이 필요하다.
+Runtime Gate만으로 학습을 허용하지 않는다. 생성 build와 preflight도 항상 `training_promotion_allowed=false`로 끝난다. 기존에 남은 대화 다양성, 전체 state/grounding·언어·정책 자동 Gate와 별도의 학습 승격 판단이 필요하다. 자동 계약이 없는 의미 품질은 `not_measured`이며 별도 평가 작업을 요구하지 않는다.
 
 ## 13. 실행 명령
 

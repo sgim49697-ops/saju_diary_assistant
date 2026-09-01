@@ -41,7 +41,7 @@ source build는 네 원천 manifest hash, audit build는 source build·감사 �
 
 원천 감사 HTML은 핵심 150건과 참고 150건, 전처리 HTML은 BaZi 150건과 YEJI 150건을 제공한다. HTML 파일을 직접 열지 않고 loopback 서버로 접속한다. 서버는 `127.0.0.1`에만 bind하며 Host·Origin·CSRF, CSP, no-store, 16KiB 본문 제한을 강제한다. 학습 메시지는 Git 제외 staging에서 API로만 읽고 공개 보고서에는 원문 sample을 넣지 않는다.
 
-감사 `v1.2.0/build-ca756f3eb89f`는 accept 300건, 필수 잔여 0건, blocking finding 0건으로 seal·승인·원본 재검증을 통과했다. 다만 이 승인은 항목별 전문 품질 인증이 아니라 자동 검사 결과에 대한 사용자 위험 수용이다. 향후 실제 전문가 판정을 추가할 때는 이 사실을 덮어쓰지 않고 새 audit/staging 버전으로 만든다.
+감사 `v1.2.0/build-ca756f3eb89f`는 accept 300건, 필수 잔여 0건, blocking finding 0건으로 seal·승인·원본 재검증을 통과했다. 이 승인은 고정 자동 계약 범위에 한정한다. 계약 밖 의미 품질은 `not_measured`이며 별도 평가 작업이나 승인 blocker로 전환하지 않는다.
 
 ### 팀원용 핵심·참고 300 advisory 검수본
 
@@ -125,7 +125,7 @@ Phase 4는 행 수만이 아니라 assistant loss token 최소 비율까지 적�
 
 AI Hub 원천에서는 과거 `v0.2.0`의 3,600개 talk group을 제외하고 단일턴 5,000·멀티턴 5,000의 고유 reservoir를 별도로 만들었다. 순수 공감축에는 각 1,800개, 앱 브리지 부모에는 겹치지 않는 다음 각 1,800개를 사용하며 나머지는 로컬 reserve다. 원문·talk ID·개별 hash는 Git과 공개 보고서에 넣지 않고 private 파일은 0600으로 고정한다.
 
-계산 정책은 `lunar-python==1.4.8`과 지장간 표 12개 및 일간 10×지지 12의 정기 기준 십신 120조합을 전수 대조했다. 생년월일시→원국 경계, 공망·12운성·합충형파해·운의 간지 중 독립 Gold가 아직 없는 항목과 신강약·격국·용신·자동 해석·관계 점수·보완 처방은 이번 QA Gold에서 제외했다. 이 정책은 프로젝트 기술 계약이지 명리 전문가 인증이 아니다.
+계산 정책은 `lunar-python==1.4.8`과 지장간 표 12개 및 일간 10×지지 12의 정기 기준 십신 120조합을 전수 대조했다. 생년월일시→원국 경계, 공망·12운성·합충형파해·운의 간지 중 고정 근거가 없는 항목과 신강약·격국·용신·자동 해석·관계 점수·보완 처방은 이번 QA Gold에서 제외했다. 이 정책은 프로젝트 자동 기술 계약이며 계약 밖 의미 품질은 `not_measured`다.
 
 자동 위험도 분류는 staging 24,000행과 로컬 reservoir 10,000행을 모두 검사했다. 결과는 low 8,400행, medium 25,600행, critical/high 0행이다. medium은 오류 판정이 아니라 runtime grounding이 필요한 해석·스타일 참조 tier다. `human_domain_review_performed=false`, `quality_certification_claimed=false`, `training_promotion_allowed=false`를 유지하며 Phase 4 기술 검증만 허용한다.
 
@@ -432,7 +432,7 @@ data/derived/saju_1b_baseline/v1.0.0/build-<derived-hash>/eval/<holdout-and-core
   - 작업 요약: Nemotron 전체 100만 행 source bundle과 감사 v1.2를 고정하고, 핵심·참고 각 150건을 함께 제공하는 검수기·내부 공유 ZIP을 갱신했다. 사용자의 명시 지시에 따라 감사 300건을 일괄 위험 수용으로 기록해 seal·승인했다.
   - 변경 범위: source bundle `v1.1.0/build-9462ec148dcd`, audit `v1.2.0/build-ca756f3eb89f`, YEJI 교정 5건, registry와 버전별 보고서·검수 자산을 추가했다. `domain_item_review_performed=false`를 보존했다.
   - 검증: 네 원천 전체 재해시, Nemotron 1,000,000행·UUID 중복 0·빈 행 0, audit 필수/참고 150/150 accept, blocking finding 0, seal·approval·verify를 통과했다.
-  - 남은 이슈·후속 작업: 승인 방식은 전문가 항목별 검수가 아니다. 실제 도메인 품질 보증이 필요하면 새 버전에서 별도 검수를 수행한다.
+  - 남은 이슈·후속 작업: 승인은 자동 기술 계약 범위에 한정한다. 그 밖의 도메인 의미 품질은 `not_measured`로 유지하며 별도 작업을 요구하지 않는다.
 - 2026-08-27
   - 작업 요약: 첫 20K baseline에 필요한 분량만 정제하도록 최종 20K + 예비 20%인 24K staging 파이프라인을 구현했다. BaZi 100K 규칙 전수 검산, YEJI 51규칙 evaluator, AI Hub group 분리, Nemotron v6/v7 20:80 선별과 한국어 잔여 Gate를 적용했다.
   - 변경 범위: `phase2b_preprocess.py`, 원천별 adapter·검증기·승인 후 읽기 전용이 되는 loopback 검수 서버, 한국어 문구 은행과 staging `v0.1.0/build-109815ee6879`, 공개 집계·승인 보고서를 추가했다. 원본은 수정하지 않았고 staging은 Git에서 제외했다.
