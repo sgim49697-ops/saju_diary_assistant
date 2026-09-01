@@ -15,6 +15,7 @@ from scripts.runtime.calculation.contracts import (
     runtime_source_versions,
     validate_contract_registry,
 )
+from scripts.runtime.calculation.contracts_v1_3 import validate_contract_registry_v1_3
 
 
 def _load_input(path: str) -> dict[str, Any]:
@@ -37,7 +38,15 @@ def _load_input(path: str) -> dict[str, Any]:
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="한국 만세력 후보 runtime")
     commands = parser.add_subparsers(dest="command", required=True)
-    commands.add_parser("verify-contract", help="versioned 계약과 SHA-256을 검증")
+    verify = commands.add_parser(
+        "verify-contract", help="versioned 계약과 SHA-256을 검증"
+    )
+    verify.add_argument(
+        "--engine-version",
+        choices=("1.0", "1.3"),
+        default="1.0",
+        help="검증할 runtime 계약 버전(기본: 1.0)",
+    )
     commands.add_parser("environment", help="tzdb와 고정 패키지 버전을 확인")
     calculate = commands.add_parser("calculate", help="chart tool JSON을 로컬 계산")
     calculate.add_argument(
@@ -55,9 +64,15 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     try:
         if args.command == "verify-contract":
+            registry = (
+                validate_contract_registry_v1_3()
+                if args.engine_version == "1.3"
+                else validate_contract_registry()
+            )
             output = {
                 "status": "verified",
-                "registry": validate_contract_registry()["registry_id"],
+                "engine_version": args.engine_version,
+                "registry": registry["registry_id"],
             }
         elif args.command == "environment":
             output = {

@@ -1,0 +1,44 @@
+{
+  "_description": "sealed blind payload를 열지 않고 현재 정본·공개 산출물·비봉인 진단·runtime을 한 진입점에서 검증한다.",
+  "schema_version": "1.0.0",
+  "audit_id": "saju-project-audit-v1.0.0",
+  "phase6": {
+    "config": "configs/model_versions/saju_1b_baseline/phase6-technical-evaluation-v1.0.0.json",
+    "registry": "configs/data_versions/saju_1b_baseline/registry.json",
+    "evaluation_build_id": "eval-e8630962cab2",
+    "public_root": "data/reports/saju_1b_baseline/phase6-technical/v1.0.0/eval-e8630962cab2"
+  },
+  "grounded_dialogue": {
+    "base_config": "configs/evaluation/grounded_dialogue_eval-v0.1.0.json",
+    "followup_config": "configs/evaluation/grounded_dialogue_followup-v0.2.0.json",
+    "postscore_config": "configs/evaluation/grounded_dialogue_postscore-v0.1.0.json"
+  },
+  "mix20k_v3": {
+    "private_build": "data/derived/saju_1b_baseline/mix20k-v3.0.1-repaired/build-94eb7b543490",
+    "public_build": "data/reports/saju_1b_baseline/mix20k-v3-intake/v3.0.0/intake-99c0b48231d6"
+  },
+  "project_status": {
+    "config": "configs/data_versions/saju_1b_baseline/project-status-v1.3.0.json",
+    "build_id": "build-38b9ca77ce45"
+  },
+  "runtime": {
+    "engine_version": "1.3",
+    "conformance_build_id": "build-8bd88d6db03a",
+    "tracked_report": "data/reports/saju_runtime_conformance/v1.6.0/build-8bd88d6db03a",
+    "snapshots": {
+      "kasi_lunar": "data/raw/saju_runtime/kasi/v1.1.0/lunisolar/kasi_lunisolar.jsonl",
+      "kasi_solar_term": "data/raw/saju_runtime/kasi/v1.2.0/solar-terms-api/kasi_solar_terms.jsonl",
+      "kasi_official_solar_term": "data/raw/saju_runtime/kasi/v1.3.0/official-solar-terms/kasi_official_solar_terms.jsonl",
+      "kasi_minute": "data/raw/saju_runtime/kasi/v1.1.0/minute-references/kasi_minute_references.jsonl",
+      "kasi_almanac_1964": "data/raw/saju_runtime/kasi/v1.2.0/almanac-1964/kasi_almanac_1964_baengno.json",
+      "iers": "data/raw/saju_runtime/iers/v1.0.0/snapshot-2026-09-01-v3/finals2000A.all"
+    },
+    "ephemeris_sha256": "c1c7feeab882263fc493a9d5a5b2ddd71b54826cdf65d8d17a76126b260a49f2"
+  },
+  "governance": {
+    "sealed_blind_payload_open_allowed": false,
+    "gpu_execution_allowed": false,
+    "training_execution_allowed": false,
+    "tracked_writes_allowed": false
+  }
+}

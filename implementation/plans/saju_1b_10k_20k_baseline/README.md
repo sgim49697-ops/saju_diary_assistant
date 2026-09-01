@@ -251,6 +251,12 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
 ## 진행 기록
 
 - 2026-09-01
+  - 작업 요약: 완료된 Phase 6·대화 진단·MIX20K-v3·프로젝트 상태와 Skyfield runtime v1.3/v8을 하나의 읽기 전용 통합 audit 진입점으로 묶고, 과거 문서에 남은 비자동 평가 요구를 자동 계약·`not_measured` 정책으로 교정했다.
+  - 변경 범위: `project-audit-v1.0.0` 계약과 quick/full 검증 CLI, runtime v1.3 계약 선택 검증, sealed blind 비접근 회귀 테스트를 추가했다. full 모드는 임시 디렉터리에서 Phase 1과 runtime v8을 재현하며 추적 산출물·GPU·학습·승격 상태는 변경하지 않는다.
+  - 검증: audit 계약·runtime v1.3·Phase 6 공개 완료 상태·grounded dialogue 최종 postscore·MIX20K-v3·project status 연결과 과거 문서의 비자동 Gate 부재를 자동 테스트로 확인했다. sealed blind payload는 열지 않았다.
+  - 남은 이슈·후속 작업: 과거 공식 근거 구간만 허용하는 candidate intake FSM·별도 로컬 진단 화면·120건 자동 통합 Gate를 새 버전으로 구현한다. production release, 기존 앱 연결, context 증설, MIX20K-v3.1, 추가 학습과 모델 승격은 계속 금지한다.
+
+- 2026-09-01
   - 작업 요약: 기존 grounded dialogue 500건을 응답 재생성 없이 decision-aware·completion-scope-v3로 재채점하고, RTX 5070 Ti에서 KI20 2,048↔3,584 token 장문 200건을 완료했다. 공개 현황을 `v1.3.0/build-38b9ca77ce45`로 올려 결과를 정본에 연결했다.
   - 변경 범위: 재채점 `eval-562c07d0e2e6`, 장문 최종 `eval-56d1357560d5`, 새 status 계약·snapshot·registry 포인터와 관련 문서를 추가했다. 기존 v0.1.0 응답·Phase 6 봉인 결과·모델·runtime 설정은 수정하지 않았다.
   - 검증: R1·R3 재질문 7%→2%, K0 입력 확인형 완료 오탐 5→0, 장문 두 arm의 자동 목표 통과와 max-token hit 2→0을 확인했다. 원시 응답은 Git 제외 경로에 유지했고 공개 누출·부모 hash·v1.2 status 불변성·v1.3 재현성을 검증했다.

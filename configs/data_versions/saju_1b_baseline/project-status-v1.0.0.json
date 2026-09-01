@@ -134,7 +134,7 @@
     {"code": "HARD_GT", "title": "결정론적 사실", "description": "고정 계산 정책으로 독립 재계산 가능한 원국 글자·오행·지장간·십신", "tone": "hard"},
     {"code": "RULE_GT", "title": "검산 규칙 파생", "description": "고정 조건·긍부정 계약을 통과한 규칙형 답변", "tone": "rule"},
     {"code": "HUMAN_REF", "title": "사람 대화 참조", "description": "AI Hub 승인 범위의 로컬 전용 공감·대화 문체", "tone": "human"},
-    {"code": "SOFT_GT", "title": "합성 해석 참조", "description": "전문가 Gold가 아닌 소프트 해석·문체 자료이며 최종 품질 주장을 금지", "tone": "soft"}
+    {"code": "SOFT_GT", "title": "합성 해석 참조", "description": "결정론적으로 검산되지 않은 소프트 해석·문체 자료이며 최종 품질 주장을 금지", "tone": "soft"}
   ],
   "gates": [
     {"name": "원천 revision", "status": "통과", "criterion": "고정 SHA drift 0", "result": "Kanana·Nemotron·bazi·비교 엔진 revision 일치"},
@@ -156,7 +156,7 @@
     {"id": "R-PERSONA-ALIGNMENT", "severity": "주의", "title": "페르소나 연결 문구", "finding": "Nemotron 6,800행 중 5,170행(76.029412%)에 광범위한 일치·연결 표현이 있습니다. 이는 인과 오류율이 아닙니다.", "disposition": "별도 50case 비인과 guard로 실제 인과 단정만 측정합니다."},
     {"id": "R-TEMPLATE-DUP", "severity": "주의", "title": "정형 답변 반복", "finding": "YEJI 95.5%, deterministic QA 7.8%가 정규화 중복에 참여하지만 축간 중복 group은 0입니다.", "disposition": "reference 유사도를 최종 품질 점수에서 제외하고 조건·입력별 계약을 채점합니다."},
     {"id": "R-DEV-REFERENCE-OVERLAP", "severity": "주의", "title": "개발 reference 학습 답변 중복", "finding": "dev diagnostic 940case 중 137, monitor 70case 중 12가 학습 assistant와 exact 일치합니다.", "disposition": "개발용 누수 진단으로 공개하고 blind 일반화 주장에 사용하지 않습니다."},
-    {"id": "R-NO-EXPERT-GOLD", "severity": "주의", "title": "전문가 Gold 부재", "finding": "사람 전문 항목 검수와 품질 인증을 수행하지 않았습니다.", "disposition": "KI10은 baseline 기술 실험으로만 취급하고 배포·전문가 정확성 주장을 금지합니다."},
+    {"id": "R-SEMANTICS-NOT-MEASURED", "severity": "주의", "title": "계약 밖 의미 품질 미측정", "finding": "자동 계약이 없는 해석 의미 품질은 측정하지 않았습니다.", "disposition": "KI10은 baseline 기술 실험으로만 취급하고 측정하지 않은 정확성 주장을 금지합니다."},
     {"id": "R-KI10-QUALITY-TARGET", "severity": "주의", "title": "Gate v2 지식·정책 목표 미달", "finding": "원국 글자 12/12는 통과했지만 지장간 7/12·천간 십신 0/12·지지 십신 1/12·handoff 행동 7/50 등 8개 목표가 미달했습니다.", "disposition": "기술 실험 지속과 배포 품질 승격을 분리합니다. KI20 실험 결과는 품질 인증이 아니며 sealed blind와 배포는 계속 금지합니다."},
     {"id": "R-TOKENIZER-REGEX", "severity": "주의", "title": "Mistral regex 호환 경고", "finding": "base snapshot과 KI10 final tokenizer 파일 SHA-256은 동일하지만 현재 Transformers가 Mistral regex 호환 경고를 냅니다.", "disposition": "이번 비교에서는 토큰 fingerprint를 보존하고 fix_mistral_regex를 적용하지 않습니다. 변경은 별도 tokenizer·data·run version에서 검증합니다."},
     {"id": "R-LOSS-AGGREGATION", "severity": "주의", "title": "loss 집계 단위 차이", "finding": "과거 Trainer eval loss와 이번 전체 supervised-token micro NLL은 집계 단위가 달라 절대값을 직접 비교할 수 없습니다.", "disposition": "표준 assistant-only chunked NLL을 유지하고 macro·micro loss는 진단값으로만 사용하며 자동 품질 Gate에는 넣지 않습니다."}
