@@ -1,0 +1,160 @@
+{
+  "_description": "Skyfield candidate runtime의 TT 경계와 구조화 절입 권한을 포함한 내부 출력 계약이다.",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "saju-calculation-output-v1.3.0",
+  "schema_version": "1.3.0",
+  "$defs": {
+    "solar_term_boundary_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "roles": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "year": {"type": "integer", "minimum": 1899, "maximum": 2050},
+        "term_index": {"type": "integer", "minimum": 0, "maximum": 23},
+        "term_name": {"type": "string", "minLength": 1},
+        "instant_tt_jd": {
+          "type": "string",
+          "pattern": "^[0-9]{7}\\.[0-9]{12}$"
+        },
+        "instant_utc": {"type": "string", "pattern": "Z$"},
+        "official_display_minute_fixed_kst": {
+          "type": "string",
+          "pattern": "\\+09:00$"
+        },
+        "authority_class": {
+          "type": "string",
+          "enum": [
+            "PROFILE_DETERMINISTIC",
+            "PAST_OFFICIAL_CORROBORATED",
+            "FORECAST_DIAGNOSTIC_NONAPPROVAL"
+          ]
+        },
+        "official_source_evidence_class": {
+          "type": ["string", "null"],
+          "enum": ["SOURCE_HARD_FACT", null]
+        },
+        "provider_generated_value_is_official": {"const": false}
+      },
+      "required": [
+        "roles", "year", "term_index", "term_name", "instant_tt_jd",
+        "instant_utc", "official_display_minute_fixed_kst", "authority_class",
+        "official_source_evidence_class", "provider_generated_value_is_official"
+      ]
+    },
+    "solar_term_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {"const": "1.0.0"},
+        "provider_id": {"const": "skyfield-1.55-jpl-de440s-builtin-ut1"},
+        "root_time_scale": {"const": "TT"},
+        "boundary_comparison_time_scale": {"const": "TT"},
+        "official_label_coordinate": {"const": "UT1_NOMINAL_PLUS_FIXED_KST"},
+        "official_snapshot_collected_at": {
+          "const": "2026-08-31T15:16:50+00:00"
+        },
+        "provider_generated_value_is_official": {"const": false},
+        "authority_classes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "PROFILE_DETERMINISTIC",
+              "PAST_OFFICIAL_CORROBORATED",
+              "FORECAST_DIAGNOSTIC_NONAPPROVAL"
+            ]
+          }
+        },
+        "overall_authority": {
+          "type": "string",
+          "enum": [
+            "PROFILE_DETERMINISTIC",
+            "PAST_OFFICIAL_CORROBORATED",
+            "FORECAST_DIAGNOSTIC_NONAPPROVAL"
+          ]
+        },
+        "contains_future_nonapproval": {"type": "boolean"},
+        "boundaries": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/solar_term_boundary_evidence"}
+        }
+      },
+      "required": [
+        "schema_version", "provider_id", "root_time_scale",
+        "boundary_comparison_time_scale", "official_label_coordinate",
+        "official_snapshot_collected_at", "provider_generated_value_is_official",
+        "authority_classes", "overall_authority", "contains_future_nonapproval",
+        "boundaries"
+      ]
+    },
+    "facts_with_solar_term_evidence": {
+      "type": "object",
+      "properties": {
+        "solar_term_evidence": {"$ref": "#/$defs/solar_term_evidence"}
+      },
+      "required": ["solar_term_evidence"]
+    }
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "status": {"type": "string", "enum": ["ok", "partial", "blocked", "error"]},
+    "code": {"type": ["string", "null"]},
+    "message": {"type": ["string", "null"]},
+    "normalized_input": {"type": ["object", "null"]},
+    "hard_facts": {
+      "anyOf": [
+        {"type": "null"},
+        {"$ref": "#/$defs/facts_with_solar_term_evidence"}
+      ]
+    },
+    "stable_facts": {
+      "anyOf": [
+        {"type": "null"},
+        {"$ref": "#/$defs/facts_with_solar_term_evidence"}
+      ]
+    },
+    "alternative_charts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "hard_facts": {"$ref": "#/$defs/facts_with_solar_term_evidence"}
+        },
+        "required": ["hard_facts"]
+      }
+    },
+    "uncertainty": {"type": ["object", "null"]},
+    "fact_authority": {
+      "type": ["string", "null"],
+      "enum": ["HARD_CANDIDATE", null]
+    },
+    "birth_input_id": {"type": ["string", "null"], "pattern": "^sbi2_[0-9a-f]{64}$"},
+    "chart_id": {"type": ["string", "null"], "pattern": "^sc2_[0-9a-f]{64}$"},
+    "chart_set_id": {"type": ["string", "null"], "pattern": "^scs2_[0-9a-f]{64}$"},
+    "calculation_run_id": {"type": ["string", "null"], "pattern": "^scr2_[0-9a-f]{64}$"},
+    "engine_version": {"const": "saju-runtime-python-v1.3.0"},
+    "calculation_schema_version": {"const": "1.3.0"},
+    "id_contract_version": {"const": "saju-runtime-id-hmac-v2.0.0"},
+    "policy_id": {"const": "KR_CIVIL_MIDNIGHT_V1"},
+    "source_versions": {"type": "object"},
+    "warnings": {"type": "array", "items": {"type": "object"}},
+    "limitations": {"type": "array", "items": {"type": "string"}},
+    "internal_trace": {"type": ["object", "null"]}
+  },
+  "required": [
+    "status", "code", "message", "normalized_input", "hard_facts", "stable_facts",
+    "alternative_charts", "uncertainty", "fact_authority", "birth_input_id",
+    "chart_id", "chart_set_id", "calculation_run_id", "engine_version",
+    "calculation_schema_version", "id_contract_version", "policy_id",
+    "source_versions", "warnings", "limitations", "internal_trace"
+  ]
+}

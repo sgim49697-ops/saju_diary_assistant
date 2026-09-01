@@ -1,0 +1,40 @@
+{
+  "_description": "Skyfield candidate runtime v1.3과 conformance v8 계약 파일의 SHA-256을 고정한다.",
+  "schema_version": "1.3.0",
+  "registry_id": "saju-runtime-calculation-registry-v1.3.0",
+  "status": "skyfield_candidate_runtime_bound_release_out_of_scope",
+  "parent": {
+    "path": "configs/runtime/calculation/registry-v1.2.0.json",
+    "sha256": "6d036ee9b9cb6591de2d0248ccf7aad150869240ccbabfe9b81c211f537b1ede"
+  },
+  "artifacts": [
+    {
+      "path": "configs/runtime/calculation/runtime_contract-v1.3.0.json",
+      "sha256": "fb7f359cee14745f348d9cb9b2b8e8b3c8d3616cf43befdd57f9ea2dfa617208"
+    },
+    {
+      "path": "configs/runtime/calculation/calculation_output_schema-v1.3.0.json",
+      "sha256": "064b8f428d11b2c647d1d1bdb7813e6df505f38d3082227da99ed774a3c3c20e"
+    },
+    {
+      "path": "configs/runtime/calculation/source_registry-v1.6.0.json",
+      "sha256": "89f7d8f2269741568b011c269a0bc3c26f792aa4367de07df957f620da6554aa"
+    },
+    {
+      "path": "configs/runtime/calculation/conformance_gate-v1.6.0.json",
+      "sha256": "ac8d805d2b69c792d451f0040a0482f2c8a4edcc712bae11cdaa5333d4acb6fe"
+    },
+    {
+      "path": "configs/runtime/calculation/profiles/KR_CIVIL_MIDNIGHT_V1-v1.3.0.json",
+      "sha256": "806c8e81640604cd537922d13692800b009b248f61a275e92af70766f8c53208"
+    },
+    {
+      "path": "configs/runtime/calculation/id_canonicalization-v2.0.0.json",
+      "sha256": "54290f788af0a57483e8bd6483697a480fc527456227b81acab3c7ff4ab218f5"
+    },
+    {
+      "path": "requirements-runtime-calculator-v1.3.txt",
+      "sha256": "f2d097035d3f44eb79a61437dae48671e9b8cc021d8c3d1955b4dc1e3e58489c"
+    }
+  ]
+}

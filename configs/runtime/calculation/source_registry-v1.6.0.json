@@ -1,0 +1,74 @@
+{
+  "_description": "v1.5 공식 근거를 보존하면서 Skyfield/DE440s를 v1.3 candidate runtime에 결합하고 시간 권한을 분리한다.",
+  "schema_version": "1.6.0",
+  "registry_version": "saju-runtime-sources-v1.6.0",
+  "reviewed_at": "2026-09-01",
+  "parent": {
+    "path": "configs/runtime/calculation/source_registry-v1.5.0.json",
+    "sha256": "d549780199898ca04a1f7c1b71204825a79a657c6cf8c691827b097ac5580b46"
+  },
+  "runtime_provider": {
+    "provider_id": "skyfield-1.55-jpl-de440s-builtin-ut1",
+    "candidate_runtime_bound": true,
+    "production_runtime_bound": false,
+    "strict_runtime_approved": false,
+    "packages": {
+      "skyfield": "1.55",
+      "jplephem": "2.24",
+      "numpy": "2.2.6"
+    },
+    "ephemeris": {
+      "filename": "de440s.bsp",
+      "bytes": 32726016,
+      "sha256": "c1c7feeab882263fc493a9d5a5b2ddd71b54826cdf65d8d17a76126b260a49f2",
+      "coverage_years": [1849, 2150],
+      "git_tracked": false
+    },
+    "timescale": {
+      "mode": "skyfield_builtin_no_network",
+      "root_time_scale": "TT",
+      "boundary_comparison_time_scale": "TT",
+      "official_label_coordinate": "UT1_NOMINAL_PLUS_FIXED_KST",
+      "builtin_files_sha256": {
+        "delta_t.npz": "2d12bd3e789543b78a1f53c8b76ed7fecffdf7e5149cfb6a0aed21a8b3db5ff6",
+        "historic_deltat.npy": "f5346b780b36a0325b1847dc6c0083d66edc7e88b7f648b4c98a67bbd02b5d3f",
+        "iers.npz": "c7d7536d898dfa9f8cd43e8044ff51e108cc8289675a13fee9822010a1c4935c",
+        "morrison_stephenson_deltat.npy": "439e05269890df41dd75820f3f2ef467539e36eb36753e8ee8b4b78d29baad52"
+      }
+    },
+    "root_solver": {
+      "bracket": "fixed_calendar_center_plus_minus_5_days",
+      "iterations": 48,
+      "astronomy_engine_center_used": false
+    },
+    "automatic_download_or_fallback": false,
+    "astronomy_engine_fallback": false
+  },
+  "authority_policy": {
+    "official_snapshot_collected_at": "2026-08-31T15:16:50+00:00",
+    "profile_deterministic_year_range": [1900, 1919],
+    "profile_deterministic_jie_rows": 240,
+    "past_official_corroborated_jie_rows": 1280,
+    "future_forecast_nonapproval_jie_rows": 280,
+    "past_last_jie": {"year": 2026, "term_index": 14, "term_name": "입추"},
+    "future_first_jie": {"year": 2026, "term_index": 16, "term_name": "백로"},
+    "generated_provider_value_is_source_hard_fact": false,
+    "future_provider_value_can_be_hard_gt": false
+  },
+  "validation": {
+    "runtime_and_independent_validator_share_output_values": false,
+    "runtime_vs_independent_tt_root_maximum_microseconds": 1.0,
+    "tt_boundary_before_exact_after_cases": 5400,
+    "expected_raw_minute_mismatches": 22,
+    "expected_past_raw_minute_mismatches": 14,
+    "expected_future_raw_minute_mismatches": 8
+  },
+  "promotion_effects": {
+    "runtime_approved": false,
+    "release_approval_performed": false,
+    "app_binding_performed": false,
+    "mix20k_v3_1_generated": false,
+    "training_promotion_allowed": false,
+    "phase5_training_performed": false
+  }
+}

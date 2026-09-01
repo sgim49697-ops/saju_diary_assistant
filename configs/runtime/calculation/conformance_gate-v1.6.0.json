@@ -1,0 +1,70 @@
+{
+  "_description": "Skyfield candidate runtime 결합과 TT 경계·과거/미래 권한 분리를 검증하되 strict release는 승인하지 않는다.",
+  "schema_version": "1.6.0",
+  "gate_version": "saju-runtime-gate-v1.6.0",
+  "suite_version": "saju-runtime-conformance-v8.0.0",
+  "status": "candidate_runtime_binding_only_release_out_of_scope",
+  "profile_id": "KR_CIVIL_MIDNIGHT_V1",
+  "parent": {
+    "path": "configs/runtime/calculation/conformance_gate-v1.5.0.json",
+    "sha256": "132408a4085e4eeb52dbe613c501f3c15d101cd794b85b360638f2f03ac8c8b7"
+  },
+  "minimum_cases": {
+    "kasi_lunar_days": 54787,
+    "provider_jie_instants": 1800,
+    "runtime_vs_independent_tt_roots": 1800,
+    "tt_boundary_assignment": 5400,
+    "profile_deterministic_jie_rows": 240,
+    "past_official_corroborated_jie_rows": 1280,
+    "future_forecast_nonapproval_jie_rows": 280,
+    "historical_1964_baengno_rows": 1,
+    "unknown_range": 500,
+    "hmac_id_vectors": 200,
+    "unsupported_foreign": 20
+  },
+  "candidate_runtime_binding_gate": {
+    "provider_id": "skyfield-1.55-jpl-de440s-builtin-ut1",
+    "root_time_scale": "TT",
+    "official_label_coordinate": "UT1_NOMINAL_PLUS_FIXED_KST",
+    "maximum_runtime_validator_tt_delta_microseconds": 1.0,
+    "runtime_provider_bound": true,
+    "astronomy_engine_fallback": false,
+    "network_fallback": false
+  },
+  "authority_separation_gate": {
+    "profile_deterministic_rows_exact": true,
+    "past_official_corroborated_rows_exact": true,
+    "future_forecast_nonapproval_rows_exact": true,
+    "future_can_be_hard_gt": false,
+    "provider_generated_value_is_official": false,
+    "fixed_snapshot_cutoff_required": true
+  },
+  "provider_evidence_gate": {
+    "official_printed_date_mismatch_zero": true,
+    "past_rounding_interval_plus_declared_uncertainty_failure_zero": true,
+    "expected_raw_minute_mismatches": 22,
+    "expected_past_raw_minute_mismatches": 14,
+    "expected_future_raw_minute_mismatches": 8,
+    "raw_minute_mismatch_is_strict_release_blocker": true
+  },
+  "expected_report_state": {
+    "candidate_runtime_provider_bound": true,
+    "candidate_runtime_conformance_passed": true,
+    "past_authority_gate_passed": true,
+    "future_authority_separation_gate_passed": true,
+    "strict_runtime_provider_gate_passed": false,
+    "runtime_gate_passed": false,
+    "runtime_approved": false,
+    "release_registry_creation_allowed": false,
+    "production_runtime_provider_changed": false
+  },
+  "promotion_effects": {
+    "runtime_feature_flag_default": false,
+    "release_approval_performed": false,
+    "app_binding_performed": false,
+    "mix20k_v3_1_regeneration_allowed": false,
+    "training_promotion_allowed": false,
+    "phase5_training_performed": false,
+    "sealed_blind_access_allowed": false
+  }
+}

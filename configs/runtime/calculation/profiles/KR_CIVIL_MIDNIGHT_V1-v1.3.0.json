@@ -1,0 +1,45 @@
+{
+  "_description": "Skyfield TT 경계와 KASI UT1 분 라벨을 분리하고 과거·미래 권한을 명시한 candidate profile이다.",
+  "profile_schema_version": "1.3.0",
+  "policy_id": "KR_CIVIL_MIDNIGHT_V1",
+  "profile_revision": "KR_CIVIL_MIDNIGHT_V1-v1.3.0",
+  "status": "skyfield_candidate_runtime_bound_release_pending",
+  "runtime_approved_in_static_contract": false,
+  "approval_requires_new_release_contract": true,
+  "supported_country_codes": ["KR"],
+  "iana_time_zone": "Asia/Seoul",
+  "supported_solar_years": {"minimum": 1900, "maximum": 2049},
+  "year_boundary": "lichun_tt_root",
+  "month_boundary": "twelve_jie_tt_root",
+  "boundary_comparison_time_scale": "TT",
+  "official_label_coordinate": "UT1_NOMINAL_PLUS_FIXED_KST",
+  "day_boundary": "civil_midnight",
+  "hour_clock": "civil_time",
+  "true_solar_time": false,
+  "equation_of_time": false,
+  "historical_timezone": "iana_tzdb_2026c",
+  "branch_ten_god_basis": "main_hidden_stem",
+  "hidden_stem_table": "saju-calculation-policy-v1.0.0",
+  "unknown_time_policy": "hour_pillar_null_and_candidate_set",
+  "dst_gap_policy": "block_without_shift",
+  "dst_fold_policy": "preserve_both_candidates_without_user_fold",
+  "solar_term_provider": "skyfield-1.55-jpl-de440s-builtin-ut1",
+  "official_snapshot_collected_at": "2026-08-31T15:16:50+00:00",
+  "solar_term_authority": {
+    "without_official_coverage": "PROFILE_DETERMINISTIC",
+    "past_official_compatible": "PAST_OFFICIAL_CORROBORATED",
+    "future_physical_instant": "FORECAST_DIAGNOSTIC_NONAPPROVAL",
+    "mixed_result_precedence": [
+      "FORECAST_DIAGNOSTIC_NONAPPROVAL",
+      "PROFILE_DETERMINISTIC",
+      "PAST_OFFICIAL_CORROBORATED"
+    ],
+    "provider_generated_value_is_official": false
+  },
+  "candidate_fact_authority": "HARD_CANDIDATE",
+  "future_hard_gt_allowed": false,
+  "excluded_fields": [
+    "daeun", "gongmang", "twelve_stages", "branch_relations", "day_strength",
+    "geukguk", "yongsin", "automatic_interpretation", "future_event_prediction"
+  ]
+}
