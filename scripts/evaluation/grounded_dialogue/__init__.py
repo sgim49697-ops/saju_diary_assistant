@@ -1,1 +1,3 @@
-# __init__.py - 계산기·FSM을 붙인 모델 해석 품질 진단 레인.
+# __init__.py - grounded dialogue 비봉인 진단 패키지의 공개 버전을 정의한다.
+
+EVALUATION_VERSION = "v0.1.0"

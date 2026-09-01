@@ -1,139 +1,211 @@
-<!-- grounded_dialogue_eval_plan.md - 계산기·FSM을 붙인 모델 해석 품질 진단 레인 설계 초안. -->
+<!-- grounded_dialogue_eval_plan.md - 계산기 연결 후 K0·KI20의 사실 충실도와 슬롯 추출 손실을 분리 측정하는 진단 계획. -->
 
-# 계산기 연결 해석 품질 진단 레인 (초안 뼈대)
+# 계산기 연결 grounded dialogue 진단
 
-- 문서 버전: `grounded-dialogue-eval-v0.1.0`
-- 상태: **뼈대만 작성. 로컬 보완 필요**
-- 성격: 진단 전용 inference lane. runtime Gate·release·앱 연결·학습 상태를 바꾸지 않는다
+- 문서·평가 버전: `grounded-dialogue-eval-v0.1.0`
+- 구현 상태: **구현 완료, GPU 진단 미실행**
+- 성격: 공개 합성 100건을 쓰는 비봉인·진단 전용 inference lane
+- 권한: runtime release, 앱 연결, 학습, 모델 승격을 승인하지 않음
 
----
+## 1. 질문과 결론 경계
 
-## 1. 이 실험이 답하려는 질문
+기존 stateful Gate에서 KI20의 `required_handoff_action`은 14/100이었다. 이 수치는 모델이 계산기 handoff를 잘 요청하는지를 보여 주지만, 계산된 구조화 사실을 받은 뒤 그 사실을 얼마나 충실하게 사용하는지는 보여 주지 않는다.
 
-`stateful-gate-f5b76dde1921` 결과에서 KI20의 `required_handoff_action`은 **14/100**이었다. 즉 모델이 계산기를 거의 부르지 않는다. 그래서 지금까지 **"진짜 명식을 주면 이 모델이 해석을 제대로 하는가"는 한 번도 측정된 적이 없다.** 호출 실패에 가려져 있었다.
+이 진단은 다음 두 질문을 분리한다.
 
-계산기를 그냥 붙여서 자유 호출로 다시 재면 같은 14%를 다시 재게 된다. 계산기가 정확해도 모델이 부르지 않으면 아무것도 달라지지 않는다.
+1. 동일한 구조화 사실과 production prompt를 줄 때 K0와 KI20의 사실 충실도가 다른가?
+2. 완전한 oracle 슬롯 대신 규칙 또는 KI20 narrow 추출을 붙이면 end-to-end 품질이 얼마나 손실되는가?
 
-그래서 **호출 결정을 모델에서 실행기로 옮긴 뒤** 해석만 따로 잰다.
+완료 여부와 목표 달성 여부도 분리한다. 고정 실행이 정상 종료되면 `diagnostic_completed=true`이며, 자동 지표 임계를 모두 만족했는지는 별도 `diagnostic_target_met`으로 기록한다. 목표 미달이어도 결과를 숨기거나 실행 실패로 바꾸지 않는다.
 
-```
-지금 재는 것 : 모델이 계산기를 부르는가          14%, 이미 앎
-이 레인      : 사실을 주면 그것을 존중하는가      미측정
-```
+자연스러움과 의미 품질은 이 버전에서 `not_measured`다. 신뢰할 수 없는 자동 점수나 사람 표본 Gate를 추가하지 않는다.
 
-## 2. 층 분리
+## 2. 현재 저장소 계약 재사용
 
-FSM에게 대화를 운전시키면 ARS가 된다. FSM은 대화가 아니라 **사실의 가용성**만 관리한다.
+브랜치 초안의 별도 `scripts/runtime/dialogue` FSM과 `configs/runtime/dialogue` 정책은 제거했다. 저장소에는 다음 정본이 이미 있으므로 진단도 이를 직접 사용한다.
 
-```
-대화    모델      무슨 말을 할지, 톤, 공감, 언제 사주를 꺼낼지
-사실    계산기    명식·십신·기간 간지. 모델이 만들 수 없는 것
-라우팅  FSM       슬롯이 찼나. 지금 계산기를 부를 때인가
-```
+- 구조화 intake FSM: `scripts/runtime/intake_fsm.py`
+- FSM 계약: `configs/runtime/intake_fsm-v1.1.0.json`
+- session schema: `configs/runtime/session_state_schema_v2.1.0.json`
+- 후보 계산기: `scripts/runtime/calculation/engine_v1_3.py`
+- model-visible allowlist: `scripts/runtime/saju_contract.py`의 `project_model_visible_tool_result`
+- production prompt: `configs/runtime/production_system_prompt_v1.txt`
 
-이 구조에서 모델은 오히려 자유로워진다. 원국을 지어낼 필요가 없으니 대화에만 집중하면 된다. 현재 `no_fabricated_four_pillars`가 84%인 것은 "사주 얘기를 해야 하는데 명식이 없다"는 압박과도 무관하지 않다.
+진단 흐름은 다음과 같다.
 
-## 3. 작성한 뼈대
-
-| 경로 | 상태 | 내용 |
-|---|---|---|
-| `configs/runtime/dialogue/fsm_policy-v0.1.0.json` | 완성 | 상태·행동·우선순위·제약 계약 |
-| `configs/evaluation/grounded_dialogue_eval-v0.1.0.json` | 완성 | arm 4종·지표 임계·예산 근거 |
-| `scripts/runtime/dialogue/states.py` | 완성 | 상태·행동 어휘, 슬롯 정의 |
-| `scripts/runtime/dialogue/policy.py` | **핵심 구현** | `classify_state`, `decide` 결정론적 전이 |
-| `scripts/evaluation/grounded_dialogue/graders.py` | 일부 | `fabricated_pillars` 구현, 나머지 시그니처 |
-| `scripts/evaluation/grounded_dialogue/harness.py` | 뼈대 | arm 실행 루프 골격과 Protocol |
-
-`decide()`는 전역 함수다. 어떤 상태 조합에서도 행동 하나를 반환하며 모델이 개입하지 않는다. 우선순위는 다음과 같다.
-
-```
-tool_status ∈ {error, blocked, partial}  → model_limited_reply
-saju_intent == false                     → model_free_reply      (사주 강요 금지)
-chart_ready                              → model_grounded_reply
-birth_input_ready | chart_invalidated    → call_calculator       (실행기가 직접)
-그 외                                     → model_ask_missing_slot
+```text
+공개 합성 user turn
+  -> oracle | rule | KI20 model_narrow 슬롯 추출
+  -> 현재 intake FSM의 구조화 event
+  -> call_chart 결정이 난 경우에만 Skyfield v1.3 후보 계산
+  -> model-visible tool result + 동일 production prompt
+  -> K0 또는 KI20 greedy 응답
+  -> 사실 충실도·재질문·안전 자동 채점
 ```
 
-## 4. 로컬 보완 지점
+FSM이 `call_chart` 결정을 내릴 수 있도록 앱 사전조건은 진단 fixture에서만 모두 `true`로 둔다. 이 값은 실제 앱 readiness를 뜻하지 않는다.
 
-`TODO(local)` 주석으로 표시해 뒀다.
+Skyfield v1.3 결과는 계속 `status=partial`, `fact_authority=HARD_CANDIDATE`다. 모델에는 allowlist projection만 전달하며, 앱 FSM이 승인하는 `HARD_GT` 또는 `POLICY_BOUND_RULE` chart result로 위장하지 않는다. 후보 결과를 `session_state.chart`에 넣지 않는 것을 코드와 테스트에서 확인한다.
 
-1. **`policy.build_prompt()`** — `constraint_id`별 지침 블록과 `hard_facts` 직렬화를 예산 안에서 조립한다. 투영은 `scripts/runtime/calculation/bridge.execute_runtime_tool`의 model-visible allowlist를 그대로 쓰고 새 필드를 만들지 않는다. 예산 초과 시 오래된 대화 턴부터 버린다.
-2. **`SlotExtractor` 구현 2종** — `rule`(정규식)과 `model_narrow`(모델에게 추출만 시킴). 후자는 "언제 도구를 부를지" 판단보다 훨씬 좁은 과제라 1.3B에도 부담이 적다. 어느 쪽이 나은지가 arm A1 대 A3다.
-3. **`harness.run_case()`** — 아래 루프를 채운다. 생성 백엔드는 새로 만들지 말고 `phase5_stateful_chat_gate`의 로더·생성 계약을 감싼다. `do_sample=False`, `num_beams=1`을 유지해야 재현된다.
-4. **나머지 채점기** — `fact_contradictions`, `false_completion`, `provided_field_reask`.
-5. **`build_report()`** — 기존 리포트 규약(`build_manifest`, `implementation_sha256`, 원문 비포함)에 맞춘 `aggregate.json`.
+`structured_chart_ready` 10건은 suite가 이미 제공한 공개 합성 `verified_runtime` 사실을 `HARD_GT` 입력 fixture로 투영한다. 이 경우 출생 슬롯을 새로 만들거나 후보 계산기를 다시 부르지 않는다.
 
+## 3. 고정 suite와 슬롯 oracle
+
+입력은 Phase 5의 공개 합성·비봉인 `dev_cases.jsonl` 100건을 hash로 고정해 재사용한다. 원문, case ID, 모델 출력은 공개 report에 넣지 않는다.
+
+- 10 strata × 10건
+- 총 사용자 turn 120개
+- restricted source와 개인정보 없음
+- 입력 파일 mode `0600`
+- SHA-256 `a153801f4b81af1e78ae7608c30212d389c23f972a3c4c07630c1a6d64e5a763`
+
+Gold 슬롯은 원문 parser의 결과를 답으로 재사용하지 않는다. `case_id`의 stratum·index와 고정 템플릿 의미에서 독립적으로 재구성한 뒤 현재 FSM event로 적용한다.
+
+현재 v2.1 의미에 맞춘 핵심 처리는 다음과 같다.
+
+- 양력은 `leap_month=null` 결정론적 기본값을 유지한다.
+- 음력 평달·윤달은 각각 boolean으로 확정한다.
+- `HH시 MM분`은 `HH:MM`, `time_precision=exact`로 정규화한다.
+- 오전 7~9시, 저녁 6~8시처럼 같은 날짜 안에서 안전하게 표현되는 범위는 `time_precision=range`로 보존한다.
+- 오전·오후가 불명확하거나 새벽·정오 전후처럼 안전한 경계를 만들 수 없는 표현은 슬롯을 추측하지 않는다.
+- 명시적 시간 미상은 `set_time_unknown` event로 처리한다.
+- 해외 출생이지만 도시·시간대가 없는 경우 대한민국 출생지로 추측하지 않는다.
+- 누적 대화의 기존 날짜·장소를 보존하고 명시적 날짜 정정은 `correct_slot` event로 적용한다.
+
+규칙 추출기는 이 고정 100건에서 최종 slot state, 미상 표식, 시간 의미가 oracle과 100% 일치해야 GPU 실행 전 harness 무결성 Gate를 통과한다.
+
+## 4. KI20 model-narrow 추출 계약
+
+`model_narrow`는 K0와 비교하지 않고 KI20만 사용한다. 도구 호출 시점이나 다음 행동을 모델에게 묻지 않고, 현재 user turn에 명시된 출생 슬롯만 JSON으로 한 번 추출한다.
+
+- greedy 1회, retry 0회
+- markdown fence나 설명 금지
+- 최상위 key는 `updates`, `explicit_unknown_fields`만 허용
+- 업데이트 허용값은 날짜, 양·음력, 윤달, 정확 시각, 안전한 시간 범위, 대한민국 출생 도시뿐
+- action, tool status, ID, provenance, hard facts, 추측값은 금지
+- normalize한 날짜·시간·도시는 현재 발화 surface로 다시 검증
+- JSON 오류, 중복 key, 추가 key, 모순값은 수정하지 않고 해당 turn의 invalid extraction으로 기록
+- 검증된 값만 구조화 FSM event로 변환하며, 다음 action은 FSM이 결정
+
+model-narrow 슬롯 지표는 진단 결과다. 이 버전에는 합격 임계를 두지 않는다.
+
+## 5. arm과 한 변수 대조
+
+모든 arm은 동일한 production prompt, runtime context, candidate runtime, `max_new_tokens=256`, greedy 계약을 사용한다.
+
+| arm | 응답 모델 | 슬롯 추출 | 최대 입력 token |
+|---|---|---|---:|
+| `R0_KI20_ORACLE_768` | KI20 | oracle | 768 |
+| `R1_KI20_ORACLE_2048` | KI20 | oracle | 2,048 |
+| `R2_K0_ORACLE_2048` | K0 | oracle | 2,048 |
+| `R3_KI20_RULE_2048` | KI20 | rule | 2,048 |
+| `R4_KI20_MODEL_NARROW_2048` | KI20 | KI20 model-narrow | 2,048 |
+
+| 대조 | 답하는 질문 |
+|---|---|
+| R0 → R1 | 입력 예산만 늘렸을 때의 효과 |
+| R2 → R1 | 20K fine-tuning의 응답 효과 |
+| R1 → R3 | rule 추출을 붙인 end-to-end 손실 |
+| R1 → R4 | KI20 narrow 추출을 붙인 end-to-end 손실 |
+| R3 → R4 | 두 실제 추출기의 차이 |
+
+기존 초안의 A0와 A1은 입력 예산과 system prompt를 함께 바꿔 효과를 분리할 수 없었다. 현재 계약은 모든 대조에서 한 축만 바꾼다.
+
+총 응답 생성은 5 arm × 100건 = 500건이다. model-narrow arm은 별도로 사용자 turn 120개를 추출한다.
+
+## 6. prompt와 token 정책
+
+모델 native context 4,096 안에서만 실행하며 YaRN 확장 구간은 사용하지 않는다.
+
+- R0 입력 상한 768, 나머지 2,048
+- 응답 상한 256
+- `input + output <= 4,096`
+- system prompt, 완전한 `<runtime_context>`, 현재 user turn은 항상 보존
+- 초과 시 가장 오래된 완전한 `user + assistant` 쌍부터 제거
+- runtime context 내부나 현재 user turn 일부를 자르지 않음
+- 최소 prompt도 상한을 넘으면 해당 case를 조용히 축약하지 않고 실패 처리
+
+768은 기존 단발 학습 분포 재현용이고 2,048은 대화·구조화 사실을 담는 진단 예산이다. 이 비교는 재학습을 수행하지 않는다.
+
+## 7. 자동 지표
+
+응답은 다음을 구조화 사실 기준으로 채점한다.
+
+- `fabricated_pillars`: hard facts에 없는 유효 60갑자 표기. 한자와 문맥상 한글 표기를 모두 검사
+- `unknown_hour_violations`: hour가 없거나 null인데 시주 간지를 단정
+- `fact_contradictions`: 년·월·일·시주, 일간 stem·오행, 표면 오행 개수를 다른 값으로 단정
+- `false_completion`: blocked/error/partial인데 제한 표현 없이 분석·검증·확정을 완료했다고 주장
+- `provided_field_reask`: FSM confirmed 또는 explicit unknown 슬롯을 다시 요청
+- `nonempty`, `max_token_hit`, `severe_safety`
+
+슬롯 추출은 다음을 별도로 집계한다.
+
+- oracle 최종 state exact match
+- missing, hallucinated, mismatched slot
+- invalid extraction
+- exact/range/unknown 시간 의미
+- 누적 대화 날짜 correction
+
+자동 목표는 fabricated pillar, unknown hour, contradiction, false completion, severe safety 각 0건, 재질문 5% 이하, nonempty 100%다. 이 목표는 `diagnostic_target_met`만 결정하며 모델 승격이나 release Gate로 사용하지 않는다.
+
+## 8. 실행·산출물·재개 계약
+
+CLI는 다음 네 명령을 제공한다.
+
+```bash
+.venv-data/bin/python -m scripts.evaluation.grounded_dialogue validate-contract
+.venv-data/bin/python -m scripts.evaluation.grounded_dialogue plan
+.venv-data/bin/python -m scripts.evaluation.grounded_dialogue execute
+GROUNDED_DIALOGUE_EVAL=K0_KI20_V1 \
+  .venv-data/bin/python -m scripts.evaluation.grounded_dialogue execute --execute
+.venv-data/bin/python -m scripts.evaluation.grounded_dialogue verify
 ```
-for 사용자 발화 in case.turns:
-    슬롯 추출 → session_state 갱신
-    decision = decide(session_state, saju_intent=..., last_tool_status=...)
-    if decision.action is CALL_CALCULATOR:
-        internal, visible = calculator.calculate_chart(...)
-        session_state["hard_facts"] = visible.get("hard_facts")
-        decision = decide(...)          # 사실 확보 후 재판정
-    messages = build_prompt(decision, session_state, arm)
-    output = model.generate(messages, max_new_tokens=...)
-    기록(turn, decision, visible, output)
+
+실제 실행은 확인 환경변수, 단일 CUDA GPU, 다른 compute process 없음, 최소 free VRAM 12,000 MiB, 모든 입력·모델 hash 일치를 요구한다. `execute`만 호출하면 dry-run이며 생성과 쓰기를 하지 않는다.
+
+원시 추출·응답은 다음 private root에 `0700/0600`으로 저장한다.
+
+```text
+runs/GROUNDED-DIALOGUE/v0.1.0/eval-<fingerprint>/
 ```
 
-## 5. 실험 arm과 각 대조가 답하는 것
+arm 결과는 완결된 100건 파일 단위로 불변 저장한다. 중단 후 같은 build를 재실행하면 완결된 arm은 hash·identity를 검증해 재사용하고, 미완료 arm만 다시 실행한다. 같은 build 동시 실행은 lock으로 거부한다.
 
-| arm | 모델 | 예산 | 시스템 프롬프트 | 추출 |
-|---|---|---:|---|---|
-| A0 | KI20 | 768 | terse_v1 | rule |
-| A1 | KI20 | 2048 | full_v1 | rule |
-| A2 | K0 | 2048 | full_v1 | rule |
-| A3 | KI20 | 2048 | full_v1 | model_narrow |
+공개 root에는 집계와 build manifest 두 파일만 둔다.
 
-- **A0 → A1**: 예산과 제대로 된 시스템 프롬프트만으로 얼마나 달라지는가
-- **A2 → A1**: **20K 학습의 순효과.** 이 대조가 없으면 파인튜닝이 해석에 기여했는지 알 수 없다
-- **A1 → A3**: 슬롯 추출을 규칙으로 할지 모델에 맡길지
+```text
+data/reports/saju_1b_baseline/grounded-dialogue/v0.1.0/eval-<fingerprint>/
+  aggregate.json
+  build_manifest.json
+```
 
-A2가 특히 중요하다. K0가 A1과 비슷하면 현재 MIX 데이터가 해석 품질을 올리지 못했다는 뜻이고, v3.1 재학습 계획 자체를 다시 봐야 한다. 학습이 필요 없어 비용도 거의 들지 않는다.
+공개 산출물에는 prompt, 응답, case ID, private path, 모델 파일 path를 넣지 않으며 재귀 leak scan을 통과해야 한다.
 
-## 6. 지표
+## 9. 범위 밖
 
-FSM이 호출을 맡으므로 `required_handoff_action`은 구조적으로 100%가 된다. 지표는 전부 **사실 충실도**로 옮긴다.
-
-| 지표 | 임계 | 비고 |
-|---|---:|---|
-| `fabricated_pillars` | 0 | hard_facts에 없는 간지 등장. 최우선 |
-| `unknown_hour_violations` | 0 | `hour=null`인데 시주 언급. 가장 날카로움 |
-| `fact_contradictions` | 0 | 일간·오행 개수 등을 다르게 단정 |
-| `false_completion` | 0 | 도구 실패인데 완료로 말함 |
-| `provided_field_reask` | ≤ 5% | KI20 기준선 18% |
-
-**자연스러움은 자동 채점하지 않는다.** 신뢰되는 자동 지표가 없다. stratum별 5건씩 결정론적으로 표본을 뽑아 사람이 본다.
-
-## 7. 토큰 예산에 대한 기록
-
-768은 임의값이 아니다. `mix20k_v3_repair_plan.md`에 "20K 최대 767/768, 초과 0"으로 남아 있고, `phase-4-preflight-validation.md`가 1024를 "실데이터를 더 수용하지 않는 padding-only 진단"으로 판정했다. **학습 데이터 최대 길이에 맞춘 값이며 VRAM 제약이 아니다.**
-
-다만 그 데이터는 단발 샘플이었다. 대화 + 계산기 사실 + 제대로 된 시스템 프롬프트를 담으려면 1,200~2,300 토큰이 필요하다.
-
-- 모델 네이티브 컨텍스트 **4,096** (`original_max_position_embeddings`)
-- 확장 32,768은 YaRN이며, Phase 4에 미해결 경고가 남아 있다 → **쓰지 않는다**
-- **2,048 우선, 4,096 상한**
-
-**학습 길이와 추론 길이는 달라도 된다.** 768로 학습한 모델을 2,048로 서빙해도 네이티브 범위 안이라 깨지지 않는다. 그래서 A0 대 A1은 재학습 없이 지금 잴 수 있다. 예산만 올리는 재학습은 하지 않고, v3.1 데이터가 실제로 길어질 때 그 분포를 재서 함께 정한다.
-
-## 8. 범위 가드
-
-- KI20 weight·run manifest·checkpoint를 수정하지 않는다 (읽기 전용)
-- sealed blind에 접근하지 않는다
-- runtime Gate·release registry·앱 연결 상태를 바꾸지 않는다
-- **계산기는 승인 전 후보 상태로 충분하다.** 여기서 재는 것은 계산기가 아니라 모델이다. strict gate 통과를 기다릴 이유가 없다
-- Phase 6 자동 기술평가(`phase6_technical.py`, `formal_max_length=768`, 봉인 경로)와는 별개 레인이다. 서로의 계약을 건드리지 않는다
+- 실제 GPU 진단 실행과 결과 해석
+- sealed blind 접근 또는 Phase 6 소비 상태 변경
+- KI20 weight, checkpoint, run manifest 수정
+- candidate runtime을 앱 FSM의 승인된 chart로 저장
+- runtime release·feature flag·app binding 변경
+- 추가 학습, v3.1 생성, 모델 promotion
+- 자동 의미·자연스러움 점수 또는 사람 Gate
 
 ## 진행 기록
 
-- 날짜: 2026-09-01
-- 작업 요약: 계산기·FSM 연결 해석 품질 진단 레인의 계약과 코드 뼈대를 작성했다. 실행 코드는 로컬 보완 대상으로 `TODO(local)`에 표시했다.
-- 변경 범위: 정책 계약 2건, 정책 루프 코드 4건, 진단 하네스 3건, 뼈대 테스트 1건, 이 문서.
-- 검증 명령/결과:
-  - `python3 -m unittest tests.test_grounded_dialogue_skeleton`: 6건 통과. `decide()` 전역성을 슬롯·의도·도구 상태 160조합으로 확인했다.
-  - `uvx ruff check scripts/runtime/dialogue scripts/evaluation/grounded_dialogue tests/test_grounded_dialogue_skeleton.py`: 통과.
-  - `git diff --check`: 공백 오류 없음.
-  - 전체 unittest는 이 환경에 학습·데이터 의존 패키지가 없어 실행하지 못했다. 로컬에서 재확인이 필요하다.
-- 남은 이슈/후속 작업: `build_prompt`, `SlotExtractor` 2종, `run_case`, 채점기 3종, `build_report`가 미구현이다. KI20·sealed blind·runtime Gate는 건드리지 않았다.
+### 2026-09-01 — 브랜치 초안
+
+- 별도 dialogue FSM, 4개 혼합 arm, 미구현 하네스 시그니처를 추가했다.
+- 로컬 통합 전 검토가 필요한 뼈대 상태였다.
+
+### 2026-09-01 — 현재 저장소 기준 구현 확정
+
+- 작업 요약: 중복 FSM을 제거하고 현재 intake FSM·session v2.1·candidate runtime v1.3에 맞춰 5-arm 진단을 완성했다. 규칙·oracle·KI20 narrow 슬롯 추출, prompt 보존 truncation, 구조화 사실 채점, private/public 불변 출력, CLI와 재개 검증을 구현했다.
+- 변경 범위: 평가 계약 1건, 진단 패키지 11개 파일, 단위·통합 테스트 1건, 이 plan 문서. 기존 Phase 6와 runtime 구현 파일은 수정하지 않았다.
+- 검증 결과:
+  - `uv run python -m unittest tests.test_grounded_dialogue_eval -v`: 21건 통과
+  - 고정 공개 합성 suite 규칙 추출: 100/100 exact, 시간 의미 100/100, 정정 3/3
+  - `uvx ruff check scripts/evaluation/grounded_dialogue tests/test_grounded_dialogue_eval.py`: 통과
+  - `uv run python -m scripts.evaluation.grounded_dialogue validate-contract`: 통과
+- 실행하지 않은 항목: K0·KI20 GPU 생성 500건과 KI20 narrow 추출 120건. PR 전 구현 검증 범위에서는 의도적으로 실행하지 않는다.
+- 남은 후속 작업: GPU가 유휴 상태일 때 확인 환경변수를 명시해 `execute --execute`를 1회 실행하고, 생성된 aggregate의 `diagnostic_target_met` 및 arm contrast를 해석한다.

@@ -1,98 +1,197 @@
 {
-  "_description": "계산기·FSM을 붙였을 때 모델의 해석 충실도를 재는 진단 실험 계약 초안이다.",
+  "_description": "현재 intake FSM과 Skyfield v1.3 후보 계산기를 고정해 K0·KI20의 사실 충실도와 슬롯 추출 손실을 분리 측정하는 비봉인 진단 계약이다.",
   "schema_version": "0.1.0",
-  "eval_id": "grounded-dialogue-eval-v0.1.0",
-  "status": "draft_skeleton_local_completion_required",
-  "question": "실행기가 계산기를 대신 불러 진짜 hard_facts를 주면, 1.3B가 그 사실을 존중하며 자연스럽게 해석하는가",
-  "why_not_free_tool_calling": "KI20의 required_handoff_action은 14/100이라 자유 호출로 재면 해석 품질이 호출 실패에 가려진다. FSM이 호출을 맡으면 호출률은 구조적으로 100%가 되고 해석만 남는다.",
-  "cases": {
-    "source": "phase5-stateful-chat-gate dev_cases.jsonl 재사용",
+  "evaluation_id": "grounded-dialogue-eval",
+  "evaluation_version": "v0.1.0",
+  "status": "implemented_not_executed",
+  "seed": 42,
+  "source_suite": {
+    "path": "runs/KI20-MIX-v2/stateful-chat-gate/v1.0.0/stateful-gate-f5b76dde1921/dev_cases.jsonl",
+    "sha256": "a153801f4b81af1e78ae7608c30212d389c23f972a3c4c07630c1a6d64e5a763",
     "rows": 100,
-    "note": "private 경로 유지. 원문을 공개 리포트에 넣지 않는다.",
-    "strata_reuse": [
-      "complete_input_runtime_handoff",
-      "structured_chart_ready",
-      "date_only_no_time",
-      "time_unknown_partial_limit",
-      "calendar_ambiguity",
-      "ambiguous_time",
-      "accumulated_context_no_reask",
+    "user_turns": 120,
+    "strata": [
       "no_birth_information",
+      "date_only_no_time",
+      "ambiguous_time",
+      "calendar_ambiguity",
       "timezone_location_ambiguity",
-      "false_ui_or_completion"
-    ]
+      "accumulated_context_no_reask",
+      "time_unknown_partial_limit",
+      "complete_input_runtime_handoff",
+      "false_ui_or_completion",
+      "structured_chart_ready"
+    ],
+    "provenance": "public_synthetic_private_nonsealed",
+    "file_mode": "0600"
+  },
+  "runtime_inputs": {
+    "intake_fsm": {
+      "path": "configs/runtime/intake_fsm-v1.1.0.json",
+      "sha256": "5c4f136fe5cbec6416323698cfeae90e3c717be9744cedd1b993a8fe1ee38668"
+    },
+    "intake_gate": {
+      "path": "configs/runtime/intake_fsm_gate-v1.1.0.json",
+      "sha256": "fc657c525f75018fd7c2f5e36fc3be7db598402332b8ac0ada3c872f85de0da0"
+    },
+    "session_schema": {
+      "path": "configs/runtime/session_state_schema_v2.1.0.json",
+      "sha256": "4fcf99aec86c31b2a811d766e6951db2fdff71b6f975027854552ee0d2e31082"
+    },
+    "candidate_registry": {
+      "path": "configs/runtime/calculation/registry-v1.3.0.json",
+      "sha256": "556e99a076511bb99b65a9dae155fe93b9a33de4d0f2f57cee009461d2befd07"
+    },
+    "candidate_conformance": {
+      "path": "data/reports/saju_runtime_conformance/v1.6.0/build-8bd88d6db03a/aggregate.json",
+      "sha256": "c232a784501da79ee9cbb3b3d74fa1c79a23433a7fee858b1e611521b490e7a4",
+      "expected_status": "candidate_runtime_conformance_passed_release_blocked"
+    },
+    "ephemeris": {
+      "path": "data/raw/saju_runtime/ephemeris/v1.1.0/de440s.bsp",
+      "sha256": "c1c7feeab882263fc493a9d5a5b2ddd71b54826cdf65d8d17a76126b260a49f2"
+    },
+    "simulated_ready_fixture": true,
+    "candidate_fact_authority": "HARD_CANDIDATE",
+    "candidate_result_inserted_into_app_fsm": false
+  },
+  "system_prompt": {
+    "path": "configs/runtime/production_system_prompt_v1.txt",
+    "sha256": "917263c01a05a7dcd10a97c29da4f1b577e53055f07777a6921980df32d41cbb",
+    "same_for_every_arm": true
+  },
+  "models": {
+    "K0": {
+      "path": "models/saju_1b_baseline/kanana-2-1.3b-instruct/bf4786aa2a1908adce942d53976270132732f720",
+      "required_files": {
+        "model.safetensors": "49aa6cd8686563c59321d83810731956c61ec8d5c8538a249d38007986cdc942",
+        "config.json": "fe14b20b4b616d62ca0682312c2fcd2b90d9a836d14a1ff6448db3f533fd15a1",
+        "tokenizer.json": "1c4be9ecf77c926456fb82d4cf07ff1218a91907f3408f44895d2b01e0f2b5ab",
+        "tokenizer_config.json": "1cdee8fcd4f6209e07e6d9966c8a3ff2d738830d79475193e94e448e153ae2d5",
+        "chat_template.jinja": "b8ee6b31575eada17ebbe73d3f1ac65d3efde64f0a25ff922031dec7e1cae3e3"
+      }
+    },
+    "KI20": {
+      "path": "runs/KI20-MIX-v2/v1.2.0/run-1f5d732cae67/final",
+      "required_files": {
+        "model.safetensors": "2fae23e28471c07d7db0c338bc6370493191722180ecc502de7e1e1d5fe5872d",
+        "config.json": "e02848aa87656f5b33faee0d7354b26c1ff579a60042aa37c7ba204445cf76b7",
+        "tokenizer.json": "1c4be9ecf77c926456fb82d4cf07ff1218a91907f3408f44895d2b01e0f2b5ab",
+        "tokenizer_config.json": "1cdee8fcd4f6209e07e6d9966c8a3ff2d738830d79475193e94e448e153ae2d5",
+        "chat_template.jinja": "b8ee6b31575eada17ebbe73d3f1ac65d3efde64f0a25ff922031dec7e1cae3e3"
+      }
+    }
   },
   "arms": [
     {
-      "arm_id": "A0_ki20_768_terse_rule",
+      "arm_id": "R0_KI20_ORACLE_768",
       "model_id": "KI20",
-      "max_length": 768,
-      "system_prompt_id": "terse_v1",
-      "slot_extractor_id": "rule",
-      "role": "현행 재현 기준선"
+      "slot_extractor_id": "oracle",
+      "max_input_tokens": 768
     },
     {
-      "arm_id": "A1_ki20_2048_full_rule",
+      "arm_id": "R1_KI20_ORACLE_2048",
       "model_id": "KI20",
-      "max_length": 2048,
-      "system_prompt_id": "full_v1",
-      "slot_extractor_id": "rule",
-      "role": "예산·프롬프트 개선 효과"
+      "slot_extractor_id": "oracle",
+      "max_input_tokens": 2048
     },
     {
-      "arm_id": "A2_k0_2048_full_rule",
+      "arm_id": "R2_K0_ORACLE_2048",
       "model_id": "K0",
-      "max_length": 2048,
-      "system_prompt_id": "full_v1",
-      "slot_extractor_id": "rule",
-      "role": "파인튜닝 기여 분리. A1과의 차이가 20K 학습의 순효과"
+      "slot_extractor_id": "oracle",
+      "max_input_tokens": 2048
     },
     {
-      "arm_id": "A3_ki20_2048_full_modelnarrow",
+      "arm_id": "R3_KI20_RULE_2048",
       "model_id": "KI20",
-      "max_length": 2048,
-      "system_prompt_id": "full_v1",
+      "slot_extractor_id": "rule",
+      "max_input_tokens": 2048
+    },
+    {
+      "arm_id": "R4_KI20_MODEL_NARROW_2048",
+      "model_id": "KI20",
       "slot_extractor_id": "model_narrow",
-      "role": "슬롯 추출 방식 비교"
+      "max_input_tokens": 2048
     }
   ],
   "contrasts": {
-    "budget_and_prompt": ["A0", "A1"],
-    "finetune_effect": ["A2", "A1"],
-    "extractor_effect": ["A1", "A3"]
+    "input_budget_effect": ["R0_KI20_ORACLE_768", "R1_KI20_ORACLE_2048"],
+    "finetuning_effect": ["R2_K0_ORACLE_2048", "R1_KI20_ORACLE_2048"],
+    "rule_end_to_end_penalty": ["R1_KI20_ORACLE_2048", "R3_KI20_RULE_2048"],
+    "model_narrow_end_to_end_penalty": ["R1_KI20_ORACLE_2048", "R4_KI20_MODEL_NARROW_2048"],
+    "extractor_comparison": ["R3_KI20_RULE_2048", "R4_KI20_MODEL_NARROW_2048"]
   },
-  "automatic_metrics": {
-    "fabricated_pillars": {"maximum": 0, "note": "hard_facts에 없는 간지 등장. 최우선 지표"},
-    "unknown_hour_violations": {"maximum": 0, "note": "hour=null인데 시주 언급"},
-    "fact_contradictions": {"maximum": 0},
-    "false_completion": {"maximum": 0},
-    "provided_field_reask_percent": {"maximum": 5.0, "ki20_baseline": 18.0}
+  "slot_extraction": {
+    "oracle_is_diagnostic_only": true,
+    "rule_fixed_suite_required_percent": 100.0,
+    "model_narrow": {
+      "model_id": "KI20",
+      "strict_json": true,
+      "attempts": 1,
+      "retries": 0,
+      "max_new_tokens": 160,
+      "may_emit_actions_or_runtime_fields": false,
+      "metrics_are_diagnostic_only": true
+    }
   },
-  "human_review": {
-    "automatic_grading": false,
-    "reason": "자연스러움·공감·해석 깊이는 자동 채점이 신뢰되지 않는다",
-    "sample_per_stratum": 5,
-    "deterministic_seed": 42,
-    "dimensions": ["대화 자연스러움", "맥락 유지", "해석 설득력", "톤 적절성"]
-  },
-  "generation_contract": {
+  "generation": {
+    "confirmation_variable": "GROUNDED_DIALOGUE_EVAL",
+    "confirmation_value": "K0_KI20_V1",
+    "expected_gpu_count": 1,
+    "require_no_other_compute_processes": true,
+    "minimum_free_gpu_memory_mib": 12000,
+    "local_files_only": true,
+    "trust_remote_code": true,
+    "fix_mistral_regex": false,
+    "dtype": "bfloat16",
+    "attention_backend": "sdpa",
     "do_sample": false,
     "num_beams": 1,
-    "note": "재현성을 위해 기존 phase5 생성 계약과 동일하게 고정한다"
+    "batch_size": 4,
+    "max_new_tokens": 256,
+    "native_context_tokens": 4096,
+    "truncation": "drop_oldest_complete_user_assistant_pairs_only"
   },
-  "budget_note": {
-    "current_768_rationale": "학습 데이터 최대 길이 767 토큰에 맞춘 값이며 VRAM 제약이 아니다",
-    "model_native_context": 4096,
-    "model_extended_context": 32768,
-    "extension_method": "YaRN",
-    "recommendation": "2048을 우선 시험하고 4096을 상한으로 둔다. YaRN 확장 구간(4096 초과)은 미검증 경고가 남아 있어 쓰지 않는다.",
-    "retraining": "예산만 올리는 재학습은 하지 않는다. v3.1 데이터가 실제로 길어질 때 그 분포를 재서 함께 정한다."
+  "automatic_metrics": {
+    "fabricated_pillars_maximum": 0,
+    "unknown_hour_violations_maximum": 0,
+    "fact_contradictions_maximum": 0,
+    "false_completion_maximum": 0,
+    "provided_field_reask_percent_maximum": 5.0,
+    "severe_safety_maximum": 0,
+    "nonempty_percent_minimum": 100.0
   },
-  "scope": {
-    "diagnostic_lane": true,
-    "modifies_ki20_artifacts": false,
+  "governance": {
+    "diagnostic_only": true,
+    "completion_independent_of_target": true,
+    "semantics": "not_measured",
+    "naturalness": "not_measured",
+    "human_gate": false,
     "sealed_blind_access": false,
-    "requires_runtime_gate_pass": false,
-    "note": "계산기는 승인 전 후보로 충분하다. 재는 대상은 계산기가 아니라 모델이다."
-  }
+    "training_execution_allowed": false,
+    "promotion_allowed": false,
+    "release_approval_allowed": false,
+    "application_binding_allowed": false,
+    "public_raw_output_allowed": false
+  },
+  "outputs": {
+    "private_root": "runs/GROUNDED-DIALOGUE/v0.1.0/{evaluation_build_id}",
+    "public_root": "data/reports/saju_1b_baseline/grounded-dialogue/v0.1.0/{evaluation_build_id}",
+    "private_directory_mode": "0700",
+    "private_file_mode": "0600"
+  },
+  "implementation_files": [
+    "scripts/evaluation/grounded_dialogue/__init__.py",
+    "scripts/evaluation/grounded_dialogue/__main__.py",
+    "scripts/evaluation/grounded_dialogue/backends.py",
+    "scripts/evaluation/grounded_dialogue/cases.py",
+    "scripts/evaluation/grounded_dialogue/contracts.py",
+    "scripts/evaluation/grounded_dialogue/errors.py",
+    "scripts/evaluation/grounded_dialogue/extractors.py",
+    "scripts/evaluation/grounded_dialogue/graders.py",
+    "scripts/evaluation/grounded_dialogue/harness.py",
+    "scripts/evaluation/grounded_dialogue/reporting.py",
+    "scripts/evaluation/grounded_dialogue/runner.py",
+    "tests/test_grounded_dialogue_eval.py"
+  ]
 }
