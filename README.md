@@ -4,7 +4,7 @@
 
 Kanana 2 1.3B 기반 한국어 사주·공감 대화 baseline 프로젝트다. `KI10-MIX-v2`와 독립 `KI20-MIX-v2/run-1f5d732cae67`의 1 epoch Full FT·최종 새 프로세스 재로딩을 완료했다. Phase 6 sealed blind 자동 기술평가는 단회 완료됐고 현재 baseline 결정은 `AUTOMATED_REPAIR_REQUIRED`다. sealed blind 재실행과 품질 인증·production 승격은 금지 상태다.
 
-계산기는 Skyfield 1.55·고정 JPL DE440s·내장 UT1을 결합한 v1.3 candidate runtime과 conformance v8까지 구현했다. 과거 공식 근거 전용 loopback 진단 화면도 실제 DE440s 120/120 Gate를 통과했지만 strict runtime Gate·release·production 앱 연결은 차단돼 있다. `MIX20K-v3.0.1-repaired/build-94eb7b543490`도 자동 기술 Gate가 남은 비학습 후보이며 v3.1 생성·추가 학습은 수행하지 않았다.
+계산기는 Skyfield 1.55·고정 JPL DE440s·내장 UT1 v1.3 후보를 보존하면서, 정규화 양력 `1920-01-07~2026-08-31`의 과거 공식 원국만 허용하는 v1.4 chart-only runtime을 구현했다. conformance v9 `build-9f1784e74a4e`와 release `saju-runtime-release-v1.4.0-63dc8d398e90`을 검증했지만 feature는 기본 off이고 strict/full Gate·기간 계산·production 앱 연결은 차단돼 있다. `MIX20K-v3.0.1-repaired/build-94eb7b543490`도 자동 기술 Gate가 남은 비학습 후보이며 v3.1 생성·추가 학습은 수행하지 않았다.
 
 - [프로젝트 현황판](PROJECT_STATUS.html)
 - [10K/20K 정본 계획](implementation/plans/saju_1b_10k_20k_baseline/README.md)

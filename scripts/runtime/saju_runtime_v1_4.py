@@ -1,0 +1,120 @@
+# saju_runtime_v1_4.py - chart-only release runtime v1.4의 검증·계산 CLI를 제공한다.
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from collections.abc import Sequence
+from pathlib import Path
+from typing import Any
+
+from scripts.runtime.calculation.contracts_v1_4 import (
+    runtime_source_versions_v1_4,
+    validate_contract_registry_v1_4,
+    validate_release_registry_v1_4,
+)
+from scripts.runtime.calculation.engine_v1_4 import (
+    ApprovedSajuRuntimeEngineV14,
+    execute_approved_runtime_tool_v1_4,
+)
+from scripts.runtime.calculation.errors import RuntimeCalculationError
+
+
+def _object_without_duplicates(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    value: dict[str, Any] = {}
+    for key, item in pairs:
+        if key in value:
+            raise RuntimeCalculationError(
+                "INPUT_JSON_DUPLICATE_KEY", f"입력 JSON에 중복 key가 있습니다: {key}"
+            )
+        value[key] = item
+    return value
+
+
+def _load_input(path: str) -> dict[str, Any]:
+    try:
+        text = sys.stdin.read() if path == "-" else Path(path).read_text(encoding="utf-8")
+        value = json.loads(text, object_pairs_hook=_object_without_duplicates)
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        raise RuntimeCalculationError(
+            "INPUT_JSON_INVALID", "입력 JSON을 읽을 수 없습니다."
+        ) from exc
+    if not isinstance(value, dict):
+        raise RuntimeCalculationError(
+            "INPUT_JSON_INVALID", "입력 JSON 최상위는 object여야 합니다."
+        )
+    return value
+
+
+def _parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description="한국 만세력 chart-only runtime v1.4")
+    commands = parser.add_subparsers(dest="command", required=True)
+    commands.add_parser("verify-contract")
+    commands.add_parser("environment")
+    release = commands.add_parser("verify-release")
+    release.add_argument("--release-registry", type=Path, required=True)
+    calculate = commands.add_parser("calculate")
+    calculate.add_argument(
+        "--tool",
+        choices=["calculate_saju_chart", "calculate_saju_period"],
+        default="calculate_saju_chart",
+    )
+    calculate.add_argument("--input", required=True)
+    calculate.add_argument("--release-registry", type=Path)
+    calculate.add_argument("--ephemeris", type=Path)
+    calculate.add_argument("--id-key-file", type=Path)
+    calculate.add_argument("--enable-approved-runtime", action="store_true")
+    return parser
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    args = _parser().parse_args(argv)
+    try:
+        if args.command == "verify-contract":
+            result = {
+                "status": "verified",
+                "registry": validate_contract_registry_v1_4()["registry_id"],
+            }
+        elif args.command == "environment":
+            result = {
+                "status": "verified",
+                "source_versions": runtime_source_versions_v1_4(
+                    require_runtime_dependencies=False
+                ),
+            }
+        elif args.command == "verify-release":
+            release = validate_release_registry_v1_4(args.release_registry)
+            result = {
+                "status": "verified_chart_only",
+                "release_id": release["release_id"],
+                "approved_tools": release["approved_tools"],
+                "blocked_tools": release["blocked_tools"],
+                "runtime_feature_flag_default": False,
+                "production_id_key_required": True,
+            }
+        else:
+            with ApprovedSajuRuntimeEngineV14(
+                release_registry=args.release_registry,
+                enable_approved_runtime=args.enable_approved_runtime,
+                ephemeris_path=args.ephemeris,
+                id_key_file=args.id_key_file,
+            ) as engine:
+                internal, visible = execute_approved_runtime_tool_v1_4(
+                    engine, args.tool, _load_input(args.input)
+                )
+            result = {"internal": internal, "model_visible": visible}
+    except RuntimeCalculationError as exc:
+        print(
+            json.dumps(
+                {"status": "error", "code": exc.code, "message": exc.message},
+                ensure_ascii=False,
+            )
+        )
+        return 2
+    print(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

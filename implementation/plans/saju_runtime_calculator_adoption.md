@@ -4,14 +4,14 @@
 
 | 항목 | 값 |
 |---|---|
-| 문서 버전 | `runtime-calculator-adoption-v2.8.0` |
-| 정본화 기준일 | 2026-09-01 |
-| 구현 시작 기준 `master` | `22fa6943c625b7caad7a7fb9cfd174a6a01992e6` |
+| 문서 버전 | `runtime-calculator-adoption-v2.9.0` |
+| 정본화 기준일 | 2026-09-02 |
+| 현재 구현 기준 `master` | `8162d8954f9482e43ee4da64479406a40414242b` |
 | 기준 모델 run | `KI20-MIX-v2/run-1f5d732cae67` |
 | 모델 run 상태 | `trained_and_reloaded`, production 승격 금지 |
 | runtime profile | `KR_CIVIL_MIDNIGHT_V1` |
-| runtime 상태 | Skyfield/DE440s+builtin UT1을 v1.3 candidate runtime에 TT 기준으로 결합하고 과거·미래 권한을 분리함. 증거 fail-closed 보강 뒤 conformance v8.0.0 `build-8bd88d6db03a` 통과. 과거 공식 근거 전용 session v2.2/FSM v1.2와 별도 loopback 진단 화면은 12개 층화 120/120 Gate `build-5b80bfb2b7b9`를 통과했으며, strict runtime Gate·release·production 연결은 계속 차단 |
-| 데이터 상태 | v3.1 생성·비학습 preflight 구현, release 전 실행 차단 |
+| runtime 상태 | Skyfield/DE440s+builtin UT1 v1.3 후보를 보존하고, 정규화 양력 `1920-01-07~2026-08-31` 원국만 허용하는 v1.4 chart-only wrapper를 구현함. conformance v9.0.0 `build-9f1784e74a4e`와 release `saju-runtime-release-v1.4.0-63dc8d398e90`을 검증했으며 feature는 기본 off. strict/full runtime Gate·기간 계산·production 앱 연결은 계속 차단 |
+| 데이터 상태 | v3.1 생성·비학습 preflight 구현은 보존하되 chart-only release는 기간 tool을 승인하지 않으므로 v3.1 생성·preflight·학습은 미실행 |
 
 이 문서는 앞서 제공된 `SAJU_RUNTIME_CALCULATOR_ADOPTION_PLAN.md` 조사 초안을 대체하는 저장소 실행 정본이다. 기존 데이터 보정 정본인 [`mix20k_v3_repair_plan.md`](mix20k_v3_repair_plan.md)와 역할을 나눈다.
 
@@ -24,7 +24,7 @@
 
 - production 언어는 Python이다.
 - 지원 지역은 `country_code=KR`, timezone `Asia/Seoul`뿐이다.
-- 지원 양력 연도는 1900~2049다.
+- 후보 계산 범위는 1900~2049를 보존하되, 승인된 chart-only 범위는 정규화 양력 `1920-01-07~2026-08-31`이다.
 - 양력·음력, 정확한 시각·범위·생시 미상을 지원한다.
 - 오전/오후는 새 tool enum을 추가하지 않고 `range`로 정규화한다.
 - 연 경계는 입춘 순간, 월 경계는 12절 순간, 일 경계는 민간시 00:00, 시주는 민간시를 쓴다.
@@ -35,7 +35,11 @@
 
 기존 v1 candidate와 v1.1 산출물은 보존하고, v1.2 승인 wrapper·동적 release registry·HMAC ID·구조화 intake FSM을 새 버전으로 구현했다. R4~R5 실행으로 음양력 54,787일, OpenAPI 150년 전수 scan, KASI 공식 현재 계산 24기 다운로드 1920~2100년, 1964년 역서 근거를 확보했다. v1.4 Gate에서 “가용한 공식 데이터를 모두 수집했는가”와 “그 데이터에 맞는 provider가 있는가”를 분리했고, v1.5 Gate는 provider 후보 선정과 strict runtime 승인을 다시 분리한다. Skyfield/DE440s의 같은 TT root를 Skyfield 1.55 내장 UT1로 표시하면 공식 현재 계산 1,560행 중 날짜 mismatch 0, 원시 분 라벨 mismatch 22로 줄고 과거 1,280행의 14건은 KASI가 밝힌 1초 불확실성 범위 안이라 후보 Gate를 통과한다.
 
-v1.3 candidate runtime은 이 후보를 실제 계산 경로에 결합했다. 절입 root 탐색과 경계 전·정확·후 판정은 TT로 수행하고, 공식 분 라벨은 `UT1_NOMINAL_PLUS_FIXED_KST`로만 분리해 표시한다. 1900~1919년은 `PROFILE_DETERMINISTIC`, snapshot 수집시점까지의 공식 과거는 `PAST_OFFICIAL_CORROBORATED`, 이후 미래는 `FORECAST_DIAGNOSTIC_NONAPPROVAL`로 결과에 구조화한다. conformance v8은 runtime과 별도 validator의 1,800개 TT root·UTC·표시 분이 모두 일치하고 5,400개 경계 배정 오류가 0임을 확인했다. 그러나 미래 280행은 지구 자전 예측 불확실성 때문에 물리 순간이 판정되지 않았고 원시 분 mismatch도 0이 아니므로 strict runtime Gate는 계속 차단한다. 따라서 v1.3은 `HARD_CANDIDATE`·feature flag 기본 off이며 `runtime_approved=false`; 새 release registry도 생성하지 않았다. 기존 v1.2 release 경로를 v1.3 승인으로 재사용하지 않으며, release·앱 연결·v3.1 생성·학습은 진행하지 않는다.
+v1.3 candidate runtime은 이 후보를 실제 계산 경로에 결합했다. 절입 root 탐색과 경계 전·정확·후 판정은 TT로 수행하고, 공식 분 라벨은 `UT1_NOMINAL_PLUS_FIXED_KST`로만 분리해 표시한다. 1900~1919년은 `PROFILE_DETERMINISTIC`, snapshot 수집시점까지의 공식 과거는 `PAST_OFFICIAL_CORROBORATED`, 이후 미래는 `FORECAST_DIAGNOSTIC_NONAPPROVAL`로 결과에 구조화한다. conformance v8은 runtime과 별도 validator의 1,800개 TT root·UTC·표시 분이 모두 일치하고 5,400개 경계 배정 오류가 0임을 확인했다. 미래 280행은 지구 자전 예측 불확실성 때문에 물리 순간이 판정되지 않았고 원시 분 mismatch도 0이 아니므로 v1.3 자체와 strict/full runtime Gate는 계속 차단한다.
+
+v1.4는 strict provider 승인을 우회하지 않고 과거 공식 근거가 완전한 원국 범위만 별도 권한으로 잘라 승인한다. 정규화 양력 날짜가 `1920-01-07~2026-08-31`이고 결과의 모든 절입 근거가 `PAST_OFFICIAL_CORROBORATED`·`SOURCE_HARD_FACT`일 때만 승격한다. exact 결과는 `HARD_GT`, range·unknown 결과는 ±1초 양끝에서 공통 사실이 같을 때만 `POLICY_BOUND_RULE`이다. 공식 과거 root가 표현 가능한 local minute와 ±1초 안에서 겹치는 50개 분은 exact와 불안정 range를 차단하고, 기간 tool은 모든 입력에서 `CHART_ONLY_PERIOD_OUT_OF_SCOPE`로 닫는다.
+
+conformance v9는 부모 v8을 실제 원본으로 재계산한 뒤 scope matrix 328,722건, 허용 구간 태양력·음력 exact 77,908건, 과거 절입 1,279행·경계 probe 2,558건, range/unknown 2,660건을 자동 검증했다. 과거 원시 분 mismatch 14건은 숨기지 않고 보존했으며 격리 분 50건, 동일-분 range 차단 50건, unknown 안정 50건이 정확히 일치했다. 공개 보고서 `build-9f1784e74a4e`에 결합된 write-once release `saju-runtime-release-v1.4.0-63dc8d398e90`만 유효하다. feature 기본 off, production key 필수이며 앱 연결·v3.1 생성·학습은 승인하지 않는다.
 
 후속 디버깅에서는 다른 provider 경계, 빈 role, 변조된 권한 요약과 JSON integer/boolean 혼동을 절입 증거로 받아들이던 경로를 차단했다. provider가 계산하지 않은 경계와 비정상 연도·index 타입도 거부하고, provider 종료 뒤 기간 계산은 예외를 누출하지 않고 `blocked`로 닫는다. 이 보강은 정상 계산값을 바꾸지 않았으며 최종 conformance 보고서는 최초 v8과 구현 hash를 제외한 집계가 같다.
 
@@ -86,12 +90,12 @@ v3.0.1 private training projection 20,000행을 읽기 전용 재검사한 결�
 | Python `tzdata` | `2026.3`, wheel SHA-256 `dc096730…e54931` | 재현 가능한 timezone 배포본 |
 | `korean-lunar-calendar` | `0.4.0`, wheel SHA-256 `c042e20d…fe4e7` | KASI 전수 대조 전 음양력 후보 provider |
 | Astronomy Engine | `2.1.19@61dc07020aaa6885d2c7f688a4d82beaf6edb9ef`, wheel SHA-256 `232ba7dd…6f67f` | KASI 경계 전수 대조 전 절입 후보 provider |
-| Skyfield / JPL DE440s | `1.55`, DE440s SHA-256 `c1c7feea…0a49f2` | 1900~2049년 12절 1,800건의 provider 교차 비교와 v1.3 candidate runtime 계산. 고정 달력 bracket의 TT root·고정 hash 내장 UT1을 사용하며 자동 다운로드·Astronomy fallback 없음. production에는 연결하지 않음 |
+| Skyfield / JPL DE440s | `1.55`, DE440s SHA-256 `c1c7feea…0a49f2` | 1900~2049년 12절 1,800건의 provider 교차 비교와 v1.3 후보 계산, v1.4 chart-only 원국 계산. 고정 달력 bracket의 TT root·고정 hash 내장 UT1을 사용하며 자동 다운로드·Astronomy fallback 없음. production 앱에는 연결하지 않음 |
 | IERS `finals2000A.all` | 2026-09-01 snapshot, SHA-256 `e3905ff7…fe058` | 현재 IERS UT1 민감도 진단 전용. 원문·manifest는 0600 Git 제외 불변 산출물이며 미래 예측 oracle이나 자동 fallback으로 사용하지 않음 |
 | jplephem / NumPy / sgp4 / certifi | `2.24` / `2.2.6` / `2.27` / `2026.7.22` | Skyfield validator의 고정 전이 의존성 |
 | `manseryeok` | `2.0.0@fba3253d7305b8b61189bd78318a7a27ed8c9b09` | 개발·비교 전용, production dependency 아님 |
 
-v1.1 패키지와 원천은 그대로 보존한다. v1.2는 [`requirements-runtime-calculator-v1.2.txt`](../../requirements-runtime-calculator-v1.2.txt)와 [`source_registry-v1.2.0.json`](../../configs/runtime/calculation/source_registry-v1.2.0.json)에 같은 wheel·DE440s identity, 새 교차검증 구현 hash, 판정 범위와 근거 문서를 고정했다. v1.3.1 source registry와 Gate는 실제 API coverage scan·1964년 역서·동등한 provider 후보 비교에 중복 JSON key·중복 역서 page·canonical byte·원 수집기 hash 검증을 추가했다. v1.4.0은 공식 현재 계산 24기 원문과 반올림 규약을 새 불변 snapshot으로 추가하고 데이터 가용성 Gate를 provider 적격성 Gate에서 분리한다. v1.5.0은 Skyfield 내장 UT1, 현재 IERS UT1, Astronomy/Espenak-Meeus UT, proleptic UTC 표시를 같은 TT root에서 비교하고 provider 후보 선정과 strict runtime 승인을 분리한다. v1.6.0은 [`requirements-runtime-calculator-v1.3.txt`](../../requirements-runtime-calculator-v1.3.txt), runtime contract/schema/profile v1.3과 source/Gate v1.6을 새 hash chain으로 고정하고 Skyfield를 candidate runtime에만 결합한다. 기존 v1/v1.2 구현 파일은 불변 Gate hash를 유지한다. 1900~1919년 240개 절입은 공식 snapshot에 생성값을 써넣지 않고 `PROFILE_DETERMINISTIC`으로 명시한다. Astronomy Engine은 공식 설명대로 compact·truncated VSOP87/NOVAS 계열이고 약 ±1 arcminute 설계 목표를 가지며, Skyfield는 여러 time scale과 ΔT를 별도로 관리한다. 동일 TT root로 재투영해도 평균 절대 차이의 67.209818%와 분 라벨 차이 330건이 남으므로 원 UTC 차이를 ΔT 하나로 설명하지 않는다. Skyfield 48회 이분법 root의 최대 황경 잔차는 `4.2564e-8` 각초이고 32회와의 최대 차이는 `101.09µs`라서 약 11초의 동일 TT 차이를 근찾기 허용오차로 설명하지 않는다. 제3자 라이선스와 JPL 비추적 조건은 [`THIRD_PARTY_NOTICES.md`](../../THIRD_PARTY_NOTICES.md)에 보존한다. DE440s와 KASI·IERS 원문 snapshot은 Git에 넣지 않는다.
+v1.1 패키지와 원천은 그대로 보존한다. v1.2는 [`requirements-runtime-calculator-v1.2.txt`](../../requirements-runtime-calculator-v1.2.txt)와 [`source_registry-v1.2.0.json`](../../configs/runtime/calculation/source_registry-v1.2.0.json)에 같은 wheel·DE440s identity, 새 교차검증 구현 hash, 판정 범위와 근거 문서를 고정했다. v1.3.1 source registry와 Gate는 실제 API coverage scan·1964년 역서·동등한 provider 후보 비교에 중복 JSON key·중복 역서 page·canonical byte·원 수집기 hash 검증을 추가했다. v1.4.0은 공식 현재 계산 24기 원문과 반올림 규약을 새 불변 snapshot으로 추가하고 데이터 가용성 Gate를 provider 적격성 Gate에서 분리한다. v1.5.0은 Skyfield 내장 UT1, 현재 IERS UT1, Astronomy/Espenak-Meeus UT, proleptic UTC 표시를 같은 TT root에서 비교하고 provider 후보 선정과 strict runtime 승인을 분리한다. v1.6.0은 [`requirements-runtime-calculator-v1.3.txt`](../../requirements-runtime-calculator-v1.3.txt), runtime contract/schema/profile v1.3과 source/Gate v1.6을 새 hash chain으로 고정하고 Skyfield를 candidate runtime에 결합한다. v1.7.0은 [`requirements-runtime-calculator-v1.4.txt`](../../requirements-runtime-calculator-v1.4.txt), runtime contract/schema/profile v1.4와 source/Gate v1.7, conformance v9, chart-only release schema를 고정한다. 기존 v1/v1.2/v1.3 구현과 보고서는 불변 이력으로 유지한다. 1900~1919년 240개 절입은 공식 snapshot에 생성값을 써넣지 않고 `PROFILE_DETERMINISTIC`으로 명시한다. Astronomy Engine은 공식 설명대로 compact·truncated VSOP87/NOVAS 계열이고 약 ±1 arcminute 설계 목표를 가지며, Skyfield는 여러 time scale과 ΔT를 별도로 관리한다. 동일 TT root로 재투영해도 평균 절대 차이의 67.209818%와 분 라벨 차이 330건이 남으므로 원 UTC 차이를 ΔT 하나로 설명하지 않는다. Skyfield 48회 이분법 root의 최대 황경 잔차는 `4.2564e-8` 각초이고 32회와의 최대 차이는 `101.09µs`라서 약 11초의 동일 TT 차이를 근찾기 허용오차로 설명하지 않는다. 제3자 라이선스와 JPL 비추적 조건은 [`THIRD_PARTY_NOTICES.md`](../../THIRD_PARTY_NOTICES.md)에 보존한다. DE440s와 KASI·IERS 원문 snapshot은 Git에 넣지 않는다.
 
 외부 패키지가 결과를 냈다는 사실은 승인 근거가 아니다. 공식·별도 fixture와 프로젝트 profile을 통과한 필드만 승인할 수 있다.
 
@@ -113,9 +117,11 @@ saju-tools-v1
   → conformance v7: UT1 표시 후보 비교 + 과거 불확실성/미래 예측 분리 + 후보/strict runtime Gate 분리
   → v1.3 candidate runtime: Skyfield/DE440s TT 경계 + 구조화 과거/미래 권한
   → conformance v8: runtime↔별도 validator 1,800 TT root + 전/정확/후 5,400건 + 권한 분할 검증
+  → v1.4 chart-only runtime: 과거 공식 완전 일자 원국만 승인 + ±1초 경계 격리 + 기간 차단
+  → conformance v9: scope 328,722 + exact 77,908 + 경계 2,558 + range/unknown 2,660
   → HMAC-SHA256 v2 출생 파생 ID
   → 구현·계약·공식 snapshot hash 결합 release registry
-  → ApprovedSajuRuntimeEngineV12(feature flag 기본 off, production key 필수)
+  → ApprovedSajuRuntimeEngineV14(feature flag 기본 off, production key 필수)
   → 구조화 intake FSM v1.1(app precondition 6개, 자유문 parser 없음, HMAC call 상관관계)
   → 내부 trace와 LLM-visible allowlist 분리
 ```
@@ -154,7 +160,9 @@ alternative_charts, chart_id, chart_set_id,
 calculation_run_id, internal_trace
 ```
 
-기존 candidate 결과는 항상 `status=partial`, `fact_authority=HARD_CANDIDATE`다. v1.3은 `hard_facts.solar_term_evidence`에 결정 경계의 TT·UTC·공식 표시 분·권한을 기록하고, 여러 생시 후보나 기간 경계는 가장 보수적인 권한 순서 `FORECAST_DIAGNOSTIC_NONAPPROVAL` → `PROFILE_DETERMINISTIC` → `PAST_OFFICIAL_CORROBORATED`로 병합한다. provider가 생성한 값 자체는 어느 구간에서도 공식 원문으로 표시하지 않는다. v1.2 승인 경로는 release가 없으면 `status=blocked`, `code=RUNTIME_RELEASE_REQUIRED`이며 사실 등급을 내지 않는다. v1.3에는 승인 wrapper나 release가 없으므로 exact도 `HARD_GT`로 승격하지 않는다.
+기존 candidate 결과는 항상 `status=partial`, `fact_authority=HARD_CANDIDATE`다. v1.3은 `hard_facts.solar_term_evidence`에 결정 경계의 TT·UTC·공식 표시 분·권한을 기록하고, 여러 생시 후보나 기간 경계는 가장 보수적인 권한 순서 `FORECAST_DIAGNOSTIC_NONAPPROVAL` → `PROFILE_DETERMINISTIC` → `PAST_OFFICIAL_CORROBORATED`로 병합한다. provider가 생성한 값 자체는 어느 구간에서도 공식 원문으로 표시하지 않는다. v1.3 자체는 exact도 `HARD_GT`로 승격하지 않는다.
+
+v1.4 release wrapper는 모든 후보 경계가 과거 공식 hard evidence이고 승인 날짜 안일 때만 새 release identity로 HMAC ID를 다시 발급한다. exact 단일 원국은 `status=ok`, `fact_authority=HARD_GT`; range·unknown은 대안 전체의 공통 사실만 `status=partial`, `fact_authority=POLICY_BOUND_RULE`로 공개한다. ±1초 격리 분과 겹치는 exact 또는 양끝에서 공통 사실이 달라지는 불확실 입력은 사실 등급 없이 차단한다. release가 없거나 feature가 꺼져 있으면 각각 `RUNTIME_RELEASE_REQUIRED`, `RUNTIME_FEATURE_DISABLED`이고, 기간 계산은 release·flag와 무관하게 항상 차단한다.
 
 v1·v1.1의 평문 SHA-256 ID는 과거 불변 산출물에만 남긴다. v1.2의 모든 출생 파생 ID(`birth_input_id`, `chart_id`, `chart_set_id`, `calculation_run_id`, `chart_input_fingerprint`)는 Unicode NFC·정렬 key·compact UTF-8 JSON을 domain-separated HMAC-SHA256으로 만든다. 32바이트 key는 현재 사용자 소유 0600 일반 파일에서만 읽고 값·hash를 보고서에 쓰지 않는다. key 교체 시 세션을 무효화하고 재계산하며, 도입 전 runtime 세션이 0건이므로 legacy migration은 하지 않았다. 다음이 달라지면 ID도 달라진다.
 
@@ -196,7 +204,7 @@ FSM v1.1의 chart·period action은 calculation-run HMAC domain의 `scr2_` call 
 
 ## 9. Runtime Gate
 
-v1.4부터 데이터 가용성과 provider 판단을 분리하고, v1.5부터 provider 판단도 후보 선정과 strict runtime 승인으로 나눈다. 데이터 가용성이나 후보 Gate 통과가 production provider 변경 또는 release 승인을 뜻하지 않는다.
+source/Gate v1.4부터 데이터 가용성과 provider 판단을 분리하고, v1.5부터 provider 판단도 후보 선정과 strict runtime 승인으로 나눈다. v1.7은 strict/full Gate를 바꾸지 않고 과거 공식 완전 일자의 chart-only 승인 축을 추가한다. 데이터 가용성이나 후보 Gate 통과는 production provider 변경을 뜻하지 않는다.
 
 | 축 | 기준 | 현재 상태 |
 |---|---|---:|
@@ -207,6 +215,8 @@ v1.4부터 데이터 가용성과 provider 판단을 분리하고, v1.5부터 pr
 | strict runtime provider | 공식 1,560행의 원시 최근접 분 라벨 mismatch 0, 미래 물리 순간 판정 완료, strict 적격 provider 선택 | 실패: 22건·미래 미판정 |
 | 자문 원천 권한 | 비공식 달력자료 84행과 과거 역서는 결과를 기록하되 provider hard block에 사용하지 않음 | 통과 |
 | candidate runtime 결합 | 선택된 Skyfield provider의 1,800개 TT root·UTC·표시 분이 별도 validator와 일치하고 전/정확/후 5,400건 배정 mismatch 0. production binding은 없음 | 통과 |
+| chart-only runtime | 정규화 양력 `1920-01-07~2026-08-31`, 과거 공식 근거 원국만 승인. exact 77,908건 실패 0, ±1초 격리 분 50건, period 항상 차단 | 통과: v1.4 release, feature 기본 off |
+| full runtime·production binding | 미래 절입·기간 계산·앱 adapter까지 포함한 전체 승인 | 실패/미실행 |
 
 provider 선택 뒤에도 아래 공통 conformance가 모두 참이어야 기술 Gate를 통과한다.
 
@@ -247,11 +257,12 @@ data/reports/saju_runtime_conformance/v1.4.0/build-3366c5069a26/
 data/reports/saju_runtime_conformance/v1.5.0/build-01111af7e09c/
 data/reports/saju_runtime_conformance/v1.6.0/build-a49aed186743/
 data/reports/saju_runtime_conformance/v1.6.0/build-8bd88d6db03a/
+data/reports/saju_runtime_conformance/v1.7.0/build-9f1784e74a4e/
 data/reports/saju_runtime_intake_fsm/v1.1.0/build-3366376bb01b/
 data/reports/saju_runtime_migration/v1.0.0/build-94eb7b543490/analysis.json
 ```
 
-`build-08ea29de9e94`, FSM v1.0 `build-571d0e82ee0e`, conformance v5.0.0 `build-ef1b8ddb527e`, v5.0.1 `build-1e754de17c82`, v6.0.0 `build-3366c5069a26`, v7.0.0 `build-01111af7e09c`과 최초 v8 `build-a49aed186743`은 당시 코드의 이력 산출물로 보존한다. 현재 candidate runtime 판단은 기존 KASI·IERS raw를 수정하지 않고 Skyfield provider 실제 결합·권한 분리·증거 fail-closed를 검증한 v8.0.0 `build-8bd88d6db03a`를 따른다.
+`build-08ea29de9e94`, FSM v1.0 `build-571d0e82ee0e`, conformance v5.0.0 `build-ef1b8ddb527e`, v5.0.1 `build-1e754de17c82`, v6.0.0 `build-3366c5069a26`, v7.0.0 `build-01111af7e09c`과 최초 v8 `build-a49aed186743`은 당시 코드의 이력 산출물로 보존한다. 현재 후보 provider 판단은 v8.0.0 `build-8bd88d6db03a`, 현재 chart-only release 판단은 이를 실제 원본으로 재계산한 v9.0.0 `build-9f1784e74a4e`와 `configs/runtime/calculation/releases/v1.4.0/release_registry.json`을 따른다.
 
 | 검사 | 결과 |
 |---|---:|
@@ -269,6 +280,11 @@ data/reports/saju_runtime_migration/v1.0.0/build-94eb7b543490/analysis.json
 | Skyfield/JPL + Skyfield 1.55 내장 UT1 | mismatch 22/1,560, 날짜 mismatch 0. 과거 1,280행 중 14건은 모두 공식 1초 불확실성 안, 미래 280행 중 8건은 비승인 예측 진단 |
 | v1.3 runtime ↔ 별도 validator | TT root 최대·평균 차이 `0.0µs`, UTC mismatch 0/1,800, UT1 표시 분 mismatch 0/1,800 |
 | v1.3 runtime 권한 분할 | `PROFILE_DETERMINISTIC` 240, `PAST_OFFICIAL_CORROBORATED` 1,280, `FORECAST_DIAGNOSTIC_NONAPPROVAL` 280 |
+| v1.4 scope matrix | 328,722건, 허용 233,724·차단 94,998·실패 0 |
+| v1.4 허용 구간 exact | 태양력·음력 77,908건, 실패 0 |
+| v1.4 과거 절입 경계 | 1,279행, floor/ceil probe 2,558건, 실패 0 |
+| v1.4 ±1초 정책 | 원시 분 mismatch 14 보존, 격리 분 50, 동일-분 range 차단 50, unknown 안정 50 |
+| v1.4 release | `saju-runtime-release-v1.4.0-63dc8d398e90`, chart만 승인·period 차단·feature 기본 off·production key 필수 |
 | Astronomy Engine ↔ Skyfield/JPL | 1,800/1,800, 120초 초과 0 |
 | provider 교차 비교 평균 절대 차이 / p99 / 최대 | 17.130844초 / 57.566090초 / 80.666231초 |
 | 동일 TT root 평균 절대 차이 / p99 / 최대 | 11.513609초 / 37.763867초 / 52.145523초, 원 평균의 67.209818% 잔존 |
@@ -291,7 +307,7 @@ data/reports/saju_runtime_migration/v1.0.0/build-94eb7b543490/analysis.json
 
 1964년 백로는 원천의 계산 vintage를 분리한다. KASI 현재 계산 다운로드는 `1964-09-07T23:59+09:00`이고 Skyfield 내장 UT1 표시가 그 분 라벨과 일치한다. 디지털 과거 역서 원문은 `9월 7일 24시 00분`이며 인쇄일 끝을 뜻하므로 `1964-09-08T00:00+09:00`으로 정규화하는 것이 맞다. Astronomy Engine exact KST는 `1964-09-08T00:00:00.017704+09:00`이므로 현재 계산 날짜 mismatch는 정규화가 만든 오류가 아니다. 현재 계산 원문 자체가 과거 역서 기록과 최신 계산이 다를 수 있다고 설명하므로 과거 인쇄 내용은 문서 사실로 보존하되 현재 물리 provider의 hard adjudicator로 사용하지 않는다. 두 분 단위 원천 모두 sub-minute 물리 정확도를 판정하지 않는다.
 
-현재 실패 원인은 데이터 수량이나 근찾기 수렴 오차가 아니다. 가용한 공식 원문은 모두 수집했고 공식 다운로드가 공개한 절입 범위도 완전하다. Skyfield/DE440s+내장 UT1은 과거 공식 행의 선언된 불확실성 범위와 candidate runtime의 5,400개 TT 경계 배정을 통과했다. 하지만 전체 1,560행의 최근접 분 라벨 mismatch 0은 달성하지 못했고, 특히 미래 280행의 물리 순간을 이미 확정된 공식 oracle처럼 취급할 수 없다. 따라서 v1.3 runtime 결합은 candidate 계산 경로에만 한정하며 release 승인이나 production provider 변경이 아니다.
+strict/full runtime의 남은 실패 원인은 데이터 수량이나 근찾기 수렴 오차가 아니다. 가용한 공식 원문은 모두 수집했고 공식 다운로드가 공개한 절입 범위도 완전하다. Skyfield/DE440s+내장 UT1은 과거 공식 행의 선언된 불확실성 범위와 candidate runtime의 5,400개 TT 경계 배정을 통과했다. 하지만 전체 1,560행의 최근접 분 라벨 mismatch 0은 달성하지 못했고, 특히 미래 280행의 물리 순간을 이미 확정된 공식 oracle처럼 취급할 수 없다. v1.4 chart-only release는 이 실패를 완화하지 않고 미래·profile·기간을 범위 밖으로 차단한 별도 승인이다. production provider 변경이나 전체 runtime 승인이 아니다.
 
 - KASI 음양력 전수: `54,787 / 54,787`, mismatch 0
 - KASI 24절기 OpenAPI scan: `150 / 150년`, 반환 `696행`
@@ -305,6 +321,11 @@ data/reports/saju_runtime_migration/v1.0.0/build-94eb7b543490/analysis.json
 - v1.3 candidate runtime↔별도 validator: TT·UTC·표시 분 mismatch 0/1,800
 - v1.3 candidate runtime 배정 전/경계/후: `5,400 / 5,400`, 배정 mismatch 0
 - 절입 권한: profile 240, 과거 공식 corroborated 1,280, 미래 forecast nonapproval 280
+- v1.4 chart-only scope: `1920-01-07~2026-08-31`, 38,954일
+- v1.4 exact 태양력·음력: `77,908 / 77,908`, 실패 0
+- v1.4 경계: 과거 절입 1,279행, probe 2,558건, 격리 분 50건
+- v1.4 불확실 입력: 2,660건, 실패 0, 동일-분 range 차단 50·unknown 안정 50
+- v1.4 release: `saju-runtime-release-v1.4.0-63dc8d398e90`, feature 기본 off
 - `data_availability_gate_passed=true`
 - `baseline_conformance_gate_passed=true`
 - `provider_candidate_gate_passed=true`
@@ -314,10 +335,12 @@ data/reports/saju_runtime_migration/v1.0.0/build-94eb7b543490/analysis.json
 - `future_authority_separation_gate_passed=true`
 - `provider_eligibility_gate_passed=false`
 - `strict_runtime_provider_gate_passed=false`
-- `runtime_gate_passed=false`
-- `runtime_approved=false`
-- `release_approval_performed=false`
-- `release_registry_creation_allowed=false`
+- `full_runtime_gate_passed=false`
+- `chart_only_gate_passed=true`
+- `chart_release_registry_creation_allowed=true`
+- `chart_only_release_approval_performed=true`
+- `runtime_feature_flag_default=false`
+- `production_application_binding=false`
 - `mix20k_v3_1_regeneration_allowed=false`
 - `training_promotion_allowed=false`
 
@@ -326,24 +349,24 @@ data/reports/saju_runtime_migration/v1.0.0/build-94eb7b543490/analysis.json
 | 순서 | 작업 | 상태 |
 |---:|---|---|
 | R0 | KI20·v3.0.1·sealed blind 상태 동결 | 완료 |
-| R1 | input/output/profile/source/ID/Gate 계약 고정 | v1.3 runtime·output·profile과 v1.6 source/Gate hash chain까지 완료 |
-| R2 | Python 음양력·절입·4주·불확실성·기간 core 구현 | Skyfield/DE440s TT 절입을 v1.3 candidate에 결합, 기본 off·release 미승인 |
+| R1 | input/output/profile/source/ID/Gate 계약 고정 | v1.4 runtime·output·profile·release schema와 v1.7 source/Gate hash chain까지 완료 |
+| R2 | Python 음양력·절입·4주·불확실성·기간 core 구현 | v1.3 후보를 보존하고 v1.4 chart-only wrapper에 과거 공식 날짜·±1초·권한 Gate 결합. period는 항상 차단 |
 | R3 | 기존 tool allowlist in-process bridge | 완료(기본 off) |
 | R4 | KASI 전수·계층형 절입 snapshot 수집 | 완료(음양력 54,787일, OpenAPI 150년 scan, 공식 현재 계산 1920~2100 절입 2,172행, 표시 분 84건, 1964 역서). 1900~1919 공식 절입 미coverage는 별도 등급으로 명시 |
-| R5 | full conformance와 profile ADR 승인 | v8 candidate conformance 완료. runtime TT 경계·권한 분리는 통과, strict 적격 provider 없음으로 profile ADR·release 승인 차단 |
-| R6 | v3.1 5,250 tool call 전수 재생성·새 split/preflight | 생성기·preflight 구현 완료, release 전 입력도 읽지 않고 차단 |
-| R7 | 대시보드 `KI20 + Runtime` local lane·앱 canary | 기존 v1.8 canary는 비활성. 과거 공식 근거 전용 session v2.2/FSM v1.2와 별도 loopback 진단 화면은 실제 DE440s 120/120 Gate 통과. production adapter·release·운영 key·암호화·보존 정책 전 앱 연결 금지 |
+| R5 | full conformance와 profile ADR 승인 | v8 후보 conformance와 v9 chart-only 자동 Gate 완료. chart-only release 생성, strict/full provider Gate는 계속 실패 |
+| R6 | v3.1 5,250 tool call 전수 재생성·새 split/preflight | 생성기·preflight 구현만 보존. v1.4가 period를 승인하지 않고 현재 작업 범위에서도 제외했으므로 생성·preflight 미실행 |
+| R7 | 대시보드 `KI20 + Runtime` local lane·앱 canary | 기존 v1.8 canary는 비활성. 과거 공식 근거 전용 session v2.2/FSM v1.2와 별도 loopback 진단 화면은 실제 DE440s 120/120 Gate 통과. v1.4 release를 production adapter·기존 dashboard·모델 context에 연결하지 않음 |
 | R8 | 새 모델 학습 handoff | 이 계획 범위 밖 |
 
-provider 적격성과 release 승인 전에도 candidate·별도 validator와 분리된 loopback 진단 UI는 검증할 수 있지만 사용자-facing production 결과나 학습 Gold로 사용하지 않는다. 현재 실행 중인 기존 dashboard process는 재시작하지 않았고 기존 자산 hash도 Gate 입력으로 고정해 변경이 없음을 확인했다. 새 후보 화면은 별도 process·port에서만 실행하며 production 앱 binding이나 기존 모델 대화 context를 만들지 않는다.
+chart-only release는 원국 계산 엔진의 제한된 기술 승인일 뿐 사용자-facing production 결과나 학습 Gold 승인이 아니다. 현재 실행 중인 기존 dashboard process는 재시작하지 않았고 기존 자산도 변경하지 않았다. 기존 후보 화면은 별도 process·port 진단 이력으로 남기며 v1.4 release를 production 앱이나 기존 모델 대화 context에 결합하지 않는다.
 
 ## 12. MIX20K-v3.1 계약
 
-Runtime Gate 통과 뒤 3,800 `HARD_CANDIDATE`만 고치는 방식은 금지한다. 계산 근거가 포함된 tool payload 전체를 같은 runtime version으로 맞추기 위해 chart 4,350회와 period 900회를 모두 재생성한다.
+향후 full Runtime Gate가 별도 버전에서 통과하더라도 3,800 `HARD_CANDIDATE`만 고치는 방식은 금지한다. 계산 근거가 포함된 tool payload 전체를 같은 runtime version으로 맞추려면 chart 4,350회와 period 900회를 모두 재생성해야 한다. 현재 v1.4 release는 chart-only이고 period 900회를 의도적으로 차단하므로 이 계약의 입력 release가 아니며 v3.1 생성 권한을 열지 않는다.
 
 ```text
 mix20k-v3.0.1-repaired/build-94eb7b543490 (불변)
-  → Runtime Gate 통과
+  → chart·period를 모두 승인한 미래 full Runtime Gate 통과
   → 해외 180행 한국 사례 교체 + 20행 UNSUPPORTED_REGION
   → chart 4,350 + period 900 전수 재실행
   → 저장된 tool result 2,200행과 후속 assistant 문장 재생성
@@ -354,7 +377,7 @@ mix20k-v3.0.1-repaired/build-94eb7b543490 (불변)
 
 생성기는 release 검증을 source dataset 읽기보다 먼저 수행한다. 기존 20K·source attribution·앞선 멀티턴은 보존하고, 각 행에 단일 `runtime_release_id`와 tool 사용 여부에 맞는 `runtime_fact_source`를 기록한다. 새 split manifest는 20K 학습 membership을 새 hash로 만들되 기존 비봉인 eval을 hash로 재사용하고 sealed blind는 hash-only로만 비교한다. preflight는 고정 tokenizer·768 token·assistant-only mask·EOS·직렬화·tool round-trip·비봉인 prompt overlap·sealed content hash overlap을 학습 없이 검사한다.
 
-Runtime Gate만으로 학습을 허용하지 않는다. 생성 build와 preflight도 항상 `training_promotion_allowed=false`로 끝난다. 기존에 남은 대화 다양성, 전체 state/grounding·언어·정책 자동 Gate와 별도의 학습 승격 판단이 필요하다. 자동 계약이 없는 의미 품질은 `not_measured`이며 별도 평가 작업을 요구하지 않는다.
+미래 full Runtime Gate만으로도 학습을 허용하지 않는다. 생성 build와 preflight도 항상 `training_promotion_allowed=false`로 끝난다. 기존에 남은 대화 다양성, 전체 state/grounding·언어·정책 자동 Gate와 별도의 학습 승격 판단이 필요하다. 자동 계약이 없는 의미 품질은 `not_measured`로 기록한다.
 
 ## 13. 실행 명령
 
@@ -362,11 +385,11 @@ Runtime Gate만으로 학습을 허용하지 않는다. 생성 build와 prefligh
 
 ```bash
 uv venv .venv-runtime
-uv pip install --python .venv-runtime/bin/python -r requirements-runtime-calculator-v1.3.txt
+uv pip install --python .venv-runtime/bin/python -r requirements-runtime-calculator-v1.4.txt
 
-.venv-runtime/bin/python -m scripts.runtime.saju_runtime_v1_2 verify-contract
-.venv-runtime/bin/python -m scripts.runtime.saju_runtime_v1_2 environment --include-validator
-.venv-runtime/bin/python -m unittest tests.test_saju_runtime_v1_3 -v
+.venv-runtime/bin/python -m scripts.runtime.saju_runtime_v1_4 verify-contract
+.venv-runtime/bin/python -m scripts.runtime.saju_runtime_v1_4 environment
+.venv-runtime/bin/python -m unittest tests.test_saju_runtime_v1_4 -v
 .venv-runtime/bin/python -m scripts.evaluation.saju_runtime.kasi_collector_v1_1 plan
 .venv-runtime/bin/python -m scripts.evaluation.saju_runtime.kasi_minute_collector_v1_1 plan
 ```
@@ -407,10 +430,12 @@ uv pip install --python .venv-runtime/bin/python -r requirements-runtime-calcula
 
 IERS 수집기는 HTTPS same-origin redirect, regular file·symlink, 0600 권한, 원문 SHA-256과 Skyfield parser coverage를 fail-closed로 검증한다. 자동 다운로드나 fallback은 허용하지 않으며 snapshot은 현재 UT1 민감도 진단에만 쓴다.
 
-음양력 전수·OpenAPI 실제 coverage·공식 현재 계산 24기·1964년 역서·자문 표시 분을 함께 검증한다. 아래 명령은 보존된 raw snapshot과 Git 제외 DE440s로 현재 v8 보고서를 재현한다. registry에 고정된 수집기 version·SHA-256과 일치해야 한다. 데이터 가용성·provider 후보·candidate runtime·권한 분리 Gate는 통과하지만 strict runtime provider Gate는 차단 상태이며 release `approve` 자체를 실행하지 않는다.
+음양력 전수·OpenAPI 실제 coverage·공식 현재 계산 24기·1964년 역서·자문 표시 분을 함께 검증한다. 아래 명령은 보존된 raw snapshot과 Git 제외 DE440s로 부모 v8을 다시 계산한 뒤 현재 v9 chart-only 보고서를 재현한다. registry에 고정된 수집기 version·SHA-256과 일치해야 한다. strict/full Gate는 false를 유지하면서 chart-only Gate만 true여야 한다.
 
 ```bash
-.venv-data/bin/python -m scripts.evaluation.saju_runtime.conformance_v8 run \
+.venv-data/bin/python -m scripts.evaluation.saju_runtime.conformance_v9 validate-contract
+.venv-data/bin/python -m scripts.evaluation.saju_runtime.conformance_v9 plan
+.venv-data/bin/python -m scripts.evaluation.saju_runtime.conformance_v9 run \
   --kasi-lunar-snapshot data/raw/saju_runtime/kasi/v1.1.0/lunisolar/kasi_lunisolar.jsonl \
   --kasi-solar-term-snapshot data/raw/saju_runtime/kasi/v1.2.0/solar-terms-api/kasi_solar_terms.jsonl \
   --kasi-official-solar-term-snapshot data/raw/saju_runtime/kasi/v1.3.0/official-solar-terms/kasi_official_solar_terms.jsonl \
@@ -418,6 +443,12 @@ IERS 수집기는 HTTPS same-origin redirect, regular file·symlink, 0600 권한
   --kasi-almanac-1964-snapshot data/raw/saju_runtime/kasi/v1.2.0/almanac-1964/kasi_almanac_1964_baengno.json \
   --iers-snapshot data/raw/saju_runtime/iers/v1.0.0/snapshot-2026-09-01-v3/finals2000A.all \
   --ephemeris "$(pwd -P)/data/raw/saju_runtime/ephemeris/v1.1.0/de440s.bsp"
+
+.venv-data/bin/python -m scripts.evaluation.saju_runtime.conformance_v9 verify \
+  --report-root data/reports/saju_runtime_conformance/v1.7.0/build-9f1784e74a4e
+
+.venv-data/bin/python -m scripts.runtime.saju_runtime_v1_4 verify-release \
+  --release-registry configs/runtime/calculation/releases/v1.4.0/release_registry.json
 
 .venv-runtime/bin/python -m scripts.evaluation.saju_runtime.intake_fsm_gate run
 ```
@@ -443,21 +474,9 @@ IERS 수집기는 HTTPS same-origin redirect, regular file·symlink, 0600 권한
   --port 8766
 ```
 
-release가 생긴 뒤에만 v3.1 생성과 비학습 preflight를 순서대로 실행한다. 32바이트 production HMAC key는 저장소 밖의 현재 사용자 소유 0600 일반 파일이어야 하며, 값·hash를 로그나 manifest에 남기지 않는다. `--id-key-file` 대신 `SAJU_RUNTIME_ID_KEY_FILE` 하나만 사용할 수도 있다. 아래 명령도 학습·backward·optimizer step은 호출하지 않는다.
+v3.1 생성과 비학습 preflight 명령은 현재 실행하지 않는다. 기존 generator는 chart 4,350회와 period 900회를 같은 full release로 재생성하는 계약이며, chart-only v1.4 release를 그 입력으로 대체할 수 없다. 미래 full runtime release와 새 versioned generator 계약이 별도로 고정될 때 production HMAC key 수명주기·source build·split·preflight 명령을 함께 다시 발행한다.
 
-```bash
-.venv-runtime/bin/python -m scripts.data.mix20k_v3_runtime_build build \
-  --source-build data/derived/saju_1b_baseline/mix20k-v3.0.1-repaired/build-94eb7b543490 \
-  --release-registry configs/runtime/calculation/releases/v1.2.0/release_registry.json \
-  --id-key-file /run/user/<UID>/saju-runtime-id-hmac-key
-
-.venv-data/bin/python -m scripts.training.phase5_v3_1_preflight run \
-  --build-root data/derived/saju_1b_baseline/mix20k-v3.1-runtime-grounded/build-새해시 \
-  --tokenizer-path models/saju_1b_baseline/kanana-2-1.3b-instruct/bf4786aa2a1908adce942d53976270132732f720 \
-  --release-registry configs/runtime/calculation/releases/v1.2.0/release_registry.json
-```
-
-기존 dashboard v1.8 canary는 v1.1 release 소비 코드이므로 v1.2 승인 근거로 재사용하지 않는다. 구조화 FSM과 암호화 persistence·보존 정책을 실제 앱/대시보드 adapter에 연결하고 별도 통합 Gate를 통과하기 전에는 `--enable-runtime-canary`로 재기동하지 않는다.
+기존 dashboard v1.8 canary는 v1.1 release 소비 코드이므로 v1.4 승인 근거로 재사용하지 않는다. 구조화 FSM과 암호화 persistence·보존 정책을 실제 앱/대시보드 adapter에 연결하고 별도 통합 Gate를 통과하기 전에는 `--enable-runtime-canary`로 재기동하지 않는다.
 
 ## 14. 완료 기준
 
@@ -498,13 +517,23 @@ release가 생긴 뒤에만 v3.1 생성과 비학습 preflight를 순서대로 �
 - [x] 과거 공식 근거 전용 session v2.2/FSM v1.2에서 exact·range·unknown·fold ID를 재검산하고 profile·미래·기간 요청을 차단한다.
 - [x] 기존 dashboard와 자산·process를 분리한 loopback·메모리 전용 후보 화면/API를 구현한다.
 - [x] 실제 Skyfield/DE440s로 1964년 백로, 음력, 교정, stale call, 변조 HMAC, 공개 응답 경계를 포함한 12개 층화 120/120 Gate를 통과한다.
-- [ ] Runtime Gate를 통과하고 profile ADR을 승인한다.
+- [x] 정규화 양력 `1920-01-07~2026-08-31`의 과거 공식 원국만 허용하는 v1.4 chart-only wrapper와 source/Gate v1.7을 고정한다.
+- [x] conformance v9에서 scope 328,722건, exact 77,908건, 경계 probe 2,558건, range/unknown 2,660건을 실패 0으로 검증한다.
+- [x] 과거 원시 분 mismatch 14를 보존하고 ±1초 격리 분·range 차단·unknown 안정 50건을 각각 자동 Gate에 고정한다.
+- [x] `saju-runtime-release-v1.4.0-63dc8d398e90`을 write-once로 생성하고 chart만 승인·period 차단·feature 기본 off를 검증한다.
+- [ ] strict/full Runtime Gate와 미래·기간 범위의 profile 승인을 완료한다.
 - [ ] production HMAC key 수명주기와 암호화 persistence·보존/삭제 정책을 운영 환경에서 승인한다.
 - [ ] 앱 adapter에 구조화 event FSM을 연결하고 통합 Gate를 통과한다.
 - [ ] v3.1을 새 fingerprint로 생성하고 split/preflight를 재실행한다.
 - [ ] 승인 release와 feature flag 기본 off 상태로 앱·대시보드 canary를 검증한다.
 
 ## 진행 기록
+
+- 2026-09-02
+  - 작업 요약: 정규화 양력 `1920-01-07~2026-08-31`의 과거 공식 원국만 승인하는 Skyfield runtime v1.4와 conformance v9를 구현하고, 통과 보고서에 결합된 chart-only release를 생성했다.
+  - 변경 범위: runtime contract·output schema·profile v1.4, source/Gate v1.7, `ApprovedSajuRuntimeEngineV14`, CLI, conformance v9, write-once release 승인기와 schema, 회귀·실제 DE440s 통합 테스트, 공개 aggregate/build manifest와 runtime 정본 문서를 추가했다. exact는 `HARD_GT`, range·unknown은 ±1초 양끝의 공통 사실이 같을 때만 `POLICY_BOUND_RULE`이며 period는 항상 차단한다. 앱·dashboard·모델 context·MIX20K-v3.1·학습·Phase 6·sealed blind는 실행하거나 연결하지 않았다.
+  - 검증: 부모 v8을 실제 KASI·IERS·DE440s 원본으로 재계산하고 scope 328,722건(허용 233,724·차단 94,998), 태양력·음력 exact 77,908건, 과거 절입 1,279행·probe 2,558건, range/unknown 2,660건을 실패 0으로 통과했다. 과거 원시 분 mismatch 14, 격리 분 50, 동일-분 range 차단 50, unknown 안정 50을 정확히 고정한 최종 보고서는 `build-9f1784e74a4e`, release는 `saju-runtime-release-v1.4.0-63dc8d398e90`이다. 전체 Ruff, v1.4·이전 runtime 회귀 64건, 실제 활성 release 경계 smoke, report/release 재검증, `uv pip check`, Phase 1 원천 4종·Nemotron 1,000,000행 검증을 통과했다. Git 제외 원천이 있는 clean `master` 기준 기존 전체 unittest도 527/527 통과했다. 격리 작업트리 전체 discover의 기존 1실패·22오류는 그 worktree에 Git 제외 원천·모델·과거 build가 없는 경로 문제로 분리했고 새 runtime 관련 실패는 없었다.
+  - 남은 이슈·후속 작업: strict/full runtime Gate는 원시 분 mismatch 22와 미래 물리 순간 미판정으로 계속 false다. feature 기본 off와 `production_application_binding=false`를 유지하고, 운영 key 수명주기·암호화 persistence·앱 adapter·기간 승인 전에는 v3.1 생성·추가 학습·모델 승격을 진행하지 않는다.
 
 - 2026-09-01
   - 작업 요약: 과거 공식 근거 전용 session v2.2/FSM v1.2를 별도 loopback 진단 화면과 실제 Skyfield v1.3 runtime에 연결하고, 12개 층화 120건 자동 Gate를 완료했다.

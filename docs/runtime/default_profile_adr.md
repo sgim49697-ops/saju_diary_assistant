@@ -1,11 +1,11 @@
-<!-- default_profile_adr.md - 첫 한국 runtime profile의 현재 후보 결정과 production 승인 보류 사유를 기록한다. -->
+<!-- default_profile_adr.md - 첫 한국 runtime profile의 chart-only 승인과 full production 보류 경계를 기록한다. -->
 
 # ADR: `KR_CIVIL_MIDNIGHT_V1`
 
-- 상태: Skyfield candidate runtime 결합 승인, production 기본값·release 승인 보류
-- 결정일: 2026-09-01
-- 활성 후보 계약: `saju-runtime-python-v1.3.0`
-- 최신 검증: conformance v8.0.0 `build-8bd88d6db03a`
+- 상태: 과거 공식 chart-only release 승인, strict/full runtime·production 앱 연결 보류
+- 결정일: 2026-09-02
+- 활성 release 계약: `saju-runtime-python-v1.4.0`
+- 최신 검증: conformance v9.0.0 `build-9f1784e74a4e`
 
 첫 한국 profile은 역사 civil time, 입춘 연 경계, 12절 월 경계, 00:00 일 경계, 민간시 시주, 진태양시 미적용, 지장간 본기 기준 지지 십신으로 고정한다. 절입 경계 비교는 TT, 공식 표시 분 비교는 `UT1_NOMINAL_PLUS_FIXED_KST`로 분리한다.
 
@@ -30,6 +30,10 @@ v1.3 candidate runtime은 Skyfield provider를 실제 계산 경로에 결합한
 - 공식 snapshot 수집시점까지의 과거: `PAST_OFFICIAL_CORROBORATED` 1,280행
 - 이후 미래: `FORECAST_DIAGNOSTIC_NONAPPROVAL` 280행
 
-이 통과는 candidate 계산 경로의 일관성을 뜻한다. 원시 분 라벨 mismatch 22와 미래 물리 순간 미판정 때문에 strict runtime provider Gate는 실패 상태다. 따라서 `runtime_approved=false`, `release_approval_performed=false`, feature flag 기본 off와 `HARD_CANDIDATE`를 유지한다. release registry, production provider 변경, 앱 연결, MIX20K-v3.1 생성·학습은 별도 승인 전까지 금지한다.
+이 통과는 candidate 계산 경로의 일관성을 뜻한다. 원시 분 라벨 mismatch 22와 미래 물리 순간 미판정 때문에 strict/full runtime provider Gate는 계속 실패 상태다.
+
+v1.4는 이 profile을 정규화 양력 `1920-01-07~2026-08-31`의 과거 공식 원국에만 제한해 승인한다. conformance v9는 scope matrix 328,722건, 태양력·음력 exact 77,908건, 과거 절입 경계 probe 2,558건, range/unknown 2,660건을 실패 0으로 검증했다. KASI 과거 원시 분 mismatch 14건은 그대로 보존하고, ±1초 안에 minute 격자와 겹치는 50개 분은 exact와 불안정 range에서 차단한다. unknown은 ±1초 양끝의 공통 사실이 같을 때만 `POLICY_BOUND_RULE`로 제공한다.
+
+release `saju-runtime-release-v1.4.0-63dc8d398e90`은 `calculate_saju_chart`만 승인하고 `calculate_saju_period`는 항상 차단한다. feature 기본 off와 production key 필수 조건을 유지하며 production provider 변경, 앱 연결, MIX20K-v3.1 생성·학습은 승인하지 않는다.
 
 실행 정본과 수량·hash는 [`saju_runtime_calculator_adoption.md`](../../implementation/plans/saju_runtime_calculator_adoption.md)를 따른다.

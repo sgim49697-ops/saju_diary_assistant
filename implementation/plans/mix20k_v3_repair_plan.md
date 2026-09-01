@@ -2,14 +2,14 @@
 
 # MIX20K-v3 기술 후보 인수·보정 계획
 
-- 기준일: 2026-08-31
+- 기준일: 2026-09-02
 - 외부 후보: `saju-mix20k-v3-review-ready`
 - 원본 상태: `3.0.0-review-candidate`
 - 보정 후보: `v3.0.1-repaired`
 - 모델: `kakaocorp/kanana-2-1.3b-instruct@bf4786aa2a1908adce942d53976270132732f720`
 - 결론: 기술 preflight 통과, Phase 6 자동 repair 필요, 학습·production 승격 차단
 
-2026-09-01 현재 Skyfield v1.3 candidate runtime과 conformance v8은 구현됐지만 strict Gate·release는 승인되지 않았다. 따라서 이 문서의 canonical 3,800행 재검산 blocker는 닫히지 않았고, `v3.0.1-repaired`를 v3.1 또는 학습 승인본으로 승격하지 않는다.
+Skyfield v1.4 chart-only runtime과 conformance v9 `build-9f1784e74a4e`, release `saju-runtime-release-v1.4.0-63dc8d398e90`은 완료됐다. 그러나 이 release는 원국만 승인하고 period를 항상 차단하므로 chart 4,350회·period 900회를 같은 version으로 재생성해야 하는 이 문서의 blocker를 닫지 않는다. `v3.0.1-repaired`를 v3.1 또는 학습 승인본으로 승격하지 않는다.
 
 ## 범위와 불변 경계
 

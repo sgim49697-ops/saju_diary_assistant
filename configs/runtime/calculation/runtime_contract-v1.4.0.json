@@ -1,0 +1,47 @@
+{
+  "_description": "과거 공식 snapshot 완전 일자에서 원국 계산만 release로 승인하는 계약이다.",
+  "schema_version": "1.4.0",
+  "runtime_contract_version": "saju-runtime-contract-v1.4.0",
+  "engine_version": "saju-runtime-python-v1.4.0",
+  "output_schema_version": "1.4.0",
+  "id_contract_version": "saju-runtime-id-hmac-v2.0.0",
+  "conformance_suite_version": "saju-runtime-conformance-v9.0.0",
+  "status": "approved_chart_only_feature_default_off",
+  "runtime_approved_in_static_contract": false,
+  "approval_requires_release_registry": true,
+  "release_contract_created": true,
+  "feature_flag_default": false,
+  "production_id_key_required": true,
+  "profile_id": "KR_CIVIL_MIDNIGHT_V1",
+  "approval_scope": "PAST_OFFICIAL_CHART_ONLY_1920_2026",
+  "approved_tools": ["calculate_saju_chart"],
+  "blocked_tools": ["calculate_saju_period"],
+  "approved_solar_date_range": {"minimum": "1920-01-07", "maximum": "2026-08-31"},
+  "normalized_solar_date_controls_scope": true,
+  "authority": {
+    "exact_after_valid_release": "HARD_GT",
+    "range_or_unknown_after_valid_release": "POLICY_BOUND_RULE",
+    "candidate_before_release": "HARD_CANDIDATE",
+    "all_evidence_required": "PAST_OFFICIAL_CORROBORATED",
+    "heuristic_fields_may_be_upgraded": false
+  },
+  "boundary_uncertainty": {
+    "kasi_declared_past_seconds": 1.0,
+    "exact_intersection_policy": "block",
+    "range_unknown_policy": "allow_only_when_minus_plus_one_second_stable_facts_match",
+    "expected_quarantined_minutes": 50
+  },
+  "provider": {
+    "provider_id": "skyfield-1.55-jpl-de440s-builtin-ut1",
+    "root_time_scale": "TT",
+    "automatic_download_or_fallback": false,
+    "astronomy_engine_fallback": false,
+    "strict_runtime_provider_gate_passed": false
+  },
+  "scope_guards": {
+    "production_application_binding": false,
+    "mix20k_v3_1_regeneration_allowed": false,
+    "training_promotion_allowed": false,
+    "sealed_blind_accessed": false
+  }
+}

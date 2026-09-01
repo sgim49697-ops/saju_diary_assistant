@@ -1,0 +1,183 @@
+{
+  "approval_scope": "PAST_OFFICIAL_CHART_ONLY_1920_2026",
+  "approved_solar_date_range": {
+    "maximum": "2026-08-31",
+    "minimum": "1920-01-07"
+  },
+  "approved_tools": [
+    "calculate_saju_chart"
+  ],
+  "blocked_tools": [
+    "calculate_saju_period"
+  ],
+  "boundary_uncertainty_seconds": 1.0,
+  "conformance_report": {
+    "build_id": "build-9f1784e74a4e",
+    "manifest_path": "data/reports/saju_runtime_conformance/v1.7.0/build-9f1784e74a4e/build_manifest.json",
+    "manifest_sha256": "c8d4127500ee86e6f7effb49c8e8c6d453d24aa57241744f0e44d74aff6be606",
+    "path": "data/reports/saju_runtime_conformance/v1.7.0/build-9f1784e74a4e/aggregate.json",
+    "sha256": "e01fbb40fe0eefb48ef8428fe0f229927f9afeed2acee75d029b40bc49197644"
+  },
+  "engine_version": "saju-runtime-python-v1.4.0",
+  "full_runtime_gate_passed": false,
+  "id_contract_version": "saju-runtime-id-hmac-v2.0.0",
+  "implementation_sha256": {
+    "configs/runtime/calculation/calculation_output_schema-v1.4.0.json": "3c2a492277ec0e40e82ab5a401716898e5c65b79107a22d95c194899b828b18e",
+    "configs/runtime/calculation/conformance_gate-v1.7.0.json": "9251b227f2021261f01fa44e78b5a517f13f87a01db9dc9d50a37a29b70258ef",
+    "configs/runtime/calculation/id_canonicalization-v2.0.0.json": "54290f788af0a57483e8bd6483697a480fc527456227b81acab3c7ff4ab218f5",
+    "configs/runtime/calculation/profiles/KR_CIVIL_MIDNIGHT_V1-v1.4.0.json": "e54fda66eab876f19fdbf0fe68069cc82662c94b4e0d83a84dfa2c8472862203",
+    "configs/runtime/calculation/release_registry_schema-v1.4.0.json": "a4417d0e19ec8911972de7db6d9116042e6ea32864bf7d2b13e45ed6c131005a",
+    "configs/runtime/calculation/runtime_contract-v1.4.0.json": "ae991b2f1a3b0a75652b7246f93186dfe779d1e06084b798b0556b705043bd72",
+    "configs/runtime/calculation/source_registry-v1.7.0.json": "79336137fb9fbef8b8346252e5005d56734befd7dc56ba9c13042ce8e41bb64b",
+    "requirements-runtime-calculator-v1.4.txt": "207108fdfe97b71bd8af499a97a356c61245265920755b5ba7313e78db259040",
+    "scripts/evaluation/saju_runtime/conformance_v9.py": "59310605c162232a7d4f1597a35da0d9b5c977b94f68a65036f4fc07060a04b1",
+    "scripts/evaluation/saju_runtime/release_registry_v1_4.py": "d19cd162c4af6460cbfb01a540b81d2e4d41d0eee8349edc02b33647f73e80ab",
+    "scripts/runtime/calculation/contracts_v1_4.py": "97528ccc270852734ed2a219c26014915154e231b0884f9d92ecb3054b51bd41",
+    "scripts/runtime/calculation/engine_v1_4.py": "fc0cab7158747819b69a78f99db873b9b0de065c0ebe94cf17bf4641a906a07b",
+    "scripts/runtime/saju_runtime_v1_4.py": "5c407e690a49024d41b8e2ff7b15a761ca43921a1d45f18538b9e2ba0cbd5bb8"
+  },
+  "mix20k_v3_1_regeneration_allowed": false,
+  "official_snapshots": {
+    "iers_finals2000a_diagnostic": {
+      "automatic_fallback_used": false,
+      "kind": "private_official_iers_finals2000a_diagnostic",
+      "manifest_sha256": "731db15b6ef0461db6d4effb746efd01195cff261b4940ee15cbd3f47b27df28",
+      "origin_collector_sha256": "0c72388a84f03356ff62ccd49eb41399780eb62a5510d8555ddc8e5696264b05",
+      "origin_collector_version": "iers-finals2000a-collector-v1.0.0",
+      "provided": true,
+      "rows": 19969,
+      "snapshot_sha256": "e3905ff7a74b791744704aa3e900a2161e96db97a30095d8fc442b04e4cfe058",
+      "utc_date_range": [
+        "1973-01-02",
+        "2027-09-04"
+      ]
+    },
+    "kasi_1964_historical_almanac": {
+      "archive_id": "KASI_A188_Z_001",
+      "complete": true,
+      "image_sha256": "553f0734a32191c394b34c95773d34bb4fd2348f0c325761ec8f511121e49010",
+      "kind": "private_official_kasi_digitized_almanac",
+      "manifest_sha256": "4adf8c2892d1e717ec669cddeeee941e3edf1f786a864dfb5bb93bfd4a40fb9f",
+      "origin_collector_sha256": "b1002a4ebeba07a6f283d623220b57e431be4e23ae6a7eba1372de6c24182efb",
+      "origin_collector_version": "kasi-almanac-1964-collector-v1.0.0",
+      "page_sequence": 20,
+      "private_path_recorded": false,
+      "provided": true,
+      "sha256": "5fafbb8dfd3e7d43e5a5ce59619195061beaac76c2f1dc94fe32d1205c4138a5"
+    },
+    "kasi_24_divisions_openapi_observed_coverage": {
+      "api_range_scan_complete": true,
+      "contract_coverage_complete": false,
+      "expected_rows": 3600,
+      "kind": "private_official_24_divisions_observed_api_coverage",
+      "manifest_sha256": "30c104c9a01d00abb902380d4917d009dafa46e08864c261c1abca443b1c6bcf",
+      "origin_collector_sha256": "c7ce32d04a5498a2d42dccda5d2408980d49ee158e59eda615b82d7b70347865",
+      "origin_collector_version": "kasi-term-coverage-collector-v1.2.0",
+      "private_path_recorded": false,
+      "provided": true,
+      "requested_years": [
+        1900,
+        2049
+      ],
+      "rows": 696,
+      "scan_sha256": "5bf0e5d8540bd09b36dce56a4d7c1a995f84d1c5225ba40ac9cd33887062d389",
+      "sha256": "eabaa07271529c08ecc02c3886775b39d069ee9db3f7522242ccad95ec51bb4c",
+      "supported_year_ranges": [
+        [
+          2000,
+          2028
+        ]
+      ],
+      "supported_years": [
+        2000,
+        2001,
+        2002,
+        2003,
+        2004,
+        2005,
+        2006,
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025,
+        2026,
+        2027,
+        2028
+      ],
+      "unsupported_years_filled_from_provider": false,
+      "years_scanned": 150
+    },
+    "kasi_lunisolar": {
+      "complete": true,
+      "kind": "private_official_full_lunisolar",
+      "manifest_sha256": "824bd313dcced2b15bda75c9c5d136e06b6cb1c2330c3f47dc0ffab007b30b48",
+      "private_path_recorded": false,
+      "provided": true,
+      "sha256": "276de1729cbec4ecba013c9a9f92d80f14fcac0440bc86565047c29ac341ef04",
+      "supported_rows": 54787
+    },
+    "kasi_nonformal_minute_reference": {
+      "complete": true,
+      "kind": "private_institutional_minute_reference",
+      "manifest_sha256": "47f3952f266ab471270d8a0e9a2d83fb97e477e7e112702750c704559199a4d2",
+      "private_path_recorded": false,
+      "provided": true,
+      "rows": 84,
+      "sha256": "5c1c12a7a3821a330a04b0b2e10117a4c2f28af748211d163bf9a4631d8940bf",
+      "source_tier": "institutional_minute_display_reference_not_formal_almanac"
+    },
+    "kasi_official_current_solar_terms": {
+      "evidence_class": "SOURCE_HARD_FACT",
+      "expected_jie_rows": 2172,
+      "expected_rows_before_known_omission": 4344,
+      "jie_coverage_complete": true,
+      "jie_rows": 2172,
+      "kind": "private_official_current_calculation_solar_terms",
+      "known_upstream_omissions": [
+        {
+          "source_kind": 2,
+          "year": 2030
+        }
+      ],
+      "manifest_sha256": "6d3c45f469e5f16fafea6e4d2eeec75f9880c39f5cca85983201143a9f0d60d8",
+      "origin_collector_sha256": "cd4556ad762e6fbc97f71f9a4271682c338932ee8055624c18643c8d9175ec25",
+      "origin_collector_version": "kasi-official-solar-terms-collector-v1.0.0",
+      "private_path_recorded": false,
+      "provided": true,
+      "provider_values_used": false,
+      "response_sha256": "ef0c15acc7e673e6aba3c194b5681ac49e54387dd170a21d33c506eac70592e7",
+      "snapshot_sha256": "57ae1e017e7632f1fa5a1ab3966977c512503c4fdd828f504d1103e61d8a3213",
+      "source_range": [
+        1920,
+        2100
+      ],
+      "source_rows": 4343
+    }
+  },
+  "production_application_binding": false,
+  "production_id_key_required": true,
+  "profile_id": "KR_CIVIL_MIDNIGHT_V1",
+  "quarantined_boundary_minutes": 50,
+  "release_id": "saju-runtime-release-v1.4.0-63dc8d398e90",
+  "runtime_feature_flag_default": false,
+  "runtime_registry_sha256": "3ec859653127f6b77dacf7a352c6b22bbaade924a27997c68027ebfccf48bd9a",
+  "sealed_blind_accessed": false,
+  "status": "approved_chart_only_feature_default_off",
+  "strict_runtime_provider_gate_passed": false,
+  "training_promotion_allowed": false
+}

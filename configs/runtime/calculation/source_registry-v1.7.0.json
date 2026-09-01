@@ -1,0 +1,43 @@
+{
+  "_description": "v1.6 Skyfield 근거를 보존하면서 과거 공식 chart-only 권한과 ±1초 보류 정책을 고정한다.",
+  "schema_version": "1.7.0",
+  "registry_version": "saju-runtime-sources-v1.7.0",
+  "reviewed_at": "2026-09-02",
+  "parent": {
+    "path": "configs/runtime/calculation/source_registry-v1.6.0.json",
+    "sha256": "89f7d8f2269741568b011c269a0bc3c26f792aa4367de07df957f620da6554aa"
+  },
+  "runtime_provider": {
+    "provider_id": "skyfield-1.55-jpl-de440s-builtin-ut1",
+    "chart_only_release_bound": true,
+    "full_production_runtime_bound": false,
+    "strict_runtime_approved": false,
+    "ephemeris": {
+      "filename": "de440s.bsp",
+      "bytes": 32726016,
+      "sha256": "c1c7feeab882263fc493a9d5a5b2ddd71b54826cdf65d8d17a76126b260a49f2",
+      "git_tracked": false
+    },
+    "automatic_download_or_fallback": false,
+    "astronomy_engine_fallback": false
+  },
+  "official_scope": {
+    "snapshot_collected_at": "2026-08-31T15:16:50+00:00",
+    "approved_solar_date_range": {"minimum": "1920-01-07", "maximum": "2026-08-31"},
+    "approved_civil_dates": 38954,
+    "past_official_jie_rows_in_scope": 1279,
+    "past_raw_minute_mismatches_preserved": 14,
+    "declared_past_uncertainty_seconds": 1.0,
+    "quarantined_boundary_minutes": 50
+  },
+  "promotion_effects": {
+    "chart_only_release_allowed": true,
+    "strict_runtime_provider_gate_passed": false,
+    "full_runtime_gate_passed": false,
+    "runtime_feature_flag_default": false,
+    "production_application_binding": false,
+    "mix20k_v3_1_regeneration_allowed": false,
+    "training_promotion_allowed": false,
+    "sealed_blind_accessed": false
+  }
+}
