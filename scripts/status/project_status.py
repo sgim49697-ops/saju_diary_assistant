@@ -26,10 +26,10 @@ from scripts.preflight.phase4_common import (
 )
 
 DEFAULT_CONFIG = Path(
-    "configs/data_versions/saju_1b_baseline/project-status-v1.1.0.json"
+    "configs/data_versions/saju_1b_baseline/project-status-v1.2.0.json"
 )
 PUBLIC_FILE_MODE = 0o644
-BUILD_PATTERN = re.compile(r"^(?:build|run|gate|preflight)-[0-9a-f]{12}$")
+BUILD_PATTERN = re.compile(r"^(?:build|run|gate|preflight|eval)-[0-9a-f]{12}$")
 
 STATUS_CONTRACTS = {
     "v1.0.0": {
@@ -38,6 +38,7 @@ STATUS_CONTRACTS = {
         "as_of": "2026-08-29",
         "stages": {"pre_ki10", "ki10_gate_failed", "ki20_preflight_ready"},
         "decision_extra_keys": set(),
+        "semantic_decision_key": "expert_quality",
     },
     "v1.1.0": {
         "schema_version": "1.1.0",
@@ -45,6 +46,15 @@ STATUS_CONTRACTS = {
         "as_of": "2026-09-01",
         "stages": {"ki20_trained_phase6_pending"},
         "decision_extra_keys": {"runtime_release", "mix20k_v3_training"},
+        "semantic_decision_key": "expert_quality",
+    },
+    "v1.2.0": {
+        "schema_version": "1.2.0",
+        "canonical_plan_version": "4.0.0",
+        "as_of": "2026-09-01",
+        "stages": {"phase6_completed_automatic_repair_required"},
+        "decision_extra_keys": {"runtime_release", "mix20k_v3_training"},
+        "semantic_decision_key": "domain_semantics",
     },
 }
 
@@ -126,7 +136,7 @@ def validate_contract(config: dict[str, Any], repo_root: Path) -> dict[str, Any]
         "summary",
         "ki10_baseline",
         "ki20_promotion",
-        "expert_quality",
+        contract["semantic_decision_key"],
         "sealed_blind",
         "phase4_rerun",
     } | contract["decision_extra_keys"]
@@ -134,9 +144,10 @@ def validate_contract(config: dict[str, Any], repo_root: Path) -> dict[str, Any]
         "stage_status",
         "ki10_baseline",
         "ki20_promotion",
-        "expert_quality",
         "sealed_blind",
     } | contract["decision_extra_keys"]
+    if contract["semantic_decision_key"] == "expert_quality":
+        decision_status_keys.add("expert_quality")
     if (
         not isinstance(decision, dict)
         or set(decision) != decision_keys
@@ -145,6 +156,10 @@ def validate_contract(config: dict[str, Any], repo_root: Path) -> dict[str, Any]
         or any(
             decision[key] not in {"완료", "허용", "금지", "차단", "대기"}
             for key in decision_status_keys
+        )
+        or (
+            contract["semantic_decision_key"] == "domain_semantics"
+            and decision.get("domain_semantics") != "not_measured"
         )
     ):
         raise ProjectStatusError("project status 현재 결정 형식이 다릅니다.")
@@ -287,9 +302,14 @@ def render_html(context: dict[str, Any]) -> bytes:
     current_decisions = [
         ("KI10 baseline", decision["ki10_baseline"]),
         ("KI20 baseline", decision["ki20_promotion"]),
-        ("전문가 품질 인증", decision["expert_quality"]),
         ("sealed blind 접근", decision["sealed_blind"]),
     ]
+    if "domain_semantics" in decision:
+        current_decisions.insert(
+            2, ("계약 밖 의미 품질", decision["domain_semantics"])
+        )
+    elif "expert_quality" in decision:
+        current_decisions.insert(2, ("이전 의미 품질 필드", decision["expert_quality"]))
     if "runtime_release" in decision:
         current_decisions.append(("Runtime release", decision["runtime_release"]))
     if "mix20k_v3_training" in decision:

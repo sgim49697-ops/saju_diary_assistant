@@ -8,16 +8,16 @@
 | 정본화 기준일 | 2026-09-01 |
 | 주 장비 | NVIDIA GeForce RTX 5070 Ti 16GiB, WSL2 |
 | 주 모델 | `kakaocorp/kanana-2-1.3b-instruct@bf4786aa2a1908adce942d53976270132732f720` |
-| 실험 범위 | 1K smoke, 독립 10K·20K Full FT, 사후 자동 기술평가와 baseline 결정 |
+| 실험 범위 | 1K smoke, 같은 base에서 각각 시작하는 10K·20K Full FT, 사후 자동 기술평가와 baseline 결정 |
 | 배포 성격 | 광고형 자체 서비스 후보. 원문·checkpoint 공개와 원격 모델 접근 판매는 별도 Gate |
 
 ## 고정 실험 계약
 
-- 모든 품질 Gate와 baseline 결정은 저장소 내부의 재현 가능한 자동 기술지표로만 수행한다. 사람·독립 평가자·LLM 심사·외부 인증을 필수 조건이나 후속 작업으로 요구하지 않는다.
+- 모든 품질 Gate와 baseline 결정은 저장소 내부의 재현 가능한 자동 기술지표로만 수행한다. 계약 밖의 별도 평가 작업은 필수 조건이나 사용자 후속 작업으로 요구하지 않는다.
 - 자동 계약이 없는 의미 품질은 `not_measured`로 기록하고 주장하지 않되 Phase 완료를 차단하지 않는다. 세부 계약은 [Phase 6 자동 기술평가](phase-6-evaluation-v2-decision.md)를 따른다.
 
 - 모델 학습 방식은 BF16 전체 파라미터 Full Fine-tuning이다. LoRA/QLoRA로 자동 전환하지 않는다.
-- 10K를 먼저 1 epoch 학습한다. Gate v2 기술·안전 hard gate는 추가 baseline 실험 허용 여부를, 품질 목표는 배포·품질 승격 여부를 판정한다. 20K는 같은 Instruct revision에서 독립 시작하며, 2026-08-29에 받은 별도 명시 확인은 v1.2 실행 계약에만 적용한다.
+- 10K를 먼저 1 epoch 학습한다. Gate v2 기술·안전 hard gate는 추가 baseline 실험 허용 여부를, 품질 목표는 배포·품질 승격 여부를 판정한다. 20K는 같은 Instruct revision의 base snapshot에서 새 run으로 시작하며, 2026-08-29에 받은 별도 명시 확인은 v1.2 실행 계약에만 적용한다.
 - `MIX1K-v2 ⊂ MIX10-v2 ⊂ MIX20-v2`이어야 한다.
 - 데이터 행 비율은 Nemotron 34%, 검산·한국어화한 `bazi-sft` 20%, AI Hub #86 단일턴 7.5%, 멀티턴 7.5%, 검증된 YEJI 신살 규칙 5%, deterministic 사주 QA 10%, 사주-일기 앱 브리지 16%로 고정한다.
 - Nemotron 내부는 v6 20%·v7 80%로 고정한다.
@@ -40,7 +40,7 @@
 | 3 | [학습 모델·환경 준비](phase-3-model-preparation.md) | 완료 | 고정 PyTorch cu130 환경에서 모델·tokenizer·template 전체 BF16 오프라인 로드 성공 |
 | 4 | [학습 전 데이터·모델 검증](phase-4-preflight-validation.md) | 완료 | 품질 보정 staging의 A~E·1,020case·Full FT 200-step resume와 768 canonical 승격 통과 |
 | 5 | [Baseline 학습](phase-5-baseline-training.md) | 완료 | `run-1f5d732cae67` 1 epoch·2,500 step과 final 새 process 재로딩 완료, production 승격 금지 유지 |
-| 6 | [자동 기술평가·baseline 결정](phase-6-evaluation-v2-decision.md) | 부분 진행 | 계약·scorer 구현 완료, sealed blind 단회 실행 전 |
+| 6 | [자동 기술평가·baseline 결정](phase-6-evaluation-v2-decision.md) | 완료 | `eval-e8630962cab2` 단회 실행 완료 · `AUTOMATED_REPAIR_REQUIRED` |
 
 Phase 상태 값은 `미시작`, `부분 진행`, `진행 중`, `차단`, `완료`만 사용한다. 앞 Phase가 `완료`가 아니면 뒤 Phase의 공식 산출물을 만들지 않는다.
 
@@ -73,7 +73,6 @@ data/
 └── reports/
     └── saju_1b_baseline/
         ├── audit/v1.2.0/build-ca756f3eb89f/
-        ├── audit-review/v1.2.0/build-ca756f3eb89f/reviewer-v1.1.0/
         ├── preprocessing-staging/v1.0.0/build-a5a9e76d6a8c/
         ├── model-preparation/v1.0.0/build-32e2c84af3d3/
         ├── preflight/v1.0.0/build-a6813ba3b778/       # 과거 A~C build
@@ -90,7 +89,9 @@ data/
         ├── phase5-preflight/v1.1.0/preflight-b47fe12f03a4/ # KI20 비학습 처리량 검증
         ├── phase5-readiness/v1.3.0/build-7eb4c34364cc/ # KI20 preflight readiness
         ├── project-status/v1.0.0/build-e23e3501a200/ # 과거 KI20 preflight 대기 현황
-        ├── project-status/v1.1.0/build-c64657e7aa8f/ # 현재 KI20 완료·Phase 6 대기 현황
+        ├── project-status/v1.1.0/build-c64657e7aa8f/ # 과거 KI20 완료·Phase 6 대기 현황
+        ├── project-status/v1.2.0/build-84cf0ec3010d/ # 현재 Phase 6 완료·자동 보정 필요 현황
+        ├── phase6-technical/v1.0.0/eval-e8630962cab2/ # 집계 전용 자동 평가 결과
         └── phase-verification/v1.0.0/review-20260828/
 
 configs/data_versions/saju_1b_baseline/
@@ -114,14 +115,16 @@ configs/data_versions/saju_1b_baseline/
 ├── evaluation-split-v1.2.0.json
 ├── phase5-readiness-v1.3.0.json
 ├── project-status-v1.0.0.json              # 과거 KI20 preflight 현황 계약
-├── project-status-v1.1.0.json              # 현재 KI20 완료·runtime/v3 Gate 현황 계약
+├── project-status-v1.1.0.json              # 과거 KI20 완료·Phase 6 대기 현황 계약
+├── project-status-v1.2.0.json              # 현재 Phase 6 완료·자동 보정 필요 현황 계약
 └── registry.json
 
 configs/model_versions/saju_1b_baseline/
 ├── model-preparation-v1.0.0.json
 ├── phase5-quality-gate-v2.0.0.json
 ├── phase5-training-v1.1.0.json
-└── phase5-training-v1.2.0.json
+├── phase5-training-v1.2.0.json
+└── phase6-technical-evaluation-v1.0.0.json
 configs/chat_templates/kanana2_sft.jinja
 requirements.txt
 requirements-phase3.lock.txt
@@ -132,7 +135,8 @@ runs/
 ├── KI1K-SMOKE-v2/v2.0.0/build-2feaee353252/
 ├── KI10-MIX-v2/
 ├── KI20-MIX-v2/v1.2.0/run-1f5d732cae67/
-└── KI20-MIX-v2-LITE/  # Phase 6 결정 시에만 생성
+├── PHASE6-TECHNICAL/v1.0.0/eval-e8630962cab2/ # Git 제외 private 결과
+└── KI20-MIX-v2-LITE/  # 별도 승인 전 미생성
 ```
 
 ## 모델·데이터 조사 결론
@@ -198,7 +202,7 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
 - major는 공통 스키마·태스크 계약 변경, minor는 원천·필터·template·split·구성 변경, patch는 동일 레코드의 보고서·검토 메타 변경에 사용한다.
 - source build는 네 `SOURCE_MANIFEST.json`, audit build는 source build와 감사 정책·seed·감사 코드 hash를 부모 입력으로 기록한다. 향후 derived build는 승인된 audit seal을 추가 부모로 삼는다.
 - build hash 입력에는 절대경로와 실행 시각을 넣지 않는다. 전체 SHA-256을 manifest에 저장하고 디렉터리에는 앞 12자리를 사용한다.
-- 동일 build 재실행은 검증만 수행한다. 사람 판정 수정은 같은 build의 append-only revision으로 남기고, 원천·정책·교정 계약·감사 코드가 달라지면 새 버전·build를 만든다.
+- 동일 build 재실행은 검증만 수행한다. advisory 판정 수정은 같은 build의 append-only revision으로 남기고, 원천·정책·교정 계약·감사 코드가 달라지면 새 버전·build를 만든다.
 
 ## 원본 내용 매핑
 
@@ -237,20 +241,26 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
 ## 진행 기록
 
 - 2026-09-01
+  - 작업 요약: Phase 6 `eval-e8630962cab2`의 자동 기술평가를 완료하고 현재 baseline 결정을 `AUTOMATED_REPAIR_REQUIRED`로 정본화했다. sealed blind는 500행·350 component를 K0·KI10·KI20에 한 번만 사용했다.
+  - 변경 범위: 공개 집계 보고서, private 20K NLL repair 순위, 완료 marker, 상태 계약 v1.2와 registry 포인터를 연결했다. 의미 품질은 `not_measured`로 유지했고 release·앱 연결·MIX20K-v3.1 생성·추가 학습은 수행하지 않았다.
+  - 검증: KI20 NLL 0.779496, 정상 생성 100%, 결정론 56%, 규칙 38%, handoff 50%, 임의 네 기둥 47건을 재검증했다. 실행 commit의 동결 구현 blob, source hash·mode, public/private manifest와 공개 누출 차단을 확인했고 runtime v8 전수 재현, Phase 1 원천 verify, 전체 unittest 454건과 Ruff를 통과했다.
+  - 남은 이슈·후속 작업: 자동 repair 설계가 다음 단계다. 모델 승격, runtime release, 앱 연결, v3.1 생성과 학습은 각각의 자동 Gate가 새 버전에서 통과하기 전까지 차단한다.
+
+- 2026-09-01
   - 작업 요약: 저장소의 활성 문서를 실제 산출물과 다시 대조해 KI20 학습 완료·Phase 6 미시작, MIX20K-v3 후보 차단, Skyfield runtime v1.3 candidate·conformance v8 상태를 하나의 현재 정본으로 맞췄다. 프로젝트 상태 계약을 `v1.1.0`으로 올리고 `build-c64657e7aa8f`과 루트 `PROJECT_STATUS.html`을 같은 바이트로 발행했다.
   - 변경 범위: 루트 안내·상태 페이지, plan 인덱스와 Phase 5·6 문서, runtime·MIX20K-v3·외부 conformance·제3자 고지·원천 다운로드 manifest를 갱신했다. 과거 versioned 문서와 build는 이력으로 보존했으며 데이터, 모델, checkpoint, sealed blind, release registry, 앱 연결, v3.1 생성과 학습은 변경하지 않았다.
   - 검증: 프로젝트 상태 계약·registry·root/snapshot 동일성과 KI20 `run-1f5d732cae67`의 2,500 step·새 process 재로딩을 확인했다. MIX20K-v3 private/public build, Phase 1 원천 4종과 Nemotron 1,000,000행, runtime v1.3/v8 표적 23건, 저장소 전체 unittest 429건, Ruff, `uv pip check`, 로컬 문서 링크, `git diff --check`를 모두 통과했다.
-  - 남은 이슈·후속 작업: Phase 6 평가와 sealed blind 개봉은 미시작이다. MIX20K-v3는 canonical 3,800행·검수·다양성 blocker가 남아 있고, runtime은 strict Gate·release·앱 연결이 승인되지 않았으므로 v3.1 생성·재학습·production 승격을 계속 금지한다.
+  - 당시 상태: Phase 6 실행 전 기록이며 위 완료 기록으로 대체됐다. MIX20K-v3와 runtime 차단은 그대로 유지한다.
 
 - 2026-08-31
-  - 작업 요약: 완료된 KI20 baseline과 MIX20K-v3.0.1을 보존한 채 한국 만세력 runtime workstream을 독립 정본으로 연결했다. Phase 5 인덱스의 실행 중 표기를 실제 `trained_and_reloaded` 상태로 바로잡았다.
+  - 작업 요약: 완료된 KI20 baseline과 MIX20K-v3.0.1을 보존한 채 한국 만세력 runtime workstream을 별도 정본으로 연결했다. Phase 5 인덱스의 실행 중 표기를 실제 `trained_and_reloaded` 상태로 바로잡았다.
   - 변경 범위: 이 문서의 상태·링크만 갱신했으며 모델, checkpoint, 기존 데이터 build, split, sealed blind는 변경하지 않았다.
   - 검증: runtime 공개 KASI 63건·단일 profile 16건의 mismatch 0과 candidate 불변 검사를 통과했지만 공식 전수 fixture 부족으로 runtime·v3.1·학습 승격은 모두 false다.
   - 남은 이슈·후속 작업: Runtime Gate 완료 뒤에도 v3.1 새 build·split·preflight와 기존 대화 품질 Gate가 별도로 필요하다.
 
 - 2026-08-31
   - 작업 요약: 외부 `saju-mix20k-v3-review-ready`를 원본 불변으로 감사하고 `v3.0.1-repaired` private 보정 build와 public 집계 intake, 고정 Kanana tokenizer 비학습 preflight를 생성했다. 실제 학습은 실행하지 않았다.
-  - 변경 범위: strict chart/period tool, model-facing result allowlist, session/상대 날짜, provenance·권위·restricted 계약과 4K 검수 큐를 추가했다. 기간 hard fact 유실을 고치고 cached fixture까지 포함한 3,800행을 canonical 재검산 전 `HARD_CANDIDATE`로 차단했다. 기존 v2·KI20·checkpoint·blind payload는 변경하거나 읽지 않았다.
+  - 변경 범위: strict chart/period tool, model-facing result allowlist, session/상대 날짜, provenance·권위·restricted 계약과 4K 자동 진단 큐를 추가했다. 기간 hard fact 유실을 고치고 cached fixture까지 포함한 3,800행을 canonical 재검산 전 `HARD_CANDIDATE`로 차단했다. 기존 v2·KI20·checkpoint·blind payload는 변경하거나 읽지 않았다.
   - 검증: 최종 `build-94eb7b543490`, `intake-99c0b48231d6`, `preflight-aea1c001126e`에서 20K 최대 767/768, 초과·마지막 사용자 이전 mask·최종 EOS·serialization 오류 0, tool call 5,250/5,250 round-trip, 기간 grounding 오류 0, blind hash overlap 0을 확인했다.
   - 남은 이슈·후속 작업: exact target 반복, canonical 3,800행, 전체 state/grounding·언어·정책 자동 계약, 실제 serving parser 검증이 남았다. `training_promotion_allowed=false`, `production_promotion_allowed=false`를 유지하며 2K/10K/20K 재학습은 금지한다. 상세는 [MIX20K-v3 기술 후보 인수·보정 계획](../mix20k_v3_repair_plan.md)을 따른다.
 - 2026-08-30
@@ -260,31 +270,31 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
   - 남은 이슈·후속 작업: 이 URL은 인증·사용자별 접근 제어·rate limit 없이 전체 dashboard와 GPU 추론을 공개하므로 링크를 아는 누구나 접근할 수 있다. Quick Tunnel은 uptime·고정 URL을 보장하지 않으며, 공유 종료 시 tunnel과 dashboard 서비스를 중지해야 한다. 이전 런타임 비밀번호 파일은 서비스 참조 해제 뒤 삭제했으며 `production_promotion_allowed=false`를 유지한다.
 - 2026-08-30
   - 작업 요약: dashboard `v1.6.0`에 기본 비활성인 인증 원격 공유 계약을 추가하고 현재 Cloudflare Quick Tunnel의 정확한 HTTPS Origin에서 KI20 답변 생성을 연결했다.
-  - 변경 범위: 원격 공유는 exact Origin·Basic 사용자·현재 사용자 소유 `0600` 비밀번호 파일이 모두 있어야 시작하며 정적 화면과 전체 API를 인증으로 보호한다. 기본 loopback 모드와 Host·CSRF·동일 Origin 검사는 유지했다. AI Hub 제한 샘플과 기존 private 세션을 포함한 전체 화면은 사용자가 접근 권한을 확인한 내부 팀원에게만 공유하며 비밀번호는 Git·문서·프로세스 인자에 기록하지 않는다. 학습 데이터·checkpoint·sealed blind·Phase 6·승격 상태는 변경하지 않았다.
+  - 변경 범위: 원격 공유는 exact Origin·Basic 사용자·현재 사용자 소유 `0600` 비밀번호 파일이 모두 있어야 시작하며 정적 화면과 전체 API를 인증으로 보호한다. 기본 loopback 모드와 Host·CSRF·동일 Origin 검사는 유지했다. AI Hub 제한 샘플과 기존 private 세션을 포함한 전체 화면은 접근 권한이 확인된 인증 주체에만 공유하며 비밀번호는 Git·문서·프로세스 인자에 기록하지 않는다. 학습 데이터·checkpoint·sealed blind·Phase 6·승격 상태는 변경하지 않았다.
   - 검증: dashboard 33건과 저장소 전체 266건 unittest, Ruff, JavaScript syntax, JSON·diff 검증을 통과했다. 실제 `trycloudflare.com` URL에서 무인증 local/external `401`, 인증 root·session API `200`, K0/KI20 `available=true`를 확인했고, 외부 Origin의 합성 KI20 질문은 `200`, `status=generated`, 비어 있지 않은 1 turn 답변을 반환했다.
   - 남은 이슈·후속 작업: Quick Tunnel은 uptime과 고정 URL을 보장하지 않는다. 공유 종료 시 tunnel과 인증 dashboard 서비스를 중지하고 런타임 비밀번호 파일을 제거해야 하며 `production_promotion_allowed=false`를 유지한다.
 - 2026-08-30
   - 작업 요약: dashboard `v1.5.0`의 데이터 스플릿 탐색 화면을 분할 카드와 축 행 자체를 선택하는 단일 흐름으로 정리하고, 선택한 후보 풀에서 접힌 샘플 카드 10건을 한 번에 표시하도록 확장했다. `다른 10개 보기`는 클릭할 때마다 새 난수 표본을 요청한다.
   - 변경 범위: 각 요청은 OS 보안 난수로 후보 10건을 비복원 추출해 묶음 내부 중복을 금지하되, 요청 사이 재등장은 허용한다. `전체 혼합`은 축별 균등화 없이 실제 전체 후보 풀의 비율을 그대로 반영한다. 무작위 요청은 loopback·CSRF·Origin 보호 POST이며 표본을 cache·세션·파일에 저장하지 않는다. 학습 데이터 membership·모델·checkpoint·고정 20건·sealed blind는 수정하거나 열람하지 않았고 AI Hub 축의 로컬 제한 경고와 최소 투영을 유지했다.
   - 검증: dashboard 31건과 저장소 전체 264건 unittest, Ruff, JavaScript syntax, JSON·diff 검증을 통과했다. 실제 서비스에서 연속 두 표본이 각각 10건·묶음 내 고유 10건이며 재추첨 결과가 바뀌는 것을 확인했다. Windows Chrome에서 기본 전체 접힘, 상세 열기, 분할·축 전환, 10초 상태 갱신 중 표본 유지, desktop·390px mobile 가로 overflow 0을 확인했고 blind sample 요청은 404로 닫혔다.
-  - 남은 이슈·후속 작업: 무작위 표본은 사람이 데이터 분포를 둘러보기 위한 로컬 진단 기능이며 평가 표본·품질 Gate·학습 재구성 근거가 아니다. 난수 특성상 연속 묶음 일부 또는 전부가 다시 나올 수 있다.
+  - 남은 이슈·후속 작업: 무작위 표본은 로컬 데이터 분포 진단 기능이며 평가 표본·품질 Gate·학습 재구성 근거가 아니다. 난수 특성상 연속 묶음 일부 또는 전부가 다시 나올 수 있다.
 - 2026-08-30
-  - 작업 요약: 수동 모델 검사와 고정 20건 진단 사이에 기본 접힘 상태의 실사용 사주 질문 20선(7개 분야·같은 세션 후속 4개)을 추가했다. 예시 선택은 합성 명식이 포함된 prompt 또는 자연어 후속 질문을 입력창에만 채우며 자동 생성을 하지 않는다.
+  - 작업 요약: 대화형 모델 확인 화면과 고정 20건 진단 사이에 기본 접힘 상태의 실사용 사주 질문 20선(7개 분야·같은 세션 후속 4개)을 추가했다. 예시 선택은 합성 명식이 포함된 prompt 또는 자연어 후속 질문을 입력창에만 채우며 자동 생성을 하지 않는다.
   - 변경 범위: 두 공개 합성 명식은 승인 계산 정책과 고정 `lunar-python==1.4.8`로 재현하고, 2026년 시기 간지는 자문용·runtime 미승인·의미 품질 `not_measured`로 명시했다. 실제 사용자·AI Hub 원문, 학습 20K, checkpoint, 고정 진단 결과, sealed blind와 Phase 6은 건드리지 않았다.
   - 검증: 20개·24 turn·4,000자 상한과 명식·십신·시기 간지를 자동 대조했고 dashboard 28건·전체 261건, Ruff, JavaScript·JSON·diff 검증을 통과했다. live Chrome에서 분야 필터, 입력 채우기, 생성 POST 0건, desktop/mobile overflow 0을 확인했다.
   - 남은 이슈·후속 작업: 예시와 모델 출력은 진단 전용이며 계산 engine 또는 품질 Gate가 아니다. 답변 개선용 재학습은 새 데이터·평가 계약 승인 뒤 별도로 결정한다.
 - 2026-08-30
-  - 작업 요약: dashboard `v1.4.0`에 실제 SFT 시작점인 고정 Kanana Instruct K0를 추가해 `KI20 단독`, `K0 단독`, `K0 ↔ KI20 동시 비교` 수동 세션을 지원한다. 동시 비교는 같은 질문을 두 모델의 독립 문맥에 순차 입력한다.
-  - 변경 범위: 두 모델의 weight·tokenizer·chat template·custom code SHA-256을 로드 직전에 검증하고 16GiB GPU에서 하나씩 로드·해제한다. 기존 수동 세션은 KI20 단독으로 읽으며 고정 20건, 데이터, checkpoint, sealed blind와 재학습 상태는 바꾸지 않았다.
+  - 작업 요약: dashboard `v1.4.0`에 실제 SFT 시작점인 고정 Kanana Instruct K0를 추가해 `KI20 단독`, `K0 단독`, `K0 ↔ KI20 동시 비교` 대화 세션을 지원한다. 동시 비교는 같은 질문을 두 모델의 분리된 문맥에 순차 입력한다.
+  - 변경 범위: 두 모델의 weight·tokenizer·chat template·custom code SHA-256을 로드 직전에 검증하고 16GiB GPU에서 하나씩 로드·해제한다. 기존 대화 세션은 KI20 단독으로 읽으며 고정 20건, 데이터, checkpoint, sealed blind와 재학습 상태는 바꾸지 않았다.
   - 검증: strict 고정 파일 경로의 실제 BF16 비교에서 같은 337-token 입력의 출력 `2/2`, peak allocated 각각 `2,677,079,040 bytes`, 전체 GPU 최대 `4,283MiB`, 종료 후 `1,242MiB` 복귀를 확인했다. 전체 259 tests, desktop 좌우·mobile 단일열과 live HTTP를 통과했다.
   - 남은 이슈·후속 작업: K0↔KI20 비교는 SFT 회귀 진단용이며 계산 engine이나 품질 Gate가 아니다. 상태형 동일 평가와 deterministic runtime bridge는 별도 후속 범위다.
 - 2026-08-30
-  - 작업 요약: KI20 수동 대화 실패를 context 손실이 아닌 무지시 행동 제어 문제로 진단하고 dashboard `v1.3.0`, 안내 보정 prompt, 공개 합성 상태형 dev 100건, 보강 후보 2,000건을 구현했다. 실제 재학습과 Phase 6은 수행하지 않았다.
+  - 작업 요약: KI20 대화 세션 실패를 context 손실이 아닌 무지시 행동 제어 문제로 진단하고 dashboard `v1.3.0`, 안내 보정 prompt, 공개 합성 상태형 dev 100건, 보강 후보 2,000건을 구현했다. 실제 재학습과 Phase 6은 수행하지 않았다.
   - 변경 범위: 최종 후보 `build-0f80acfeed13`은 기존 20K를 덮어쓰지 않은 `candidate_only` build이며 실제 사용자·AI Hub 원문과 생년월일↔명식 연결을 포함하지 않는다. dashboard의 raw profile·기존 세션·고정 20건은 비교 이력으로 보존하고 새 안내 profile도 운영 품질로 표시하지 않는다.
   - 검증: 상태형 Gate `stateful-gate-f5b76dde1921`은 reference/mutation 자체검증 각 `100/100` 뒤 KI20 실제 생성 100건을 완료했으나 필수 행동 `14%`, 무조작 `84%`, 재질문 18건, 허위 완료 1건, 미지원 날짜·기간 5건으로 `guided_diagnostic_not_met`였다. 후보는 10층×200건, 중복·PII·chart/DOB 혼합 0건과 dev100 근접중복 0건을 통과했다.
-  - 남은 이슈·후속 작업: system prompt만으로는 production 준비가 되지 않는다. 2,000건 template 후보를 자연스러운 다회전 문장으로 다양화·소수 검수하고 새 데이터·split·평가 fingerprint를 승인한 뒤에만 별도 재학습을 검토한다. 앱 runtime의 deterministic slot state와 승인 계산 engine, 새 상태형 blind는 별도 구현 대상이며 기존 sealed blind는 계속 미열람이다.
+  - 남은 이슈·후속 작업: system prompt만으로는 production 준비가 되지 않는다. 2,000건 template 후보는 결정론적 다양화와 상태·grounding·언어 자동 계약을 새 데이터·split·평가 fingerprint에 고정한 뒤에만 별도 재학습 대상으로 검토한다. 앱 runtime의 deterministic slot state와 승인 계산 engine, 새 상태형 blind는 별도 구현 대상이며 기존 sealed blind는 계속 미열람이다.
 - 2026-08-29
-  - 작업 요약: clean commit `9ad00a283ce64ff222a54c41f743ae378ce12fe4`에서 KI20 1 epoch run `run-1f5d732cae67`을 독립 시작했다. goal 완료 기준인 첫 유한 optimizer step과 활성 process를 확인했다.
+  - 작업 요약: clean commit `9ad00a283ce64ff222a54c41f743ae378ce12fe4`에서 KI20 1 epoch run `run-1f5d732cae67`을 base snapshot부터 새로 시작했다. goal 완료 기준인 첫 유한 optimizer step과 활성 process를 확인했다.
   - 변경 범위: model·data·과거 run은 수정하지 않고 Git 제외 `runs/KI20-MIX-v2/v1.2.0/run-1f5d732cae67`에 private 실행 상태를 생성했다. systemd user service가 학습을 계속 수행한다.
   - 검증: step 1 loss `2.9315`, grad norm `21.375`, gradient finite/nonzero, PID `826832` active를 확인했다. WSL2가 compute-app PID를 노출하지 않아 고정 runner PID·active service·초기 대비 GPU `8,781MiB` 증가를 교차 검증했으며 총 GPU 사용량은 `9,879/16,303MiB`였다.
   - 남은 이슈·후속 작업: 2,500 step 완료·milestone/final 저장·새 process reload·Phase 6 평가는 별도 후속 확인 대상이다. `production_promotion_allowed=false`와 blind 미열람을 유지한다.
@@ -317,7 +327,7 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
   - 작업 요약: 고정 Instruct snapshot에서 `KI10-MIX-v2/run-e6b712f0d45e`를 1 epoch·1,250 optimizer step Full FT하고 최종 checkpoint의 새 프로세스 재로딩과 5/5 비공개 generation smoke를 통과했다. Phase 5 상태를 `진행 중`으로 전환했다.
   - 변경 범위: 모델·optimizer·생성문은 Git 제외 `runs/`에만 보존하고 공개 경로에는 원문 없는 집계 summary와 manifest만 추가했다. canonical 10K·평가 split·봉인 blind·KI20은 변경하거나 열람·실행하지 않았다.
   - 검증: train loss `0.7679830020904541`, final dev loss `0.9442684650421143`, 유한·nonzero gradient, peak VRAM `6,757,645,824` bytes, 공개 summary SHA-256 `1cbec50…e80a53`을 확인했다.
-  - 남은 이슈·후속 작업: 개발용 1,000case 자동 품질 Gate를 실행한다. 하나라도 실패하면 KI20은 fail-closed로 금지하며, 전부 통과할 때만 고정 base에서 독립 KI20을 실행한다.
+  - 남은 이슈·후속 작업: 개발용 1,000case 자동 품질 Gate를 실행한다. 하나라도 실패하면 KI20은 fail-closed로 금지하며, 전부 통과할 때만 고정 base에서 KI20 새 run을 실행한다.
 - 2026-08-29
   - 작업 요약: 새 readiness의 KI10 forward-only preflight `run-e6b712f0d45e`를 실행해 BF16 model load와 dev monitor 70건의 assistant-only loss를 검증했다. 실제 `.train()`·backward·optimizer step은 수행하지 않았다.
   - 변경 범위: 비공개 run summary만 생성했고 학습 데이터·모델·tokenizer·checkpoint·평가 split은 변경하지 않았다. TRL의 stop-token 일반 경고는 Kanana가 마지막 응답만 supervision하는 template라 발생함을 10K 전수 mask 집계로 분리 확인했다.
@@ -334,30 +344,30 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
   - 검증: readiness private/public manifest SHA-256은 `02d5ecc…b551c`/`514bcc5…fe62`, summary는 `e6c89a4…d0ce`다. 현황 HTML은 snapshot과 byte-identical하며 SHA-256 `dc01a04…e4696`, 외부 실행 자산·restricted content 0으로 registry verify를 통과했다.
   - 남은 이슈·후속 작업: Phase 5 상태는 backward·optimizer step 전이므로 계속 `미시작`이다. 이 체크포인트를 커밋한 clean tree에서 KI10 forward-only preflight를 실행한 뒤에만 실제 KI10을 시작한다.
 - 2026-08-29
-  - 작업 요약: 구현 commit `1e76232c0c094e6d3c3ed47b253c60f0e1af63b1`에서 평가 확장 `v1.1.0/build-d2f9e1623e96`과 학습 전 감사 `v1.0.0/build-c38926f86a3d`를 생성·독립 재검증하고 registry 승인 포인터 후보를 고정했다. 실제 학습은 수행하지 않았다.
+  - 작업 요약: 구현 commit `1e76232c0c094e6d3c3ed47b253c60f0e1af63b1`에서 평가 확장 `v1.1.0/build-d2f9e1623e96`과 학습 전 감사 `v1.0.0/build-c38926f86a3d`를 생성·재현 검증하고 registry 승인 포인터 후보를 고정했다. 실제 학습은 수행하지 않았다.
   - 변경 범위: 평가 v1.0 membership·bytes를 그대로 보존하면서 dev reference overlap 집계와 Nemotron 비인과 guard 50case만 추가했다. 20K 감사는 공개 집계만 생성하고 AI Hub 원문·개별 ID·봉인 blind를 읽거나 공개하지 않았다.
   - 검증: 평가 private/public manifest는 `96b7912…47203`/`f491e71…82738`, 감사 public manifest는 `a488ab1…71e82`다. hard blocker·critical/high·mask·foreign CJK·target-only entity·중대 단정·control·revision drift는 모두 0이며 KI10 전 데이터 수정은 불필요하다.
   - 실행 기록·후속 작업: `.venv-data` 시도는 부모 Phase 3 package freeze 불일치로 artifact 생성 전 실패했고, 고정 학습 `.venv`에서 재실행해 통과했다. 이 산출물과 registry를 커밋한 뒤 clean tree에서 readiness v1.2를 생성한다. KI20은 계속 금지다.
 - 2026-08-29
   - 작업 요약: 학습 직전 의미·출처 전수 감사, 평가 v1.0 불변 확장, readiness v1.2, 실제 BF16 Full FT runner와 공개 현황판 계약을 구현했다. 이 체크포인트에서는 모델 학습·backward·optimizer step과 봉인 blind 열람을 수행하지 않았다.
-  - 변경 범위: canonical 계획을 `3.2.0`으로 올리고 20K assistant token 편중·정형 중복·개발 reference overlap·Nemotron 페르소나 연결 문구를 집계했다. KI10은 1,250 optimizer step, KI20은 KI10의 고정 1,000case 자동 Gate를 모두 통과할 때만 base snapshot에서 독립 2,500 step으로 실행하도록 fail-closed 계약을 추가했다.
+  - 변경 범위: canonical 계획을 `3.2.0`으로 올리고 20K assistant token 편중·정형 중복·개발 reference overlap·Nemotron 페르소나 연결 문구를 집계했다. KI10은 1,250 optimizer step, KI20은 KI10의 고정 1,000case 자동 Gate를 모두 통과할 때만 base snapshot에서 새 2,500-step run으로 실행하도록 fail-closed 계약을 추가했다.
   - 검증: 고정 학습 환경에서 20K 전수 재검증 결과 hard blocker·critical/high·assistant mask 오류·foreign CJK·target-only entity·중대 단정·control·revision drift가 모두 0이었다. 175개 단위 테스트, Ruff, Python compile, `git diff --check`, Phase 4 계약 검증을 통과했다.
   - 남은 이슈·후속 작업: Nemotron+bazi assistant token 비중 83.299298%, YEJI 정규화 중복 참여 95.5%, Nemotron 연결 표현 76.029412%를 알려진 위험으로 유지한다. 구현 commit을 고정한 뒤 평가·감사·readiness 불변 build와 현황 HTML을 생성하고, clean tree에서 KI10 forward preflight와 조건부 학습을 실행한다.
 - 2026-08-29
-  - 작업 요약: Phase 5 전 평가 역할을 train·dev monitor·dev diagnostic·sealed blind·external conformance로 분리한 `evaluation-split/v1.0.0/build-a5a04ab96594`와 비학습 `phase5-readiness/v1.1.0/build-201010b37e40`을 생성·독립 재검증했다. 실제 KI10·KI20 학습은 실행하지 않았다.
+  - 작업 요약: Phase 5 전 평가 역할을 train·dev monitor·dev diagnostic·sealed blind·external conformance로 분리한 `evaluation-split/v1.0.0/build-a5a04ab96594`와 비학습 `phase5-readiness/v1.1.0/build-201010b37e40`을 생성·재현 검증했다. 실제 KI10·KI20 학습은 실행하지 않았다.
   - 변경 범위: 기존 eval70과 1,000건을 개발용으로 재분류하고, 품질 보정 24K의 미사용 component에서 축별 50개·총 350 component/500행 blind를 봉인했다. KASI 200행과 고정 revision 정책 경계 20행, 라이선스 고지를 별도 공개 fixture로 고정하고 readiness v1.1 부모 계약에 정확한 manifest hash를 연결했다.
   - 검증: reserve는 축별 최소 YEJI 61 component이며 50개 선택 후 11개가 남는다. train·개발·blind의 component/record/content hash 누수 0, BaZi 4행 component 보존, 고정 tokenizer 768 이하, Kanana 고정 revision·torch 2.13.0+cu130·RTX 5070 Ti·BF16·64GiB disk Gate를 통과했다. readiness private/public manifest는 `4d28b744…db907`/`1205f83a…d1321`이다.
   - 남은 이슈·후속 작업: Phase 5는 실제 학습을 시작하지 않아 계속 `미시작`이다. 다음 실행은 사용자가 별도로 승인할 때 KI10을 고정 Instruct에서 시작하는 것이며 `phase5_training_performed=false`를 유지한다.
 - 2026-08-29
   - 작업 요약: Phase 4 v2 canonical을 부모로 실제 학습 없는 Phase 5 readiness `build-f6c8171f454f`을 완료했다. KI10·KI20 학습은 시작하지 않아 Phase 5 상태는 `미시작`이다.
-  - 변경 범위: KI10 10K·KI20 20K, 축별 10건 eval70, 고정 Kanana·CUDA 13.0·BF16·package lock, 독립 Run과 checkpoint state 계약을 고정했다. AI Hub 원문이 포함된 eval70은 Git 제외 private 경로에만 저장했다.
-  - 검증: readiness 생성·독립 verify, 7축 manifest strict subset과 eval/train 누수 0, 단일 RTX 5070 Ti와 754,540,773,376 bytes 가용 disk를 확인했다. public/private manifest SHA-256은 `9b71d2d3…8a176`/`6f72abe1…8c273`이다.
-  - 남은 이슈·후속 작업: 실제 Phase 5 실행은 별도 승인 대상이며 `phase5_training_performed=false`다. KI10과 KI20은 같은 Instruct snapshot에서 각각 독립 시작한다.
+  - 변경 범위: KI10 10K·KI20 20K, 축별 10건 eval70, 고정 Kanana·CUDA 13.0·BF16·package lock, 분리된 Run과 checkpoint state 계약을 고정했다. AI Hub 원문이 포함된 eval70은 Git 제외 private 경로에만 저장했다.
+  - 검증: readiness 생성·재현 verify, 7축 manifest strict subset과 eval/train 누수 0, 단일 RTX 5070 Ti와 754,540,773,376 bytes 가용 disk를 확인했다. public/private manifest SHA-256은 `9b71d2d3…8a176`/`6f72abe1…8c273`이다.
+  - 남은 이슈·후속 작업: 실제 Phase 5 실행은 별도 승인 대상이며 `phase5_training_performed=false`다. KI10과 KI20은 같은 Instruct snapshot에서 각각 새 run으로 시작한다.
 - 2026-08-29
   - 작업 요약: 품질 보정 Phase 4 v2의 A~E를 완료하고 768 canonical `v2.0.0/build-6f32d52c2868`을 registry의 `approved_derived`로 승격했다. Phase 5 실제 학습은 실행하지 않았다.
   - 변경 범위: 7축 MIX1K/10K/20K와 1,000항목·1,020case K0, 자동 위험 분류, BF16 Full FT forward/backward·8-bit optimizer, 100→200-step resume와 새 process 재로드를 검증했다. 이전 v1 canonical은 이력으로 보존한다.
   - 검증: Phase 4 `verify-final`과 private/public manifest hash chain이 통과했다. canonical build SHA-256은 `6f32d52c…32ee9`, private/public manifest는 `66b21f08…bedbf`/`c670c2ad…f7fec`이며 안전 위반 0, 선택 길이 768이다.
-  - 남은 이슈·후속 작업: 자동 위험도 high 97건은 사람이 판독해야 하는 승인 Gate로 넘기지 않고 상위 50건만 로컬 우선순위로 고정했다. 전문 품질 인증은 주장하지 않으며 다음 작업은 비학습 Phase 5 readiness다.
+  - 남은 이슈·후속 작업: 자동 위험도 high 97건은 별도 승인 Gate로 넘기지 않고 상위 50건만 로컬 진단 우선순위로 고정했다. 계약 밖 품질은 주장하지 않으며 다음 작업은 비학습 Phase 5 readiness다.
 - 2026-08-29
   - 작업 요약: 정본을 v3.0으로 올리고 품질 보정 7축 24K를 부모로 하는 Phase 4 `v2.0.0` 계약을 구현했다. Core Eval 300·source holdout 700·K0 1,020case와 7축 MIX1K/10K/20K, deterministic QA·앱 브리지를 새 fingerprint에서 검증한다.
   - 변경 범위: 과거 v1 canonical을 덮어쓰지 않고 `v2.0.0` 경로를 사용하며, AI Hub+브리지 assistant loss token share 10% 최소 Gate와 전역 leakage component 분리를 추가했다. 실제 Phase 5 학습은 수행하지 않았다.
@@ -367,7 +377,7 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
   - 작업 요약: 구현 checkpoint `31fe13b08e04d4015d30ac670d92dd6427e6427d`에서 교정 staging 기반 Phase 4A~E를 완료하고 768 canonical `v1.1.0/build-a1a34616dd72`를 `approved_derived`로 승인했다. Phase 5 실제 10K·20K 학습은 실행하지 않았다.
   - 변경 범위: 부모 preflight `build-7d59833b8d59`에서 24K 전수 token/loss-mask, Core Eval 200·source holdout 500, K0 700항목/720case와 자동 위험 분류를 재검증했다. BF16 Full FT 512 1/20-step, 1024 1-step 진단, 768 100→200-step 별도 process resume와 checkpoint 재로드 5-task 생성을 수행했다.
   - 검증: A~E, canonical hash chain과 `verify-final`이 통과했다. K0 안전 위반 0, 위험도 high 48·medium 329·low 323, 200-step 손실 중앙값 2.3489→0.9452, peak VRAM 10,498,061,312 bytes, 종료 여유 3,005,186,048 bytes였다.
-  - 남은 이슈·후속 작업: 사람 전문 판독과 품질 인증은 수행하지 않았으며 `quality_certification_claimed=false`다. Transformers의 checkpoint tokenizer 정규식 경고는 원본·저장본 `tokenizer.json` SHA-256 `1c4be9ec…f2b5ab` 일치와 표본 token ID 일치로 비-Mistral 오탐임을 확인했으므로 일반 Mistral 교정값을 적용하지 않는다. 다음 작업은 별도 승격된 Phase 5다.
+  - 남은 이슈·후속 작업: 계약 밖 의미 품질은 `not_measured`이며 `quality_certification_claimed=false`다. Transformers의 checkpoint tokenizer 정규식 경고는 원본·저장본 `tokenizer.json` SHA-256 `1c4be9ec…f2b5ab` 일치와 표본 token ID 일치로 비-Mistral 오탐임을 확인했으므로 일반 Mistral 교정값을 적용하지 않는다. 다음 작업은 별도 승격된 Phase 5다.
 - 2026-08-28
   - 작업 요약: 정본을 v2.6으로 올리고 교정 staging 기반 Phase 4 `v1.1.0` 재실행 계약과 K0 자동 위험 분류·Full FT smoke/resume·canonical 승격 실행기를 구현했다.
   - 변경 범위: K0는 고정 모델·template·prompt hash가 같은 과거 출력만 재사용하고 지표를 재계산한다. D/E는 512 단일/20-step, 1024 진단, 768 100-step 저장·새 process 200-step resume·5-task reload로 고정했다.
@@ -395,29 +405,14 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
   - 검증: file key `66046`~`66049`의 archive 21,350,912 bytes와 SHA-256, manifest 12파일 재해시, JSON 58,268건 파싱 실패 0건, 멀티턴 고유 group 51,886개를 확인했다. 최소 1,200-group Gate와 활성 원천 4개 전체 `verify`를 통과했다.
   - 남은 이슈·후속 작업: upstream train/validation의 group ID 교집합 6,379개와 exact record 교집합 0개를 확인했다. Phase 2에서는 upstream split을 출처 메타로만 쓰고 전체 `talk.id.talk-id`를 group-first로 다시 분리해야 한다.
 - 2026-08-27
-  - 작업 요약: Phase 2A 읽기 전용 원천 감사기와 데이터 SemVer/build fingerprint 경로를 구현하고, 네 원천 전체 스캔 및 사용자 필수 150건·참고 151건의 비공개 검토 큐를 생성했다.
-  - 변경 범위: source 보고서를 `source/v1.0.0/build-b3890c552e38`로 이관하고, 감사 정책·bundle·registry, 감사 CLI·테스트, 공개 집계 보고서를 추가했다. 원본·unified·평가셋·학습 데이터는 변경하거나 생성하지 않았다.
-  - 검증: 단위 테스트 20건, Python compile, Phase 1 원본 재해시, audit `verify`, 같은 build 무쓰기 재실행, 미검토 finalize·무확인 approve 차단을 통과했다. `build-336b8377063a`에서 Nemotron 116,666행, `bazi-sft` 100,000행, AI Hub 58,268건, YEJI 51규칙과 교차 원천 동일 명식 2,778개를 확인했다.
-  - 남은 이슈·후속 작업: 필수 150건 사람 검토가 남았다. YEJI `词馆`의 `壬申` 주석·`壬卯` 코드 충돌과 `五鬼`의 미등록 `흉살류` category 때문에 Gate는 차단 상태이며, 교정 계약과 새 build 없이는 승인·Phase 2B 전처리를 시작할 수 없다.
-- 2026-08-27
-  - 작업 요약: YEJI 두 known issue를 원본 불변 correction overlay로 고정한 감사 `v1.1.0/build-e162d9b2b7dc`를 생성하고, 핵심 150건과 참조 151건을 함께 확인하는 버전 고정 HTML 검수기를 구현했다.
-  - 변경 범위: 감사 정책·교정 manifest·append-only 판정 revision·과거 v1.0 검증기, 공개 감사 보고서와 `reports/.../audit-review/.../reviewer-v1.0.0` 화면을 추가했다. 원본·unified·평가셋·학습 데이터는 변경하거나 생성하지 않았다.
-  - 검증: Ruff, Python compile, 단위 테스트 20건, Node JavaScript 구문 검사, Phase 1 원본 재해시, v1.1 audit `verify`, v1.0 historical verify, 실제 loopback HTTP/API와 Chromium 1600×1000 렌더링을 통과했다. v1.1은 관측 코드 2건을 모두 해소해 blocking finding 0건이며 큐 review ID 301개는 v1.0과 동일하다.
-  - 남은 이슈·후속 작업: 사용자 판정은 필수 0/150, 참조 0/151이고 build는 미봉인·미승인이다. 필수 판정을 모두 완료·해결한 뒤 별도 지시에 따라 seal과 명시 승인을 수행하며, 그 전에는 Phase 2B를 시작하지 않는다.
-- 2026-08-27
-  - 작업 요약: 동일 AI Hub 승인 범위 팀원용으로 핵심 150단위만 담은 오프라인 HTML 검수 ZIP과 advisory 피드백 검증 흐름을 추가했다.
-  - 변경 범위: 원천별 최소 투영·식별자 제거, checkpoint/final JSON·CSV, ZIP manifest·SHA-256·권한 검증을 구현하고 저장소 밖에 현재 build 공유본을 생성했다. 참조 151단위와 본 판정 ledger는 공유하거나 변경하지 않았다.
-  - 검증: 신규 테스트 7건과 전체 38건, 변경 파일 Ruff·compile·Node 검사, 실제 audit/raw verify, ZIP 150단위·180레코드 및 sidecar 검증, Chrome 오프라인 렌더링과 대화 턴 순서를 통과했다.
-  - 남은 이슈·후속 작업: 팀원 의견은 본 판정에 자동 합치지 않는다. 원 담당자 검토가 여전히 필수 0/150이므로 Phase 2A는 미봉인·미승인이고 Phase 2B는 시작하지 않는다.
-- 2026-08-27
-  - 작업 요약: Nemotron 100만 행 전체 원천과 감사 v1.2를 고정하고, 사용자 지시에 따른 감사 300건 일괄 위험 수용·seal·승인을 완료했다. 첫 MIX20K에 필요한 최종 20K + 예비 20%만 정제한 24K staging `v0.1.0/build-109815ee6879`을 생성했다.
-  - 변경 범위: BaZi·YEJI 한국어 고정 문구 은행, 다섯 축 adapter, 전체 규칙·안전·언어 검증, 결정론적 후보 순서, 버전별 공개 집계와 승인 후 읽기 전용인 BaZi/YEJI 300건 loopback 검수 화면을 추가했다. Git 제외 원본은 수정하지 않았다.
-  - 검증: 감사 원본 재해시와 approval verify, staging 24,000행·고유 ID 24,000·고유 message 24,000, 영문 단어 잔여 0, AI Hub 축 간 group 겹침 0, BaZi 규칙 불일치 0, YEJI 51규칙 coverage와 테스트를 통과했다.
-  - 남은 이슈·후속 작업: 검수 승인은 항목별 전문 판독이 아닌 `owner_blanket_risk_acceptance`이며 품질 인증을 주장하지 않는다. Phase 4에서 tokenizer 길이, assistant loss mask, holdout/core eval, 정확한 MIX20K manifest와 모델 preflight를 완료하기 전에는 학습 승격하지 않는다.
+  - 작업 요약: Phase 2A 원천 자동 감사와 YEJI correction overlay를 구현하고, Nemotron 100만 행을 포함한 네 원천 전수 검사와 staging `v0.1.0/build-109815ee6879` 생성을 완료했다.
+  - 변경 범위: source·audit 정책과 registry, 공개 집계, BaZi·YEJI 고정 문구 은행, 다섯 축 adapter, 구조·규칙·안전·언어 validator와 결정론적 후보 순서를 추가했다. 당시 진단용 화면·패키지는 불변 이력으로만 남기고 현재 Gate에서 호출하지 않는다.
+  - 검증: 원천 manifest 재해시, blocking finding 0, staging 24,000행·고유 ID/message 각 24,000, 영문 잔여 0, AI Hub 축 간 group 교집합 0, BaZi 규칙 불일치 0과 YEJI 51규칙 coverage를 확인했다.
+  - 남은 이슈·후속 작업: 계약 밖 의미 품질은 `not_measured`이며 별도 작업으로 요구하지 않는다. tokenizer·assistant mask·holdout/core eval과 정확한 MIX manifest는 Phase 4 자동 Gate로 넘겼다.
 - 2026-08-28
-  - 작업 요약: Phase 0~2의 계약·원천·감사·24K staging을 전체 재검수하고, 과거 승인 build를 당시 Git 구현과 해시로 재검증하는 경로를 복구했다. Phase 2는 24K staging 인계 경계에서 `완료`로 판정했다.
+  - 작업 요약: Phase 0~2의 계약·원천·감사·24K staging을 전수 재검증하고, 과거 승인 build를 당시 Git 구현과 해시로 재현하는 경로를 복구했다. Phase 2는 24K staging 인계 경계에서 `완료`로 판정했다.
   - 변경 범위: archive 중복·별칭 경로, link/device, 기존 추출본·병합 ZIP 변조, 원천 symlink·미등록 파일, 비공식 URL·redirect·무해시 다운로드를 fail-closed로 보강했다. 승인 audit의 registry 상태·seal·approval 일치와 승인 staging의 실행 commit·승인·decision·manifest 해시를 강제하고, 현재 라이선스 재검토·과거 표현 정오표를 추가했다.
-  - 검증: 현재 원천 4종 전체 manifest 재해시, 과거 audit v1.0·v1.1·승인 v1.2, 승인 staging 24,000행·검수 300건, loopback HTML read-only bootstrap, 전체 회귀 테스트 68건과 정적·보안 검사를 통과했다. 상세 결과는 `data/reports/saju_1b_baseline/phase-verification/v1.0.0/review-20260828/verification_report.json`에 고정한다.
+  - 검증: 현재 원천 4종 전체 manifest 재해시, 과거 audit v1.0·v1.1·승인 v1.2, 승인 staging 24,000행·자동 진단 300건, loopback HTML read-only bootstrap, 전체 회귀 테스트 68건과 정적·보안 검사를 통과했다. 상세 결과는 `data/reports/saju_1b_baseline/phase-verification/v1.0.0/review-20260828/verification_report.json`에 고정한다.
   - 남은 이슈·후속 작업: 스테이징에 서로 다른 축의 동일 명식 `leakage_group_id` 36개가 있으므로 Phase 4 split에서 반드시 같은 쪽에 배치한다. holdout/core eval, 중첩 MIX manifest, tokenizer·assistant mask·모델 preflight와 `training_promotion_allowed=true` 판정은 Phase 4 전용 Gate로 남긴다.
 - 2026-08-28
   - 작업 요약: 최신 공식 문서와 RTX 5070 Ti 실장비를 기준으로 Phase 3 환경을 PyTorch 2.13.0·CUDA 13.0 wheel로 고정하고, Kanana 2 1.3B Instruct의 고정 revision·tokenizer·chat template·전체 BF16 모델 load를 완료했다.
@@ -426,11 +421,11 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
   - 남은 이슈·후속 작업: upstream YaRN factor 40과 암시적 비율 8 경고는 원본 불변 상태로 보고서에 남겼다. Phase 4 최종 데이터셋·assistant loss mask·200-step smoke와 실제 학습은 수행하지 않았고 `training_promotion_allowed=false`를 유지한다.
 - 2026-08-28
   - 작업 요약: Phase 4A~C 비학습 preflight `v1.0.0/build-a6813ba3b778`을 완료해 24K schema/token/loss mask, Core Eval 200·source holdout 500, 중첩 MIX candidate와 원본 모델 K0 720case를 고정했다.
-  - 변경 범위: 재현 가능한 preflight CLI·테스트·공개 집계 보고서와 저장소 밖 제한 데이터 오프라인 검수 ZIP을 추가했다. 전역 Codex·Claude 규칙에는 native Triton용 Python header 검증과 정식 실행의 JIT 우회 금지를 동기화했다. 실제 학습·optimizer·backward·checkpoint·canonical manifest 승격은 하지 않았다.
+  - 변경 범위: 재현 가능한 preflight CLI·테스트·공개 집계 보고서와 저장소 밖 제한 데이터 오프라인 진단 ZIP을 추가했다. 전역 Codex·Claude 규칙에는 native Triton용 Python header 검증과 정식 실행의 JIT 우회 금지를 동기화했다. 실제 학습·optimizer·backward·checkpoint·canonical manifest 승격은 하지 않았다.
   - 검증: Gate A/B/C, BF16 SDPA native-JIT probe, K0 빈 출력·제어문자·special-token·missing-chart 안전 위반 0건, 결정성 재생, 700항목/720case ZIP checksum과 Windows Chrome 오프라인 렌더링을 통과했다.
-  - 남은 이슈·후속 작업: K0 371/720case가 512-token 상한에 도달했고 일부 hard 자동 계약 점수가 낮다. 사람 전문 검수와 Phase 4D/E 200-step 학습 smoke가 남았으므로 Phase 4는 `부분 진행`, `approved_derived=null`, `training_promotion_allowed=false`이며 Phase 5를 시작하지 않는다.
+  - 당시 상태: K0 371/720case가 512-token 상한에 도달했고 일부 hard 자동 계약 점수가 낮아 Phase 4를 `부분 진행`, `approved_derived=null`, `training_promotion_allowed=false`로 유지했다. 이후 Phase 4D/E 200-step smoke와 자동 Gate를 통과한 새 build로 해소했다.
 - 2026-08-28
-  - 작업 요약: 생성기 검수 6건을 원천·기존 staging과 대조하고, 유효 달력 명식을 사용하는 새 24K staging `v0.2.0/build-847088ee804d`를 승인된 Phase 4 입력으로 고정했다.
+  - 작업 요약: 생성기 자동 진단 6건을 원천·기존 staging과 대조하고, 유효 달력 명식을 사용하는 새 24K staging `v0.2.0/build-847088ee804d`를 승인된 Phase 4 입력으로 고정했다.
   - 변경 범위: 기존 `v0.1.0`은 불변 보존했다. YEJI 달력 backend·역법 관계 Gate, 필터 겹침 카운터, AI Hub projection provenance, Nemotron 나이 검증, 새 공개 보고서와 registry hash chain을 추가했다.
   - 검증: 24,000행 전수 schema·중복·수량 검사, Nemotron/BaZi/YEJI 역법 관계 20,400/20,400, AI Hub 원천 58,268건의 turn 수·정책 사유, YEJI 고유 명식 1,200건을 통과했다. 기존 YEJI는 1,151/1,200건이 역법 불일치이고 단순 천간 교정 시 evaluator 56건이 바뀜을 별도 확인했다.
-  - 남은 이슈·후속 작업: 승인 방식은 자동 검증 기반 사용자 위험 수용이며 전문 항목 검수·품질 인증은 아니다. 새 staging 부모로 Phase 4A~E를 재실행하기 전까지 `training_promotion_allowed=false`를 유지한다.
+  - 남은 이슈·후속 작업: 승인 방식은 자동 검증 기반 위험 수용이고 계약 밖 의미 품질은 `not_measured`다. 새 staging 부모로 Phase 4A~E를 재실행하기 전까지 `training_promotion_allowed=false`를 유지한다.

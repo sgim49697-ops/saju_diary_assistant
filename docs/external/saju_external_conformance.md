@@ -9,10 +9,10 @@
 이 suite는 다음 세 용도로만 사용한다.
 
 1. 향후 앱 runtime 계산기의 날짜·정책 conformance
-2. 구조화 명식 deterministic QA의 독립 검산
+2. 구조화 명식 deterministic QA의 교차 검산
 3. 명식이 없는 LLM 입력에서 계산기 handoff를 요구하는 통합 테스트
 
-기존 10K/20K, source blind test, 사람 해석 Gold에는 섞지 않는다. Skyfield 기반 v1.3 candidate runtime은 구현·검증됐지만 release·production engine은 승인하지 않았으며 `configs/saju_calculation_policy.json`의 `runtime_enabled=false`를 유지한다.
+기존 10K/20K와 source blind test에는 섞지 않는다. Skyfield 기반 v1.3 candidate runtime은 구현·검증됐지만 release·production engine은 승인하지 않았으며 `configs/saju_calculation_policy.json`의 `runtime_enabled=false`를 유지한다.
 
 ## 근거 계층
 
@@ -33,7 +33,7 @@ KASI API는 양력·음력·윤달·`lunWolgeon`·`lunSecha`·`lunIljin`·율리
 - `policy_cases_20.jsonl`: KST 4주 11건, 자시 3건, 입춘 2건, 진태양시·천간 십신·지장간 정기·공망 각 1건
 - KASI fixture 수집기 revision: `jinill1/korean-lunar-calendar@6f988e3f50a424d165b9834f9e28cd3ea962da63`
 
-`lunar-python==1.4.8`과 200행을 advisory 비교하면 완전 일치 136행, 하나 이상 차이 64행이다. 음력 날짜 3행과 달력 월간지 64행이 다르고, 윤달·달력 연간지·일진은 0건이다. 이 결과는 KASI snapshot을 수정할 근거가 아니며 `lunar-python`을 독립 oracle로 승격하지 않는다.
+`lunar-python==1.4.8`과 200행을 advisory 비교하면 완전 일치 136행, 하나 이상 차이 64행이다. 음력 날짜 3행과 달력 월간지 64행이 다르고, 윤달·달력 연간지·일진은 0건이다. 이 결과는 KASI snapshot을 수정할 근거가 아니며 `lunar-python`을 단일 oracle로 승격하지 않는다.
 
 ## 정책 분리
 
@@ -60,11 +60,11 @@ KASI 공개 API 페이지는 무료·이용허락범위 제한 없음으로 표�
 - KASI 24절기 OpenAPI 1900~2049년: 150/150년 scan 완료, 실제 반환 2000~2028년 696건
 - KASI 공식 현재 계산 1920~2100년: 4,343/4,344행, 유일한 누락은 비절입인 2030년 우수, 절입 2,172/2,172행
 - `KR_CIVIL_MIDNIGHT_V1` v1.3 candidate runtime: Skyfield 1.55·고정 DE440s·내장 UT1 결합 완료
-- runtime↔독립 validator: 1,800개 TT root·UTC·표시 분 mismatch 0, 전·정확·후 5,400개 경계 mismatch 0
+- runtime↔별도 validator: 1,800개 TT root·UTC·표시 분 mismatch 0, 전·정확·후 5,400개 경계 mismatch 0
 - 권한 분리: `PROFILE_DETERMINISTIC` 240, `PAST_OFFICIAL_CORROBORATED` 1,280, `FORECAST_DIAGNOSTIC_NONAPPROVAL` 280
 - strict runtime provider: 공식 원시 분 라벨 mismatch 22/1,560과 미래 물리 순간 미판정으로 실패
 - 앱 runtime 계산 엔진 승인: `runtime_approved=false`, release registry 없음, feature flag 기본 off
 - MIX20K-v3.1 재생성·학습: 보류
-- 전문가 해석 Gold 승인: 보류
+- 계약 밖 의미 품질: `not_measured`, runtime 승인 blocker로 사용하지 않음
 
 실행 정본과 최신 공개 보고서는 [`saju_runtime_calculator_adoption.md`](../../implementation/plans/saju_runtime_calculator_adoption.md) 및 [`data/reports/saju_runtime_conformance/v1.6.0/build-8bd88d6db03a/`](../../data/reports/saju_runtime_conformance/v1.6.0/build-8bd88d6db03a/)에서 확인한다. 후보 runtime은 기본 off이며, 승인 전 결과는 `HARD_CANDIDATE`를 넘지 않는다.

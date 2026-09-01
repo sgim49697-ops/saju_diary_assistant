@@ -4,7 +4,7 @@
 
 | 항목 | 값 |
 |---|---|
-| 실행 상태 | 계약·scorer 구현 완료, sealed blind 실행 전 |
+| 실행 상태 | 완료 · `eval-e8630962cab2` · `AUTOMATED_REPAIR_REQUIRED` |
 | 선행 Phase | Phase 5 완료 |
 | 입력 | K0-INSTRUCT·KI10-MIX-v2·KI20-MIX-v2, 공개 진단 suite, sealed blind 500행 |
 | 출력 | 자동 기술지표, 단회 blind 집계, baseline 결정, private repair 순위 |
@@ -13,7 +13,7 @@
 
 ## 기본 평가 정책
 
-모든 품질 Gate와 baseline 결정은 저장소 내부에서 재현 가능한 자동 기술지표로만 수행한다. 사용자에게 사람·독립 평가자·LLM 심사·외부 인증을 요구하지 않으며, 이를 현재 또는 미래의 승인 조건이나 후속 작업으로 만들지 않는다.
+모든 품질 Gate와 baseline 결정은 저장소 내부에서 재현 가능한 자동 기술지표로만 수행한다. 이 계약 밖의 별도 평가 작업은 현재 또는 미래의 승인 조건이나 사용자 후속 작업으로 만들지 않는다.
 
 고정 계약으로 판정할 수 없는 해석 의미·취향·학파 의존 품질은 `not_measured`로 기록한다. `not_measured`는 자동 통과가 아니고 해당 품질을 주장하지 않는다는 뜻이며, Phase 완료나 baseline 기술 비교를 차단하지 않는다. 모델 출력과 reference의 문자열 유사도는 품질 점수로 사용하지 않는다.
 
@@ -141,6 +141,18 @@ KI20 통과 + no-regression  → KI20_TECHNICAL_BASELINE_SELECTED
 
 K0는 비교 기준이며 선택 후보가 아니다. Phase 6은 평가·집계·결정 산출물이 검증되면 결과의 합격 여부와 무관하게 완료된다.
 
+## 실행 결과
+
+봉인 입력은 실행 commit `8819b1753dfcf24367a902e3fa6b5fc0a94fbc0b`에서 세 모델에 한 번만 소비됐고 marker는 `spent_completed`다. 500행·350 component, 공개 진단 1,145case, KI20의 MIX20K-v2 20,000행 private NLL 순위를 모두 완료했다.
+
+| 모델 | NLL | token accuracy | 정상 생성 | 결정론 | 규칙 | 비봉인 handoff | 임의 네 기둥 |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| K0 | 3.563615 | 42.3471% | 66.2857% | 20% | 10% | 86% | 19건 |
+| KI10 | 0.846031 | 80.4583% | 100% | 40% | 36% | 14% | 43건 |
+| KI20 | 0.779496 | 81.3505% | 100% | 56% | 38% | 50% | 47건 |
+
+KI20은 KI10보다 NLL, 결정론, 규칙, handoff가 개선됐지만 결정론 90%, 규칙 90%, handoff 95%, 임의 네 기둥 0건 Gate에는 미달했다. 따라서 자동 결정은 `AUTOMATED_REPAIR_REQUIRED`다. `phase6_completed=true`이며 결과가 모델 승격을 승인하지는 않는다.
+
 ## 자동 repair 순위와 runtime 문맥
 
 - KI20로 현재 MIX20K-v2 20,000행의 assistant-token NLL을 계산한다.
@@ -151,14 +163,12 @@ K0는 비교 기준이며 선택 후보가 아니다. Phase 6은 평가·집계�
 ## 실행과 검증
 
 ```bash
-.venv/bin/python -m scripts.evaluation.phase6_technical validate-contract
-.venv/bin/python -m scripts.evaluation.phase6_technical preflight
-PHASE6_TECHNICAL_BLIND=K0_KI10_KI20_V1 \
-  .venv/bin/python -m scripts.evaluation.phase6_technical execute --execute
-.venv/bin/python -m scripts.evaluation.phase6_technical verify
+.venv/bin/python -m scripts.evaluation.phase6_completed_verify
 ```
 
-GPU를 사용하는 정식 실행 전 dashboard service 상태를 기록하고 평가 동안만 중지한다. 성공·실패와 무관하게 원래 상태로 복구한다.
+봉인 입력은 이미 단회 소비됐으므로 `execute --execute`를 다시 실행하지 않는다. 사후 검증기는 marker가 고정한 실행 commit의 코드·테스트 blob 전체, 현재 실행 코드 hash, public/private manifest, source mode·hash와 미승인 경계를 함께 확인한다. 완료 상태용 테스트 변경은 실행 commit blob 검증을 유지한 채 허용하지만 현재 실행 코드 변경은 거부한다.
+
+GPU 실행 동안 일시 중지했던 dashboard service는 같은 unit·run·port·origin 옵션으로 복구했다. local endpoint와 기존 Quick Tunnel endpoint의 HTTP 200을 확인했다.
 
 검증 범위는 strict JSON 중복 key, 경로 이탈·symlink·mode, hash·모델 membership, marker 재개, 축/component 분모, 0분모, 공개 누출, scorer mutation, 전체 unittest·Ruff·Phase 1 source verify·runtime conformance v8·`git diff --check`다.
 
@@ -176,21 +186,28 @@ data/reports/saju_1b_baseline/phase6-technical/v1.0.0/eval-<fingerprint>/
 
 - [x] 자동 평가 기본 정책과 scorer를 blind 접근 전에 고정했다.
 - [x] 단회 marker·동일 fingerprint 재개·공개 누출 차단 테스트를 추가했다.
-- [ ] 세 모델의 비봉인 1,045case와 stateful 100case를 완료했다.
-- [ ] sealed blind 500행을 세 모델에 단 한 번 실행했다.
-- [ ] component→axis macro와 자동 baseline 결정을 검증했다.
-- [ ] MIX20K-v2 20,000행 private repair 순위를 생성했다.
-- [ ] 현재 상태·registry·진행 기록을 결과에 맞춰 갱신했다.
-- [ ] release·앱 연결·v3.1·추가 학습 미승인 상태를 유지했다.
+- [x] 세 모델의 비봉인 1,045case와 stateful 100case를 완료했다.
+- [x] sealed blind 500행을 세 모델에 단 한 번 실행했다.
+- [x] component→axis macro와 자동 baseline 결정을 검증했다.
+- [x] MIX20K-v2 20,000행 private repair 순위를 생성했다.
+- [x] 현재 상태·registry·진행 기록을 결과에 맞춰 갱신했다.
+- [x] release·앱 연결·v3.1·추가 학습 미승인 상태를 유지했다.
 
 ## 진행 기록
 
 - 2026-09-01
-  - 작업 요약: 기존 Phase 6의 주관 판정·대규모 수동 작업·50K 분기 조건을 폐기하고 저장소 내부 자동 기술평가와 `not_measured` 정책으로 정본을 교체했다.
+  - 작업 요약: `eval-e8630962cab2`로 Phase 6 자동 기술평가를 완료하고 `AUTOMATED_REPAIR_REQUIRED`를 확정했다.
+  - 변경 범위: K0·KI10·KI20 비봉인 1,145case, sealed blind 500행·350 component 단회 실행, KI20 MIX20K-v2 20,000행 private NLL 순위와 집계 전용 공개 보고서를 생성했다. release·앱 연결·MIX20K-v3.1 생성·추가 학습은 수행하지 않았다.
+  - 검증: 단회 marker `spent_completed`, 실행 commit·동결 구현·모델·입력 hash, record→component→axis macro, 공개 누출 차단과 public/private manifest를 사후 검증했다. runtime conformance v8 전수 재현은 같은 `build-8bd88d6db03a`를 반환했고 Ruff, 두 환경 package check, Phase 1 원천 전수 verify와 저장소 전체 unittest 454건을 통과했다. 공개 보고서는 원문·출력·식별자·private 경로를 포함하지 않는다.
+  - 디버깅: 실행 전에는 marker 부재를 확인하던 dry-run 회귀를 완료 후에는 기존 marker byte·mtime 불변 확인으로 전환했다. 사후 검증기는 실행 commit의 코드·테스트 blob 전체를 계속 고정하고 현재 실행 코드는 동일 hash를 강제하되 완료 상태를 확인하는 테스트만 갱신할 수 있게 분리했다.
+  - 결과: KI20은 NLL 0.779496, 결정론 56%, 규칙 38%, handoff 50%였고 임의 네 기둥 47건 때문에 자동 Gate를 통과하지 못했다. Phase 6 자체는 완료됐으며 다음 허용 작업은 자동 repair 설계뿐이다.
+
+- 2026-09-01
+  - 작업 요약: 기존 Phase 6의 비재현 판정·50K 분기 조건을 폐기하고 저장소 내부 자동 기술평가와 `not_measured` 정책으로 정본을 교체했다.
   - 변경 범위: K0/KI10/KI20 동일 설정, blind 500행 단회 marker, teacher-forced likelihood, greedy 기술지표, no-regression과 세 가지 baseline 결정을 계약으로 고정했다.
   - 검증: `uvx ruff check scripts tests`, 전체 `unittest` 449건, 두 Python 환경의 `uv pip check`, Phase 1 source `validate-contract`·`verify`, runtime conformance v8 3건과 `git diff --check`를 통과했다. scorer reference·mutation, component/axis 집계, 0분모, marker resume·다른 fingerprint 차단, dry-run 무접근과 공개 누출도 포함한다.
   - 디버깅: 첫 비봉인 실행 중 Transformers regex 경고를 재확인했다. 비봉인 1,145개 중 보정 시 token ID가 달라지는 320개를 확인하고, 기존 Phase 5 학습 계약과 같은 `fix_mistral_regex=false`를 Phase 6에도 명시적으로 pin했다. 봉인 소비 marker 생성 전 실행을 중단했으므로 blind 접근·실행 횟수는 0을 유지한다.
-  - 남은 이슈·후속 작업: 계약 체크포인트를 commit·push한 뒤 dashboard를 잠시 중지하고 정식 평가를 실행한다.
+  - 당시 상태: 계약 체크포인트까지만 완료한 기록이며, 실행은 위 `eval-e8630962cab2` 완료 기록으로 대체됐다.
 
 - 2026-08-30
   - 작업 요약: 비봉인 공개 합성 stateful 100건에서 입력 누적·재질문·runtime handoff 실패 유형을 분리했다. 이 결과는 source blind를 대체하지 않는다.

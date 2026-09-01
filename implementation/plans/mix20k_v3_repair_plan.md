@@ -7,7 +7,7 @@
 - 원본 상태: `3.0.0-review-candidate`
 - 보정 후보: `v3.0.1-repaired`
 - 모델: `kakaocorp/kanana-2-1.3b-instruct@bf4786aa2a1908adce942d53976270132732f720`
-- 결론: 기술 preflight 통과, 학습·production 승격 차단
+- 결론: 기술 preflight 통과, Phase 6 자동 repair 필요, 학습·production 승격 차단
 
 2026-09-01 현재 Skyfield v1.3 candidate runtime과 conformance v8은 구현됐지만 strict Gate·release는 승인되지 않았다. 따라서 이 문서의 canonical 3,800행 재검산 blocker는 닫히지 않았고, `v3.0.1-repaired`를 v3.1 또는 학습 승인본으로 승격하지 않는다.
 
@@ -17,7 +17,7 @@
 
 이번 단계는 `.train()`, backward, optimizer step, checkpoint 생성을 호출하지 않는다. `training_promotion_allowed`, `production_promotion_allowed`, `phase5_training_performed`는 모두 `false`다.
 
-현재 Gate 권한은 `mix20k-v3-automatic-gates-v1.0.0.json`이다. canonical·state·grounding·언어·정책·다양성·serving parser를 자동 계약으로 판정하고, 계약 밖 의미 품질은 `not_measured`로 고정한다. 사람·독립 평가자·LLM 심사·외부 인증을 승격 조건이나 후속 작업으로 요구하지 않는다.
+현재 Gate 권한은 `mix20k-v3-automatic-gates-v1.0.0.json`이다. canonical·state·grounding·언어·정책·다양성·serving parser를 자동 계약으로 판정하고, 계약 밖 의미 품질은 `not_measured`로 고정한다. 이 계약 밖의 별도 평가 작업은 승격 조건이나 사용자 후속 작업으로 요구하지 않는다.
 
 ## 원본 무결성과 실제 감사 결과
 
@@ -95,6 +95,22 @@ private build는 review·training 각 20,000행, diagnostic 2,000행, 내부/ext
 
 `train_candidate=true` 10,125행은 행 단위 blocker가 없는 기술 후보일 뿐 학습 승인 집합이 아니다. diagnostic 2K도 496행이 canonical 재검산 등으로 막혀 있어 실행 플래그는 `false`다.
 
+## Phase 6 자동 repair 근거
+
+`eval-e8630962cab2`는 KI20으로 canonical MIX20K-v2 20,000행의 assistant-token NLL을 계산했다. record 식별자와 순위는 private에만 두고 공개 보고서에는 축별 percentile만 남겼으며 봉인 500행은 포함하지 않았다.
+
+| 우선순위 | 축 | 행 | 평균 NLL | p95 NLL |
+|---:|---|---:|---:|---:|
+| 1 | AI Hub 멀티턴 | 1,500 | 1.889495 | 2.969595 |
+| 2 | AI Hub 단일턴 | 1,500 | 1.751036 | 2.932829 |
+| 3 | Nemotron | 6,800 | 0.846550 | 1.564927 |
+| 4 | 사주 일기 bridge | 3,200 | 0.439195 | 0.759952 |
+| 5 | YEJI | 1,000 | 0.405587 | 1.024334 |
+| 6 | 결정론 QA | 2,000 | 0.129024 | 0.458550 |
+| 7 | bazi-sft | 4,000 | 0.010489 | 0.022218 |
+
+NLL은 repair 우선순위일 뿐 품질 정답 점수가 아니다. Phase 6에서 함께 실패한 결정론 56%, 규칙 38%, handoff 50%, 임의 네 기둥 47건을 자동 보정 목표로 사용한다. 현재 v3.0.1 후보를 수정하거나 v3.1을 생성하지 않은 상태다.
+
 ## 공식 문서 대조와 serving 결정
 
 - [Kanana 2 1.3B Instruct 모델 카드](https://huggingface.co/kakaocorp/kanana-2-1.3b-instruct)는 `transformers >= 4.57`, remote code, SGLang `0.5.1`, Triton/FA3, `qwen3_coder`를 권장한다. 따라서 SGLang 0.5.1 + `qwen3_coder`를 1차 serving 후보로 고정했다.
@@ -110,17 +126,23 @@ private build는 review·training 각 20,000행, diagnostic 2,000행, 내부/ext
 2. exact target 반복을 의미 보존 패러프레이즈·상태 조합 확장으로 낮추고, 자동 ID 삽입 같은 가짜 다양화는 사용하지 않는다.
 3. 새 부모 hash로 20K를 다시 build하고 tokenizer·mask·tool·grounding preflight를 재실행한다.
 4. 전체 20K에 workflow·정책·언어·grounding 자동 계약을 실행하고 자동 계약이 없는 의미 품질은 `not_measured`로 고정한다.
-5. chart/input/template/source group 우선으로 dev·sealed blind를 나누고 기존 blind와 hash-only 누수 검사를 반복한다.
-6. 모든 blocker가 닫힌 뒤에만 2K diagnostic을 실행한다. 통과하면 동일 K0에서 v3 10K와 v3 20K를 독립 run으로 비교한다.
+5. chart/input/template/source group 우선으로 새 dev·새 version의 sealed blind를 만들고, 이미 소비된 Phase 6 blind는 재사용하지 않은 채 hash-only 누수 검사를 수행한다.
+6. 모든 blocker가 닫힌 뒤에만 2K diagnostic을 실행한다. 통과하면 동일 K0에서 v3 10K와 v3 20K를 각각 새 run으로 비교한다.
 
 이번 구현에서는 2K/10K/20K 학습, 기존 KI20 이어학습, checkpoint 생성, registry 학습 승인 포인터 변경을 하지 않았다.
 
 ## 진행 기록
 
 - 2026-09-01
+  - 작업 요약: Phase 6 `eval-e8630962cab2`의 KI20 private 20K NLL 순위를 repair 근거로 연결하고 자동 Gate 실패 축을 확정했다.
+  - 변경 범위: 기존 v3.0.1 후보·20K 원문·checkpoint는 수정하지 않았다. 공개 축 percentile과 자동 실패 지표만 정본에 반영했으며 v3.1 생성과 학습은 수행하지 않았다.
+  - 검증: 20,000/20,000행, blind 포함 0, 공개 record 식별자 0과 7축 percentile을 확인했다. `training_promotion_allowed=false`, `production_promotion_allowed=false`를 유지한다.
+  - 남은 이슈·후속 작업: 공감 단일·멀티턴 NLL, state/handoff, 임의 명식, 결정론·규칙 계약을 자동 repair 설계의 우선순위로 사용한다.
+
+- 2026-09-01
   - 작업 요약: 저장소 정본화 과정에서 `v3.0.1-repaired`의 현재 역할을 다시 확인하고, Skyfield runtime v1.3 candidate와 conformance v8 통과가 곧 v3.1 생성·학습 승인이 아님을 문서 전반에 일치시켰다.
   - 변경 범위: 기존 private `build-94eb7b543490`, public `intake-99c0b48231d6`, preflight와 20K 원문은 수정하지 않았다. 현재 상태 설명과 정본 연결만 갱신했으며 v3.1, 새 split, checkpoint, 학습 산출물은 만들지 않았다.
-  - 검증: private 20,000행·restricted 3,200행·검수 큐 4,000행과 public aggregate-only intake의 manifest/hash chain을 재검증했다. runtime v1.3/v8 연계 계약 23건과 저장소 전체 unittest 429건, Ruff, `uv pip check`, 로컬 문서 링크, `git diff --check`를 통과했다.
+  - 검증: private 20,000행·restricted 3,200행·자동 점검 큐 4,000행과 public aggregate-only intake의 manifest/hash chain을 재검증했다. runtime v1.3/v8 연계 계약 23건과 저장소 전체 unittest 429건, Ruff, `uv pip check`, 로컬 문서 링크, `git diff --check`를 통과했다.
   - 남은 이슈·후속 작업: canonical 3,800행 전수 재계산, exact target 다양성, 전체 state/grounding·언어·정책 자동 계약, serving parser 검증이 남아 있다. `training_promotion_allowed=false`와 production 차단을 유지한다.
 
 - 2026-08-31

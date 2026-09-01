@@ -1,0 +1,1893 @@
+{
+  "baseline_decision": {
+    "decision": "AUTOMATED_REPAIR_REQUIRED",
+    "k0_role": "comparator_only",
+    "ki20_no_regression_vs_ki10": {
+      "checks": {
+        "deterministic_contract_pass": true,
+        "foreign_sentence": true,
+        "generation_clean": true,
+        "input_fact_violation": true,
+        "nonsealed_handoff": true,
+        "rule_contract_pass": true,
+        "task_confusion": true,
+        "zero_tolerance": false
+      },
+      "deltas_percent_points": {
+        "deterministic_contract_pass": 16.0,
+        "foreign_sentence": 0.0,
+        "generation_clean": 0.0,
+        "input_fact_violation": 0.0,
+        "nonsealed_handoff": 36.0,
+        "rule_contract_pass": 2.0,
+        "task_confusion": 0.0
+      },
+      "failed_checks": [
+        "zero_tolerance"
+      ],
+      "passed": false,
+      "tolerance_percent_points": 2.0
+    },
+    "model_gates": {
+      "K0-INSTRUCT": {
+        "domain_semantics": "not_measured",
+        "failed_gates": [
+          "deterministic_contract",
+          "foreign_sentence",
+          "generation_clean",
+          "nonsealed_handoff",
+          "rule_contract",
+          "zero_tolerance"
+        ],
+        "gates": {
+          "deterministic_contract": false,
+          "foreign_sentence": false,
+          "generation_clean": false,
+          "input_fact_violation": true,
+          "nonsealed_handoff": false,
+          "rule_contract": false,
+          "task_confusion": true,
+          "zero_tolerance": false
+        },
+        "passed": false,
+        "status": "failed",
+        "structured_json_parse": "not_applicable"
+      },
+      "KI10-MIX-v2": {
+        "domain_semantics": "not_measured",
+        "failed_gates": [
+          "deterministic_contract",
+          "nonsealed_handoff",
+          "rule_contract",
+          "zero_tolerance"
+        ],
+        "gates": {
+          "deterministic_contract": false,
+          "foreign_sentence": true,
+          "generation_clean": true,
+          "input_fact_violation": true,
+          "nonsealed_handoff": false,
+          "rule_contract": false,
+          "task_confusion": true,
+          "zero_tolerance": false
+        },
+        "passed": false,
+        "status": "failed",
+        "structured_json_parse": "not_applicable"
+      },
+      "KI20-MIX-v2": {
+        "domain_semantics": "not_measured",
+        "failed_gates": [
+          "deterministic_contract",
+          "nonsealed_handoff",
+          "rule_contract",
+          "zero_tolerance"
+        ],
+        "gates": {
+          "deterministic_contract": false,
+          "foreign_sentence": true,
+          "generation_clean": true,
+          "input_fact_violation": true,
+          "nonsealed_handoff": false,
+          "rule_contract": false,
+          "task_confusion": true,
+          "zero_tolerance": false
+        },
+        "passed": false,
+        "status": "failed",
+        "structured_json_parse": "not_applicable"
+      }
+    }
+  },
+  "blind_model_results": {
+    "K0-INSTRUCT": {
+      "aggregation": "record_then_leakage_component_then_axis_macro",
+      "components": 350,
+      "components_by_axis": {
+        "aihub_empathy_multiturn": 50,
+        "aihub_empathy_single": 50,
+        "bazi_sft": 50,
+        "deterministic_saju_qa": 50,
+        "nemotron_saju": 50,
+        "saju_diary_bridge": 50,
+        "yeji_shensha_derived": 50
+      },
+      "domain_semantics": "not_measured",
+      "likelihood": {
+        "aggregation": "case_then_component_then_axis_macro",
+        "axis": {
+          "aihub_empathy_multiturn": {
+            "case_component_mean_nll": 4.658355201,
+            "case_component_mean_token_accuracy": 0.333107039
+          },
+          "aihub_empathy_single": {
+            "case_component_mean_nll": 4.231549836,
+            "case_component_mean_token_accuracy": 0.3823684
+          },
+          "bazi_sft": {
+            "case_component_mean_nll": 2.843037754,
+            "case_component_mean_token_accuracy": 0.512237153
+          },
+          "deterministic_saju_qa": {
+            "case_component_mean_nll": 1.519529784,
+            "case_component_mean_token_accuracy": 0.729333574
+          },
+          "nemotron_saju": {
+            "case_component_mean_nll": 2.991989452,
+            "case_component_mean_token_accuracy": 0.435946972
+          },
+          "saju_diary_bridge": {
+            "case_component_mean_nll": 3.850803198,
+            "case_component_mean_token_accuracy": 0.355452239
+          },
+          "yeji_shensha_derived": {
+            "case_component_mean_nll": 4.850038122,
+            "case_component_mean_token_accuracy": 0.215851325
+          }
+        },
+        "interpretation": "held_out_reference_fit_not_semantic_truth",
+        "macro": {
+          "nll": 3.563614764,
+          "token_accuracy": 0.423470957
+        },
+        "token_weighted_diagnostic": {
+          "nll": 3.051361269,
+          "token_accuracy": 0.46861775,
+          "tokens": 50331
+        }
+      },
+      "metrics": {
+        "deterministic_contract_pass": {
+          "axes": 1,
+          "axis_percent": {
+            "deterministic_saju_qa": 20.0
+          },
+          "components": 50,
+          "macro_percent": 20.0,
+          "records": 50,
+          "status": "measured"
+        },
+        "fabricated_four_pillars": {
+          "axes": 7,
+          "axis_percent": {
+            "aihub_empathy_multiturn": 0.0,
+            "aihub_empathy_single": 2.0,
+            "bazi_sft": 6.5,
+            "deterministic_saju_qa": 0.0,
+            "nemotron_saju": 2.0,
+            "saju_diary_bridge": 0.0,
+            "yeji_shensha_derived": 8.0
+          },
+          "components": 350,
+          "macro_percent": 2.642857143,
+          "records": 500,
+          "status": "measured"
+        },
+        "foreign_sentence": {
+          "axes": 7,
+          "axis_percent": {
+            "aihub_empathy_multiturn": 0.0,
+            "aihub_empathy_single": 0.0,
+            "bazi_sft": 20.0,
+            "deterministic_saju_qa": 0.0,
+            "nemotron_saju": 62.0,
+            "saju_diary_bridge": 0.0,
+            "yeji_shensha_derived": 98.0
+          },
+          "components": 350,
+          "macro_percent": 25.714285714,
+          "records": 500,
+          "status": "measured"
+        },
+        "generation_clean": {
+          "axes": 7,
+          "axis_percent": {
+            "aihub_empathy_multiturn": 100.0,
+            "aihub_empathy_single": 100.0,
+            "bazi_sft": 10.0,
+            "deterministic_saju_qa": 100.0,
+            "nemotron_saju": 18.0,
+            "saju_diary_bridge": 100.0,
+            "yeji_shensha_derived": 36.0
+          },
+          "components": 350,
+          "macro_percent": 66.285714286,
+          "records": 500,
+          "status": "measured"
+        },
+        "grounded_fact_contract_pass": {
+          "axes": 5,
+          "axis_percent": {
+            "bazi_sft": 35.0,
+            "deterministic_saju_qa": 58.0,
+            "nemotron_saju": 28.0,
+            "saju_diary_bridge": 0.0,
+            "yeji_shensha_derived": 96.0
+          },
+          "components": 250,
+          "macro_percent": 43.4,
+          "records": 400,
+          "status": "measured"
+        },
+        "input_fact_violation": {
+          "axes": 5,
+          "axis_percent": {
+            "bazi_sft": 0.5,
+            "deterministic_saju_qa": 0.0,
+            "nemotron_saju": 2.0,
+            "saju_diary_bridge": 0.0,
+            "yeji_shensha_derived": 0.0
+          },
+          "components": 250,
+          "macro_percent": 0.5,
+          "records": 400,
+          "status": "measured"
+        },
+        "max_token_hit": {
+          "axes": 7,
+          "axis_percent": {
+            "aihub_empathy_multiturn": 0.0,
+            "aihub_empathy_single": 0.0,
+            "bazi_sft": 90.0,
+            "deterministic_saju_qa": 0.0,
+            "nemotron_saju": 82.0,
+            "saju_diary_bridge": 0.0,
+            "yeji_shensha_derived": 64.0
+          },
+          "components": 350,
+          "macro_percent": 33.714285714,
+          "records": 500,
+          "status": "measured"
+        },
+        "noncausal_contract_pass": {
+          "axes": 2,
+          "axis_percent": {
+            "nemotron_saju": 100.0,
+            "saju_diary_bridge": 100.0
+          },
+          "components": 100,
+          "macro_percent": 100.0,
+          "records": 100,
+          "status": "measured"
+        },
+        "nonempty": {
+          "axes": 7,
+          "axis_percent": {
+            "aihub_empathy_multiturn": 100.0,
+            "aihub_empathy_single": 100.0,
+            "bazi_sft": 100.0,
+            "deterministic_saju_qa": 100.0,
+            "nemotron_saju": 100.0,
+            "saju_diary_bridge": 100.0,
+            "yeji_shensha_derived": 100.0
+          },
+          "components": 350,
+          "macro_percent": 100.0,
+          "records": 500,
+          "status": "measured"
+        },
+        "repetition": {
+          "axes": 7,
+          "axis_percent": {
+            "aihub_empathy_multiturn": 0.0,
+            "aihub_empathy_single": 0.0,
+            "bazi_sft": 34.5,
+            "deterministic_saju_qa": 20.0,
+            "nemotron_saju": 22.0,
+            "saju_diary_bridge": 0.0,
+            "yeji_shensha_derived": 76.0
+          },
+          "components": 350,
+          "macro_percent": 21.785714286,
+          "records": 500,
+          "status": "measured"
+        },
+        "rule_contract_pass": {
+          "axes": 1,
+          "axis_percent": {
+            "yeji_shensha_derived": 10.0
+          },
+          "components": 50,
+          "macro_percent": 10.0,
+          "records": 50,
+          "status": "measured"
+        },
+        "sensitive_entity": {
+          "axes": 7,
+          "axis_percent": {
+            "aihub_empathy_multiturn": 0.0,
+            "aihub_empathy_single": 0.0,
+            "bazi_sft": 0.0,
+            "deterministic_saju_qa": 0.0,
+            "nemotron_saju": 0.0,
+            "saju_diary_bridge": 0.0,
+            "yeji_shensha_derived": 0.0
+          },
+          "components": 350,
+          "macro_percent": 0.0,
+          "records": 500,
+          "status": "measured"
+        },
+        "severe_safety": {
+          "axes": 7,
+          "axis_percent": {
+            "aihub_empathy_multiturn": 0.0,
+            "aihub_empathy_single": 0.0,
+            "bazi_sft": 0.0,
+            "deterministic_saju_qa": 0.0,
+            "nemotron_saju": 0.0,
+            "saju_diary_bridge": 0.0,
+            "yeji_shensha_derived": 0.0
+          },
+          "components": 350,
+          "macro_percent": 0.0,
+          "records": 500,
+          "status": "measured"
+        },
+        "special_or_control": {
+          "axes": 7,
+          "axis_percent": {
+            "aihub_empathy_multiturn": 0.0,
+            "aihub_empathy_single": 0.0,
+            "bazi_sft": 0.0,
+            "deterministic_saju_qa": 0.0,
+            "nemotron_saju": 0.0,
+            "saju_diary_bridge": 0.0,
+            "yeji_shensha_derived": 0.0
+          },
+          "components": 350,
+          "macro_percent": 0.0,
+          "records": 500,
+          "status": "measured"
+        },
+        "structured_json_parse": {
+          "axes": 0,
+          "components": 0,
+          "records": 0,
+          "status": "not_applicable"
+        },
+        "task_confusion": {
+          "axes": 2,
+          "axis_percent": {
+            "aihub_empathy_multiturn": 2.0,
+            "aihub_empathy_single": 0.0
+          },
+          "components": 100,
+          "macro_percent": 1.0,
+          "records": 100,
+          "status": "measured"
+        },
+        "unsupported_full_date": {
+          "axes": 7,
+          "axis_percent": {
+            "aihub_empathy_multiturn": 0.0,
+            "aihub_empathy_single": 0.0,
+            "bazi_sft": 0.0,
+            "deterministic_saju_qa": 0.0,
+            "nemotron_saju": 0.0,
+            "saju_diary_bridge": 0.0,
+            "yeji_shensha_derived": 0.0
+          },
+          "components": 350,
+          "macro_percent": 0.0,
+          "records": 500,
+          "status": "measured"
+        }
+      },
+      "rows": 500,
+      "rows_by_axis": {
+        "aihub_empathy_multiturn": 50,
+        "aihub_empathy_single": 50,
+        "bazi_sft": 200,
+        "deterministic_saju_qa": 50,
+        "nemotron_saju": 50,
+        "saju_diary_bridge": 50,
+        "yeji_shensha_derived": 50
+      },
+      "zero_tolerance_counts": {
+        "fabricated_four_pillars": 19,
+        "sensitive_entity": 0,
+        "severe_safety": 0,
+        "special_or_control": 0,
+        "unsupported_full_date": 0
+      }
+    },
+    "KI10-MIX-v2": {
+      "aggregation": "record_then_leakage_component_then_axis_macro",
+      "components": 350,
+      "components_by_axis": {
+        "aihub_empathy_multiturn": 50,
+        "aihub_empathy_single": 50,
+        "bazi_sft": 50,
+        "deterministic_saju_qa": 50,
+        "nemotron_saju": 50,
+        "saju_diary_bridge": 50,
+        "yeji_shensha_derived": 50
+      },
+      "domain_semantics": "not_measured",
+      "likelihood": {
+        "aggregation": "case_then_component_then_axis_macro",
+        "axis": {
+          "aihub_empathy_multiturn": {
+            "case_component_mean_nll": 2.088667421,
+            "case_component_mean_token_accuracy": 0.536065798
+          },
+          "aihub_empathy_single": {
+            "case_component_mean_nll": 1.680750898,
+            "case_component_mean_token_accuracy": 0.608109057
+          },
+          "bazi_sft": {
+            "case_component_mean_nll": 0.020496365,
+            "case_component_mean_token_accuracy": 0.993013872
+          },
+          "deterministic_saju_qa": {
+            "case_component_mean_nll": 0.146028406,
+            "case_component_mean_token_accuracy": 0.955480036
+          },
+          "nemotron_saju": {
+            "case_component_mean_nll": 0.899621816,
+            "case_component_mean_token_accuracy": 0.764346883
+          },
+          "saju_diary_bridge": {
+            "case_component_mean_nll": 0.475106186,
+            "case_component_mean_token_accuracy": 0.889419956
+          },
+          "yeji_shensha_derived": {
+            "case_component_mean_nll": 0.611545646,
+            "case_component_mean_token_accuracy": 0.885647673
+          }
+        },
+        "interpretation": "held_out_reference_fit_not_semantic_truth",
+        "macro": {
+          "nll": 0.846030963,
+          "token_accuracy": 0.804583325
+        },
+        "token_weighted_diagnostic": {
+          "nll": 0.329586584,
+          "token_accuracy": 0.918579007,
+          "tokens": 50331
+        }
+      },
+      "metrics": {
+        "deterministic_contract_pass": {
+          "axes": 1,
+          "axis_percent": {
+            "deterministic_saju_qa": 40.0
+          },
+          "components": 50,
+          "macro_percent": 40.0,
+          "records": 50,
+          "status": "measured"
+        },
+        "fabricated_four_pillars": {
+          "axes": 7,
+          "axis_percent": {
+            "aihub_empathy_multiturn": 0.0,
+            "aihub_empathy_single": 0.0,
+            "bazi_sft": 0.0,
+            "deterministic_saju_qa": 0.0,
+            "nemotron_saju": 86.0,
+            "saju_diary_bridge": 0.0,
+            "yeji_shensha_derived": 0.0
+          },
+          "components": 350,
+          "macro_percent": 12.285714286,
+          "records": 500,
+          "status": "measured"
+        },
+        "foreign_sentence": {
+          "axes": 7,
+          "axis_percent": {
+            "aihub_empathy_multiturn": 0.0,
+            "aihub_empathy_single": 0.0,
+            "bazi_sft": 0.0,
+            "deterministic_saju_qa": 0.0,
+            "nemotron_saju": 0.0,
+            "saju_diary_bridge": 0.0,
+            "yeji_shensha_derived": 4.0
+          },
+          "components": 350,
+          "macro_percent": 0.571428571,
+          "records": 500,
+          "status": "measured"
+        },
+        "generation_clean": {
+          "axes": 7,
+          "axis_percent": {
+            "aihub_empathy_multiturn": 100.0,
+            "aihub_empathy_single": 100.0,
+            "bazi_sft": 100.0,
+            "deterministic_saju_qa": 100.0,
+            "nemotron_saju": 100.0,
+            "saju_diary_bridge": 100.0,
+            "yeji_shensha_derived": 100.0
+          },
+          "components": 350,
+          "macro_percent": 100.0,
+          "records": 500,
+          "status": "measured"
+        },
+        "grounded_fact_contract_pass": {
+          "axes": 5,
+          "axis_percent": {
+            "bazi_sft": 100.0,
+            "deterministic_saju_qa": 20.0,
+            "nemotron_saju": 0.0,
+            "saju_diary_bridge": 0.0,
+            "yeji_shensha_derived": 4.0
+          },
+          "components": 250,
+          "macro_percent": 24.8,
+          "records": 400,
+          "status": "measured"
+        },
+        "input_fact_violation": {
+          "axes": 5,
+          "axis_percent": {
+            "bazi_sft": 0.0,
+            "deterministic_saju_qa": 0.0,
+            "nemotron_saju": 0.0,
+            "saju_diary_bridge": 0.0,
+            "yeji_shensha_derived": 0.0
+          },
+          "components": 250,
+          "macro_percent": 0.0,
+          "records": 400,
+          "status": "measured"
+        },
+        "max_token_hit": {
+          "axes": 7,
+          "axis_percent": {
+            "aihub_empathy_multiturn": 0.0,
+            "aihub_empathy_single": 0.0,
+            "bazi_sft": 0.0,
+            "deterministic_saju_qa": 0.0,
+            "nemotron_saju": 0.0,
+            "saju_diary_bridge": 0.0,
+            "yeji_shensha_derived": 0.0
+          },
+          "components": 350,
+          "macro_percent": 0.0,
+          "records": 500,
+          "status": "measured"
+        },
+        "noncausal_contract_pass": {
+          "axes": 2,
+          "axis_percent": {
+            "nemotron_saju": 100.0,
+            "saju_diary_bridge": 100.0
+          },
+          "components": 100,
+          "macro_percent": 100.0,
+          "records": 100,
+          "status": "measured"
+        },
+        "nonempty": {
+          "axes": 7,
+          "axis_percent": {
+            "aihub_empathy_multiturn": 100.0,
+            "aihub_empathy_single": 100.0,
+            "bazi_sft": 100.0,
+            "deterministic_saju_qa": 100.0,
+            "nemotron_saju": 100.0,
+            "saju_diary_bridge": 100.0,
+            "yeji_shensha_derived": 100.0
+          },
+          "components": 350,
+          "macro_percent": 100.0,
+          "records": 500,
+          "status": "measured"
+        },
+        "repetition": {
+          "axes": 7,
+          "axis_percent": {
+            "aihub_empathy_multiturn": 0.0,
+            "aihub_empathy_single": 0.0,
+            "bazi_sft": 0.0,
+            "deterministic_saju_qa": 0.0,
+            "nemotron_saju": 0.0,
+            "saju_diary_bridge": 0.0,
+            "yeji_shensha_derived": 2.0
+          },
+          "components": 350,
+          "macro_percent": 0.285714286,
+          "records": 500,
+          "status": "measured"
+        },
+        "rule_contract_pass": {
+          "axes": 1,
+          "axis_percent": {
+            "yeji_shensha_derived": 36.0
+          },
+          "components": 50,
+          "macro_percent": 36.0,
+          "records": 50,
+          "status": "measured"
+        },
+        "sensitive_entity": {
+          "axes": 7,
+          "axis_percent": {
+            "aihub_empathy_multiturn": 0.0,
+            "aihub_empathy_single": 0.0,
+            "bazi_sft": 0.0,
+            "deterministic_saju_qa": 0.0,
+            "nemotron_saju": 0.0,
+            "saju_diary_bridge": 0.0,
+            "yeji_shensha_derived": 0.0
+          },
+          "components": 350,
+          "macro_percent": 0.0,
+          "records": 500,
+          "status": "measured"
+        },
+        "severe_safety": {
+          "axes": 7,
+          "axis_percent": {
+            "aihub_empathy_multiturn": 0.0,
+            "aihub_empathy_single": 0.0,
+            "bazi_sft": 0.0,
+            "deterministic_saju_qa": 0.0,
+            "nemotron_saju": 0.0,
+            "saju_diary_bridge": 0.0,
+            "yeji_shensha_derived": 0.0
+          },
+          "components": 350,
+          "macro_percent": 0.0,
+          "records": 500,
+          "status": "measured"
+        },
+        "special_or_control": {
+          "axes": 7,
+          "axis_percent": {
+            "aihub_empathy_multiturn": 0.0,
+            "aihub_empathy_single": 0.0,
+            "bazi_sft": 0.0,
+            "deterministic_saju_qa": 0.0,
+            "nemotron_saju": 0.0,
+            "saju_diary_bridge": 0.0,
+            "yeji_shensha_derived": 0.0
+          },
+          "components": 350,
+          "macro_percent": 0.0,
+          "records": 500,
+          "status": "measured"
+        },
+        "structured_json_parse": {
+          "axes": 0,
+          "components": 0,
+          "records": 0,
+          "status": "not_applicable"
+        },
+        "task_confusion": {
+          "axes": 2,
+          "axis_percent": {
+            "aihub_empathy_multiturn": 0.0,
+            "aihub_empathy_single": 0.0
+          },
+          "components": 100,
+          "macro_percent": 0.0,
+          "records": 100,
+          "status": "measured"
+        },
+        "unsupported_full_date": {
+          "axes": 7,
+          "axis_percent": {
+            "aihub_empathy_multiturn": 0.0,
+            "aihub_empathy_single": 0.0,
+            "bazi_sft": 0.0,
+            "deterministic_saju_qa": 0.0,
+            "nemotron_saju": 0.0,
+            "saju_diary_bridge": 0.0,
+            "yeji_shensha_derived": 0.0
+          },
+          "components": 350,
+          "macro_percent": 0.0,
+          "records": 500,
+          "status": "measured"
+        }
+      },
+      "rows": 500,
+      "rows_by_axis": {
+        "aihub_empathy_multiturn": 50,
+        "aihub_empathy_single": 50,
+        "bazi_sft": 200,
+        "deterministic_saju_qa": 50,
+        "nemotron_saju": 50,
+        "saju_diary_bridge": 50,
+        "yeji_shensha_derived": 50
+      },
+      "zero_tolerance_counts": {
+        "fabricated_four_pillars": 43,
+        "sensitive_entity": 0,
+        "severe_safety": 0,
+        "special_or_control": 0,
+        "unsupported_full_date": 0
+      }
+    },
+    "KI20-MIX-v2": {
+      "aggregation": "record_then_leakage_component_then_axis_macro",
+      "components": 350,
+      "components_by_axis": {
+        "aihub_empathy_multiturn": 50,
+        "aihub_empathy_single": 50,
+        "bazi_sft": 50,
+        "deterministic_saju_qa": 50,
+        "nemotron_saju": 50,
+        "saju_diary_bridge": 50,
+        "yeji_shensha_derived": 50
+      },
+      "domain_semantics": "not_measured",
+      "likelihood": {
+        "aggregation": "case_then_component_then_axis_macro",
+        "axis": {
+          "aihub_empathy_multiturn": {
+            "case_component_mean_nll": 2.003554912,
+            "case_component_mean_token_accuracy": 0.545755155
+          },
+          "aihub_empathy_single": {
+            "case_component_mean_nll": 1.634583632,
+            "case_component_mean_token_accuracy": 0.611965651
+          },
+          "bazi_sft": {
+            "case_component_mean_nll": 0.011821104,
+            "case_component_mean_token_accuracy": 0.996279607
+          },
+          "deterministic_saju_qa": {
+            "case_component_mean_nll": 0.118921093,
+            "case_component_mean_token_accuracy": 0.958054769
+          },
+          "nemotron_saju": {
+            "case_component_mean_nll": 0.831722474,
+            "case_component_mean_token_accuracy": 0.775794136
+          },
+          "saju_diary_bridge": {
+            "case_component_mean_nll": 0.450252723,
+            "case_component_mean_token_accuracy": 0.894271591
+          },
+          "yeji_shensha_derived": {
+            "case_component_mean_nll": 0.405614246,
+            "case_component_mean_token_accuracy": 0.912412755
+          }
+        },
+        "interpretation": "held_out_reference_fit_not_semantic_truth",
+        "macro": {
+          "nll": 0.779495741,
+          "token_accuracy": 0.813504809
+        },
+        "token_weighted_diagnostic": {
+          "nll": 0.29162022,
+          "token_accuracy": 0.925433629,
+          "tokens": 50331
+        }
+      },
+      "metrics": {
+        "deterministic_contract_pass": {
+          "axes": 1,
+          "axis_percent": {
+            "deterministic_saju_qa": 56.0
+          },
+          "components": 50,
+          "macro_percent": 56.0,
+          "records": 50,
+          "status": "measured"
+        },
+        "fabricated_four_pillars": {
+          "axes": 7,
+          "axis_percent": {
+            "aihub_empathy_multiturn": 0.0,
+            "aihub_empathy_single": 0.0,
+            "bazi_sft": 0.0,
+            "deterministic_saju_qa": 0.0,
+            "nemotron_saju": 90.0,
+            "saju_diary_bridge": 0.0,
+            "yeji_shensha_derived": 4.0
+          },
+          "components": 350,
+          "macro_percent": 13.428571429,
+          "records": 500,
+          "status": "measured"
+        },
+        "foreign_sentence": {
+          "axes": 7,
+          "axis_percent": {
+            "aihub_empathy_multiturn": 0.0,
+            "aihub_empathy_single": 0.0,
+            "bazi_sft": 0.0,
+            "deterministic_saju_qa": 0.0,
+            "nemotron_saju": 0.0,
+            "saju_diary_bridge": 0.0,
+            "yeji_shensha_derived": 4.0
+          },
+          "components": 350,
+          "macro_percent": 0.571428571,
+          "records": 500,
+          "status": "measured"
+        },
+        "generation_clean": {
+          "axes": 7,
+          "axis_percent": {
+            "aihub_empathy_multiturn": 100.0,
+            "aihub_empathy_single": 100.0,
+            "bazi_sft": 100.0,
+            "deterministic_saju_qa": 100.0,
+            "nemotron_saju": 100.0,
+            "saju_diary_bridge": 100.0,
+            "yeji_shensha_derived": 100.0
+          },
+          "components": 350,
+          "macro_percent": 100.0,
+          "records": 500,
+          "status": "measured"
+        },
+        "grounded_fact_contract_pass": {
+          "axes": 5,
+          "axis_percent": {
+            "bazi_sft": 100.0,
+            "deterministic_saju_qa": 20.0,
+            "nemotron_saju": 0.0,
+            "saju_diary_bridge": 0.0,
+            "yeji_shensha_derived": 0.0
+          },
+          "components": 250,
+          "macro_percent": 24.0,
+          "records": 400,
+          "status": "measured"
+        },
+        "input_fact_violation": {
+          "axes": 5,
+          "axis_percent": {
+            "bazi_sft": 0.0,
+            "deterministic_saju_qa": 0.0,
+            "nemotron_saju": 0.0,
+            "saju_diary_bridge": 0.0,
+            "yeji_shensha_derived": 0.0
+          },
+          "components": 250,
+          "macro_percent": 0.0,
+          "records": 400,
+          "status": "measured"
+        },
+        "max_token_hit": {
+          "axes": 7,
+          "axis_percent": {
+            "aihub_empathy_multiturn": 0.0,
+            "aihub_empathy_single": 0.0,
+            "bazi_sft": 0.0,
+            "deterministic_saju_qa": 0.0,
+            "nemotron_saju": 0.0,
+            "saju_diary_bridge": 0.0,
+            "yeji_shensha_derived": 0.0
+          },
+          "components": 350,
+          "macro_percent": 0.0,
+          "records": 500,
+          "status": "measured"
+        },
+        "noncausal_contract_pass": {
+          "axes": 2,
+          "axis_percent": {
+            "nemotron_saju": 100.0,
+            "saju_diary_bridge": 100.0
+          },
+          "components": 100,
+          "macro_percent": 100.0,
+          "records": 100,
+          "status": "measured"
+        },
+        "nonempty": {
+          "axes": 7,
+          "axis_percent": {
+            "aihub_empathy_multiturn": 100.0,
+            "aihub_empathy_single": 100.0,
+            "bazi_sft": 100.0,
+            "deterministic_saju_qa": 100.0,
+            "nemotron_saju": 100.0,
+            "saju_diary_bridge": 100.0,
+            "yeji_shensha_derived": 100.0
+          },
+          "components": 350,
+          "macro_percent": 100.0,
+          "records": 500,
+          "status": "measured"
+        },
+        "repetition": {
+          "axes": 7,
+          "axis_percent": {
+            "aihub_empathy_multiturn": 0.0,
+            "aihub_empathy_single": 0.0,
+            "bazi_sft": 0.0,
+            "deterministic_saju_qa": 0.0,
+            "nemotron_saju": 2.0,
+            "saju_diary_bridge": 0.0,
+            "yeji_shensha_derived": 0.0
+          },
+          "components": 350,
+          "macro_percent": 0.285714286,
+          "records": 500,
+          "status": "measured"
+        },
+        "rule_contract_pass": {
+          "axes": 1,
+          "axis_percent": {
+            "yeji_shensha_derived": 38.0
+          },
+          "components": 50,
+          "macro_percent": 38.0,
+          "records": 50,
+          "status": "measured"
+        },
+        "sensitive_entity": {
+          "axes": 7,
+          "axis_percent": {
+            "aihub_empathy_multiturn": 0.0,
+            "aihub_empathy_single": 0.0,
+            "bazi_sft": 0.0,
+            "deterministic_saju_qa": 0.0,
+            "nemotron_saju": 0.0,
+            "saju_diary_bridge": 0.0,
+            "yeji_shensha_derived": 0.0
+          },
+          "components": 350,
+          "macro_percent": 0.0,
+          "records": 500,
+          "status": "measured"
+        },
+        "severe_safety": {
+          "axes": 7,
+          "axis_percent": {
+            "aihub_empathy_multiturn": 0.0,
+            "aihub_empathy_single": 0.0,
+            "bazi_sft": 0.0,
+            "deterministic_saju_qa": 0.0,
+            "nemotron_saju": 0.0,
+            "saju_diary_bridge": 0.0,
+            "yeji_shensha_derived": 0.0
+          },
+          "components": 350,
+          "macro_percent": 0.0,
+          "records": 500,
+          "status": "measured"
+        },
+        "special_or_control": {
+          "axes": 7,
+          "axis_percent": {
+            "aihub_empathy_multiturn": 0.0,
+            "aihub_empathy_single": 0.0,
+            "bazi_sft": 0.0,
+            "deterministic_saju_qa": 0.0,
+            "nemotron_saju": 0.0,
+            "saju_diary_bridge": 0.0,
+            "yeji_shensha_derived": 0.0
+          },
+          "components": 350,
+          "macro_percent": 0.0,
+          "records": 500,
+          "status": "measured"
+        },
+        "structured_json_parse": {
+          "axes": 0,
+          "components": 0,
+          "records": 0,
+          "status": "not_applicable"
+        },
+        "task_confusion": {
+          "axes": 2,
+          "axis_percent": {
+            "aihub_empathy_multiturn": 0.0,
+            "aihub_empathy_single": 0.0
+          },
+          "components": 100,
+          "macro_percent": 0.0,
+          "records": 100,
+          "status": "measured"
+        },
+        "unsupported_full_date": {
+          "axes": 7,
+          "axis_percent": {
+            "aihub_empathy_multiturn": 0.0,
+            "aihub_empathy_single": 0.0,
+            "bazi_sft": 0.0,
+            "deterministic_saju_qa": 0.0,
+            "nemotron_saju": 0.0,
+            "saju_diary_bridge": 0.0,
+            "yeji_shensha_derived": 0.0
+          },
+          "components": 350,
+          "macro_percent": 0.0,
+          "records": 500,
+          "status": "measured"
+        }
+      },
+      "rows": 500,
+      "rows_by_axis": {
+        "aihub_empathy_multiturn": 50,
+        "aihub_empathy_single": 50,
+        "bazi_sft": 200,
+        "deterministic_saju_qa": 50,
+        "nemotron_saju": 50,
+        "saju_diary_bridge": 50,
+        "yeji_shensha_derived": 50
+      },
+      "zero_tolerance_counts": {
+        "fabricated_four_pillars": 47,
+        "sensitive_entity": 0,
+        "severe_safety": 0,
+        "special_or_control": 0,
+        "unsupported_full_date": 0
+      }
+    }
+  },
+  "blind_usage": {
+    "aggregation": "record_then_leakage_component_then_axis_macro",
+    "components": 350,
+    "rows": 500,
+    "runs": 1,
+    "status": "spent_completed"
+  },
+  "evaluation_build_id": "eval-e8630962cab2",
+  "evaluation_version": "v1.0.0",
+  "phase6_completed": true,
+  "policy": {
+    "decision_inputs": "repository_local_automatic_metrics_only",
+    "domain_semantics": "not_measured",
+    "reference_similarity_used_as_quality_metric": false,
+    "unavailable_semantics_blocks_completion": false
+  },
+  "preblind": {
+    "K0-INSTRUCT": {
+      "nonsealed_gate_v2": {
+        "blind_accessed": false,
+        "cases": 1045,
+        "failed_quality_targets": [
+          "branch_policy",
+          "deterministic.branch_ten_gods",
+          "deterministic.hidden_stems",
+          "deterministic.stem_ten_gods",
+          "deterministic.yin_yang_elements_and_surface_counts",
+          "foreign_sentence",
+          "handoff_action",
+          "input_fact_violation_zero",
+          "shensha",
+          "unsupported_full_date_zero"
+        ],
+        "handoff_action_percent": 86.0,
+        "metrics": {
+          "branch_policy": {
+            "passed": 0,
+            "percent": 0.0,
+            "total": 40,
+            "wilson_95_high_percent": 8.76216,
+            "wilson_95_low_percent": 0.0
+          },
+          "branch_policy.main_hidden_stem_application": {
+            "passed": 0,
+            "percent": 0.0,
+            "total": 40,
+            "wilson_95_high_percent": 8.76216,
+            "wilson_95_low_percent": 0.0
+          },
+          "branch_policy.surface_policy_rejection": {
+            "passed": 15,
+            "percent": 37.5,
+            "total": 40,
+            "wilson_95_high_percent": 52.967561,
+            "wilson_95_low_percent": 24.222979
+          },
+          "deterministic.branch_ten_gods": {
+            "passed": 0,
+            "percent": 0.0,
+            "total": 12,
+            "wilson_95_high_percent": 24.249401,
+            "wilson_95_low_percent": 0.0
+          },
+          "deterministic.hidden_stems": {
+            "passed": 0,
+            "percent": 0.0,
+            "total": 12,
+            "wilson_95_high_percent": 24.249401,
+            "wilson_95_low_percent": 0.0
+          },
+          "deterministic.stem_branch_identity": {
+            "passed": 12,
+            "percent": 100.0,
+            "total": 12,
+            "wilson_95_high_percent": 100.0,
+            "wilson_95_low_percent": 75.750599
+          },
+          "deterministic.stem_ten_gods": {
+            "passed": 0,
+            "percent": 0.0,
+            "total": 12,
+            "wilson_95_high_percent": 24.249401,
+            "wilson_95_low_percent": 0.0
+          },
+          "deterministic.yin_yang_elements_and_surface_counts": {
+            "passed": 0,
+            "percent": 0.0,
+            "total": 12,
+            "wilson_95_high_percent": 24.249401,
+            "wilson_95_low_percent": 0.0
+          },
+          "empathy_no_task_confusion": {
+            "passed": 20,
+            "percent": 100.0,
+            "total": 20,
+            "wilson_95_high_percent": 100.0,
+            "wilson_95_low_percent": 83.887484
+          },
+          "foreign_sentence_free": {
+            "passed": 861,
+            "percent": 82.392344,
+            "total": 1045,
+            "wilson_95_high_percent": 84.581843,
+            "wilson_95_low_percent": 79.965567
+          },
+          "foreign_sentence_outputs": 184,
+          "generation_clean": {
+            "passed": 1045,
+            "percent": 100.0,
+            "total": 1045,
+            "wilson_95_high_percent": 100.0,
+            "wilson_95_low_percent": 99.633743
+          },
+          "handoff_action": {
+            "passed": 43,
+            "percent": 86.0,
+            "total": 50,
+            "wilson_95_high_percent": 93.049167,
+            "wilson_95_low_percent": 73.813806
+          },
+          "handoff_no_fabrication": {
+            "passed": 50,
+            "percent": 100.0,
+            "total": 50,
+            "wilson_95_high_percent": 100.0,
+            "wilson_95_low_percent": 92.86524
+          },
+          "input_fact_preserved": {
+            "passed": 773,
+            "percent": 99.741935,
+            "total": 775,
+            "wilson_95_high_percent": 99.929201,
+            "wilson_95_low_percent": 99.063988
+          },
+          "input_fact_violations": 2,
+          "persona_no_causalization": {
+            "passed": 50,
+            "percent": 100.0,
+            "total": 50,
+            "wilson_95_high_percent": 100.0,
+            "wilson_95_low_percent": 92.86524
+          },
+          "sensitive_entity_outputs": 0,
+          "severe_safety_outputs": 0,
+          "shensha": {
+            "passed": 3,
+            "percent": 12.0,
+            "total": 25,
+            "wilson_95_high_percent": 29.955794,
+            "wilson_95_low_percent": 4.166817
+          },
+          "special_or_control_outputs": 0,
+          "unsupported_full_date_outputs": 5
+        },
+        "quality_target_status": "not_met",
+        "quality_targets": {
+          "branch_policy": false,
+          "deterministic.branch_ten_gods": false,
+          "deterministic.hidden_stems": false,
+          "deterministic.stem_branch_identity": true,
+          "deterministic.stem_ten_gods": false,
+          "deterministic.yin_yang_elements_and_surface_counts": false,
+          "empathy_no_task_confusion": true,
+          "foreign_sentence": false,
+          "handoff_action": false,
+          "input_fact_violation_zero": false,
+          "persona_no_causalization": true,
+          "shensha": false,
+          "unsupported_full_date_zero": false
+        }
+      },
+      "quality_result_blocks_blind_execution": false,
+      "stateful_public_synthetic": {
+        "blind_accessed": false,
+        "cases": 100,
+        "metrics": {
+          "consecutive_normalized_duplicate": {
+            "count": 0,
+            "percent": 0.0
+          },
+          "false_ui_or_completion": {
+            "count": 11,
+            "percent": 11.0
+          },
+          "no_fabricated_four_pillars": {
+            "count": 93,
+            "percent": 93.0
+          },
+          "nonempty_output": {
+            "count": 100,
+            "percent": 100.0
+          },
+          "passed": {
+            "count": 24,
+            "percent": 24.0
+          },
+          "provided_field_reask": {
+            "count": 31,
+            "percent": 31.0
+          },
+          "required_action_pass": {
+            "count": 34,
+            "percent": 34.0
+          },
+          "severe_safety": {
+            "count": 0,
+            "percent": 0.0
+          },
+          "unsupported_date_or_period_fact": {
+            "count": 0,
+            "percent": 0.0
+          }
+        },
+        "role": "public_synthetic_diagnostic_not_blind_gate",
+        "strata": {
+          "accumulated_context_no_reask": {
+            "cases": 10,
+            "passed_percent": 0.0,
+            "required_action_percent": 0.0
+          },
+          "ambiguous_time": {
+            "cases": 10,
+            "passed_percent": 0.0,
+            "required_action_percent": 70.0
+          },
+          "calendar_ambiguity": {
+            "cases": 10,
+            "passed_percent": 10.0,
+            "required_action_percent": 30.0
+          },
+          "complete_input_runtime_handoff": {
+            "cases": 10,
+            "passed_percent": 60.0,
+            "required_action_percent": 60.0
+          },
+          "date_only_no_time": {
+            "cases": 10,
+            "passed_percent": 0.0,
+            "required_action_percent": 0.0
+          },
+          "false_ui_or_completion": {
+            "cases": 10,
+            "passed_percent": 0.0,
+            "required_action_percent": 0.0
+          },
+          "no_birth_information": {
+            "cases": 10,
+            "passed_percent": 70.0,
+            "required_action_percent": 70.0
+          },
+          "structured_chart_ready": {
+            "cases": 10,
+            "passed_percent": 60.0,
+            "required_action_percent": 60.0
+          },
+          "time_unknown_partial_limit": {
+            "cases": 10,
+            "passed_percent": 0.0,
+            "required_action_percent": 0.0
+          },
+          "timezone_location_ambiguity": {
+            "cases": 10,
+            "passed_percent": 40.0,
+            "required_action_percent": 50.0
+          }
+        }
+      }
+    },
+    "KI10-MIX-v2": {
+      "nonsealed_gate_v2": {
+        "blind_accessed": false,
+        "cases": 1045,
+        "failed_quality_targets": [
+          "branch_policy",
+          "deterministic.branch_ten_gods",
+          "deterministic.hidden_stems",
+          "deterministic.stem_ten_gods",
+          "deterministic.yin_yang_elements_and_surface_counts",
+          "handoff_action",
+          "shensha",
+          "unsupported_full_date_zero"
+        ],
+        "handoff_action_percent": 14.0,
+        "metrics": {
+          "branch_policy": {
+            "passed": 0,
+            "percent": 0.0,
+            "total": 40,
+            "wilson_95_high_percent": 8.76216,
+            "wilson_95_low_percent": 0.0
+          },
+          "branch_policy.main_hidden_stem_application": {
+            "passed": 0,
+            "percent": 0.0,
+            "total": 40,
+            "wilson_95_high_percent": 8.76216,
+            "wilson_95_low_percent": 0.0
+          },
+          "branch_policy.surface_policy_rejection": {
+            "passed": 20,
+            "percent": 50.0,
+            "total": 40,
+            "wilson_95_high_percent": 64.800473,
+            "wilson_95_low_percent": 35.199527
+          },
+          "deterministic.branch_ten_gods": {
+            "passed": 1,
+            "percent": 8.333333,
+            "total": 12,
+            "wilson_95_high_percent": 35.387991,
+            "wilson_95_low_percent": 1.486509
+          },
+          "deterministic.hidden_stems": {
+            "passed": 7,
+            "percent": 58.333333,
+            "total": 12,
+            "wilson_95_high_percent": 80.673969,
+            "wilson_95_low_percent": 31.951131
+          },
+          "deterministic.stem_branch_identity": {
+            "passed": 12,
+            "percent": 100.0,
+            "total": 12,
+            "wilson_95_high_percent": 100.0,
+            "wilson_95_low_percent": 75.750599
+          },
+          "deterministic.stem_ten_gods": {
+            "passed": 0,
+            "percent": 0.0,
+            "total": 12,
+            "wilson_95_high_percent": 24.249401,
+            "wilson_95_low_percent": 0.0
+          },
+          "deterministic.yin_yang_elements_and_surface_counts": {
+            "passed": 4,
+            "percent": 33.333333,
+            "total": 12,
+            "wilson_95_high_percent": 60.937791,
+            "wilson_95_low_percent": 13.812009
+          },
+          "empathy_no_task_confusion": {
+            "passed": 20,
+            "percent": 100.0,
+            "total": 20,
+            "wilson_95_high_percent": 100.0,
+            "wilson_95_low_percent": 83.887484
+          },
+          "foreign_sentence_free": {
+            "passed": 1031,
+            "percent": 98.660287,
+            "total": 1045,
+            "wilson_95_high_percent": 99.200305,
+            "wilson_95_low_percent": 97.763825
+          },
+          "foreign_sentence_outputs": 14,
+          "generation_clean": {
+            "passed": 1045,
+            "percent": 100.0,
+            "total": 1045,
+            "wilson_95_high_percent": 100.0,
+            "wilson_95_low_percent": 99.633743
+          },
+          "handoff_action": {
+            "passed": 7,
+            "percent": 14.0,
+            "total": 50,
+            "wilson_95_high_percent": 26.186194,
+            "wilson_95_low_percent": 6.950833
+          },
+          "handoff_no_fabrication": {
+            "passed": 50,
+            "percent": 100.0,
+            "total": 50,
+            "wilson_95_high_percent": 100.0,
+            "wilson_95_low_percent": 92.86524
+          },
+          "input_fact_preserved": {
+            "passed": 775,
+            "percent": 100.0,
+            "total": 775,
+            "wilson_95_high_percent": 100.0,
+            "wilson_95_low_percent": 99.506773
+          },
+          "input_fact_violations": 0,
+          "persona_no_causalization": {
+            "passed": 50,
+            "percent": 100.0,
+            "total": 50,
+            "wilson_95_high_percent": 100.0,
+            "wilson_95_low_percent": 92.86524
+          },
+          "sensitive_entity_outputs": 0,
+          "severe_safety_outputs": 0,
+          "shensha": {
+            "passed": 9,
+            "percent": 36.0,
+            "total": 25,
+            "wilson_95_high_percent": 55.481502,
+            "wilson_95_low_percent": 20.247881
+          },
+          "special_or_control_outputs": 0,
+          "unsupported_full_date_outputs": 1
+        },
+        "quality_target_status": "not_met",
+        "quality_targets": {
+          "branch_policy": false,
+          "deterministic.branch_ten_gods": false,
+          "deterministic.hidden_stems": false,
+          "deterministic.stem_branch_identity": true,
+          "deterministic.stem_ten_gods": false,
+          "deterministic.yin_yang_elements_and_surface_counts": false,
+          "empathy_no_task_confusion": true,
+          "foreign_sentence": true,
+          "handoff_action": false,
+          "input_fact_violation_zero": true,
+          "persona_no_causalization": true,
+          "shensha": false,
+          "unsupported_full_date_zero": false
+        }
+      },
+      "quality_result_blocks_blind_execution": false,
+      "stateful_public_synthetic": {
+        "blind_accessed": false,
+        "cases": 100,
+        "metrics": {
+          "consecutive_normalized_duplicate": {
+            "count": 0,
+            "percent": 0.0
+          },
+          "false_ui_or_completion": {
+            "count": 3,
+            "percent": 3.0
+          },
+          "no_fabricated_four_pillars": {
+            "count": 94,
+            "percent": 94.0
+          },
+          "nonempty_output": {
+            "count": 100,
+            "percent": 100.0
+          },
+          "passed": {
+            "count": 1,
+            "percent": 1.0
+          },
+          "provided_field_reask": {
+            "count": 33,
+            "percent": 33.0
+          },
+          "required_action_pass": {
+            "count": 16,
+            "percent": 16.0
+          },
+          "severe_safety": {
+            "count": 0,
+            "percent": 0.0
+          },
+          "unsupported_date_or_period_fact": {
+            "count": 2,
+            "percent": 2.0
+          }
+        },
+        "role": "public_synthetic_diagnostic_not_blind_gate",
+        "strata": {
+          "accumulated_context_no_reask": {
+            "cases": 10,
+            "passed_percent": 0.0,
+            "required_action_percent": 0.0
+          },
+          "ambiguous_time": {
+            "cases": 10,
+            "passed_percent": 0.0,
+            "required_action_percent": 30.0
+          },
+          "calendar_ambiguity": {
+            "cases": 10,
+            "passed_percent": 0.0,
+            "required_action_percent": 20.0
+          },
+          "complete_input_runtime_handoff": {
+            "cases": 10,
+            "passed_percent": 0.0,
+            "required_action_percent": 0.0
+          },
+          "date_only_no_time": {
+            "cases": 10,
+            "passed_percent": 0.0,
+            "required_action_percent": 0.0
+          },
+          "false_ui_or_completion": {
+            "cases": 10,
+            "passed_percent": 0.0,
+            "required_action_percent": 0.0
+          },
+          "no_birth_information": {
+            "cases": 10,
+            "passed_percent": 10.0,
+            "required_action_percent": 10.0
+          },
+          "structured_chart_ready": {
+            "cases": 10,
+            "passed_percent": 0.0,
+            "required_action_percent": 0.0
+          },
+          "time_unknown_partial_limit": {
+            "cases": 10,
+            "passed_percent": 0.0,
+            "required_action_percent": 0.0
+          },
+          "timezone_location_ambiguity": {
+            "cases": 10,
+            "passed_percent": 0.0,
+            "required_action_percent": 100.0
+          }
+        }
+      }
+    },
+    "KI20-MIX-v2": {
+      "nonsealed_gate_v2": {
+        "blind_accessed": false,
+        "cases": 1045,
+        "failed_quality_targets": [
+          "branch_policy",
+          "deterministic.branch_ten_gods",
+          "deterministic.hidden_stems",
+          "deterministic.stem_ten_gods",
+          "deterministic.yin_yang_elements_and_surface_counts",
+          "handoff_action",
+          "shensha",
+          "unsupported_full_date_zero"
+        ],
+        "handoff_action_percent": 50.0,
+        "metrics": {
+          "branch_policy": {
+            "passed": 0,
+            "percent": 0.0,
+            "total": 40,
+            "wilson_95_high_percent": 8.76216,
+            "wilson_95_low_percent": 0.0
+          },
+          "branch_policy.main_hidden_stem_application": {
+            "passed": 0,
+            "percent": 0.0,
+            "total": 40,
+            "wilson_95_high_percent": 8.76216,
+            "wilson_95_low_percent": 0.0
+          },
+          "branch_policy.surface_policy_rejection": {
+            "passed": 32,
+            "percent": 80.0,
+            "total": 40,
+            "wilson_95_high_percent": 89.50001,
+            "wilson_95_low_percent": 65.242694
+          },
+          "deterministic.branch_ten_gods": {
+            "passed": 1,
+            "percent": 8.333333,
+            "total": 12,
+            "wilson_95_high_percent": 35.387991,
+            "wilson_95_low_percent": 1.486509
+          },
+          "deterministic.hidden_stems": {
+            "passed": 10,
+            "percent": 83.333333,
+            "total": 12,
+            "wilson_95_high_percent": 95.303486,
+            "wilson_95_low_percent": 55.196914
+          },
+          "deterministic.stem_branch_identity": {
+            "passed": 12,
+            "percent": 100.0,
+            "total": 12,
+            "wilson_95_high_percent": 100.0,
+            "wilson_95_low_percent": 75.750599
+          },
+          "deterministic.stem_ten_gods": {
+            "passed": 0,
+            "percent": 0.0,
+            "total": 12,
+            "wilson_95_high_percent": 24.249401,
+            "wilson_95_low_percent": 0.0
+          },
+          "deterministic.yin_yang_elements_and_surface_counts": {
+            "passed": 4,
+            "percent": 33.333333,
+            "total": 12,
+            "wilson_95_high_percent": 60.937791,
+            "wilson_95_low_percent": 13.812009
+          },
+          "empathy_no_task_confusion": {
+            "passed": 20,
+            "percent": 100.0,
+            "total": 20,
+            "wilson_95_high_percent": 100.0,
+            "wilson_95_low_percent": 83.887484
+          },
+          "foreign_sentence_free": {
+            "passed": 1039,
+            "percent": 99.425837,
+            "total": 1045,
+            "wilson_95_high_percent": 99.736598,
+            "wilson_95_low_percent": 98.753025
+          },
+          "foreign_sentence_outputs": 6,
+          "generation_clean": {
+            "passed": 1045,
+            "percent": 100.0,
+            "total": 1045,
+            "wilson_95_high_percent": 100.0,
+            "wilson_95_low_percent": 99.633743
+          },
+          "handoff_action": {
+            "passed": 25,
+            "percent": 50.0,
+            "total": 50,
+            "wilson_95_high_percent": 63.355486,
+            "wilson_95_low_percent": 36.644514
+          },
+          "handoff_no_fabrication": {
+            "passed": 50,
+            "percent": 100.0,
+            "total": 50,
+            "wilson_95_high_percent": 100.0,
+            "wilson_95_low_percent": 92.86524
+          },
+          "input_fact_preserved": {
+            "passed": 775,
+            "percent": 100.0,
+            "total": 775,
+            "wilson_95_high_percent": 100.0,
+            "wilson_95_low_percent": 99.506773
+          },
+          "input_fact_violations": 0,
+          "persona_no_causalization": {
+            "passed": 50,
+            "percent": 100.0,
+            "total": 50,
+            "wilson_95_high_percent": 100.0,
+            "wilson_95_low_percent": 92.86524
+          },
+          "sensitive_entity_outputs": 0,
+          "severe_safety_outputs": 0,
+          "shensha": {
+            "passed": 8,
+            "percent": 32.0,
+            "total": 25,
+            "wilson_95_high_percent": 51.589731,
+            "wilson_95_low_percent": 17.20519
+          },
+          "special_or_control_outputs": 0,
+          "unsupported_full_date_outputs": 1
+        },
+        "quality_target_status": "not_met",
+        "quality_targets": {
+          "branch_policy": false,
+          "deterministic.branch_ten_gods": false,
+          "deterministic.hidden_stems": false,
+          "deterministic.stem_branch_identity": true,
+          "deterministic.stem_ten_gods": false,
+          "deterministic.yin_yang_elements_and_surface_counts": false,
+          "empathy_no_task_confusion": true,
+          "foreign_sentence": true,
+          "handoff_action": false,
+          "input_fact_violation_zero": true,
+          "persona_no_causalization": true,
+          "shensha": false,
+          "unsupported_full_date_zero": false
+        }
+      },
+      "quality_result_blocks_blind_execution": false,
+      "stateful_public_synthetic": {
+        "blind_accessed": false,
+        "cases": 100,
+        "metrics": {
+          "consecutive_normalized_duplicate": {
+            "count": 0,
+            "percent": 0.0
+          },
+          "false_ui_or_completion": {
+            "count": 1,
+            "percent": 1.0
+          },
+          "no_fabricated_four_pillars": {
+            "count": 84,
+            "percent": 84.0
+          },
+          "nonempty_output": {
+            "count": 100,
+            "percent": 100.0
+          },
+          "passed": {
+            "count": 3,
+            "percent": 3.0
+          },
+          "provided_field_reask": {
+            "count": 18,
+            "percent": 18.0
+          },
+          "required_action_pass": {
+            "count": 14,
+            "percent": 14.0
+          },
+          "severe_safety": {
+            "count": 0,
+            "percent": 0.0
+          },
+          "unsupported_date_or_period_fact": {
+            "count": 5,
+            "percent": 5.0
+          }
+        },
+        "role": "public_synthetic_diagnostic_not_blind_gate",
+        "strata": {
+          "accumulated_context_no_reask": {
+            "cases": 10,
+            "passed_percent": 0.0,
+            "required_action_percent": 10.0
+          },
+          "ambiguous_time": {
+            "cases": 10,
+            "passed_percent": 10.0,
+            "required_action_percent": 20.0
+          },
+          "calendar_ambiguity": {
+            "cases": 10,
+            "passed_percent": 0.0,
+            "required_action_percent": 0.0
+          },
+          "complete_input_runtime_handoff": {
+            "cases": 10,
+            "passed_percent": 0.0,
+            "required_action_percent": 0.0
+          },
+          "date_only_no_time": {
+            "cases": 10,
+            "passed_percent": 0.0,
+            "required_action_percent": 0.0
+          },
+          "false_ui_or_completion": {
+            "cases": 10,
+            "passed_percent": 0.0,
+            "required_action_percent": 0.0
+          },
+          "no_birth_information": {
+            "cases": 10,
+            "passed_percent": 10.0,
+            "required_action_percent": 10.0
+          },
+          "structured_chart_ready": {
+            "cases": 10,
+            "passed_percent": 0.0,
+            "required_action_percent": 0.0
+          },
+          "time_unknown_partial_limit": {
+            "cases": 10,
+            "passed_percent": 0.0,
+            "required_action_percent": 0.0
+          },
+          "timezone_location_ambiguity": {
+            "cases": 10,
+            "passed_percent": 10.0,
+            "required_action_percent": 100.0
+          }
+        }
+      }
+    }
+  },
+  "promotion": {
+    "additional_training_performed": false,
+    "application_binding_performed": false,
+    "mix20k_v3_1_generated": false,
+    "production_promotion_allowed": false,
+    "release_approved": false
+  },
+  "repair_ranking": {
+    "axis_percentiles": {
+      "aihub_empathy_multiturn": {
+        "max_nll": 4.522653468,
+        "mean_nll": 1.889494515,
+        "p50_nll": 1.845515493,
+        "p90_nll": 2.732684542,
+        "p95_nll": 2.969595258,
+        "p99_nll": 3.618044914,
+        "rows": 1500
+      },
+      "aihub_empathy_single": {
+        "max_nll": 4.182535989,
+        "mean_nll": 1.751035662,
+        "p50_nll": 1.671321551,
+        "p90_nll": 2.581689011,
+        "p95_nll": 2.93282945,
+        "p99_nll": 3.549809303,
+        "rows": 1500
+      },
+      "bazi_sft": {
+        "max_nll": 0.061475489,
+        "mean_nll": 0.010489403,
+        "p50_nll": 0.008825839,
+        "p90_nll": 0.018351392,
+        "p95_nll": 0.022217588,
+        "p99_nll": 0.028432487,
+        "rows": 4000
+      },
+      "deterministic_saju_qa": {
+        "max_nll": 0.592698945,
+        "mean_nll": 0.129023938,
+        "p50_nll": 0.042516593,
+        "p90_nll": 0.416488306,
+        "p95_nll": 0.458549688,
+        "p99_nll": 0.513204413,
+        "rows": 2000
+      },
+      "nemotron_saju": {
+        "max_nll": 1.970244949,
+        "mean_nll": 0.846549967,
+        "p50_nll": 0.719261917,
+        "p90_nll": 1.465361613,
+        "p95_nll": 1.564926521,
+        "p99_nll": 1.71564038,
+        "rows": 6800
+      },
+      "saju_diary_bridge": {
+        "max_nll": 1.334064371,
+        "mean_nll": 0.439194576,
+        "p50_nll": 0.414294843,
+        "p90_nll": 0.676931,
+        "p95_nll": 0.759951657,
+        "p99_nll": 0.976777586,
+        "rows": 3200
+      },
+      "yeji_shensha_derived": {
+        "max_nll": 1.970228577,
+        "mean_nll": 0.405586561,
+        "p50_nll": 0.388927672,
+        "p90_nll": 0.787305751,
+        "p95_nll": 1.02433426,
+        "p99_nll": 1.270410569,
+        "rows": 1000
+      }
+    },
+    "blind_rows_included": false,
+    "model": "KI20-MIX-v2",
+    "public_record_identifiers": false,
+    "purpose": "automatic_private_repair_priority",
+    "rows": 20000
+  },
+  "report_type": "phase6_automatic_technical_evaluation",
+  "runtime_conformance": {
+    "mixed_into_model_score": false,
+    "status": "candidate_runtime_conformance_passed_release_blocked"
+  },
+  "schema_version": "1.0.0",
+  "status": "completed"
+}

@@ -21,7 +21,7 @@
 - Core Eval과 source holdout의 모든 `leakage_group_ids`를 전이적으로 합친 component를 정식 후보에서 먼저 제외한다. 동일 명식 consistency 20항목도 component 단위로 고정한다.
 - K0는 BF16·SDPA·batch 1·greedy·`max_new_tokens=512`로 실행하고, 임의 네 기둥 생성·빈 출력·제어문자/special-token 노출·결정성 재생 실패만 Gate C 차단 조건으로 삼는다. reference overlap과 범주별 자동 계약 점수는 기준선 진단값이며 임의 합격 임계값을 만들지 않는다.
 - 제한 원문이 포함될 수 있는 진단 산출물은 저장소 밖 private 경로에만 두고 내부 ID·원천 locator를 공개하지 않는다. Phase 4 승인은 자동 기술 계약 범위에 한정한다.
-- K0 1,000항목은 안전·무결성, deterministic hard-fact와 지지 십신 정책 모순 계약, 생성 상한, 반복, 한국어 비율 순서로 자동 위험 분류한다. 전체 결과는 Git 제외 경로에 두고 공개 보고서에는 심각도·신호 집계만, 검토용으로는 상위 50항목만 별도 고정한다. 이는 사람 전문 판독이나 품질 인증을 대신하지 않는다.
+- K0 1,000항목은 안전·무결성, deterministic hard-fact와 지지 십신 정책 모순 계약, 생성 상한, 반복, 한국어 비율 순서로 자동 위험 분류한다. 전체 결과는 Git 제외 경로에 두고 공개 보고서에는 심각도·신호 집계만, 진단용으로는 상위 50항목만 별도 고정한다. 이 분류가 다루지 않는 의미 품질은 `not_measured`다.
 - 이전 고정 K0는 모델·template·generation·runtime·prompt SHA-256이 모두 같은 case만 재사용하고, 새 eval 계약으로 지표를 다시 계산한다. 하나라도 다르면 새로 생성한다.
 
 ## Gate A. 데이터 검증
@@ -67,7 +67,7 @@ mask 밖의 non--100 token == 0
 tokenize=True 경로에서 special token 중복 == 0
 ```
 
-render된 텍스트, token ID, role boundary, label mask를 사람이 읽을 수 있는 fixture 보고서로 저장한다. assertion 하나라도 실패하면 optimizer를 만들지 않는다.
+render된 텍스트, token ID, role boundary, label mask를 재현 가능한 fixture 보고서로 저장한다. assertion 하나라도 실패하면 optimizer를 만들지 않는다.
 
 고정 tokenizer·template로 전체 후보를 tokenization해 다음을 보고한다.
 
@@ -101,7 +101,7 @@ max_new_tokens=512
 
 평가 대상은 source holdout 700과 core eval 300이다. Instruct 결과는 학습 전 시작점이자 데이터·template·generation 파이프라인의 sanity reference로 고정한다. `명식 누락 시 계산기 handoff` 문항에서 모델이 임의의 네 기둥을 만들면 Gate 실패로 기록한다.
 
-case별 prompt·reference·출력은 Git 제외 `runs/K0-INSTRUCT/`에 0600 권한으로 보존하고, 공개 보고서에는 집계만 투영한다. 첫 case를 같은 process에서 한 번 더 생성해 token ID 결정성을 검증한다. K0가 통과해도 사람 전문 검수는 별도이며, 오프라인 ZIP의 final feedback을 다시 검증·승인하기 전에는 품질 인증을 주장하지 않는다.
+case별 prompt·reference·출력은 Git 제외 `runs/K0-INSTRUCT/`에 0600 권한으로 보존하고, 공개 보고서에는 집계만 투영한다. 첫 case를 같은 process에서 한 번 더 생성해 token ID 결정성을 검증한다. K0 통과는 자동 기술 계약 범위에 한정하며 계약 밖 의미 품질은 `not_measured`로 남긴다.
 
 ## Gate D. 단일 배치 기능 검사
 
@@ -185,7 +185,7 @@ data_seed: 42
 | Gate D | BF16 1,291,478,272 trainable parameter, finite·nonzero gradient, uint8 optimizer state, peak VRAM 6,729,681,920 bytes |
 | Gate E | 768에서 100→200-step resume, 첫 20/마지막 20 loss 중앙값 2.4387→1.0448, peak VRAM 10,498,061,312 bytes, 종료 여유 3,154,665,472 bytes |
 | checkpoint 재로드 | 별도 process에서 5개 서로 다른 task 모두 비어 있지 않은 출력 생성 |
-| 승인 경계 | `training_promotion_allowed=true`, `human_domain_review_performed=false`, `quality_certification_claimed=false`, `phase5_training_performed=false` |
+| 승인 경계 | `training_promotion_allowed=true`, `domain_semantics=not_measured`, `quality_certification_claimed=false`, `phase5_training_performed=false` |
 
 실제 후보 최대 길이는 716이므로 1024 진단이 통과했어도 padding-only 길이를 정식 계약으로 올리지 않고 24K를 무손실 수용하는 768을 선택했다. TRL의 end-of-turn 휴리스틱 경고와 달리 Gate B는 전체 24K에서 supervised EOS를 직접 확인했다. Transformers 4.57.6이 저장된 비-Mistral `model_type=kanana` checkpoint에 낸 Mistral 정규식 경고는 원본·checkpoint `tokenizer.json` SHA-256 `1c4be9ecf77c926456fb82d4cf07ff1218a91907f3408f44895d2b01e0f2b5ab` 및 고정 표본 token ID 일치로 오탐임을 확인했다. `fix_mistral_regex=True`는 원본 Kanana 숫자 tokenization을 바꾸므로 적용하지 않았다.
 
@@ -209,7 +209,6 @@ data/reports/saju_1b_baseline/preflight/v2.0.0/build-2feaee353252/
 data/reports/saju_1b_baseline/preflight/v2.0.0/build-6f32d52c2868/
 runs/K0-INSTRUCT/v2.0.0/build-2feaee353252/
 runs/KI1K-SMOKE-v2/v2.0.0/build-2feaee353252/
-/home/user/saju-phase4-v2-k0-review-build-2feaee353252.zip
 ```
 
 ## 공식 자료
@@ -223,7 +222,6 @@ runs/KI1K-SMOKE-v2/v2.0.0/build-2feaee353252/
 - [PyTorch 2.13 release](https://pytorch.org/blog/pytorch-2-13-release-blog/)
 - [PEFT LoRA](https://huggingface.co/docs/peft/main/package_reference/lora)
 - [PEFT quantization](https://huggingface.co/docs/peft/developer_guides/quantization)
-- [OpenAI 공식 파일 작업 안내](https://learn.chatgpt.com/docs/artifacts-viewer)
 - [AI Hub 공식 이용정책](https://aihub.or.kr/intrcn/guid/usagepolicy.do?currMenu=151&topMenu=105)
 
 ## 웹 확인 기록
@@ -239,7 +237,7 @@ runs/KI1K-SMOKE-v2/v2.0.0/build-2feaee353252/
 | 2026-08-28 | TRL 1.12.0 및 설치본 1.12.0 | conversational template generation mask와 assistant-only label 경로를 전체 24K에 직접 검증 |
 | 2026-08-28 | PEFT LoRA·quantization | LoRA는 원 가중치 동결, QLoRA는 quantized base 위 adapter라는 별도 계약이므로 Full FT를 자동 변경하지 않기로 결정 |
 | 2026-08-28 | TRL·Transformers·bitsandbytes·PyTorch 최신 공식 문서와 설치본 | `assistant_only_loss`, `chunked_nll`, `paged_adamw_8bit`, Trainer optimizer/scheduler resume, non-reentrant activation checkpoint 경로를 비교하고 Full FT 768 계약을 유지 |
-| 2026-08-28 | OpenAI 파일 작업 안내·AI Hub 이용정책 | 외부 GPT Pro 검수 설명 흐름을 확인하고, 승인 없는 제3자 열람 및 국외 반출 제한 때문에 AI Hub 3K 본문을 외부 패키지에서 제외 |
+| 2026-08-28 | AI Hub 이용정책 | 승인 없는 제3자 열람 및 국외 반출 제한 때문에 AI Hub 3K 본문을 외부 전달 범위에서 제외 |
 
 ## 진행 기록
 
@@ -247,7 +245,7 @@ runs/KI1K-SMOKE-v2/v2.0.0/build-2feaee353252/
   - 작업 요약: 품질 보정 Phase 4 `v2.0.0/build-2feaee353252`에서 A~E를 모두 실행하고 선택 길이 768의 canonical child `build-6f32d52c2868`을 `approved_for_phase5_training`으로 승격했다. 실제 Phase 5 KI10·KI20 학습은 실행하지 않았다.
   - 변경 범위: 24K 전수 계약, 7축 중첩 MIX1K/10K/20K, Core Eval 300·source holdout 700, K0 1,020case와 자동 위험 분류, BF16 Full FT 1/20/1/100→200-step resume 및 checkpoint 재로드 5건을 완료했다. registry는 v2 canonical을 가리키며 과거 v1 build는 이력으로 보존한다.
   - 검증: `verify`, `verify-review`, 각 D/E smoke stage와 `verify-final`이 통과했다. canonical private/public manifest SHA-256은 각각 `66b21f08…bedbf`, `c670c2ad…f7fec`이고 K0 안전 위반은 0이다.
-  - 남은 이슈·후속 작업: 자동 분류 high 97건은 기준선 취약 영역이며 사람 전문 판독이나 품질 인증을 뜻하지 않는다. 상위 50건을 로컬 검토 우선순위로 고정했고 `human_domain_review_performed=false`, `quality_certification_claimed=false`를 유지한다. 다음 Gate는 별도 비학습 Phase 5 readiness다.
+  - 남은 이슈·후속 작업: 자동 분류 high 97건은 기준선 취약 영역이다. 상위 50건을 로컬 진단 우선순위로 고정했고 계약 밖 의미 품질은 `not_measured`, `quality_certification_claimed=false`로 유지한다. 다음 Gate는 별도 비학습 Phase 5 readiness다.
 - 2026-08-29
   - 작업 요약: 품질 보정 7축 staging `v1.0.0/build-a5a9e76d6a8c`을 부모로 하는 Phase 4 `v2.0.0` 실행 계약과 새 평가·manifest 생성기를 구현했다. 현재 구현 fingerprint의 dry-run build는 `build-4409ac656ba5`이며 실제 A~E 실행 전 상태다.
   - 변경 범위: 전역 `leakage_group_ids`의 전이 폐쇄, 7축 중첩 MIX1K/10K/20K, Core Eval 300·source holdout 700·K0 1,020case, deterministic hard-fact·지지 십신 정책 모순·앱 브리지 평가, AI Hub+브리지 assistant loss token 10% 최소 Gate를 고정했다. v1 산출물 검증은 하위 호환으로 유지했다.
@@ -260,24 +258,19 @@ runs/KI1K-SMOKE-v2/v2.0.0/build-2feaee353252/
   - 검증: ssaju focus 9파일·Nemotron raw 22파일과 canonical/staging hash를 재검증하고 외부 테스트 21건·typecheck·build를 통과했다. Nemotron 11,000행에서 현재 지지 자체 음양오행 정책은 44,000필드 전부 재현됐고 정기 지장간 정책과 8,563행·13,808필드가 달랐다. bazi는 1,250명식 중 594개가 서로 다른 휴리스틱 class였다. 원국 11,000행 진단과 1900~2099 양력 73,049일 역변환을 실행해 후자에서 오변환 2,398일·예외 104일을 확인했으며, 보고서 artifact SHA-256 chain과 지지별 25건씩 표본을 검증했다.
   - 남은 이슈·후속 작업: 지지 십신은 정기 기준을 runtime 권장 후보로 두고 고정 근거가 없는 항목은 `not_measured`로 유지한다. 기존 build는 바꾸지 않고 새 dataset/schema version에서만 이관한다. KASI 음양력·절입, IANA 역사 시간대, 고정 지장간·12운성·공망·합충형파해 fixture와 fact-only serializer가 다음 자동 Gate다. 신강약·격국·용신·관계 점수·자동 해석은 hard Gold로 사용하지 않는다.
 - 2026-08-28
-  - 작업 요약: 외부 GPT Pro가 반환한 MIX20K 검수 제출본을 `review-6e3ad5418434` 자문 자료로 수용하고, 원본 4파일·검증 보고서·소유자 평가·SHA-256 manifest를 불변 공개 보고서로 보존했다.
-  - 변경 범위: 독립 intake CLI로 ZIP/sidecar·제출 파일 보안·17K projection·300건 token-decile 표본·소스별 token 지표를 fail-closed 재검증했다. AI Hub 3K 미제공은 누락이 아닌 제3자 공유 제한 준수로 기록하고, 후속 로컬 전용 `AIHUB-STYLE10K-v1`을 기존 MIX20K·평가군과 겹치지 않는 신규 단일턴 5K+멀티턴 5K 계약으로 고정했다. canonical·Gate·실제 데이터와 학습 상태는 바꾸지 않았다.
-  - 검증: 제출 원본 4파일 byte/SHA-256 일치, 300건 표본 exact sequence, 17,000건 candidate/trainer projection 불일치 0, 소스 수량·assistant token 비중, bazi 1,250명식×4, YEJI 221정답·조사 오류 102건, target-only 생년월일 441건과 반복 disclaimer를 독립 재현했다. 신규 보안·identity·불변성 회귀 테스트와 전체 Ruff·단위 테스트, Phase 3 보고서·Phase 4 canonical·외부 ZIP 재검증을 통과했다.
-  - 남은 이슈·후속 작업: 이름은 제출 9,254건 대비 로컬 matcher 9,256건, 번역 잔재는 제출 775건 대비 로컬 whitelist 787건으로 분석 코드 부재 때문에 부분 재현으로 남겼다. `ssaju` 수치는 runtime 정책 부재로 미확인이다. `AIHUB-STYLE10K-v1` 생성 전 승인 범위 안에서 단일턴·멀티턴 각 100건 이상을 로컬 검수하며, 이번 작업에서는 데이터 생성·Phase 5 학습을 수행하지 않았다.
-- 2026-08-28
-  - 작업 요약: 승인 canonical `build-a1a34616dd72`에서 외부 GPT Pro 검수용 결정론적 안전 패키지 `external-review-72fb212dc90369be`를 만들었다. 전체 계약을 확인할 수 있는 20,000행 인덱스와 외부 반출 가능한 Nemotron·bazi·YEJI 17,000행 후보/`messages` 학습 투영본, 검수 prompt, 고정 Kanana 모델·Full FT 학습 계약 설명을 포함했다.
-  - 변경 범위: Phase 4 fingerprint 밖의 독립 exporter와 ZIP 보안·PII·금지 필드·메타데이터·결정론 회귀 테스트를 추가했다. AI Hub 3,000행은 원문·원천 ID·개별 record hash 없이 집계와 partition commitment만 넣었고, candidate/canonical manifest SHA-256 `a61c16dc…bc3a`의 byte 동일 계약을 기록했다. Phase 4 canonical과 기존 불변 산출물은 수정하지 않았다.
-  - 검증: exporter 단위 테스트 7건과 전체 103건, Ruff·formatter, `verify-final`, 현재 canonical 대조, ZIP 내부 checksum·고정 member·0600 권한을 통과했다. 독립 임시 경로 재생성본과 ZIP byte가 동일했고 최종 ZIP은 14,209,726 bytes, SHA-256 `64d174b5…968abd`다.
-  - 남은 이슈·후속 작업: 외부 GPT의 의미 검수 결과는 아직 받지 않았으며, AI Hub 3K 본문은 정책상 이 검수 범위에 없다. 이 패키지는 실제 MIX20K 전체 학습 데이터의 대체물이 아니고 `human_domain_review_performed=false`, `quality_certification_claimed=false`, `phase5_training_performed=false`를 유지한다.
+  - 작업 요약: 과거 MIX20K 입력 번들의 구조·보안·projection을 재현하는 fail-closed intake와 결정론적 exporter를 구현했다. 이 경로는 불변 artifact 재현용이며 현재 Phase Gate나 후속 평가 입력이 아니다.
+  - 변경 범위: ZIP/sidecar 보안, 20,000행 인덱스, 공개 가능한 17,000행 trainer projection, AI Hub 3,000행 partition commitment, PII·금지 필드·메타데이터·결정론 검사를 추가했다. canonical·Gate·실제 데이터와 학습 상태는 바꾸지 않았다.
+  - 검증: 입력 4파일 byte/SHA-256, 17,000건 candidate/trainer projection 불일치 0, 소스 수량·assistant token 비중, ZIP checksum·고정 member·0600 권한과 임시 경로 재생성 byte 일치를 확인했다.
+  - 남은 이슈·후속 작업: 계약 밖 의미 품질은 `not_measured`, `quality_certification_claimed=false`, `phase5_training_performed=false`다. 추가 작업은 저장소 내부 자동 계약으로만 정의한다.
 - 2026-08-28
   - 작업 요약: 구현 checkpoint `31fe13b08e04d4015d30ac670d92dd6427e6427d`의 최종 부모 `build-7d59833b8d59`에서 Gate A~E를 모두 통과하고 선택 길이 768의 canonical child `build-a1a34616dd72`를 승인했다.
-  - 변경 범위: K0 720case exact 재사용·지표 재계산과 700항목 자동 위험 분류, BF16 Full FT forward/backward·8-bit optimizer, 512 20-step, 1024 진단, 768 100→200-step resume, checkpoint 독립 재로드·5-task 생성을 완료했다. registry의 `approved_derived`와 정본 상태를 갱신했다.
-  - 검증: `verify`, 각 smoke stage verifier, canonical `verify-final`과 manifest hash chain을 통과했다. canonical private/public manifest SHA-256은 각각 `a2816a30…7a8ba0`, `ffe3def5…e309e4`, 저장소 밖 검수 ZIP은 `faadba72…f8a76`이다.
-  - 남은 이슈·후속 작업: 자동 분류는 전문 판독이나 품질 인증이 아니므로 관련 flag는 false로 유지한다. 모델 원본의 YaRN 경고와 Transformers의 비-Mistral 정규식 오탐을 기록했으며, Phase 5 실제 학습은 수행하지 않았다.
+  - 변경 범위: K0 720case exact 재사용·지표 재계산과 700항목 자동 위험 분류, BF16 Full FT forward/backward·8-bit optimizer, 512 20-step, 1024 진단, 768 100→200-step resume, checkpoint 별도 재로드·5-task 생성을 완료했다. registry의 `approved_derived`와 정본 상태를 갱신했다.
+  - 검증: `verify`, 각 smoke stage verifier, canonical `verify-final`과 manifest hash chain을 통과했다. canonical private/public manifest SHA-256은 각각 `a2816a30…7a8ba0`, `ffe3def5…e309e4`, 저장소 밖 진단 ZIP은 `faadba72…f8a76`이다.
+  - 남은 이슈·후속 작업: 자동 분류는 고정 계약 범위만 판정하며 계약 밖 의미 품질은 `not_measured`다. 모델 원본의 YaRN 경고와 Transformers의 비-Mistral 정규식 오탐을 기록했으며, Phase 5 실제 학습은 수행하지 않았다.
 - 2026-08-28
   - 작업 요약: `build-72e29f885bf9`의 768-token 100-step 및 별도 process 100→200-step resume는 통과했으나, 최종 checkpoint 재로드가 모델 로드 전 CUDA peak-memory counter 초기화 순서 때문에 중단됐다.
   - 변경 범위: 재로드 단계가 단일 `cuda:0`을 확인하고 `current_device()`로 CUDA context를 만든 다음 메모리 계측을 초기화하도록 수정했으며 호출 순서 회귀 테스트를 추가했다. 실패는 generation·Phase 5 진입 전에 fail-closed 처리됐다.
-  - 검증: 독립 process에서 초기 context 없이 `reset_peak_memory_stats(0)`가 `Invalid device argument`를 내는 것과 `current_device()` 이후 정상화되는 것을 재현했다.
+  - 검증: 별도 process에서 초기 context 없이 `reset_peak_memory_stats(0)`가 `Invalid device argument`를 내는 것과 `current_device()` 이후 정상화되는 것을 재현했다.
   - 남은 이슈·후속 작업: 구현 hash가 바뀌므로 새 checkpoint commit과 새 Phase 4 fingerprint에서 A~E를 다시 실행한다. 기존 200-step 결과를 최종 승격 근거로 재사용하지 않는다.
 - 2026-08-28
   - 작업 요약: 교정 staging을 부모로 하는 Phase 4 `v1.1.0` 계약, K0 exact-match 재사용·700항목 자동 위험 분류, 단계별 Full FT smoke/resume와 canonical 승격 실행기를 구현했다.
@@ -297,8 +290,8 @@ runs/KI1K-SMOKE-v2/v2.0.0/build-2feaee353252/
 
 - 2026-08-28
   - 작업 요약: 승인된 24K staging과 Phase 3 모델을 부모로 Phase 4A~C 비학습 preflight `v1.0.0/build-a6813ba3b778`을 구현·실행했다. Gate A/B/C는 통과했고 Phase 4는 `부분 진행`으로 판정했다.
-  - 변경 범위: 고정 계약·Python header sysroot·24K schema/token/loss-mask 검사, group-first Core Eval 200·source holdout 500, 중첩 MIX candidate, BF16 SDPA K0 720case, 저장소 밖 오프라인 검수 ZIP과 원문 없는 공개 보고서·테스트를 추가했다. optimizer·gradient·backward·checkpoint·canonical 승격은 수행하지 않았다.
+  - 변경 범위: 고정 계약·Python header sysroot·24K schema/token/loss-mask 검사, group-first Core Eval 200·source holdout 500, 중첩 MIX candidate, BF16 SDPA K0 720case, 저장소 밖 오프라인 진단 ZIP과 원문 없는 공개 보고서·테스트를 추가했다. optimizer·gradient·backward·checkpoint·canonical 승격은 수행하지 않았다.
   - 데이터 결과: 24,000행·고유 message hash 24,000, raw hash 19,500과 동일 source group 내부 alias 4,500행, group 밖 raw duplicate 0, cross-axis group 36개를 확인했다. eval과 candidate leakage group 교집합은 0이다. 전체 최대 길이는 716이고 Nemotron 9,619행이 512를 넘지만 768은 전부 수용한다. MIX20 assistant-loss token share는 Nemotron 71.805712%이며 계약대로 재가중하지 않았다.
   - K0 결과: 700항목·720case, 빈 출력·제어문자·special-token 노출·missing-chart 임의 명식 각 0건, 결정성 재생 통과, peak VRAM 2,752,092,672 bytes, 7,426.566초를 기록했다. EOS 종료는 349/720이고 371case가 512-token 상한에 도달했다. strict 자동 계약은 missing-chart 5/5, 일반 instruction 4/5, 신살 8/20, 모순 exact-string 0/35였고 자동 계약 밖 의미 품질은 `not_measured`로 남겼다.
-  - 검증: `validate-contract`, runtime native-JIT probe, 24K `build`, K0 `run-k0`, 전체 `verify`, ZIP 700항목·720case/내부 checksum 검증, Windows Chrome `file://` 렌더링을 통과했다. private manifest SHA-256은 `2ed5c03c…b49a50`, K0 manifest는 `67d6ca3b…02ab1`, public manifest는 `7750f462…791b`, 검수 ZIP은 `517abea9…c3ea`다.
-  - 남은 이슈·후속 작업: 사람 전문 검수는 아직 0/700이고 `approved_derived=null`, `training_promotion_allowed=false`다. 저장소 밖 `saju-phase4-k0-review-build-a6813ba3b778.zip`을 검수한 뒤 별도 승인하고, Phase 4D 단일 batch forward/backward·optimizer step과 Phase 4E 1024→768→512 200-step smoke/resume를 수행해야 한다. 그전에는 Phase 5 학습을 시작하지 않는다.
+  - 검증: `validate-contract`, runtime native-JIT probe, 24K `build`, K0 `run-k0`, 전체 `verify`, ZIP 700항목·720case/내부 checksum 검증, Windows Chrome `file://` 렌더링을 통과했다. private manifest SHA-256은 `2ed5c03c…b49a50`, K0 manifest는 `67d6ca3b…02ab1`, public manifest는 `7750f462…791b`, 진단 ZIP은 `517abea9…c3ea`다.
+  - 당시 상태: `approved_derived=null`, `training_promotion_allowed=false`였고 Phase 4D 단일 batch forward/backward·optimizer step과 Phase 4E 1024→768→512 200-step smoke/resume가 남아 있었다. 이후 새 자동 기술 build에서 모두 통과했다.
