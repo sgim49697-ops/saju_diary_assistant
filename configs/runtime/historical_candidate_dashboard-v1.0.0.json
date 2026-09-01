@@ -1,0 +1,87 @@
+{
+  "_description": "기존 Phase 5 화면과 분리된 과거 공식 근거 후보 dashboard·API·120건 Gate의 불변 입력을 고정한다.",
+  "schema_version": "1.0.0",
+  "dashboard_id": "saju-historical-candidate-dashboard-v1.0.0",
+  "gate_version": "saju-historical-candidate-gate-v1.0.0",
+  "candidate_scope": "historical_official_corroborated_only",
+  "report_root": "data/reports/saju_historical_candidate/v1.0.0",
+  "parent_intake_registry": {
+    "path": "configs/runtime/intake_registry-v1.2.0.json",
+    "sha256": "fc8288890869315730ca74cc03cf39818d554dbbf97d69cc1c8ad0f01f51425c"
+  },
+  "candidate_gate_contract": {
+    "path": "configs/runtime/historical_candidate_gate-v1.0.0.json",
+    "sha256": "d9a9027cd12743221238768b34aaaf9c00db78f5c3329697da152089c0865768"
+  },
+  "candidate_assets": [
+    {
+      "path": "scripts/training/phase5_dashboard_candidate_assets/v1.0.0/index.html",
+      "sha256": "9d47ce36fd894a7ec38e12c12828e24e1d250c4e698fe3f257a2e530b0ddd000"
+    },
+    {
+      "path": "scripts/training/phase5_dashboard_candidate_assets/v1.0.0/candidate.css",
+      "sha256": "d1538e297f82bd222512f44261f199328c0c90b69fdafbca7280e2d2ff6fab4e"
+    },
+    {
+      "path": "scripts/training/phase5_dashboard_candidate_assets/v1.0.0/candidate.js",
+      "sha256": "5868c3848ee016f560c1ae93d5f07047c32aef9e55e927f6131c9e0dd7f9b9a7"
+    }
+  ],
+  "existing_dashboard_assets": [
+    {
+      "path": "scripts/training/phase5_dashboard_assets/index.html",
+      "sha256": "d12b00cdc10209e7dbcd51f50c3e258963d9f69ba84537847b886a2ebc5000e0"
+    },
+    {
+      "path": "scripts/training/phase5_dashboard_assets/dashboard.css",
+      "sha256": "09e3733253a581b9a85600de53b7d2057cce6a1067556f9fd7e9676725df78de"
+    },
+    {
+      "path": "scripts/training/phase5_dashboard_assets/dashboard.js",
+      "sha256": "9db5a9595871a719f40ebcde0fa2e230b7354cab45be221c74859773be6018b2"
+    },
+    {
+      "path": "scripts/training/phase5_dashboard_assets/prompt-examples.json",
+      "sha256": "b7c5d334828abdddf44e9d70efdecceb74d04a228f217ad3b1e5724f19d954fa"
+    }
+  ],
+  "implementation": [
+    {
+      "path": "scripts/runtime/intake_fsm_v1_2.py",
+      "sha256": "696282699a014f9a74fc290f60854d226c8c3cbea5b70028cead501c94c61945"
+    },
+    {
+      "path": "scripts/runtime/intake_contracts_v1_2.py",
+      "sha256": "2dc82874c227b4a70699615c62a1b71511bcc71ad9612c6195de3f1461ec9aa5"
+    },
+    {
+      "path": "scripts/training/historical_candidate_dashboard.py",
+      "sha256": "80617d601862e80a92445e23f073a4dfdb6a531e1401c9fbce4303fa906194e1"
+    },
+    {
+      "path": "scripts/training/phase5_dashboard.py",
+      "sha256": "4a1679aaae65526cb83b95c86751b0c0bc29a2a54e29fbb2b4dfb22977e093de"
+    }
+  ],
+  "service": {
+    "host": "127.0.0.1",
+    "default_port": 8766,
+    "maximum_sessions": 100,
+    "idle_timeout_seconds": 1800,
+    "persistence": "process_memory_only",
+    "public_session_read_api": false,
+    "public_chart_result_event": false,
+    "model_context_binding": false,
+    "period_calculation": false
+  },
+  "governance": {
+    "diagnostic_dashboard_binding": true,
+    "production_application_binding": false,
+    "runtime_release_approved": false,
+    "context_window_changed": false,
+    "mix20k_v3_1_generated": false,
+    "additional_training_performed": false,
+    "model_promotion_performed": false,
+    "sealed_blind_accessed": false
+  }
+}

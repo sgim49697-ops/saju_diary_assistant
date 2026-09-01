@@ -16,10 +16,12 @@
 |---|---|---|
 | 10K/20K baseline | Phase 0~6 완료, `eval-e8630962cab2` 단회 자동 평가 완료 | `AUTOMATED_REPAIR_REQUIRED`, production 금지 |
 | MIX20K-v3 | `v3.0.1-repaired/build-94eb7b543490` 기술 후보·비학습 preflight 완료 | canonical 3,800행·다양성·state/grounding·serving 자동 blocker, v3.1·학습 금지 |
-| 만세력 runtime | Skyfield v1.3 candidate와 conformance v8 `build-8bd88d6db03a` 통과 | strict Gate·release·앱 연결 차단, 결과는 `HARD_CANDIDATE` |
+| 만세력 runtime | Skyfield v1.3 candidate와 conformance v8 `build-8bd88d6db03a`, 과거 공식 근거 전용 loopback 진단 120/120 `build-5b80bfb2b7b9` 통과 | 진단 화면만 연결, strict Gate·release·production 앱 연결 차단, 결과는 `HARD_CANDIDATE` |
 | 계산기 연결 대화 | 기존 500건을 `eval-562c07d0e2e6`으로 재채점하고 2,048↔3,584 장문 200건 `eval-56d1357560d5` 완료 | 두 장문 arm 자동 목표 통과·3,584 상한 유지 후보, 전체 baseline·release·학습 권한 불변 |
 
-루트 [`PROJECT_STATUS.html`](../../PROJECT_STATUS.html)은 위 네 workstream의 공개 가능한 현재 집계를 보여준다. 현재 포인터는 `project-status/v1.3.0/build-38b9ca77ce45`이며, 과거 진행 기록과 versioned config/report는 당시 판단의 불변 이력으로만 보존한다.
+루트 [`PROJECT_STATUS.html`](../../PROJECT_STATUS.html)은 Phase 6·대화 진단까지의 공개 집계를 `project-status/v1.3.0/build-38b9ca77ce45`로 보여준다. 이후 완료한 과거 후보 화면 진단은 모델·승격 상태를 바꾸지 않으므로 runtime 정본과 `data/reports/saju_historical_candidate/v1.0.0/build-5b80bfb2b7b9/`에 별도로 고정한다. 과거 진행 기록과 versioned config/report는 당시 판단의 불변 이력으로만 보존한다.
+
+과거 공식 근거 전용 후보 화면은 기존 dashboard·모델 context와 분리된 로컬 진단 도구다. 120/120 통과는 `diagnostic_dashboard_binding=true`만 뜻하며 runtime release, production 앱, context 증설, v3.1, 추가 학습과 모델 승격을 승인하지 않는다.
 
 ## 현재 평가 기본값
 

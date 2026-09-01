@@ -1,0 +1,148 @@
+<!-- index.html - 과거 공식 근거 만세력 후보만 확인하는 별도 loopback 진단 화면이다. -->
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="__CSRF_TOKEN__">
+  <title>과거 만세력 후보 진단</title>
+  <link rel="stylesheet" href="/candidate.css">
+  <script src="/candidate.js" defer></script>
+</head>
+<body>
+  <div class="ambient ambient-one" aria-hidden="true"></div>
+  <div class="ambient ambient-two" aria-hidden="true"></div>
+  <main class="shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">LOCAL DIAGNOSTIC · SKYFIELD V1.3</p>
+        <h1>과거 만세력<br><span>후보 진단</span></h1>
+        <p class="subtitle">공식 snapshot 이전의 근거가 완전한 결과만 표시합니다.</p>
+      </div>
+      <div class="status-card" aria-live="polite">
+        <span id="status-dot" class="status-dot"></span>
+        <div>
+          <strong id="runtime-status">상태 확인 중</strong>
+          <small id="runtime-detail">127.0.0.1 전용</small>
+        </div>
+      </div>
+    </header>
+
+    <section class="notice" aria-label="후보 권한 안내">
+      <strong>release 전 진단 전용</strong>
+      <p><code>HARD_CANDIDATE</code>만 표시합니다. production 앱, 모델 context, 기간 계산, 학습·승격에는 연결되지 않습니다.</p>
+    </section>
+
+    <div class="layout">
+      <section class="panel input-panel">
+        <div class="section-heading">
+          <div>
+            <p class="label">STRUCTURED INPUT</p>
+            <h2>출생 정보</h2>
+          </div>
+          <span id="session-state" class="pill">메모리 세션 없음</span>
+        </div>
+        <form id="candidate-form">
+          <label>
+            <span>출생일</span>
+            <input id="birth-date" name="birth-date" type="date" min="1900-01-01" max="2026-09-01" required>
+          </label>
+          <label>
+            <span>달력</span>
+            <select id="calendar" name="calendar">
+              <option value="solar">양력</option>
+              <option value="lunar">음력</option>
+            </select>
+          </label>
+          <label id="leap-field" class="hidden">
+            <span>음력 월</span>
+            <select id="leap-month" name="leap-month">
+              <option value="false">평달</option>
+              <option value="true">윤달</option>
+            </select>
+          </label>
+          <label>
+            <span>시각 정밀도</span>
+            <select id="time-precision" name="time-precision">
+              <option value="exact">정확한 시각</option>
+              <option value="range">시각 범위</option>
+              <option value="unknown">생시 미상</option>
+            </select>
+          </label>
+          <label id="exact-time-field">
+            <span>출생시각</span>
+            <input id="birth-time" name="birth-time" type="time" value="12:00">
+          </label>
+          <div id="range-time-field" class="range-fields hidden">
+            <label>
+              <span>범위 시작</span>
+              <input id="range-start" name="range-start" type="time" value="09:00">
+            </label>
+            <label>
+              <span>범위 끝</span>
+              <input id="range-end" name="range-end" type="time" value="11:00">
+            </label>
+          </div>
+          <label>
+            <span>출생 도시</span>
+            <input id="city" name="city" value="서울" maxlength="80" required>
+            <small>대한민국 · Asia/Seoul 고정</small>
+          </label>
+          <label class="consent-row">
+            <input id="opt-in" name="opt-in" type="checkbox" required>
+            <span>이 탭이 열려 있는 동안 출생 정보를 메모리에만 보관하는 진단에 동의합니다.</span>
+          </label>
+          <div class="actions">
+            <button id="calculate" type="submit">후보 계산</button>
+            <button id="period-check" type="button" class="secondary">기간 차단 확인</button>
+          </div>
+          <p id="form-status" class="form-status" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <section class="panel result-panel">
+        <div class="section-heading">
+          <div>
+            <p class="label">CANDIDATE OUTPUT</p>
+            <h2>구조화 결과</h2>
+          </div>
+          <span id="authority" class="pill muted">결과 없음</span>
+        </div>
+        <div id="empty-result" class="empty-result">
+          <div class="seal" aria-hidden="true">候</div>
+          <p>입력과 공식 근거 Gate를 모두 통과한 경우에만 결과가 나타납니다.</p>
+        </div>
+        <div id="candidate-result" class="hidden">
+          <div id="pillars" class="pillar-grid"></div>
+          <div class="facts-grid">
+            <article>
+              <span>일간</span>
+              <strong id="day-master">—</strong>
+            </article>
+            <article>
+              <span>근거 권한</span>
+              <strong id="evidence-authority">—</strong>
+            </article>
+            <article>
+              <span>공식 기준시각</span>
+              <strong id="snapshot-cutoff">—</strong>
+            </article>
+          </div>
+          <details>
+            <summary>허용된 구조화 사실 보기</summary>
+            <pre id="facts-json"></pre>
+          </details>
+        </div>
+        <div id="blocked-result" class="blocked-result hidden" role="status">
+          <strong id="blocked-code">차단</strong>
+          <p id="blocked-message"></p>
+        </div>
+      </section>
+    </div>
+
+    <footer>
+      <p>브라우저 저장소와 서버 disk를 사용하지 않습니다. 새로고침하거나 서버를 종료하면 이 화면의 세션 연결은 사라집니다.</p>
+    </footer>
+  </main>
+</body>
+</html>

@@ -4,13 +4,13 @@
 
 | 항목 | 값 |
 |---|---|
-| 문서 버전 | `runtime-calculator-adoption-v2.7.0` |
+| 문서 버전 | `runtime-calculator-adoption-v2.8.0` |
 | 정본화 기준일 | 2026-09-01 |
 | 구현 시작 기준 `master` | `22fa6943c625b7caad7a7fb9cfd174a6a01992e6` |
 | 기준 모델 run | `KI20-MIX-v2/run-1f5d732cae67` |
 | 모델 run 상태 | `trained_and_reloaded`, production 승격 금지 |
 | runtime profile | `KR_CIVIL_MIDNIGHT_V1` |
-| runtime 상태 | Skyfield/DE440s+builtin UT1을 v1.3 candidate runtime에 TT 기준으로 결합하고 과거·미래 권한을 분리함. 증거 fail-closed 보강 뒤 conformance v8.0.0 `build-8bd88d6db03a` 통과. 과거 공식 근거 전용 session v2.2/FSM v1.2 계약은 구현됐고 별도 진단 Gate 전이며, strict runtime Gate·release·production 연결은 차단 |
+| runtime 상태 | Skyfield/DE440s+builtin UT1을 v1.3 candidate runtime에 TT 기준으로 결합하고 과거·미래 권한을 분리함. 증거 fail-closed 보강 뒤 conformance v8.0.0 `build-8bd88d6db03a` 통과. 과거 공식 근거 전용 session v2.2/FSM v1.2와 별도 loopback 진단 화면은 12개 층화 120/120 Gate `build-5b80bfb2b7b9`를 통과했으며, strict runtime Gate·release·production 연결은 계속 차단 |
 | 데이터 상태 | v3.1 생성·비학습 preflight 구현, release 전 실행 차단 |
 
 이 문서는 앞서 제공된 `SAJU_RUNTIME_CALCULATOR_ADOPTION_PLAN.md` 조사 초안을 대체하는 저장소 실행 정본이다. 기존 데이터 보정 정본인 [`mix20k_v3_repair_plan.md`](mix20k_v3_repair_plan.md)와 역할을 나눈다.
@@ -38,6 +38,8 @@
 v1.3 candidate runtime은 이 후보를 실제 계산 경로에 결합했다. 절입 root 탐색과 경계 전·정확·후 판정은 TT로 수행하고, 공식 분 라벨은 `UT1_NOMINAL_PLUS_FIXED_KST`로만 분리해 표시한다. 1900~1919년은 `PROFILE_DETERMINISTIC`, snapshot 수집시점까지의 공식 과거는 `PAST_OFFICIAL_CORROBORATED`, 이후 미래는 `FORECAST_DIAGNOSTIC_NONAPPROVAL`로 결과에 구조화한다. conformance v8은 runtime과 별도 validator의 1,800개 TT root·UTC·표시 분이 모두 일치하고 5,400개 경계 배정 오류가 0임을 확인했다. 그러나 미래 280행은 지구 자전 예측 불확실성 때문에 물리 순간이 판정되지 않았고 원시 분 mismatch도 0이 아니므로 strict runtime Gate는 계속 차단한다. 따라서 v1.3은 `HARD_CANDIDATE`·feature flag 기본 off이며 `runtime_approved=false`; 새 release registry도 생성하지 않았다. 기존 v1.2 release 경로를 v1.3 승인으로 재사용하지 않으며, release·앱 연결·v3.1 생성·학습은 진행하지 않는다.
 
 후속 디버깅에서는 다른 provider 경계, 빈 role, 변조된 권한 요약과 JSON integer/boolean 혼동을 절입 증거로 받아들이던 경로를 차단했다. provider가 계산하지 않은 경계와 비정상 연도·index 타입도 거부하고, provider 종료 뒤 기간 계산은 예외를 누출하지 않고 `blocked`로 닫는다. 이 보강은 정상 계산값을 바꾸지 않았으며 최종 conformance 보고서는 최초 v8과 구현 hash를 제외한 집계가 같다.
+
+과거 공식 근거 후보만 확인하는 별도 진단 경로는 session v2.2/FSM v1.2와 `serve-candidate`로 고정했다. 모든 가능한 생시 대안과 절입 경계가 `PAST_OFFICIAL_CORROBORATED`이고 출생 가능 시각 전체가 공식 snapshot cutoff 이전일 때만 `HARD_CANDIDATE`를 표시한다. 1900~1919 profile 구간, cutoff 이후, 기간 요청, stale call과 변조 HMAC은 차단한다. 이 화면은 `127.0.0.1` 전용·최대 100개·30분 유휴 만료 메모리 세션만 사용하며 기존 dashboard 자산, 모델 context와 disk persistence에는 연결하지 않는다.
 
 ## 2. 불변 보존 범위
 
@@ -330,10 +332,10 @@ data/reports/saju_runtime_migration/v1.0.0/build-94eb7b543490/analysis.json
 | R4 | KASI 전수·계층형 절입 snapshot 수집 | 완료(음양력 54,787일, OpenAPI 150년 scan, 공식 현재 계산 1920~2100 절입 2,172행, 표시 분 84건, 1964 역서). 1900~1919 공식 절입 미coverage는 별도 등급으로 명시 |
 | R5 | full conformance와 profile ADR 승인 | v8 candidate conformance 완료. runtime TT 경계·권한 분리는 통과, strict 적격 provider 없음으로 profile ADR·release 승인 차단 |
 | R6 | v3.1 5,250 tool call 전수 재생성·새 split/preflight | 생성기·preflight 구현 완료, release 전 입력도 읽지 않고 차단 |
-| R7 | 대시보드 `KI20 + Runtime` local lane·앱 canary | v1.8은 기존대로 비활성. session v2.1/FSM v1.1 합성 Gate 통과, 실제 adapter·release·key·암호화·보존 정책 전 앱 연결 금지 |
+| R7 | 대시보드 `KI20 + Runtime` local lane·앱 canary | 기존 v1.8 canary는 비활성. 과거 공식 근거 전용 session v2.2/FSM v1.2와 별도 loopback 진단 화면은 실제 DE440s 120/120 Gate 통과. production adapter·release·운영 key·암호화·보존 정책 전 앱 연결 금지 |
 | R8 | 새 모델 학습 handoff | 이 계획 범위 밖 |
 
-provider 적격성과 release 승인 전에도 candidate·별도 validator와 대시보드 UI는 검증할 수 있지만 사용자-facing production 결과나 학습 Gold로 사용하지 않는다. 현재 실행 중인 기존 dashboard process는 재시작하지 않았으며 새 UI는 v1.7 backend에서 runtime endpoint가 없으면 패널을 자동으로 숨긴다.
+provider 적격성과 release 승인 전에도 candidate·별도 validator와 분리된 loopback 진단 UI는 검증할 수 있지만 사용자-facing production 결과나 학습 Gold로 사용하지 않는다. 현재 실행 중인 기존 dashboard process는 재시작하지 않았고 기존 자산 hash도 Gate 입력으로 고정해 변경이 없음을 확인했다. 새 후보 화면은 별도 process·port에서만 실행하며 production 앱 binding이나 기존 모델 대화 context를 만들지 않는다.
 
 ## 12. MIX20K-v3.1 계약
 
@@ -420,6 +422,27 @@ IERS 수집기는 HTTPS same-origin redirect, regular file·symlink, 0600 권한
 .venv-runtime/bin/python -m scripts.evaluation.saju_runtime.intake_fsm_gate run
 ```
 
+과거 공식 근거 전용 진단 Gate는 고정 DE440s를 직접 읽어 12개 층화 120건을 재현한다. 공개 경로에는 case별 출생 입력·runtime ID·원시 응답을 쓰지 않고 집계와 build manifest만 둔다.
+
+```bash
+.venv-data/bin/python -m scripts.evaluation.saju_runtime.historical_candidate_gate validate-contract
+.venv-data/bin/python -m scripts.evaluation.saju_runtime.historical_candidate_gate plan
+.venv-data/bin/python -m scripts.evaluation.saju_runtime.historical_candidate_gate run \
+  --ephemeris "$(pwd -P)/data/raw/saju_runtime/ephemeris/v1.1.0/de440s.bsp"
+.venv-data/bin/python -m scripts.evaluation.saju_runtime.historical_candidate_gate verify \
+  --report-root data/reports/saju_historical_candidate/v1.0.0/build-5b80bfb2b7b9
+```
+
+진단 화면은 저장소 밖의 현재 사용자 소유 `0600` 32바이트 key를 받아 별도 port에서 실행한다. key 값·hash는 Git·문서·명령행 출력에 남기지 않으며 기존 8765 dashboard를 재시작하지 않는다.
+
+```bash
+.venv-data/bin/python scripts/training/phase5_dashboard.py serve-candidate \
+  --ephemeris "$(pwd -P)/data/raw/saju_runtime/ephemeris/v1.1.0/de440s.bsp" \
+  --id-key-file "/run/user/$(id -u)/saju-runtime-candidate-id-key" \
+  --host 127.0.0.1 \
+  --port 8766
+```
+
 release가 생긴 뒤에만 v3.1 생성과 비학습 preflight를 순서대로 실행한다. 32바이트 production HMAC key는 저장소 밖의 현재 사용자 소유 0600 일반 파일이어야 하며, 값·hash를 로그나 manifest에 남기지 않는다. `--id-key-file` 대신 `SAJU_RUNTIME_ID_KEY_FILE` 하나만 사용할 수도 있다. 아래 명령도 학습·backward·optimizer step은 호출하지 않는다.
 
 ```bash
@@ -472,6 +495,9 @@ release가 생긴 뒤에만 v3.1 생성과 비학습 preflight를 순서대로 �
 - [x] TT 경계 판정과 공식 표시 분을 분리하고 1900~1919 profile, snapshot 이전 과거, 이후 미래 권한을 구조화한다.
 - [x] conformance v8에서 runtime↔별도 validator 1,800개 root와 전/정확/후 5,400건, 권한 240/1,280/280을 검증한다.
 - [x] 기존 v1/v1.2 불변 구현 hash와 MIX20K-v3 runtime Gate를 유지한다.
+- [x] 과거 공식 근거 전용 session v2.2/FSM v1.2에서 exact·range·unknown·fold ID를 재검산하고 profile·미래·기간 요청을 차단한다.
+- [x] 기존 dashboard와 자산·process를 분리한 loopback·메모리 전용 후보 화면/API를 구현한다.
+- [x] 실제 Skyfield/DE440s로 1964년 백로, 음력, 교정, stale call, 변조 HMAC, 공개 응답 경계를 포함한 12개 층화 120/120 Gate를 통과한다.
 - [ ] Runtime Gate를 통과하고 profile ADR을 승인한다.
 - [ ] production HMAC key 수명주기와 암호화 persistence·보존/삭제 정책을 운영 환경에서 승인한다.
 - [ ] 앱 adapter에 구조화 event FSM을 연결하고 통합 Gate를 통과한다.
@@ -479,6 +505,12 @@ release가 생긴 뒤에만 v3.1 생성과 비학습 preflight를 순서대로 �
 - [ ] 승인 release와 feature flag 기본 off 상태로 앱·대시보드 canary를 검증한다.
 
 ## 진행 기록
+
+- 2026-09-01
+  - 작업 요약: 과거 공식 근거 전용 session v2.2/FSM v1.2를 별도 loopback 진단 화면과 실제 Skyfield v1.3 runtime에 연결하고, 12개 층화 120건 자동 Gate를 완료했다.
+  - 변경 범위: 기존 8765 dashboard 자산과 process는 그대로 두고 `serve-candidate`, 127.0.0.1 전용 정적 화면·구조화 event API·최대 100개/30분 메모리 세션, versioned dashboard 계약과 공개 aggregate/build manifest를 추가했다. 브라우저·서버 disk 저장, 공개 session 조회, 외부 `chart_result`, 기간 계산과 모델 context 연결은 금지했다.
+  - 검증: 실제 고정 DE440s로 exact·range·unknown·음력·1964년 백로 `23:59+09:00`·교정 무효화·stale call·변조 HMAC·1900~1919 profile·snapshot cutoff 이후·기간·공개 응답 각 10건, 총 120/120을 통과했다. 공개 보고서 `build-5b80bfb2b7b9`는 원시 출생값·내부 ID 없이 `diagnostic_target_met=true`이며 기존 dashboard 자산 hash 불변을 포함한다.
+  - 남은 이슈·후속 작업: 이 통과는 별도 로컬 진단 화면 binding만 허용한다. strict runtime Gate, profile ADR, release, production 앱, 모델 context, v3.1, 추가 학습과 모델 승격은 계속 차단한다.
 
 - 2026-09-01
   - 작업 요약: runtime v1.3 결과 중 모든 절입 경계와 생시 대안이 `PAST_OFFICIAL_CORROBORATED`이고 가능한 출생시각 전체가 공식 snapshot cutoff 이전인 경우만 수용하는 session v2.2/FSM v1.2 계약을 구현했다.

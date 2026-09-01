@@ -4,7 +4,7 @@
 
 | 항목 | 값 |
 |---|---|
-| 문서 버전 | `4.0.1` |
+| 문서 버전 | `4.0.2` |
 | 정본화 기준일 | 2026-09-01 |
 | 주 장비 | NVIDIA GeForce RTX 5070 Ti 16GiB, WSL2 |
 | 주 모델 | `kakaocorp/kanana-2-1.3b-instruct@bf4786aa2a1908adce942d53976270132732f720` |
@@ -44,7 +44,7 @@
 
 Phase 상태 값은 `미시작`, `부분 진행`, `진행 중`, `차단`, `완료`만 사용한다. 앞 Phase가 `완료`가 아니면 뒤 Phase의 공식 산출물을 만들지 않는다.
 
-Phase 6 이후의 비봉인 계산기 연결 대화 진단은 [`grounded_dialogue_eval_plan.md`](../grounded_dialogue_eval_plan.md)를 따른다. 기존 500건 재채점과 2,048↔3,584 token 장문 GPU 진단은 완료됐지만 Phase 6 결정, runtime release, 앱 연결, 추가 학습과 모델 승격 권한은 변경하지 않는다.
+Phase 6 이후의 비봉인 계산기 연결 대화 진단은 [`grounded_dialogue_eval_plan.md`](../grounded_dialogue_eval_plan.md)를 따른다. 기존 500건 재채점과 2,048↔3,584 token 장문 GPU 진단은 완료됐다. 별도로 과거 공식 근거 전용 runtime 후보 화면의 120/120 자동 Gate도 완료했지만, 어느 결과도 Phase 6 결정, runtime release, production 앱 연결, 추가 학습과 모델 승격 권한을 변경하지 않는다.
 
 ```text
 Phase 0 → Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5 → Phase 6
@@ -249,6 +249,12 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
 - 원본 SHA-256: `11dde66505aa3ca90834488a877a0f4db42512d9cb377880d935f71bc71d3724`
 
 ## 진행 기록
+
+- 2026-09-01
+  - 작업 요약: runtime v1.3의 과거 공식 근거 결과만 받는 session v2.2/FSM v1.2와 별도 loopback 후보 화면을 실제 DE440s 12개 층화 120건으로 검증했다.
+  - 변경 범위: 후보 화면은 기존 8765 학습 dashboard·모델 context·disk persistence와 분리했다. 공개 보고서는 집계와 manifest만 추적하고 case별 출생 입력·runtime ID·원시 결과는 기록하지 않았다. Phase 6 sealed blind, 모델·checkpoint, MIX20K-v3와 기존 대화 진단 산출물은 열거나 수정하지 않았다.
+  - 검증: `build-5b80bfb2b7b9`에서 120/120, 과거 권한 수용 50건, exact ID 30건, chart set 20건과 1964년 백로 `23:59+09:00`을 확인했다. profile·미래 cutoff·기간·stale call·변조 HMAC·공개 응답 차단을 모두 통과했다.
+  - 남은 이슈·후속 작업: 전체 baseline 결정은 계속 `AUTOMATED_REPAIR_REQUIRED`다. 별도 진단 화면 통과를 runtime release·production 앱 연결·context 증설·MIX20K-v3.1·추가 학습·모델 승격으로 확대하지 않는다.
 
 - 2026-09-01
   - 작업 요약: 완료된 Phase 6·대화 진단·MIX20K-v3·프로젝트 상태와 Skyfield runtime v1.3/v8을 하나의 읽기 전용 통합 audit 진입점으로 묶고, 과거 문서에 남은 비자동 평가 요구를 자동 계약·`not_measured` 정책으로 교정했다.

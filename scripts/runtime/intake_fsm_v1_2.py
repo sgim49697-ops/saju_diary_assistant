@@ -256,6 +256,11 @@ def _next_decision(
         return _decision(
             "explain_candidate_blocked", reason_code="SAJU_OPT_IN_REQUIRED"
         )
+    if state["current_intent"] == "period":
+        return _decision(
+            "explain_candidate_blocked",
+            reason_code="CANDIDATE_PERIOD_OUT_OF_SCOPE",
+        )
     slots = state["birth_slots"]
     if slots["birth_date"] is None:
         return _decision("ask_birth_date")
@@ -271,11 +276,6 @@ def _next_decision(
         return _decision("ask_exact_time_or_range")
     if slots["birthplace"] is None:
         return _decision("ask_birthplace")
-    if state["current_intent"] == "period":
-        return _decision(
-            "explain_candidate_blocked",
-            reason_code="CANDIDATE_PERIOD_OUT_OF_SCOPE",
-        )
     if state["chart"]["chart_valid"]:
         return _decision(
             "render_candidate",
@@ -619,6 +619,13 @@ def advance_intake(
     elif event_type == "request_chart":
         result["current_intent"] = "chart"
     elif event_type == "request_period":
+        if not result["saju_opt_in"]:
+            decision = _decision(
+                "explain_candidate_blocked",
+                reason_code="CANDIDATE_PERIOD_OUT_OF_SCOPE",
+            )
+            _validate_state(result, signer)
+            return {"session_state": result, "decision": decision}
         result["current_intent"] = "period"
     elif event_type == "chart_result":
         expected = _next_decision(result, runtime_status, signer)

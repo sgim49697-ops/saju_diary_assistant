@@ -3730,7 +3730,7 @@ def serve(
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="KI20 로컬 학습·모델 검사 대시보드")
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
-    parser.add_argument("--run-root", type=Path, required=True)
+    parser.add_argument("--run-root", type=Path)
     subparsers = parser.add_subparsers(dest="command", required=True)
     status = subparsers.add_parser("status", help="현재 상태 JSON 출력")
     status.set_defaults(execute=False)
@@ -3750,11 +3750,40 @@ def _parser() -> argparse.ArgumentParser:
     generate = subparsers.add_parser("generate", help=argparse.SUPPRESS)
     generate.add_argument("--execute", action="store_true")
     generate.add_argument("--enable-runtime-canary", action="store_true")
+    candidate = subparsers.add_parser(
+        "serve-candidate",
+        help="기존 화면과 분리된 과거 공식 근거 후보 dashboard 실행",
+    )
+    candidate.add_argument("--host", default="127.0.0.1")
+    candidate.add_argument("--port", type=int, default=8766)
+    candidate.add_argument("--ephemeris", type=Path, required=True)
+    candidate.add_argument("--id-key-file", type=Path, required=True)
     return parser
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = _parser().parse_args(argv)
+    if args.command == "serve-candidate":
+        from scripts.runtime.calculation.errors import RuntimeCalculationError
+        from scripts.training.historical_candidate_dashboard import (
+            CandidateDashboardError,
+            serve_candidate,
+        )
+
+        try:
+            serve_candidate(
+                ephemeris_path=args.ephemeris,
+                id_key_file=args.id_key_file,
+                host=args.host,
+                port=args.port,
+            )
+        except (OSError, RuntimeCalculationError, CandidateDashboardError) as exc:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            return 1
+        return 0
+    if args.run_root is None:
+        print("ERROR: 이 command에는 --run-root가 필요합니다.", file=sys.stderr)
+        return 1
     config_path = args.config if args.config.is_absolute() else REPO_ROOT / args.config
     run_root = args.run_root if args.run_root.is_absolute() else REPO_ROOT / args.run_root
     try:

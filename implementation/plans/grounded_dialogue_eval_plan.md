@@ -7,6 +7,7 @@
 - 구현 상태: **GPU 진단·재채점 완료, 전체 baseline 자동 목표 미달**
 - 성격: 공개 합성 100건을 쓰는 비봉인·진단 전용 inference lane
 - 권한: runtime release, 앱 연결, 학습, 모델 승격을 승인하지 않음
+- runtime 분리 상태: 과거 공식 근거 후보 화면의 120/120 Gate는 별도 lane에서 완료됐으며 이 진단의 prompt·응답·context와 결합하지 않음
 
 ## 1. 질문과 결론 경계
 
@@ -192,6 +193,7 @@ data/reports/saju_1b_baseline/grounded-dialogue/v0.1.0/eval-<fingerprint>/
 - runtime release·feature flag·app binding 변경
 - 추가 학습, v3.1 생성, 모델 promotion
 - 추가 의미·자연스러움 Gate
+- 과거 공식 근거 후보 화면의 session·결과를 모델 prompt나 이 진단의 재채점 입력으로 재사용
 
 ## 진행 기록
 
@@ -259,3 +261,9 @@ data/reports/saju_1b_baseline/grounded-dialogue/v0.1.0/eval-<fingerprint>/
 - 공개·비공개 경계: 장문 최초 aggregate `grounded-dialogue-context/v0.1.0/eval-7f67d5200b31`, 최종 후처리 aggregate `v0.1.1/eval-56d1357560d5`, 누적 재채점 `grounded-dialogue-rescore/v0.1.2/eval-562c07d0e2e6`만 공개한다. 200개 응답과 합성 history suite는 Git 제외 `runs/GROUNDED-DIALOGUE-CONTEXT/`에 0600으로 유지한다.
 - 권한 경계: 모델 설정의 YaRN 경고는 기록했으나 입력 3,584+출력 256으로 원본 4,096 이내만 사용했다. sealed blind 접근, Phase 6 상태 변경, runtime release, 앱 연결, 학습, 모델 승격은 수행하지 않았다.
 - 정본 연결: 최종 재채점·장문 결과를 공개 현황 `project-status/v1.3.0/build-38b9ca77ce45`에 연결했다. 이 연결은 결과 가시성만 갱신하며 기존 `AUTOMATED_REPAIR_REQUIRED`와 모든 승인 차단을 유지한다.
+
+### 2026-09-01 — 과거 공식 근거 후보 진단 경계 확인
+
+- 작업 요약: 별도 runtime workstream에서 session v2.2/FSM v1.2와 loopback 후보 화면의 실제 DE440s 120/120 Gate가 완료됐음을 이 대화 진단의 범위 경계에 반영했다.
+- 결합 금지: 후보 화면은 모델을 호출하지 않고 model context를 만들지 않는다. 후보 화면 session·결과를 기존 500건, 장문 200건, 재채점 또는 후속 학습 입력으로 재사용하지 않는다.
+- 권한 경계: grounded dialogue의 기존 aggregate와 baseline 결정은 변경하지 않는다. runtime release, production 앱 연결, context 증설, v3.1, 추가 학습과 모델 승격은 계속 미승인이다.
