@@ -509,7 +509,7 @@ release가 생긴 뒤에만 v3.1 생성과 비학습 preflight를 순서대로 �
 - 2026-09-01
   - 작업 요약: 과거 공식 근거 전용 session v2.2/FSM v1.2를 별도 loopback 진단 화면과 실제 Skyfield v1.3 runtime에 연결하고, 12개 층화 120건 자동 Gate를 완료했다.
   - 변경 범위: 기존 8765 dashboard 자산과 process는 그대로 두고 `serve-candidate`, 127.0.0.1 전용 정적 화면·구조화 event API·최대 100개/30분 메모리 세션, versioned dashboard 계약과 공개 aggregate/build manifest를 추가했다. 브라우저·서버 disk 저장, 공개 session 조회, 외부 `chart_result`, 기간 계산과 모델 context 연결은 금지했다.
-  - 검증: 실제 고정 DE440s로 exact·range·unknown·음력·1964년 백로 `23:59+09:00`·교정 무효화·stale call·변조 HMAC·1900~1919 profile·snapshot cutoff 이후·기간·공개 응답 각 10건, 총 120/120을 통과했다. 공개 보고서 `build-5b80bfb2b7b9`는 원시 출생값·내부 ID 없이 `diagnostic_target_met=true`이며 기존 dashboard 자산 hash 불변을 포함한다.
+  - 검증: 실제 고정 DE440s로 exact·range·unknown·음력·1964년 백로 `23:59+09:00`·교정 무효화·stale call·변조 HMAC·1900~1919 profile·snapshot cutoff 이후·기간·공개 응답 각 10건, 총 120/120을 통과했다. 공개 보고서 `build-5b80bfb2b7b9`는 원시 출생값·내부 ID 없이 `diagnostic_target_met=true`이며 기존 dashboard 자산 hash 불변을 포함한다. 실제 CLI/HTTP smoke, Ruff, JavaScript 문법, `uv pip check`, 전체 unittest 527건과 Phase 1 1,000,000행·conformance v8 byte identity를 포함한 full 통합 audit도 통과했고 `sealed_blind_payload_opened=false`, GPU·학습·tracked write 모두 false였다.
   - 남은 이슈·후속 작업: 이 통과는 별도 로컬 진단 화면 binding만 허용한다. strict runtime Gate, profile ADR, release, production 앱, 모델 context, v3.1, 추가 학습과 모델 승격은 계속 차단한다.
 
 - 2026-09-01

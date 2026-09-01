@@ -253,7 +253,7 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
 - 2026-09-01
   - 작업 요약: runtime v1.3의 과거 공식 근거 결과만 받는 session v2.2/FSM v1.2와 별도 loopback 후보 화면을 실제 DE440s 12개 층화 120건으로 검증했다.
   - 변경 범위: 후보 화면은 기존 8765 학습 dashboard·모델 context·disk persistence와 분리했다. 공개 보고서는 집계와 manifest만 추적하고 case별 출생 입력·runtime ID·원시 결과는 기록하지 않았다. Phase 6 sealed blind, 모델·checkpoint, MIX20K-v3와 기존 대화 진단 산출물은 열거나 수정하지 않았다.
-  - 검증: `build-5b80bfb2b7b9`에서 120/120, 과거 권한 수용 50건, exact ID 30건, chart set 20건과 1964년 백로 `23:59+09:00`을 확인했다. profile·미래 cutoff·기간·stale call·변조 HMAC·공개 응답 차단을 모두 통과했다.
+  - 검증: `build-5b80bfb2b7b9`에서 120/120, 과거 권한 수용 50건, exact ID 30건, chart set 20건과 1964년 백로 `23:59+09:00`을 확인했다. profile·미래 cutoff·기간·stale call·변조 HMAC·공개 응답 차단을 모두 통과했다. Git 제외 원천·모델이 연결된 본체의 전체 unittest 527건과 full 통합 audit도 통과했으며 sealed blind payload는 열지 않았다.
   - 남은 이슈·후속 작업: 전체 baseline 결정은 계속 `AUTOMATED_REPAIR_REQUIRED`다. 별도 진단 화면 통과를 runtime release·production 앱 연결·context 증설·MIX20K-v3.1·추가 학습·모델 승격으로 확대하지 않는다.
 
 - 2026-09-01
