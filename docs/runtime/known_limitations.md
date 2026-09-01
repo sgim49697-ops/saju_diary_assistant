@@ -26,7 +26,7 @@
 - HMAC key를 교체하면 기존 v2 세션 ID와 fingerprint는 무효가 되며 세션을 재계산해야 한다. v2 도입 전 확인된 runtime 세션은 0건이라 legacy ID migration은 수행하지 않았다.
 - 과거 `session_state_schema_v2.json`에는 최상위 `period` key가 중복돼 일반 JSON parser가 상세 계약을 약한 object 계약으로 덮어쓰는 결함이 있다. 과거 파일은 불변 보존하되 앱 연결에는 중복 key를 거부하는 `session_state_schema_v2.1.0.json`과 `intake_registry-v1.1.0.json`만 사용한다.
 - 구조화 intake FSM v1.1은 slot·provenance·입력 fingerprint를 재검증하고 현재 `scr2_` HMAC call ID와 일치하는 tool 결과만 받는다. 이 call ID는 결과 내용의 전문적 정확성을 보증하지 않으며 앱 adapter가 요청과 응답에 그대로 결합해야 한다.
-- 구조화 intake FSM의 합성 app Gate는 100/100이고 계산된 구조·변조 검사도 모두 통과하지만 실제 앱 adapter·암호화 저장소 통합 검사는 아직 없다. `app_integration_allowed=false`이며 기존 KI20 모델의 `required_handoff_action` 평가는 14/100 그대로다. FSM 통과를 모델 대화능력 개선으로 해석하지 않는다.
+- 기존 구조화 intake FSM의 합성 app Gate 100/100과 별도로, v1.4 chart-only event adapter·AES-GCM 저장소의 local canary는 13개 층화 130/130을 통과했다. 이는 독립 Python adapter dry-run이며 실제 앱 process의 인증·권한·rate limit·동시 process 통합은 아니다. production binding은 계속 false이고 FSM 통과를 모델 대화능력 개선으로 해석하지 않는다.
 - 기존 MIX20K-v3.1 생성기는 chart와 period를 같은 full release로 재생성하는 계약이다. v1.4는 chart-only라 입력 자격이 없으며 v3.1 데이터 생성·preflight는 실행하지 않았다.
 - 기존 dashboard v1.8 runtime canary는 과거 v1.1 소비 경로다. v1.4 chart-only release·권한 계약을 소비하지 않으며 현재 release 승인 근거로 사용할 수 없다.
-- v1.4 release registry는 생성됐지만 production key 수명주기, 암호화 persistence·보존 정책과 실제 adapter 통합 Gate는 없다. Runtime을 대시보드나 앱의 기본 경로에 연결하지 않는다.
+- v1.4 release의 분리 HMAC/AEAD key, AES-256-GCM persistence, 30분 retention·삭제, 2-key rotation 자동 계약과 합성 adapter Gate는 구현됐다. 실제 운영 secret manager에서 key provisioning·rotation·폐기를 수행하지 않았고 production 앱 canary도 없으므로 Runtime을 대시보드나 앱의 기본 경로에 연결하지 않는다.

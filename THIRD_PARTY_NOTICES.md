@@ -52,4 +52,11 @@
 - 고정 identity: 32,726,016 bytes, SHA-256 `c1c7feeab882263fc493a9d5a5b2ddd71b54826cdf65d8d17a76126b260a49f2`
 - 사용 범위: 독립 validator와 후보 provider 비교의 태양 위치 계산 입력만 허용한다. 파일은 Git·모델·데이터 bundle에 포함하지 않으며, 재배포가 필요해지면 JPL/NASA의 당시 배포 조건을 별도로 확인한다.
 
+## cryptography chart-only persistence 의존성
+
+- 고정 배포본: `cryptography==50.0.1`, manylinux x86_64 wheel SHA-256 `9dde0a357190eb3b1da1bb9ab750e9c85cba82ca5977aa0836cbb94e92611239`
+- 고정 전이 의존성: `cffi==2.0.0`, `pycparser==2.23`, `typing-extensions==4.16.0`
+- 사용 범위: v1.4 chart-only adapter dry-run의 AES-256-GCM authenticated session persistence. HMAC key와 별도인 32바이트 key, write별 12바이트 nonce와 associated data를 사용한다.
+- 라이선스: cryptography는 Apache-2.0 또는 BSD-3-Clause, cffi는 MIT, pycparser는 BSD-3-Clause, typing-extensions는 PSF-2.0이다. 고정 wheel의 `.dist-info` 라이선스 전문과 고지를 재배포 시 함께 보존한다.
+
 `oh-my-saju`, `korean_saju`, `lunar-python`, `ssaju`의 코드는 복제하거나 의존성으로 추가하지 않았다. 이들의 고정 revision은 비교 근거로만 기록했으며, 이후 코드 또는 실질적 부분을 복제하면 해당 라이선스 전문과 저작권 고지를 추가로 보존해야 한다.

@@ -1,0 +1,87 @@
+{
+  "_description": "승인된 v1.4 원국 계산만 구조화 event FSM에 연결하는 기본 off app adapter dry-run 계약이다.",
+  "schema_version": "1.0.0",
+  "adapter_id": "saju-chart-only-app-adapter-v1.0.0",
+  "session_schema_version": "saju-chart-only-session-state-v1.0",
+  "fsm_version": "saju-chart-only-intake-fsm-v1.0.0",
+  "status": "dry_run_only_feature_default_off",
+  "release": {
+    "path": "configs/runtime/calculation/releases/v1.4.0/release_registry.json",
+    "sha256": "5f63edacf2d1736715304283eab56ff45a83de749e2a1a64f7775d2a505d00e9",
+    "release_id": "saju-runtime-release-v1.4.0-63dc8d398e90"
+  },
+  "feature": {
+    "enabled_by_default": false,
+    "explicit_enable_required": true,
+    "resources_opened_when_disabled": false
+  },
+  "events": [
+    "opt_in",
+    "set_slot",
+    "correct_slot",
+    "set_time_unknown",
+    "request_chart",
+    "request_period",
+    "reset"
+  ],
+  "free_text_parser_allowed": false,
+  "allowed_tool": "calculate_saju_chart",
+  "blocked_tool": "calculate_saju_period",
+  "blocked_period_code": "CHART_ONLY_PERIOD_OUT_OF_SCOPE",
+  "allowed_fact_authorities": [
+    "HARD_GT",
+    "POLICY_BOUND_RULE"
+  ],
+  "public_result_allowlist": [
+    "status",
+    "fact_authority",
+    "hard_facts",
+    "code",
+    "message",
+    "limitations"
+  ],
+  "public_hard_fact_allowlist": [
+    "pillars",
+    "day_master",
+    "surface_five_elements",
+    "calculation_profile",
+    "solar_term_evidence"
+  ],
+  "public_forbidden_fields": [
+    "normalized_input",
+    "birth_input_id",
+    "chart_id",
+    "chart_set_id",
+    "calculation_run_id",
+    "internal_trace",
+    "local_birth_date",
+    "local_birth_time",
+    "birth_date",
+    "birth_time",
+    "ciphertext",
+    "nonce"
+  ],
+  "scope": {
+    "country_code": "KR",
+    "timezone": "Asia/Seoul",
+    "calendar": [
+      "solar",
+      "lunar"
+    ],
+    "time_precision": [
+      "exact",
+      "range",
+      "unknown"
+    ],
+    "minimum_solar_date": "1920-01-07",
+    "maximum_solar_date": "2026-08-31"
+  },
+  "governance": {
+    "dry_run_only": true,
+    "production_application_binding": false,
+    "model_context_binding": false,
+    "mix20k_v3_1_generation_allowed": false,
+    "training_execution_allowed": false,
+    "sealed_blind_access_allowed": false
+  }
+}

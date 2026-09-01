@@ -4,13 +4,13 @@
 
 | 항목 | 값 |
 |---|---|
-| 문서 버전 | `runtime-calculator-adoption-v2.9.0` |
+| 문서 버전 | `runtime-calculator-adoption-v2.10.0` |
 | 정본화 기준일 | 2026-09-02 |
-| 현재 구현 기준 `master` | `8162d8954f9482e43ee4da64479406a40414242b` |
+| 현재 구현 기준 `master` | `2b926d5e12ce5589e54196712fddc3bed5ffa2eb` |
 | 기준 모델 run | `KI20-MIX-v2/run-1f5d732cae67` |
 | 모델 run 상태 | `trained_and_reloaded`, production 승격 금지 |
 | runtime profile | `KR_CIVIL_MIDNIGHT_V1` |
-| runtime 상태 | Skyfield/DE440s+builtin UT1 v1.3 후보를 보존하고, 정규화 양력 `1920-01-07~2026-08-31` 원국만 허용하는 v1.4 chart-only wrapper를 구현함. conformance v9.0.0 `build-9f1784e74a4e`와 release `saju-runtime-release-v1.4.0-63dc8d398e90`을 검증했으며 feature는 기본 off. strict/full runtime Gate·기간 계산·production 앱 연결은 계속 차단 |
+| runtime 상태 | Skyfield/DE440s+builtin UT1 v1.3 후보를 보존하고, 정규화 양력 `1920-01-07~2026-08-31` 원국만 허용하는 v1.4 chart-only wrapper를 구현함. conformance v9.0.0 `build-9f1784e74a4e`와 release `saju-runtime-release-v1.4.0-63dc8d398e90`, 분리 키·AES-GCM persistence·구조화 adapter local canary `build-ddde6dce3d3c` 130/130을 검증했으며 feature는 기본 off. strict/full runtime Gate·기간 계산·production 앱 연결은 계속 차단 |
 | 데이터 상태 | v3.1 생성·비학습 preflight 구현은 보존하되 chart-only release는 기간 tool을 승인하지 않으므로 v3.1 생성·preflight·학습은 미실행 |
 
 이 문서는 앞서 제공된 `SAJU_RUNTIME_CALCULATOR_ADOPTION_PLAN.md` 조사 초안을 대체하는 저장소 실행 정본이다. 기존 데이터 보정 정본인 [`mix20k_v3_repair_plan.md`](mix20k_v3_repair_plan.md)와 역할을 나눈다.
@@ -40,6 +40,8 @@ v1.3 candidate runtime은 이 후보를 실제 계산 경로에 결합했다. �
 v1.4는 strict provider 승인을 우회하지 않고 과거 공식 근거가 완전한 원국 범위만 별도 권한으로 잘라 승인한다. 정규화 양력 날짜가 `1920-01-07~2026-08-31`이고 결과의 모든 절입 근거가 `PAST_OFFICIAL_CORROBORATED`·`SOURCE_HARD_FACT`일 때만 승격한다. exact 결과는 `HARD_GT`, range·unknown 결과는 ±1초 양끝에서 공통 사실이 같을 때만 `POLICY_BOUND_RULE`이다. 공식 과거 root가 표현 가능한 local minute와 ±1초 안에서 겹치는 50개 분은 exact와 불안정 range를 차단하고, 기간 tool은 모든 입력에서 `CHART_ONLY_PERIOD_OUT_OF_SCOPE`로 닫는다.
 
 conformance v9는 부모 v8을 실제 원본으로 재계산한 뒤 scope matrix 328,722건, 허용 구간 태양력·음력 exact 77,908건, 과거 절입 1,279행·경계 probe 2,558건, range/unknown 2,660건을 자동 검증했다. 과거 원시 분 mismatch 14건은 숨기지 않고 보존했으며 격리 분 50건, 동일-분 range 차단 50건, unknown 안정 50건이 정확히 일치했다. 공개 보고서 `build-9f1784e74a4e`에 결합된 write-once release `saju-runtime-release-v1.4.0-63dc8d398e90`만 유효하다. feature 기본 off, production key 필수이며 앱 연결·v3.1 생성·학습은 승인하지 않는다.
+
+운영 준비 v1.0은 runtime HMAC key와 session AEAD key를 32바이트 0600 단일-link 파일로 분리하고, AES-256-GCM·write별 12바이트 nonce·associated data·0700 root·0600 record·최대 100 session·1,800초 보존을 고정했다. 구조화 event-only adapter는 v1.4 release와 HMAC ID를 다시 검증하고 공개 응답에 allowlist 사실만 남긴다. 실제 DE440s 합성 local canary `build-ddde6dce3d3c`는 13개 층화 130/130을 통과했다. 이 결과는 dry-run 준비 완료이며 기존 dashboard process나 production 앱·모델 context에 binding하지 않는다.
 
 후속 디버깅에서는 다른 provider 경계, 빈 role, 변조된 권한 요약과 JSON integer/boolean 혼동을 절입 증거로 받아들이던 경로를 차단했다. provider가 계산하지 않은 경계와 비정상 연도·index 타입도 거부하고, provider 종료 뒤 기간 계산은 예외를 누출하지 않고 `blocked`로 닫는다. 이 보강은 정상 계산값을 바꾸지 않았으며 최종 conformance 보고서는 최초 v8과 구현 hash를 제외한 집계가 같다.
 
@@ -260,6 +262,7 @@ data/reports/saju_runtime_conformance/v1.6.0/build-8bd88d6db03a/
 data/reports/saju_runtime_conformance/v1.7.0/build-9f1784e74a4e/
 data/reports/saju_runtime_intake_fsm/v1.1.0/build-3366376bb01b/
 data/reports/saju_runtime_migration/v1.0.0/build-94eb7b543490/analysis.json
+data/reports/saju_runtime_app_canary/v1.0.0/build-ddde6dce3d3c/
 ```
 
 `build-08ea29de9e94`, FSM v1.0 `build-571d0e82ee0e`, conformance v5.0.0 `build-ef1b8ddb527e`, v5.0.1 `build-1e754de17c82`, v6.0.0 `build-3366c5069a26`, v7.0.0 `build-01111af7e09c`과 최초 v8 `build-a49aed186743`은 당시 코드의 이력 산출물로 보존한다. 현재 후보 provider 판단은 v8.0.0 `build-8bd88d6db03a`, 현재 chart-only release 판단은 이를 실제 원본으로 재계산한 v9.0.0 `build-9f1784e74a4e`와 `configs/runtime/calculation/releases/v1.4.0/release_registry.json`을 따른다.
@@ -355,7 +358,7 @@ strict/full runtime의 남은 실패 원인은 데이터 수량이나 근찾기 
 | R4 | KASI 전수·계층형 절입 snapshot 수집 | 완료(음양력 54,787일, OpenAPI 150년 scan, 공식 현재 계산 1920~2100 절입 2,172행, 표시 분 84건, 1964 역서). 1900~1919 공식 절입 미coverage는 별도 등급으로 명시 |
 | R5 | full conformance와 profile ADR 승인 | v8 후보 conformance와 v9 chart-only 자동 Gate 완료. chart-only release 생성, strict/full provider Gate는 계속 실패 |
 | R6 | v3.1 5,250 tool call 전수 재생성·새 split/preflight | 생성기·preflight 구현만 보존. v1.4가 period를 승인하지 않고 현재 작업 범위에서도 제외했으므로 생성·preflight 미실행 |
-| R7 | 대시보드 `KI20 + Runtime` local lane·앱 canary | 기존 v1.8 canary는 비활성. 과거 공식 근거 전용 session v2.2/FSM v1.2와 별도 loopback 진단 화면은 실제 DE440s 120/120 Gate 통과. v1.4 release를 production adapter·기존 dashboard·모델 context에 연결하지 않음 |
+| R7 | 대시보드 `KI20 + Runtime` local lane·앱 canary | 기존 v1.8 canary는 비활성. 과거 후보 화면 120/120에 더해 v1.4 전용 분리 키·AES-GCM persistence·구조화 event adapter와 합성 local canary `build-ddde6dce3d3c` 130/130 완료. production adapter·기존 dashboard·모델 context binding은 미실행 |
 | R8 | 새 모델 학습 handoff | 이 계획 범위 밖 |
 
 chart-only release는 원국 계산 엔진의 제한된 기술 승인일 뿐 사용자-facing production 결과나 학습 Gold 승인이 아니다. 현재 실행 중인 기존 dashboard process는 재시작하지 않았고 기존 자산도 변경하지 않았다. 기존 후보 화면은 별도 process·port 진단 이력으로 남기며 v1.4 release를 production 앱이나 기존 모델 대화 context에 결합하지 않는다.
@@ -384,7 +387,7 @@ mix20k-v3.0.1-repaired/build-94eb7b543490 (불변)
 전용 CPU 환경은 학습용 PyTorch 환경과 분리한다.
 
 ```bash
-uv venv .venv-runtime
+uv venv --python 3.10 .venv-runtime
 uv pip install --python .venv-runtime/bin/python -r requirements-runtime-calculator-v1.4.txt
 
 .venv-runtime/bin/python -m scripts.runtime.saju_runtime_v1_4 verify-contract
@@ -393,6 +396,28 @@ uv pip install --python .venv-runtime/bin/python -r requirements-runtime-calcula
 .venv-runtime/bin/python -m scripts.evaluation.saju_runtime.kasi_collector_v1_1 plan
 .venv-runtime/bin/python -m scripts.evaluation.saju_runtime.kasi_minute_collector_v1_1 plan
 ```
+
+chart-only adapter 운영 준비 환경은 암호화 의존성을 포함한 별도 lock 파일로 재현한다. 다음 명령은 계약과 기본 off 계획만 확인하며 운영 key·session store·production 앱을 열지 않는다.
+
+```bash
+uv venv --python 3.10 .venv-runtime-adapter
+uv pip install --python .venv-runtime-adapter/bin/python \
+  -r requirements-runtime-adapter-v1.0.txt
+
+.venv-runtime-adapter/bin/python -m scripts.runtime.chart_only_operations validate-contract
+.venv-runtime-adapter/bin/python -m scripts.runtime.chart_only_operations environment
+.venv-runtime-adapter/bin/python -m scripts.runtime.chart_only_operations plan
+
+.venv-runtime-adapter/bin/python \
+  -m scripts.evaluation.saju_runtime.chart_only_canary validate-contract
+.venv-runtime-adapter/bin/python \
+  -m scripts.evaluation.saju_runtime.chart_only_canary plan
+.venv-runtime-adapter/bin/python \
+  -m scripts.evaluation.saju_runtime.chart_only_canary verify \
+  --report-root data/reports/saju_runtime_app_canary/v1.0.0/build-ddde6dce3d3c
+```
+
+합성 canary를 새 build로 실행할 때만 Git 제외 DE440s의 절대 경로를 `run --ephemeris`에 전달한다. 운영 key 생성·검증과 보존·rotation 절차는 `docs/runtime/chart_only_operations.md`를 따르며 실제 secret 경로는 이 문서나 명령 기록에 남기지 않는다.
 
 수집기 이름의 `v1_1`은 Git 제외 공식 snapshot의 불변 수집 형식을 뜻한다. v1.2 Gate는 해당 원문·manifest를 다시 검증해 읽으며 v1.1의 잘못된 날짜 판정 표기를 상속하지 않는다.
 
@@ -476,7 +501,7 @@ IERS 수집기는 HTTPS same-origin redirect, regular file·symlink, 0600 권한
 
 v3.1 생성과 비학습 preflight 명령은 현재 실행하지 않는다. 기존 generator는 chart 4,350회와 period 900회를 같은 full release로 재생성하는 계약이며, chart-only v1.4 release를 그 입력으로 대체할 수 없다. 미래 full runtime release와 새 versioned generator 계약이 별도로 고정될 때 production HMAC key 수명주기·source build·split·preflight 명령을 함께 다시 발행한다.
 
-기존 dashboard v1.8 canary는 v1.1 release 소비 코드이므로 v1.4 승인 근거로 재사용하지 않는다. 구조화 FSM과 암호화 persistence·보존 정책을 실제 앱/대시보드 adapter에 연결하고 별도 통합 Gate를 통과하기 전에는 `--enable-runtime-canary`로 재기동하지 않는다.
+기존 dashboard v1.8 canary는 v1.1 release 소비 코드이므로 v1.4 승인 근거로 재사용하지 않는다. v1.4 구조화 adapter와 암호화 persistence·보존 정책의 독립 dry-run 및 합성 local Gate는 완료했다. 그러나 실제 앱/대시보드 process에는 연결하지 않았으므로 인증·권한·rate limit·동시성까지 포함한 별도 production 통합 Gate 전에는 `--enable-runtime-canary`로 재기동하지 않는다.
 
 ## 14. 완료 기준
 
@@ -521,13 +546,22 @@ v3.1 생성과 비학습 preflight 명령은 현재 실행하지 않는다. 기�
 - [x] conformance v9에서 scope 328,722건, exact 77,908건, 경계 probe 2,558건, range/unknown 2,660건을 실패 0으로 검증한다.
 - [x] 과거 원시 분 mismatch 14를 보존하고 ±1초 격리 분·range 차단·unknown 안정 50건을 각각 자동 Gate에 고정한다.
 - [x] `saju-runtime-release-v1.4.0-63dc8d398e90`을 write-once로 생성하고 chart만 승인·period 차단·feature 기본 off를 검증한다.
+- [x] 분리된 HMAC/AEAD key, AES-256-GCM persistence, 30분 보존·삭제·2-key rotation의 자동 dry-run 계약을 고정한다.
+- [x] 구조화 event-only v1.4 adapter를 구현하고 실제 DE440s 합성 local canary 13개 층화 130/130을 통과한다.
 - [ ] strict/full Runtime Gate와 미래·기간 범위의 profile 승인을 완료한다.
-- [ ] production HMAC key 수명주기와 암호화 persistence·보존/삭제 정책을 운영 환경에서 승인한다.
-- [ ] 앱 adapter에 구조화 event FSM을 연결하고 통합 Gate를 통과한다.
+- [ ] 실제 운영 secret 경로의 key provisioning·rotation·폐기와 retention 절차를 승인한다.
+- [ ] 인증·권한·rate limit을 포함한 실제 production 앱 process에 adapter를 연결하고 별도 통합 Gate를 통과한다.
 - [ ] v3.1을 새 fingerprint로 생성하고 split/preflight를 재실행한다.
-- [ ] 승인 release와 feature flag 기본 off 상태로 앱·대시보드 canary를 검증한다.
+- [ ] feature 기본 off 상태로 실제 앱·대시보드의 제한 production canary를 검증한다.
 
 ## 진행 기록
+
+- 2026-09-02
+  - 작업 요약: PR #10 병합 뒤 통합 정본을 다시 감사하고, v1.4 chart-only release의 운영 key·암호화 persistence·구조화 app adapter dry-run과 합성 local canary를 구현했다.
+  - 변경 범위: `chart_only_security-v1.0.0`, adapter/canary Gate와 hash registry, `cryptography==50.0.1` 고정 의존성, 0600 분리 key loader·생성기, AES-256-GCM atomic session store, event-only adapter, CLI, 130-case canary와 aggregate-only 공개 build를 추가했다. 실제 운영 key·사용자 입력·case 출력은 만들거나 기록하지 않았고 기존 dashboard·모델 context·Phase 6·MIX20K-v3.1·학습 상태도 변경하지 않았다.
+  - 검증: 기존 full project audit가 Phase 1 4종·Nemotron 1,000,000행·Phase 6 단회 완료·MIX20K-v3·grounded dialogue·conformance v8 byte identity를 sealed payload 비접근으로 통과했다. 이어 conformance v9·release, 관련 runtime/app 회귀 81건과 정본의 비자동 Gate 금지 검사 3건을 통과했다. Python 3.10 빈 `uv` 환경에 고정 12개 패키지를 설치해 `uv pip check`와 operations 계약·기본 off plan·공개 report verify를 재현했으며 전체 Ruff도 통과했다. adapter는 actual DE440s exact·범위 밖·절입 경계·교정 무효화·period 차단·공개 allowlist, 저장소는 key 분리·권한·변조 tag·retention·rotation을 검증했다. 최종 canary `build-ddde6dce3d3c`는 13개 층화 130/130, 실패 0이다.
+  - 판단 교정: grounded dialogue의 `diagnostic_target_met=false`는 의미 품질 메타데이터 때문이 아니다. 최신 재채점에서 R1·R3는 통과했고 R0 prompt overflow 34건, K0 임의 네 기둥 3건·재질문 24%, model-narrow invalid 100건·exact 20%·false completion 1건이 자동 미달 원인이다. 별도 비자동 평가를 후속 Gate로 추가하지 않는다.
+  - 남은 이슈·후속 작업: dry-run과 합성 canary는 production binding 승인이 아니다. 실제 secret manager·인증·권한·rate limit·동시 process 통합과 제한 production canary가 남았으며, strict/full runtime·period·v3.1·추가 학습·모델 승격은 계속 차단한다.
 
 - 2026-09-02
   - 작업 요약: 정규화 양력 `1920-01-07~2026-08-31`의 과거 공식 원국만 승인하는 Skyfield runtime v1.4와 conformance v9를 구현하고, 통과 보고서에 결합된 chart-only release를 생성했다.

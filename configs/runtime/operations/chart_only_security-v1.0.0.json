@@ -1,0 +1,66 @@
+{
+  "_description": "chart-only app adapter의 HMAC·암호화 키 분리, AEAD persistence, 보존·삭제 경계를 고정한다.",
+  "schema_version": "1.0.0",
+  "policy_id": "saju-chart-only-security-v1.0.0",
+  "status": "dry_run_ready_production_binding_blocked",
+  "key_files": {
+    "absolute_path_required": true,
+    "current_user_owner_required": true,
+    "mode": "0600",
+    "regular_file_required": true,
+    "single_hardlink_required": true,
+    "symlink_components_allowed": false,
+    "bytes": 32,
+    "hmac_and_encryption_key_separation_required": true,
+    "secret_material_in_git_allowed": false,
+    "secret_material_in_logs_allowed": false
+  },
+  "hmac_lifecycle": {
+    "purpose": "runtime_identity_only",
+    "rotation_policy": "invalidate_sessions_and_recalculate",
+    "old_key_online_verification_allowed": false,
+    "hmac_is_encryption": false
+  },
+  "persistence": {
+    "algorithm": "AES-256-GCM",
+    "nonce_bytes": 12,
+    "nonce_source": "os_random_unique_per_write",
+    "associated_data": "schema_session_id_key_id",
+    "root_mode": "0700",
+    "record_mode": "0600",
+    "maximum_sessions": 100,
+    "maximum_plaintext_bytes": 262144,
+    "maximum_envelope_bytes": 393216,
+    "retention_seconds": 1800,
+    "raw_birth_data_outside_ciphertext_allowed": false,
+    "atomic_replace_required": true,
+    "tamper_detection_required": true,
+    "expired_record_fail_closed": true
+  },
+  "encryption_lifecycle": {
+    "rotation_policy": "new_writes_active_key_old_records_reencrypt_on_read",
+    "maximum_decryption_keys": 2,
+    "retired_key_deletion_effect": "cryptographic_erasure_for_remaining_ciphertext",
+    "physical_secure_overwrite_claimed": false
+  },
+  "logging": {
+    "request_body_allowed": false,
+    "birth_slots_allowed": false,
+    "runtime_ids_allowed": false,
+    "ciphertext_allowed": false,
+    "allowed_fields": [
+      "event_type",
+      "status",
+      "reason_code",
+      "adapter_version",
+      "release_id"
+    ]
+  },
+  "governance": {
+    "production_application_binding": false,
+    "runtime_feature_default": false,
+    "sealed_blind_access_allowed": false,
+    "training_execution_allowed": false,
+    "model_promotion_allowed": false
+  }
+}
