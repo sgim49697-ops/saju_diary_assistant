@@ -37,7 +37,7 @@ K0·KI10·KI20을 같은 입력·chat template·greedy 설정으로 비교해 �
 | `KI10-MIX-v2` | 유지 후보 | `run-e6b712f0d45e/final` |
 | `KI20-MIX-v2` | 선택 후보 | `run-1f5d732cae67/final` |
 
-세 모델의 `model.safetensors`, config, tokenizer와 chat template SHA-256을 계약에 고정한다. 모델은 한 번에 하나만 GPU에 올리고 순서는 K0→KI10→KI20이다.
+세 모델의 `model.safetensors`, config, tokenizer와 chat template SHA-256을 계약에 고정한다. 학습 당시 token fingerprint와 같은 비교를 위해 `fix_mistral_regex=false`를 명시적으로 고정하고, 권장 보정은 별도 tokenizer·data·run version에서만 검증한다. 모델은 한 번에 하나만 GPU에 올리고 순서는 K0→KI10→KI20이다.
 
 ```yaml
 do_sample: false
@@ -189,6 +189,7 @@ data/reports/saju_1b_baseline/phase6-technical/v1.0.0/eval-<fingerprint>/
   - 작업 요약: 기존 Phase 6의 주관 판정·대규모 수동 작업·50K 분기 조건을 폐기하고 저장소 내부 자동 기술평가와 `not_measured` 정책으로 정본을 교체했다.
   - 변경 범위: K0/KI10/KI20 동일 설정, blind 500행 단회 marker, teacher-forced likelihood, greedy 기술지표, no-regression과 세 가지 baseline 결정을 계약으로 고정했다.
   - 검증: `uvx ruff check scripts tests`, 전체 `unittest` 449건, 두 Python 환경의 `uv pip check`, Phase 1 source `validate-contract`·`verify`, runtime conformance v8 3건과 `git diff --check`를 통과했다. scorer reference·mutation, component/axis 집계, 0분모, marker resume·다른 fingerprint 차단, dry-run 무접근과 공개 누출도 포함한다.
+  - 디버깅: 첫 비봉인 실행 중 Transformers regex 경고를 재확인했다. 비봉인 1,145개 중 보정 시 token ID가 달라지는 320개를 확인하고, 기존 Phase 5 학습 계약과 같은 `fix_mistral_regex=false`를 Phase 6에도 명시적으로 pin했다. 봉인 소비 marker 생성 전 실행을 중단했으므로 blind 접근·실행 횟수는 0을 유지한다.
   - 남은 이슈·후속 작업: 계약 체크포인트를 commit·push한 뒤 dashboard를 잠시 중지하고 정식 평가를 실행한다.
 
 - 2026-08-30

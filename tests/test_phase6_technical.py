@@ -79,6 +79,7 @@ class Phase6TechnicalTests(unittest.TestCase):
         self.assertEqual(
             result["decision_inputs"], "repository_local_automatic_metrics_only"
         )
+        self.assertFalse(config["generation"]["fix_mistral_regex"])
 
     def test_strict_json_rejects_duplicate_keys(self) -> None:
         with self.assertRaises(technical.Phase6TechnicalError):

@@ -332,6 +332,7 @@ def validate_contract(config: Mapping[str, Any], repo_root: Path) -> dict[str, A
         "require_no_other_compute_processes": True,
         "local_files_only": True,
         "trust_remote_code": True,
+        "fix_mistral_regex": False,
         "dtype": "bfloat16",
         "attention_backend": "sdpa",
         "do_sample": False,
@@ -769,6 +770,7 @@ def _load_model(
         model_root,
         local_files_only=True,
         trust_remote_code=True,
+        fix_mistral_regex=context["config"]["generation"]["fix_mistral_regex"],
     )
     if tokenizer.pad_token_id is None:
         tokenizer.pad_token = tokenizer.eos_token

@@ -135,6 +135,7 @@
     "require_no_other_compute_processes": true,
     "local_files_only": true,
     "trust_remote_code": true,
+    "fix_mistral_regex": false,
     "dtype": "bfloat16",
     "attention_backend": "sdpa",
     "do_sample": false,
