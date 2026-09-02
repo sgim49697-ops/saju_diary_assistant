@@ -6,7 +6,7 @@
 |---|---|
 | 문서 버전 | `runtime-calculator-adoption-v2.11.0` |
 | 정본화 기준일 | 2026-09-02 |
-| 현재 구현 기준 `master` | `31070b4482f70cf0f74ce838eb0d253253616330` |
+| 현재 구현 기준 `master` | `8eafea0397634ab4c5acbcafadd7c7c2e9a0c459` |
 | 기준 모델 run | `KI20-MIX-v2/run-1f5d732cae67` |
 | 모델 run 상태 | `trained_and_reloaded`, production 승격 금지 |
 | runtime profile | `KR_CIVIL_MIDNIGHT_V1` |
@@ -557,6 +557,12 @@ v3.1 생성과 비학습 preflight 명령은 현재 실행하지 않는다. 기�
 - [ ] feature 기본 off 상태에서 합성 HTTP 100건과 실제 K0·KI20 1쌍의 production canary를 검증하고, 통과한 process만 제한 활성화한다.
 
 ## 진행 기록
+
+- 2026-09-02
+  - 작업 요약: PR #12 병합 후 전체 552건 회귀에서 과거 후보 Gate의 v1.8 `phase5_dashboard.py` byte hash 손상을 발견하고 v1.9 실행 진입점을 별도 파일로 분리했다.
+  - 변경 범위: v1.8 진입점과 기존 dashboard 테스트를 원래 불변 바이트로 복원하고, production binding은 `phase5_dashboard_v1_9.py`로 이동했다. v1.9 canary·테스트·운영 문서만 새 진입점을 참조한다. 과거 보고서나 고정 hash를 새 코드에 맞춰 덮어쓰지 않았다.
+  - 검증: v1.8 고정 SHA-256 `4a1679aa…093de`를 복원했고, 실패했던 historical candidate 3건을 포함한 관련 회귀 51건과 저장소 전체 unittest 552/552, Ruff, JavaScript syntax와 diff 검사를 통과했다.
+  - 남은 이슈·후속 작업: 격리 수정이 전체 계약에 영향을 주지 않음을 확인했으므로 새 체크포인트를 병합한 뒤 GPU·live canary를 진행한다.
 
 - 2026-09-02
   - 작업 요약: 승인 v1.4 원국 adapter를 dashboard v1.9의 공개 production 경계와 K0·KI20 공통 snapshot context에 결합했다. 설정 기본값은 off이며 실제 GPU·live canary 전에는 활성화하지 않는다.

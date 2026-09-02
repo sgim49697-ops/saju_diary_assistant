@@ -6,6 +6,8 @@
 
 production binding 구현 자체는 완료됐지만 runtime feature의 설정 기본값은 계속 off다. 합성 HTTP 100건과 실제 K0·KI20 GPU 1쌍을 모두 통과한 process에서만 `--enable-chart-only-runtime`을 명시해 제한 활성화한다.
 
+v1.9 실행 진입점은 `scripts/training/phase5_dashboard_v1_9.py`다. `scripts/training/phase5_dashboard.py`는 과거 후보 Gate가 byte hash로 고정한 v1.8 진입점이므로 수정하거나 v1.9 실행에 재사용하지 않는다.
+
 ## 고정 보안·운영 경계
 
 - runtime HMAC key와 session encryption key는 서로 다른 현재 사용자 소유 0600 단일-link 일반 파일이어야 한다. 두 key는 각각 32바이트다.
@@ -87,6 +89,7 @@ Gate는 feature off 10, 정상 원국 20, 절입 경계 10, 승인 범위 밖 20
 canary가 실패하면 production process를 시작하지 않는다. 통과 뒤 dashboard를 아래 조건으로 시작한다.
 
 - config는 `configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.9.0.json`을 명시한다.
+- 실행 파일은 `scripts/training/phase5_dashboard_v1_9.py`를 사용한다.
 - `127.0.0.1`에만 bind하고 외부 공개는 기존 tunnel의 exact HTTPS Origin 하나만 신뢰한다.
 - 무인증 공개가 의도된 경우에만 `--allow-unauthenticated-remote`를 사용한다.
 - runtime은 `--enable-chart-only-runtime`과 DE440s, 두 key, encrypted store, process lease 경로를 모두 명시한 경우에만 열린다.

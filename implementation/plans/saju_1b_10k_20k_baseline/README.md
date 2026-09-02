@@ -251,6 +251,12 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
 ## 진행 기록
 
 - 2026-09-02
+  - 작업 요약: dashboard v1.9 병합 후 통합 회귀가 발견한 과거 v1.8 구현 hash 손상을 versioned 진입점 분리로 교정했다.
+  - 변경 범위: 과거 `phase5_dashboard.py`와 그 테스트는 원래 바이트로 복원하고 chart-only production binding을 `phase5_dashboard_v1_9.py`로 옮겼다. 과거 보고서·Gate hash·Phase 상태는 수정하지 않았다.
+  - 검증: historical candidate 실패 3건을 포함한 관련 51건과 저장소 전체 unittest 552/552, Ruff, JavaScript syntax와 v1.8 SHA-256 복원을 확인했다.
+  - 남은 이슈·후속 작업: 이 수정은 baseline `AUTOMATED_REPAIR_REQUIRED`, sealed blind, 데이터·학습·모델 승격 상태를 바꾸지 않는다.
+
+- 2026-09-02
   - 작업 요약: 학습 Phase와 분리된 chart-only dashboard v1.9 production binding을 구현했다. v1.4 승인 원국 snapshot 하나를 K0와 KI20의 분리 context에 동일하게 결합하고 기간 요청은 계속 차단한다.
   - 변경 범위: 무인증 공개 UI, 구조화 runtime API, 암호화 30분 session, exact Origin·CSRF, rate/concurrency/process 제한과 로그 비노출을 새 version에 고정했다. sealed blind, Phase 6 결정, 데이터·checkpoint, MIX20K-v3.1과 학습 상태는 열거나 변경하지 않았다.
   - 검증: dashboard v1.8 회귀를 포함한 표적 unittest 46건, Ruff, JavaScript syntax, 기존 local canary·conformance v9·release 검증과 실제 DE440s binding 및 합성 HTTP 100/100을 통과했다. 실제 GPU 1쌍과 live process canary는 merge 뒤 수행한다.

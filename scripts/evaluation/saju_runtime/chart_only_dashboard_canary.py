@@ -41,7 +41,7 @@ from scripts.runtime.chart_only_security import (
     create_private_directory,
     create_secret_key,
 )
-from scripts.training.phase5_dashboard import (
+from scripts.training.phase5_dashboard_v1_9 import (
     DEFAULT_CONFIG,
     DashboardHTTPServer,
     SlidingWindowRateLimiter,
@@ -62,7 +62,7 @@ IMPLEMENTATION_PATHS = (
     "scripts/runtime/chart_only_dashboard_contracts.py",
     "scripts/runtime/chart_only_dashboard_binding.py",
     "scripts/runtime/chart_only_dashboard_operations.py",
-    "scripts/training/phase5_dashboard.py",
+    "scripts/training/phase5_dashboard_v1_9.py",
     "scripts/training/phase5_dashboard_assets/v1.9.0/index.html",
     "scripts/training/phase5_dashboard_assets/v1.9.0/dashboard.js",
     "scripts/training/phase5_dashboard_assets/v1.9.0/dashboard.css",
