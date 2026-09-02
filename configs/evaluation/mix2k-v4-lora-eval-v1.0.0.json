@@ -4,8 +4,8 @@
   "evaluation_version": "v1.0.0",
   "dataset_version": "mix2k-v4-chart-day-8k",
   "source_suite": {
-    "build_id": "build-60f73934fd43",
-    "build_sha256": "60f73934fd439bf179fd31db02a4e2858c8899098876cc8341f246dc4c8a3e2b",
+    "build_id": "build-bd9de5ccef4d",
+    "build_sha256": "bd9de5ccef4dcf8b70f7d5b3608d00455ab82915e1cba467ac7f129d562dff09",
     "path": "evaluation/dev_cases_200.jsonl",
     "sha256": "2614d5e3578340969e03b2779b26c365bf774729bbc3838ff35998ec22faaf86",
     "rows": 200,
@@ -29,7 +29,7 @@
     },
     "lora_config": {
       "path": "configs/model_versions/saju_1b_baseline/mix2k-v4-lora-v1.0.1.json",
-      "sha256": "bdf9108af868fe72ceb63e049652ca964570a86627cdfa89c183ea88dcc53dbb"
+      "sha256": "f3bfeabfbaa39b2846a4aad265140edfb944a178847ea9186f18a5a15a007943"
     },
     "bound_prompt": {
       "path": "configs/chat_prompts/saju_bound_chart_v2.txt",

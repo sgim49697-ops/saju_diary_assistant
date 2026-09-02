@@ -1332,6 +1332,23 @@ class Mix2KV4ContractTests(unittest.TestCase):
             "required_schema_fact_omitted:period.hard_facts.period.year_ganzhi",
             required_fact_errors(period_spec, negated_period),
         )
+        equal_day_spec = deepcopy(_spec())
+        equal_day_spec["task_axis"] = "structured_fact_schema_literacy"
+        equal_day_spec["prompt"][-1]["content"] = (
+            "날짜 JSON의 year/month/day ganzhi를 일반인이 혼동하지 않게 풀어줘."
+        )
+        period_day_path = "period.hard_facts.period.day_ganzhi"
+        equal_day_spec["allowed_fact_values"][
+            equal_day_spec["allowed_fact_paths"].index(period_day_path)
+        ] = "乙丑"
+        equal_period_and_natal_day = (
+            "선택 날짜의 연간지는 丙午입니다.\n"
+            "월간지는 丙申이며, 그날 자체의 일진은 乙丑입니다.\n"
+            "원국의 일주도 乙丑이지만 날짜의 일진과는 구분해야 합니다."
+        )
+        self.assertEqual(
+            required_fact_errors(equal_day_spec, equal_period_and_natal_day), []
+        )
         year_path = "period.hard_facts.period.year_ganzhi"
         natal_day = "乙丑"
         period_spec["allowed_fact_values"][

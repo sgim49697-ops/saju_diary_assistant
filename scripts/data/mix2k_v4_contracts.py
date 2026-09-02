@@ -2716,6 +2716,19 @@ def _explicit_period_ganzhi_paths(spec: Mapping[str, Any], answer: str) -> set[s
         path = f"period.hard_facts.period.{PERIOD_LABELS[label]}"
         if value == _path_value(spec, path):
             paths.add(path)
+    for label, field in PERIOD_LABELS.items():
+        path = f"period.hard_facts.period.{field}"
+        expected = _path_value(spec, path)
+        direct = re.compile(
+            rf"{re.escape(label)}{PILLAR_CLAIM_SEPARATORS}"
+            rf"(?P<value>{GANYI.pattern})"
+        )
+        if expected is not None and any(
+            match.group("value") == expected
+            and not _explicit_claim_is_negated(answer, match.start(), match.end())
+            for match in direct.finditer(answer)
+        ):
+            paths.add(path)
     label_pattern = re.compile(_label_pattern(PERIOD_LABELS))
     for clause in re.split(r"[\n.!?。！？;；]+", answer):
         label_matches = list(label_pattern.finditer(clause))

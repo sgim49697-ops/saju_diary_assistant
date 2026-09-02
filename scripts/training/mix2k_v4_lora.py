@@ -480,9 +480,9 @@ def _validate_config(path: Path) -> dict[str, Any]:
     }
     expected_data = {
         "rows": 2000,
-        "spec_build_id": "build-60f73934fd43",
+        "spec_build_id": "build-bd9de5ccef4d",
         "spec_build_sha256": (
-            "60f73934fd439bf179fd31db02a4e2858c8899098876cc8341f246dc4c8a3e2b"
+            "bd9de5ccef4dcf8b70f7d5b3608d00455ab82915e1cba467ac7f129d562dff09"
         ),
         "manifest_name": "build_manifest.json",
         "training_path": "training/train_2000.jsonl",
