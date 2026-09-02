@@ -1,0 +1,62 @@
+{
+  "_description": "dashboard v1.9 production binding의 합성 HTTP 100건과 실제 K0·KI20 1쌍을 분리 검증한다.",
+  "schema_version": "1.0.0",
+  "gate_id": "saju-chart-only-dashboard-canary-v1.0.0",
+  "status": "automatic_canary_required",
+  "required_http_cases": 100,
+  "maximum_http_failures": 0,
+  "strata": {
+    "feature_disabled": 10,
+    "normal_chart": 20,
+    "boundary_block": 10,
+    "scope_block": 20,
+    "tamper_rejection": 10,
+    "period_block": 10,
+    "rate_concurrency_process": 10,
+    "public_leakage": 10
+  },
+  "required_checks": [
+    "all_http_cases_passed",
+    "feature_default_off",
+    "exact_host_origin_csrf_enforced",
+    "stale_revision_rejected",
+    "duplicate_process_rejected",
+    "runtime_busy_returns_429",
+    "rate_limit_retry_after_present",
+    "period_always_blocked",
+    "legacy_routes_return_410",
+    "encrypted_store_only",
+    "request_logs_redacted",
+    "public_response_allowlisted",
+    "same_snapshot_bound_to_k0_and_ki20",
+    "gpu_pair_nonempty",
+    "no_sealed_blind_access",
+    "no_training_or_model_promotion"
+  ],
+  "gpu_pair": {
+    "required": true,
+    "engine_selection": "k0_vs_ki20",
+    "synthetic_input_only": true,
+    "raw_output_tracking_allowed": false,
+    "same_runtime_snapshot_required": true,
+    "both_outputs_nonempty_required": true
+  },
+  "public_output": {
+    "aggregate_only": true,
+    "raw_case_output_allowed": false,
+    "raw_model_output_allowed": false,
+    "birth_input_recording_allowed": false,
+    "runtime_identifier_recording_allowed": false,
+    "public_url_recording_allowed": false,
+    "private_path_recording_allowed": false
+  },
+  "governance": {
+    "runtime_scope": "limited_public_chart_only",
+    "period_runtime_allowed": false,
+    "sealed_blind_accessed": false,
+    "mix20k_v3_1_generated": false,
+    "training_execution_performed": false,
+    "model_promotion_performed": false,
+    "phase6_status_auto_changed": false
+  }
+}
