@@ -35,7 +35,7 @@
 | 00 | [`00-current-baseline.md`](00-current-baseline.md) | 완료 | 통합 audit가 v1.5·v1.11까지 검증 |
 | 10 | [`10-period-contract-and-restore.md`](10-period-contract-and-restore.md) | 완료 | 기간 v2 계약·원국 재검산 복원 통과 |
 | 20 | [`20-daily-range-runtime.md`](20-daily-range-runtime.md) | 완료 | 8,522일·263,717 window mismatch 0 |
-| 30 | [`30-period-dashboard.md`](30-period-dashboard.md) | 미시작 | dashboard v1.12 자동 canary 통과 |
+| 30 | [`30-period-dashboard.md`](30-period-dashboard.md) | 완료 | dashboard v1.12 자동 canary 통과 |
 | 40 | [`40-day-relation-runtime.md`](40-day-relation-runtime.md) | 미시작 | 단일 날짜 relation 자동 전수 Gate 통과 |
 | 50 | [`50-automatic-model-evaluation.md`](50-automatic-model-evaluation.md) | 대기 | 동일 context K0↔KI20 자동 비교 완료 |
 | 60 | [`60-mix20k-v3-1-build.md`](60-mix20k-v3-1-build.md) | 차단 | 새 build·비학습 preflight blocker 0 |
@@ -81,3 +81,11 @@
 - conformance v11 `build-cd8eaaf50792`에서 공식 8,522일을 275회로 분할 계산하고 길이 1~31일의 연속 window 263,717개를 전수 구성했다. label·authority·순서·중복·누락 mismatch는 모두 0이었다.
 - `saju-period-daily-label-release-v1.0.0-59e326f8f086`을 write-once registry로 발행했다. feature는 기본 off이며 strict/full Runtime, production 앱 연결, sealed blind, MIX20K-v3.1, 학습·승격 권한은 열지 않았다.
 - Ruff, 기간·원국 Runtime unittest 19건, conformance report 재검증, release 재검증과 `git diff --check`를 통과했다. 공개 보고서에는 원시 일별 행·private path·키를 기록하지 않았다.
+
+### 2026-09-02 — Dashboard v1.12 기간 연결 완료
+
+- 기존 dashboard v1.11 파일과 실행 process를 유지하고 v1.12 config·assets·진입점·기간 binding을 새 버전으로 추가했다.
+- 사용자는 오늘·내일·주말·이번 주·이번 달·최대 31일 직접 범위만 구조화 control로 요청한다. 날짜별 label 표는 모델과 무관하게 먼저 표시하며 `이 원국·기간으로 새 대화 시작`을 눌러야 canonical snapshot이 결합된다.
+- 자동 canary `build-ae2d73958afe`는 계획된 9개 stratum 200/200을 통과했다. HTTP unexpected error, snapshot swap, 기간 fact transport mismatch와 공개 private 누출은 모두 0이고 실제 암호화 session을 새 engine에서 20회 재개했다.
+- K0·KI20에는 동일 context를 전달하며 입력 3,584 token 상한은 유지한다. feature 기본 off, 운영 service 교체, GPU 생성, strict/full 승인, sealed blind, MIX20K-v3.1, 학습·승격은 모두 수행하지 않았다.
+- Ruff·Node 구문 검사, v1.10·v1.11 회귀 포함 관련 unittest 42건, canary verifier와 `git diff --check`를 통과했다.

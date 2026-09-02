@@ -23,3 +23,14 @@
 feature off 10, day/상대 날짜 40, 1~31일 범위 30, label 경계 30, process restart 20, 보안·변조·rate 30, 지원 밖 10, K0·KI20 동일 context 10, 공개 누출 20으로 고정한다.
 
 Gate는 HTTP 오류 0, snapshot swap 0, fabricated period fact 0, 로그·보고서 개인정보/ID 0이다. 공개 산출물은 aggregate와 build manifest뿐이다.
+
+## 진행 기록
+
+### 2026-09-02 — v1.12 구현·자동 canary 완료
+
+- dashboard v1.11은 수정하지 않고 v1.12 config, versioned assets, 별도 Python 진입점과 `saju-period-dashboard-binding-v1.2.0`을 추가했다.
+- 기존 AES-256-GCM session의 exact 원국을 process 재시작 뒤 재검산하고, 승인된 `saju-period-daily-label-release-v1.0.0-59e326f8f086`만 기간 요청에 사용한다. 공개 snapshot에는 원국 allowlist와 일별 기간 allowlist만 남긴다.
+- 여섯 구조화 기간 control, 모델 독립 날짜별 표, 명시적 새 대화 결합, 원국·기간 변경 시 binding 해제, K0·KI20 동일 canonical context와 3,584 token 입력 상한을 유지했다.
+- 자동 canary `build-ae2d73958afe`에서 feature off 10, 상대 날짜 40, 직접 범위 30, label 경계 30, process 재시작 20, 보안·변조·rate 30, 지원 밖 10, 동일 context 10, 공개 누출 20의 합계 200/200을 통과했다.
+- 검증 명령은 `uvx ruff check ...`, `node --check scripts/training/phase5_dashboard_assets/v1.12.0/dashboard.js`, 관련 unittest 42건, `period_dashboard_canary_v1 verify`, `git diff --check`다.
+- v1.12 feature는 기본 off이며 현재 v1.11 운영 process와 port를 교체하지 않았다. 별도 port 실제 GPU canary와 제한 활성화 판단은 후속 운영 단계이고, strict/full Runtime·sealed blind·학습·모델 승격 권한은 변하지 않았다.
