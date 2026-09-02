@@ -48,12 +48,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 class DashboardFixture:
     def __init__(self, root: Path) -> None:
         self.root = root
-        self.config = json.loads(
-            (
-                REPO_ROOT
-                / "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.8.0.json"
-            ).read_text(encoding="utf-8")
-        )
+        self.config = json.loads((REPO_ROOT / DEFAULT_CONFIG).read_text(encoding="utf-8"))
         self.config_path = (
             root
             / "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.8.0.json"
@@ -172,8 +167,8 @@ class Phase5DashboardTests(unittest.TestCase):
     def test_committed_config_and_cli_defaults_are_valid(self) -> None:
         config = json.loads((REPO_ROOT / DEFAULT_CONFIG).read_text(encoding="utf-8"))
         validate_config(config)
-        self.assertEqual(config["schema_version"], "1.9.0")
-        self.assertFalse(config["chart_only_runtime"]["enabled_by_default"])
+        self.assertEqual(config["schema_version"], "1.8.0")
+        self.assertFalse(config["runtime_canary"]["enabled_by_default"])
         self.assertTrue(config["governance"]["runtime_release_required"])
         self.assertEqual(
             config["server"]["remote_share"],
@@ -235,17 +230,9 @@ class Phase5DashboardTests(unittest.TestCase):
         with self.assertRaisesRegex(Phase5DashboardError, "원격 공유 계약"):
             validate_config(invalid_remote)
         invalid_runtime = json.loads(json.dumps(config))
-        invalid_runtime["chart_only_runtime"]["enabled_by_default"] = True
-        with self.assertRaisesRegex(Phase5DashboardError, "chart-only runtime"):
+        invalid_runtime["runtime_canary"]["enabled_by_default"] = True
+        with self.assertRaisesRegex(Phase5DashboardError, "runtime canary"):
             validate_config(invalid_runtime)
-        historical_v18 = json.loads(
-            (
-                REPO_ROOT
-                / "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.8.0.json"
-            ).read_text(encoding="utf-8")
-        )
-        validate_config(historical_v18)
-        self.assertFalse(historical_v18["runtime_canary"]["enabled_by_default"])
         self.assertTrue(DashboardHTTPServer.allow_reuse_address)
 
     def test_remote_access_requires_exact_origin_and_private_password_file(self) -> None:

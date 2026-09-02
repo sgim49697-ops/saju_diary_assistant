@@ -17,7 +17,7 @@ from scripts.runtime.chart_only_dashboard_binding import (
     ChartOnlyDashboardBindingError,
     _SingleProcessLease,
 )
-from scripts.training.phase5_dashboard import (
+from scripts.training.phase5_dashboard_v1_9 import (
     V19_ASSET_ROOT,
     DashboardHTTPServer,
     SlidingWindowRateLimiter,
@@ -273,7 +273,7 @@ class DashboardV19HTTPTests(unittest.TestCase):
         status, _, _ = self.request("DELETE", f"/api/runtime/sessions/{SESSION_ID}")
         self.assertEqual(status, 200)
 
-    @patch("scripts.training.phase5_dashboard._generation_gate")
+    @patch("scripts.training.phase5_dashboard_v1_9._generation_gate")
     def test_model_pair_receives_one_canonical_snapshot(self, gate: object) -> None:
         gate.return_value = {"allowed": True, "reasons": []}
         self.request("POST", "/api/runtime/sessions", body={})
