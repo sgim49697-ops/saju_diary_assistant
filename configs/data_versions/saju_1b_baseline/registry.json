@@ -152,15 +152,15 @@
     "version": "v1.0.0"
   },
   "approved_project_status": {
-    "build_id": "build-38b9ca77ce45",
-    "build_manifest_sha256": "4976eac32397b87c5f0528ba391a2b25ba9467637f6001c31ca94d5532f2584c",
-    "build_sha256": "38b9ca77ce4585bea888a1b6cdb19af2a1f4617d32647a286632bd39213340c3",
-    "config_sha256": "f4b7309cc4f32ee871de1c3bd041ae4cde3427176d6b182baf7f765eb22fb571",
-    "html_sha256": "2973eeb5bda963167504fb0142b32bd16a2ccd15544699fe67cb93ad351f8eaf",
+    "build_id": "build-faf55ff6886d",
+    "build_manifest_sha256": "dba48c79d511c773e1b83cf951eee9f3444859352b78ecc7003ef9fad047311b",
+    "build_sha256": "faf55ff6886d6fb9b65cedcabc3e7a30002f5887f46a9967b221cbbe35a38ec3",
+    "config_sha256": "e043c033f94a49bab04331981c2319d036191b2161c73f90f470a8545dab1b67",
+    "html_sha256": "6319175516dea25835f9b4bebd0dd37a43ea7fab2b406d79ecbd8b8b0fbdcdaa",
     "restricted_content_included": false,
     "stage": "phase6_completed_automatic_repair_required",
     "status": "published",
-    "version": "v1.3.0"
+    "version": "v1.4.0"
   },
   "approved_staging": {
     "approval_basis": "explicit_owner_automated_technical_acceptance",

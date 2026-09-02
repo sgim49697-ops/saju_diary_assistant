@@ -12,7 +12,6 @@ from scripts.status.project_status import (
 )
 from scripts.status.project_status import (
     render_html,
-    verify_status,
 )
 from scripts.status.project_status_v1_3 import (
     _parser,
@@ -41,11 +40,13 @@ class ProjectStatusV13Tests(unittest.TestCase):
         historical = prepare_v12_context(REPO_ROOT, V12_CONFIG_PATH)
         self.assertEqual(historical["build_id"], "build-84cf0ec3010d")
 
-    def test_registry_points_to_verified_v13_build(self) -> None:
+    def test_historical_v13_build_remains_reproducible(self) -> None:
         context = prepare_context(REPO_ROOT, CONFIG_PATH)
-        result = verify_status(context, require_registry=True)
-        self.assertTrue(result["registry_verified"])
-        self.assertEqual(result["build_id"], "build-38b9ca77ce45")
+        self.assertEqual(context["build_id"], "build-38b9ca77ce45")
+        self.assertEqual(
+            (context["snapshot_root"] / "index.html").read_bytes(),
+            render_html(context),
+        )
 
     def test_html_contains_dialogue_results_without_changing_authority(self) -> None:
         context = prepare_context(REPO_ROOT, CONFIG_PATH)

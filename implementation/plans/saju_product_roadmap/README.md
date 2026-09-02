@@ -32,7 +32,7 @@
 
 | 순서 | 문서 | 초기 상태 | 완료 조건 |
 |---:|---|---|---|
-| 00 | [`00-current-baseline.md`](00-current-baseline.md) | 완료 사실 정본화 | 통합 audit가 v1.5·v1.11까지 검증 |
+| 00 | [`00-current-baseline.md`](00-current-baseline.md) | 구현 완료·통합 확인 대기 | 통합 audit가 v1.5·v1.11까지 검증 |
 | 10 | [`10-period-contract-and-restore.md`](10-period-contract-and-restore.md) | 미시작 | 기간 v2 계약·원국 재검산 복원 통과 |
 | 20 | [`20-daily-range-runtime.md`](20-daily-range-runtime.md) | 미시작 | 8,522일·263,717 window mismatch 0 |
 | 30 | [`30-period-dashboard.md`](30-period-dashboard.md) | 미시작 | dashboard v1.12 자동 canary 통과 |
@@ -60,3 +60,10 @@
 - 완료된 단일 일진을 다시 구현하지 않고 기간 계약·범위·앱·관계를 별도 Gate로 재분할했다.
 - 누락된 이미지 참조는 제거하고 저장소에서 검증 가능한 Mermaid·표·계약만 유지했다.
 - Phase 6·sealed blind·MIX20K-v3.0.1·KI20 checkpoint 권한은 변경하지 않았다.
+
+### 2026-09-02 — 현재 기준선 audit v1.1 구현
+
+- 과거 audit v1.0 동작과 현황 v1.3 snapshot은 보존하고 Runtime v1.5 release·conformance v10·dashboard v1.11을 검증하는 audit v1.1을 추가했다.
+- 프로젝트 현황 v1.4 `build-faf55ff6886d`를 발행해 제한 원국·단일 일진 운영과 strict/full·v3.1·학습 차단을 별도 Gate로 표시했다.
+- Ruff와 상태·audit 표적 unittest 19건, 현황 registry 재현, `git diff --check`를 통과했다.
+- 격리 worktree에는 Git 제외 grounded dialogue·MIX20K-v3 private build가 없으므로 payload를 복사하지 않았다. v1.1 전체 quick audit은 master 통합 뒤 기존 private build 위치에서 최종 확인한다.
