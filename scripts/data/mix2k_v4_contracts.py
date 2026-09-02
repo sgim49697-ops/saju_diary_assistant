@@ -484,8 +484,8 @@ def _labeled_entity_claims(
         r"(?:(?:(?:의\s*)?(?:기둥|항목)|(?:라는|이란)\s*(?:기둥|값|간지|항목))\s*)?"
         r"(?::|：|=)?\s*(?:의\s*)?"
         r"(?:(?:간지(?:\s*두\s*글자)?|값|사실)\s*)?"
-        r"(?:은|는|이|가|인|에|에는|을|를|으로|로|으로는|로는|:|：|=|,|，)?"
-        r"\s*[\(\[\{]?|"
+        r"(?:은|는|이|가|인|에|에는|을|를|으로|로|으로는|로는|도|:|：|=|,|，)?"
+        r"\s*(?:우연히\s*)?[\(\[\{]?|"
         r"값으로\s*등록된\s*것(?:은|는|이|가)?\s*|"
         r"에\s*해당하는\s*(?:간지|값|글자)(?:은|는|이|가|:|：|=)?\s*|"
         r"(?:의\s*)?자리(?:에|에는)\s*|"
@@ -838,8 +838,108 @@ def parallel_pillar_field_claims(answer: str) -> list[tuple[str, str, str]]:
         values = entity_pattern.findall(suffix)
         for (pillar, field), value in zip(active_positions, values, strict=False):
             claims.append((pillar, field, value))
+
+        base_fields = {
+            re.sub(r"_(?:element|yin_yang)$", "", field)
+            for _, field in last_positions
+        }
+        if len(base_fields) == 1 and base_fields <= {"stem", "branch"}:
+            base_field = next(iter(base_fields))
+            same_order_detail = re.compile(
+                r"(?P<detail>오행|음양)(?:은|는|이|가|:|：)?\s*"
+                r"같은\s*순서(?:로)?\s*(?:각각\s*)?"
+                r"(?P<values>(?:[목화토금수]|음|양)"
+                r"(?:\s*(?:와|과|,|，|·|/)\s*(?:[목화토금수]|음|양))+)",
+            )
+            for detail_match in same_order_detail.finditer(suffix):
+                detail = detail_match.group("detail")
+                value_source = r"[목화토금수]" if detail == "오행" else r"(?:음|양)"
+                detail_values = re.findall(
+                    value_source,
+                    detail_match.group("values"),
+                )
+                if len(detail_values) < len(last_positions):
+                    continue
+                suffix_name = "element" if detail == "오행" else "yin_yang"
+                for (pillar, _), value in zip(
+                    last_positions,
+                    detail_values,
+                    strict=False,
+                ):
+                    claims.append((pillar, f"{base_field}_{suffix_name}", value))
         previous_end = marker.end()
-    return claims
+    return list(dict.fromkeys(claims))
+
+
+def _paired_position_detail_claims(
+    text: str,
+) -> tuple[list[tuple[str, str, str, str]], list[tuple[int, int]]]:
+    """`천간 A와 지지 B ... X와 Y`의 ordered field claim을 추출한다."""
+
+    pair_anchor = re.compile(
+        rf"(?:천간|stem){PILLAR_CLAIM_SEPARATORS}(?P<stem>{STEM_ENTITY})\s*"
+        rf"(?:와|과|,|，)\s*(?:지지|branch){PILLAR_CLAIM_SEPARATORS}"
+        rf"(?P<branch>{BRANCH_ENTITY})\s*(?:은|는|이|가|:|：)?",
+        re.IGNORECASE,
+    )
+    anchors = list(pair_anchor.finditer(text))
+    claims: list[tuple[str, str, str, str]] = []
+    detail_spans: list[tuple[int, int]] = []
+    for index, anchor_match in enumerate(anchors):
+        body_end = anchors[index + 1].start() if index + 1 < len(anchors) else len(text)
+        boundary = re.search(
+            r"[\n.!?。！？;；]",
+            text[anchor_match.end() : body_end],
+        )
+        if boundary is not None:
+            body_end = anchor_match.end() + boundary.start()
+        body = text[anchor_match.end() : body_end]
+        for detail, value_source in (
+            ("element", r"[목화토금수]"),
+            ("yin_yang", r"(?:음|양)"),
+        ):
+            korean_detail = "오행" if detail == "element" else "음양"
+            detail_pattern = re.compile(
+                rf"(?P<label>{korean_detail})(?:은|는|이|가|:|：)?\s*"
+                rf"(?:같은\s*순서(?:로)?\s*)?(?:각각\s*)?"
+                rf"(?P<stem_value>{value_source})\s*(?:와|과|,|，|·|/)\s*"
+                rf"(?P<branch_value>{value_source})",
+            )
+            for detail_match in detail_pattern.finditer(body):
+                detail_start = anchor_match.end() + detail_match.start()
+                detail_end = anchor_match.end() + detail_match.end()
+                local_end = min(body_end, detail_end + 32)
+                next_field = re.search(
+                    r"[,，]?\s*(?:오행|음양)",
+                    text[detail_end:local_end],
+                )
+                if next_field is not None:
+                    local_end = detail_end + next_field.start()
+                local_claim = text[detail_start:local_end]
+                if _explicit_claim_is_negated(
+                    local_claim,
+                    0,
+                    detail_end - detail_start,
+                ):
+                    continue
+                claims.extend(
+                    (
+                        (
+                            "stem",
+                            anchor_match.group("stem"),
+                            detail,
+                            detail_match.group("stem_value"),
+                        ),
+                        (
+                            "branch",
+                            anchor_match.group("branch"),
+                            detail,
+                            detail_match.group("branch_value"),
+                        ),
+                    )
+                )
+                detail_spans.append((detail_start, detail_end))
+    return list(dict.fromkeys(claims)), list(dict.fromkeys(detail_spans))
 
 
 def pillar_position_detail_claims(
@@ -855,26 +955,76 @@ def pillar_position_detail_claims(
         rf"(?:{korean_position}|{position}){PILLAR_CLAIM_SEPARATORS}"
         rf"(?P<entity>{entity_source})"
     )
+    paired_claims, paired_detail_spans = _paired_position_detail_claims(text)
+
+    def detail_claim_is_negated(match: re.Match[str]) -> bool:
+        """다음 구조 field의 부정 표현이 현재 field로 번지지 않게 제한한다."""
+
+        detail_start = match.start("detail_label")
+        value_end = match.end("value")
+        local_end = min(len(text), value_end + 48)
+        next_field = re.search(
+            r"[,，]?\s*(?:오행|음양|천간|지지|stem\b|branch\b)",
+            text[value_end:local_end],
+            re.IGNORECASE,
+        )
+        if next_field is not None:
+            local_end = value_end + next_field.start()
+        local_claim = text[detail_start:local_end]
+        return _explicit_claim_is_negated(
+            local_claim,
+            0,
+            value_end - detail_start,
+        )
+
     claims: list[tuple[str, str, str]] = []
     for detail, korean_detail, value_source in (
         ("element", "오행", r"[목화토금수]"),
         ("yin_yang", "음양", r"(?:음|양)"),
     ):
-        pattern = re.compile(
+        detail_prefix = (
             anchor
             + rf"(?:(?!(?:천간|지지|\bstem\b|\bbranch\b))"
-            rf"[^\n.!?,，;；]){{0,40}}?"
-            rf"(?:{korean_detail}(?:상)?|{position}[_ -]?{detail})"
+            rf"[^\n.!?;；]){{0,40}}?"
+            rf"(?P<detail_label>{korean_detail}(?:상)?|"
+            rf"{position}[_ -]?{detail})"
             rf"{PILLAR_CLAIM_SEPARATORS}"
             rf"(?:(?:보면|읽으면|분류하면|구분하면)\s*)?"
-            rf"(?P<value>{value_source})",
+        )
+        pattern = re.compile(
+            detail_prefix + rf"(?P<value>{value_source})",
             re.IGNORECASE,
         )
         claims.extend(
             (match.group("entity"), detail, match.group("value"))
             for match in pattern.finditer(text)
-            if not _explicit_claim_is_negated(text, match.start(), match.end())
+            if not any(
+                start <= match.start("detail_label") < end
+                for start, end in paired_detail_spans
+            )
+            and not detail_claim_is_negated(match)
         )
+        correction = re.compile(
+            detail_prefix
+            + rf"(?P<negated>{value_source})\s*(?:은|는|이|가)?\s*"
+            rf"{CORRECTION_CONNECTOR}[^\n.!?。！？;；]{{0,24}}?"
+            rf"(?P<corrected>{value_source})",
+            re.IGNORECASE,
+        )
+        claims.extend(
+            (match.group("entity"), detail, match.group("corrected"))
+            for match in correction.finditer(text)
+            if not any(
+                start <= match.start("detail_label") < end
+                for start, end in paired_detail_spans
+            )
+        )
+
+    claims.extend(
+        (entity, detail, value)
+        for claim_position, entity, detail, value in paired_claims
+        if claim_position == position
+    )
 
     natural_pair = re.compile(
         anchor
@@ -961,6 +1111,36 @@ def pillar_position_detail_claims(
                 claims.append(
                     (match.group("entity"), "yin_yang", match.group("yin_yang"))
                 )
+    return list(dict.fromkeys(claims))
+
+
+def pillar_stem_role_claims(text: str) -> list[str]:
+    """`천간이 일간 자리 그 자체` 형태의 최종 십신 literal을 추출한다."""
+
+    prefix = r"(?:천간|stem)\s*(?:은|는|이|가|:|=)?\s*"
+    role = rf"(?P<value>{TEN_GOD_ENTITY})\s*자리(?:\s*그\s*자체)?"
+    affirmative = (
+        r"(?=\s*(?:입니다|이다|이고|이며|이어서|이라고|인\s*셈|"
+        r"(?:으)?로\s*(?:표기|표시|쓰이|사용)|[.!?。！？]|$))"
+    )
+    normal = re.compile(prefix + role + affirmative, re.IGNORECASE)
+    claims = [
+        match.group("value")
+        for match in normal.finditer(text)
+        if not _explicit_claim_is_negated(
+            text, match.start("value"), match.end()
+        )
+    ]
+    correction = re.compile(
+        prefix
+        + rf"(?P<negated>{TEN_GOD_ENTITY})\s*자리(?:\s*그\s*자체)?\s*"
+        + rf"(?:은|는|이|가)?\s*{CORRECTION_CONNECTOR}"
+        + rf"[^\n.!?。！？;；]{{0,24}}?(?P<corrected>{TEN_GOD_ENTITY})"
+        + r"\s*자리(?:\s*그\s*자체)?"
+        + affirmative,
+        re.IGNORECASE,
+    )
+    claims.extend(match.group("corrected") for match in correction.finditer(text))
     return list(dict.fromkeys(claims))
 
 
@@ -1109,6 +1289,18 @@ def _pillar_blocks(answer: str) -> list[tuple[str, str]]:
                 )
             ):
                 continue
+            if owner_boundary.group(0) == "일간" and (
+                re.search(
+                    r"(?:천간|stem)[^\n.!?。！？;；]{0,48}$",
+                    block[: owner_boundary.start()],
+                    re.IGNORECASE,
+                )
+                and re.match(
+                    r"\s*자리(?:\s*그\s*자체)?",
+                    block[owner_boundary.end() :],
+                )
+            ):
+                continue
             block = block[: owner_boundary.start()]
             break
         # 다음 소유자명이 없더라도 장문의 해석까지 구조 claim으로 오인하지 않는다.
@@ -1188,6 +1380,7 @@ def _positioned_pillar_claim_errors(spec: Mapping[str, Any], answer: str) -> lis
         ),
     }
     for pillar, block in _pillar_blocks(answer):
+        _, paired_detail_spans = _paired_position_detail_claims(block)
         for error_label, (pattern, suffix, entity_source) in field_patterns.items():
             expected = _path_value(spec, f"chart.hard_facts.pillars.{pillar}.{suffix}")
             if expected is None:
@@ -1212,6 +1405,12 @@ def _positioned_pillar_claim_errors(spec: Mapping[str, Any], answer: str) -> lis
                         f"natal_{pillar}_{error_label}_confusion:"
                         f"{match.group('corrected')}"
                     )
+        expected_stem_role = _path_value(
+            spec, f"chart.hard_facts.pillars.{pillar}.stem_ten_god"
+        )
+        for value in pillar_stem_role_claims(block):
+            if expected_stem_role is not None and value != expected_stem_role:
+                errors.append(f"natal_{pillar}_stem_ten_god_confusion:{value}")
         for error_label, entity_source, suffix, field_source in (
             ("stem", STEM_ENTITY, "stem", r"(?:천간|stem)"),
             ("branch", BRANCH_ENTITY, "branch", r"(?:지지|branch)"),
@@ -1500,11 +1699,17 @@ def _positioned_pillar_claim_errors(spec: Mapping[str, Any], answer: str) -> lis
                 detail_pattern = re.compile(
                     rf"(?:{korean_position}|{position}){separators}"
                     rf"(?P<entity>{entity_source})[^\n.!?,，;；]{{0,16}}?"
-                    rf"(?:{korean_detail}|{position}[_ -]?{detail}){separators}"
+                    rf"(?P<detail_label>{korean_detail}|"
+                    rf"{position}[_ -]?{detail}){separators}"
                     rf"(?P<value>{detail_source})",
                     re.IGNORECASE,
                 )
                 for match in detail_pattern.finditer(block):
+                    if any(
+                        start <= match.start("detail_label") < end
+                        for start, end in paired_detail_spans
+                    ):
+                        continue
                     if _explicit_claim_is_negated(block, match.start(), match.end()):
                         continue
                     if (
@@ -2187,13 +2392,14 @@ def structural_claim_errors(spec: Mapping[str, Any], answer: str) -> list[str]:
         else:
             errors.append(f"natal_single_pillar_called_full_chart:{value}")
     period_year = _path_value(spec, "period.hard_facts.period.year_ganzhi")
-    if period_year and any(
+    period_day = _path_value(spec, "period.hard_facts.period.day_ganzhi")
+    if period_year and period_year != period_day and any(
         PERIOD_LABELS[label] == "day_ganzhi" and value == period_year
         for label, value, _, _ in period_claims
     ):
         errors.append("period_year_called_day_ganzhi")
     target_date = _path_value(spec, "period.hard_facts.period.target_date")
-    if period_year:
+    if period_year and period_year != period_day:
         generic_day_patterns = [
             rf"(?:승인된\s*)?날짜\s*사실\s*(?:은|는|이|가|:|=)?\s*{period_year}",
             rf"(?:오늘|해당\s*날짜)(?:의)?\s*간지\s*(?:은|는|이|가|:|=)?\s*{period_year}",
@@ -2210,7 +2416,6 @@ def structural_claim_errors(spec: Mapping[str, Any], answer: str) -> list[str]:
             for match in re.finditer(pattern, answer)
         ):
             errors.append("period_year_called_day_ganzhi")
-    period_day = _path_value(spec, "period.hard_facts.period.day_ganzhi")
     if period_day and any(
         not _explicit_claim_is_negated(answer, match.start(), match.end())
         for match in re.finditer(
@@ -2358,6 +2563,10 @@ def _pillar_field_claim_coverage(answer: str) -> set[tuple[str, str, str]]:
                 block[match.end() : match.end() + 24],
             )
             is None
+        )
+        coverage.update(
+            (pillar, "stem_ten_god", value)
+            for value in pillar_stem_role_claims(block)
         )
         for position, entity_source in (
             ("stem", STEM_ENTITY),

@@ -15,7 +15,7 @@
 
 Training 2,000행은 schema literacy 300, 원국 자연어 설명 300, 원국+단일 일진 450, 후속 질문 300, intake/tool/state/correction 250, 일반 한국어·공감 250, 불확실성·blocked 100, HARD fact 짧은 QA 50으로 고정한다. Training target 생성 전에 별도 production-like dev 200건을 동결하고 teacher에게 target을 공개하지 않는다.
 
-Teacher 절반은 Claude 초안→Codex grounding 검수, 나머지 절반은 Codex 초안→Claude 자연성·상담 품질 검수로 생성한다. 반대 teacher의 `PASS`와 deterministic validator `PASS`를 모두 받은 행만 학습 후보가 된다. 생성 prompt는 `[RAW RUNTIME FACTS]`, `[ALLOWED EVIDENCE]`, `[FORBIDDEN INFERENCE]`, `[TASK]`를 분리한다.
+Teacher 절반은 Claude 초안→Codex grounding 판정, 나머지 절반은 Codex 초안→Claude 자연성·상담 품질 판정으로 생성한다. 반대 teacher의 `PASS`와 deterministic validator `PASS`를 모두 받은 행만 학습 후보가 된다. 생성 prompt는 `[RAW RUNTIME FACTS]`, `[ALLOWED EVIDENCE]`, `[FORBIDDEN INFERENCE]`, `[TASK]`를 분리한다.
 
 실질 답변은 최소 3개의 완결 문장과 3개의 의미 있는 줄을 요구하되, 선호 최대 길이를 두지 않는다. 입력·출력의 안전 상한은 각각 4,096 token이며, 학습 `max_length`는 전수 token audit 후 `[2048, 3584, 4096, 8192]` 중 truncation 없이 수용하는 최소값을 선택한다.
 
@@ -39,7 +39,7 @@ Teacher 절반은 Claude 초안→Codex grounding 검수, 나머지 절반은 Co
 - 산출물: Git 제외 private 경로의 `build-3518debb78c5`; dev 200행과 training spec 2,000행. training runtime snapshot 600건과 날짜 300건을 확인했다. build identity에 generator·validator·Dashboard context·prompt·runtime release·ephemeris·K0 파일 해시를 포함했다.
 - token 결과: full runtime prompt 최대 1,706, p99 1,700, 2,048 초과 0건. audit-only provenance projection의 평균 절감은 458.298 token이지만 training 형식으로는 사용하지 않았다.
 - 검증: `uvx ruff check ...` 통과, `python -m unittest tests.test_mix2k_v4 -v` 7건 통과, 실제 builder 완료, 외부 반출 금지 key·marker scan 통과.
-- 남은 작업: subscription teacher pilot→전체 생성·교차 검수→완성 target token audit→LoRA 3개 rank 학습→5-arm dev 평가·release blocker 판정.
+- 남은 작업: subscription teacher pilot→전체 생성·교차 판정→완성 target token audit→LoRA 3개 rank 학습→5-arm dev 평가·release blocker 판정.
 
 ### 2026-09-02 - subscription teacher 실행기
 
@@ -50,7 +50,7 @@ Teacher 절반은 Claude 초안→Codex grounding 검수, 나머지 절반은 Co
 
 ### 2026-09-02 - token audit·LoRA 실행 Gate
 
-- 작업 요약: 교차 검수가 완료된 candidate 2,000행을 pinned K0 tokenizer·chat template로 재렌더하고 rendered/prompt/supervised token, assistant mask, 마지막 EOS, user·system loss leakage, truncation을 전수 검사하는 finalizer를 구현했다.
+- 작업 요약: 교차 판정이 완료된 candidate 2,000행을 pinned K0 tokenizer·chat template로 재렌더하고 rendered/prompt/supervised token, assistant mask, 마지막 EOS, user·system loss leakage, truncation을 전수 검사하는 finalizer를 구현했다.
 - 길이 판정: 입력·출력 각 4,096 token을 넘으면 즉시 차단한다. 2,048을 넘는 행이 20건 또는 1%보다 많으면 `max_length`를 자동 상향하지 않고 full-runtime·projection 검토 상태로 학습을 차단한다.
 - LoRA 계약: K0에서만 r=8/16/32, `all-linear`, rsLoRA, dropout 0.05, bias 없음, LR 5e-5, 1 epoch, assistant-only loss를 고정했다. 공통 `lora_alpha=32`로 rank 이외 scaling 인자를 고정했다.
 - package: 기존 PyTorch 2.13.0+cu130 환경을 변경하지 않고 `uv pip --no-deps`로 PEFT 0.20.0 overlay만 추가했다. 새 overlay lock은 base training lock과 분리했다.
@@ -66,21 +66,21 @@ Teacher 절반은 Claude 초안→Codex grounding 검수, 나머지 절반은 Co
 - validator 보강: 원국 전체/단일 기둥, 연주·월주·일주·시주, 연간지·월간지·일진, 천간·지지·오행·음양·십신·지장간의 명시 구조 claim을 위치별로 검사한다. 교정문·조사·wrapper·병렬 표현·날짜 기간 표현과 일반 한국어 오탐 회귀를 테스트로 고정했다. 제공되지 않은 통근·합충·신강약 등은 계속 차단한다.
 - LoRA 실행 안전성: final training row의 ID·axis·prompt·runtime snapshot SHA를 frozen spec과 직접 대조한다. 손상된 token audit 타입은 예외 대신 fail-closed로 거부하며, preflight/training 재사용 시 manifest 전체 계약과 실제 adapter hash·config·rank·reload·adapter-only 상태를 다시 확인한다.
 - 평가 계약: K0, LoRA r=8/16/32, KI20의 5개 arm과 10개 지표를 동일 runtime·prompt·generation 설정으로 고정했다. LoRA config SHA는 `cb156569841002495b2e6d87107cd30e6e7766342eee3a185fadc1d31805f9a1`, 평가 config SHA는 `20eabbc1e492d8b8c57553be586103c0c0f66a2b347b0e8a8cb85651b12598d4`이다.
-- 양방향 pilot: 새 build에서 Claude 초안→Codex grounding 검수와 Codex 초안→Claude 자연성 검수를 각각 1건 실행해 2/2 accepted를 확인했다. candidate SHA는 `074bd0d3faad743b0abdf67af09e2951e5432bb521a05299c2e96025efd79dc9`이며 두 답변 모두 deterministic PASS·peer PASS·최소 3줄/3문장을 만족했다. API key·dev target·sealed data 접근과 training 실행은 모두 false다.
+- 양방향 pilot: 새 build에서 Claude 초안→Codex grounding 판정과 Codex 초안→Claude 자연성 판정을 각각 1건 실행해 2/2 accepted를 확인했다. candidate SHA는 `074bd0d3faad743b0abdf67af09e2951e5432bb521a05299c2e96025efd79dc9`이며 두 답변 모두 deterministic PASS·peer PASS·최소 3줄/3문장을 만족했다. API key·dev target·sealed data 접근과 training 실행은 모두 false다.
 - 검증: `uvx ruff check ...`, 관련 unittest 85건 실행(환경상 DE440s private fixture 2건 skip), `git diff --check`, 새 spec의 artifact SHA 재계산, teacher spec current-pass/stale-reject, LoRA `validate-contract`, evaluation `validate-contract`를 통과했다. Orca read-only red-team과 Claude Code의 좁은 no-tool 검토 결과를 반영한 뒤 추가 P0/P1이 없음을 재확인했다.
-- 남은 작업: 실제 2,000행 dual-teacher 생성·교차검수, assistant target까지 포함한 전수 token/mask/EOS/leakage audit, rank별 GPU preflight·1 epoch 학습, 5-arm 추론·이중 품질 검수는 아직 실행하지 않았다. `bound_chart_v2`의 versioned serving 통합과 regression 통과 전에는 production 승격을 허용하지 않는다.
+- 남은 작업: 실제 2,000행 dual-teacher 생성·교차 판정, assistant target까지 포함한 전수 token/mask/EOS/leakage audit, rank별 GPU preflight·1 epoch 학습, 5-arm 추론·이중 품질 판정은 아직 실행하지 않았다. `bound_chart_v2`의 versioned serving 통합과 regression 통과 전에는 production 승격을 허용하지 않는다.
 
 ### 2026-09-02 - full 교차 teacher 첫 checkpoint
 
-- 작업 요약: 불변 spec `build-59d68bc841a0`에서 full 2,000행 실행을 시작하고 20행 shard의 Claude 초안→Codex 검수와 Codex 초안을 실제 subscription CLI로 처리했다.
-- checkpoint: private target `full-build-59d68bc841a0-97b7404b-117d55cb`에 provider call 5회가 원자 저장됐다. 현재 accepted 16행, Claude 검수 대기 20행, 초안 대기 1,964행, permanent failed 0행이다. Claude 초안에서 걸린 구조 사실 누락·period label 혼동·금지 추론은 Gold에 들어가지 않고 재작성 상태로 남았다.
-- 중단 원인: Codex 초안 20행은 deterministic validator를 20/20 통과했으나 다음 Claude 검수에서 Pro session limit에 도달해 CLI가 exit 1로 종료됐다. 인증은 유효하며 2026-09-03 02:00 KST reset을 안내했다. 실패한 provider call은 state에 반영되지 않아 같은 명령으로 재개할 수 있다.
+- 작업 요약: 불변 spec `build-59d68bc841a0`에서 full 2,000행 실행을 시작하고 20행 shard의 Claude 초안→Codex 판정과 Codex 초안을 실제 subscription CLI로 처리했다.
+- checkpoint: private target `full-build-59d68bc841a0-97b7404b-117d55cb`에 provider call 5회가 원자 저장됐다. 현재 accepted 16행, Claude 판정 대기 20행, 초안 대기 1,964행, permanent failed 0행이다. Claude 초안에서 걸린 구조 사실 누락·period label 혼동·금지 추론은 Gold에 들어가지 않고 재작성 상태로 남았다.
+- 중단 원인: Codex 초안 20행은 deterministic validator를 20/20 통과했으나 다음 Claude 판정에서 Pro session limit에 도달해 CLI가 exit 1로 종료됐다. 인증은 유효하며 2026-09-03 02:00 KST reset을 안내했다. 실패한 provider call은 state에 반영되지 않아 같은 명령으로 재개할 수 있다.
 - 보안·범위: API key, AI Hub, 개인정보, sealed blind, dev target과 training은 접근하거나 실행하지 않았다. raw teacher 출력과 private state는 Git에 넣지 않는다.
-- 남은 작업: Claude 사용량 복구 후 동일 target을 재개해 2,000행 전수를 양방향 교차검수해야 한다. 단일 teacher 결과를 Gold로 강등하지 않는다.
+- 남은 작업: Claude 사용량 복구 후 동일 target을 재개해 2,000행 전수를 양방향 교차 판정해야 한다. 단일 teacher 결과를 Gold로 강등하지 않는다.
 
 ### 2026-09-03 - full schema-literacy prompt 교정
 
-- 재개 결과: Claude 검수 대기 20행은 20/20 PASS해 누적 accepted 36행이 됐다. 뒤이은 Claude 재작성에서 기존 2회 실패 9행이 구조 필드 누락을 반복해 permanent failed가 되었고, runner는 provider call 7회에서 자동 중단됐다. 해당 target은 candidate manifest를 만들지 않은 비후보 이력으로 보존한다.
+- 재개 결과: Claude 판정 대기 20행은 20/20 PASS해 누적 accepted 36행이 됐다. 뒤이은 Claude 재작성에서 기존 2회 실패 9행이 구조 필드 누락을 반복해 permanent failed가 되었고, runner는 provider call 7회에서 자동 중단됐다. 해당 target은 candidate manifest를 만들지 않은 비후보 이력으로 보존한다.
 - 원인: 실패 9행은 schema-literacy의 전 기둥 오행·음양, 전 기둥 stem/branch ten-god, 원국 전체·일주 구분 질문에 집중됐다. teacher가 긴 RAW·ALLOWED 목록에서 질문이 요구한 위치별 값을 일부 생략하거나 일주 `stem_ten_god=일간` literal을 다른 표현으로 바꾼 실제 출력 오류이며 validator 완화 사유가 아니다.
 - 교정: immutable spec과 validator는 변경하지 않고 draft·review prompt에 질문별 `[MANDATORY ANSWER CHECKLIST]`를 추가했다. 원국 네 기둥, 일간, period 세 label, 위치별 천간·지지·오행·음양·십신·지장간·표면 오행을 해당 질문에 맞춰 literal 값으로 제시하고 질문 밖 기간·관계·대운을 덧붙이지 않게 했다.
 - 검증: Ruff, `git diff --check`, checklist 회귀를 포함한 `tests.test_mix2k_v4` 44건을 통과했다. 새 runner hash의 full target에서 초기 schema-literacy batch를 다시 검증한 뒤 전체 생성을 재개한다.
@@ -93,3 +93,12 @@ Teacher 절반은 Claude 초안→Codex grounding 검수, 나머지 절반은 Co
 - 계약 재동결: validator source hash가 spec identity에 포함되므로 개선된 계약을 private `build-de0fdf57f45a`(build SHA `de0fdf57f45aa2e4f4705f8c94f9136dd8c05891bce58eedd31787b29cdec1c2`)로 새로 동결했다. dev SHA `2614d5e3578340969e03b2779b26c365bf774729bbc3838ff35998ec22faaf86`, training spec SHA `7cf01c8146190da0e77b717d72a687dce44056de542da8aae15b71ce43fbc229`, projection SHA `c889ccd27fc161144a0e3a8739020aa697c27c7d1615b5547e1c7488acd99458`는 이전 build와 동일해 데이터·분할·prompt 내용은 바뀌지 않았다. 중간 build와 과거 teacher checkpoint는 삭제하지 않고 비후보 이력으로 보존한다.
 - downstream pin: LoRA config SHA는 `06245aa665e268c712bf94c82b8ad22b2e58cddf57c86e6d76216a765933bb85`, 5-arm 평가 config SHA는 `9f58037b12797fcb3ec835c0863cf798a8081179f50b658a3f833902c0d33159`로 갱신했다.
 - 검증: historical Claude 초안 20건을 새 layout/parser 계약으로 재생해 20/20 deterministic PASS를 확인했다. `tests.test_mix2k_v4` 45건과 관련 3개 모듈 68건, Ruff, `git diff --check`, JSON parse, teacher spec identity, LoRA `validate-contract`, 5-arm evaluation `validate-contract`를 통과했고 Orca read-only red-team에서 추가 P0/P1이 없었다. 모호한 숫자 종결·생략부호는 자동 분리하지 않고 teacher rewrite로 넘긴다.
+
+### 2026-09-03 - full teacher 구조 claim 계약 최종 재동결
+
+- checkpoint 분석: `build-de0fdf57f45a` 기반 private target은 provider call 6회, accepted 45행, permanent failed 0행까지 진행됐다. 초안 이력이 있는 56행을 보강 validator로 재생해 56/56 PASS를 확인했다. 이 target과 과거 build는 삭제하지 않지만 validator source identity가 바뀌었으므로 candidate로 재사용하지 않는다.
+- validator 보강: 자연스러운 `천간/지지 + 오행/음양` 연속 표기, 부정 뒤 최종 교정값, 일주 천간의 `일간 자리` literal, period 연간지와 일진이 우연히 같은 값인 경우를 구조 claim으로 정확히 처리한다. sibling field의 부정이 이웃 field로 번지는 오탐, role literal 뒤의 부정 우회, `천간 A와 지지 B` ordered pair 오인, `같은 순서로` 후속 field carry 누락을 대칭 회귀로 차단했다.
+- immutable 산출물: validator SHA `155bac7ec9b1b32a62414eefb734bb0e79ebf19760ddbb287eec9444f3816011`을 포함한 private `build-d6982e11bbbd`, build SHA `d6982e11bbbd0bc3d13d2101cd14c563d5d99eb3e513c2624208c46277c745f5`로 재동결했다. dev SHA `2614d5e3578340969e03b2779b26c365bf774729bbc3838ff35998ec22faaf86`, training spec SHA `7cf01c8146190da0e77b717d72a687dce44056de542da8aae15b71ce43fbc229`, projection SHA `c889ccd27fc161144a0e3a8739020aa697c27c7d1615b5547e1c7488acd99458`는 동일해 데이터·분할·prompt는 바뀌지 않았다.
+- downstream pin: LoRA config SHA는 `19039bbb734a399d5db96ee41189da7fbf36c04cfd89266587e25ef58bd1964e`, 5-arm 평가 config SHA는 `d9915af1d1c8995d6b240135b2b474271bb37fe275e7e00f7677eb01b77b5b3b`로 갱신했다.
+- 검증: 관련 3개 unittest 모듈 69건, Ruff, `git diff --check`, 기존 최신 초안 56행 재생, teacher spec identity, LoRA `validate-contract`, 5-arm evaluation `validate-contract`가 모두 통과했다. 병렬 read-only red-team의 P0는 없었고 보고된 P1은 모두 회귀 테스트와 함께 닫았다.
+- 남은 작업: 새 immutable target에서 full 2,000행 Claude↔Codex 교차 teacher 생성·판정을 재개한다. 양쪽 teacher와 deterministic validator를 모두 통과하기 전에는 candidate finalization·학습으로 진행하지 않는다.

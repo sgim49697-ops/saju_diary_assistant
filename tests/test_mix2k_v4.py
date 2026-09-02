@@ -596,6 +596,10 @@ class Mix2KV4ContractTests(unittest.TestCase):
         self.assertEqual(structural_claim_errors(spec, complete), [])
         self.assertEqual(required_fact_errors(spec, complete), [])
 
+        natural_parallel = complete.replace("각각 ", "")
+        self.assertEqual(structural_claim_errors(spec, natural_parallel), [])
+        self.assertEqual(required_fact_errors(spec, natural_parallel), [])
+
         swapped = complete.replace(
             "월주의 천간 甲과 지지 子는 오행이 각각 목과 수",
             "월주의 천간 甲과 지지 子는 오행이 각각 수와 목",
@@ -603,6 +607,14 @@ class Mix2KV4ContractTests(unittest.TestCase):
         self.assertIn(
             "natal_month_stem_element_confusion:수",
             structural_claim_errors(spec, swapped),
+        )
+        natural_swapped = natural_parallel.replace(
+            "월주의 천간 甲과 지지 子는 오행이 목과 수",
+            "월주의 천간 甲과 지지 子는 오행이 수와 목",
+        )
+        self.assertIn(
+            "natal_month_stem_element_confusion:수",
+            structural_claim_errors(spec, natural_swapped),
         )
         cross_swapped = (
             "연주와 월주의 천간은 각각 戊와 甲이고, "
@@ -612,6 +624,15 @@ class Mix2KV4ContractTests(unittest.TestCase):
             "natal_year_stem_element_confusion:목",
             structural_claim_errors(spec, cross_swapped),
         )
+        carried_swapped = (
+            "연주와 월주의 천간은 각각 戊와 甲이고, "
+            "오행은 같은 순서로 목과 수이며, "
+            "음양은 같은 순서로 음과 양입니다."
+        )
+        carried_errors = structural_claim_errors(spec, carried_swapped)
+        self.assertIn("natal_year_stem_element_confusion:목", carried_errors)
+        self.assertIn("natal_month_stem_element_confusion:수", carried_errors)
+        self.assertIn("natal_year_stem_yin_yang_confusion:음", carried_errors)
 
         natural = (
             "연주의 천간 戊는 토 오행이며 양의 성질이고, "
@@ -744,6 +765,10 @@ class Mix2KV4ContractTests(unittest.TestCase):
             "연주는 천간 戊(양·토), 지지 辰(토·양)입니다.",
             "연주는 천간 戊(오행 토, 음양 양)과 지지 辰(오행 토, 음양 양)입니다.",
             (
+                "연주는 천간 戊로 오행은 토, 음양은 양이고, "
+                "지지 辰으로 오행은 토, 음양은 양입니다."
+            ),
+            (
                 "연주는 천간은 양의 토 기운을 가진 戊이고, "
                 "지지는 양의 토 기운을 가진 辰입니다."
             ),
@@ -759,6 +784,45 @@ class Mix2KV4ContractTests(unittest.TestCase):
             "natal_year_stem_yin_yang_confusion:음",
             structural_claim_errors(_spec(), wrong_labeled_compact),
         )
+        wrong_labeled_sequence = (
+            "연주는 천간 戊로 오행은 토, 음양은 음이고, "
+            "지지 辰으로 오행은 토, 음양은 양입니다."
+        )
+        self.assertIn(
+            "natal_year_stem_yin_yang_confusion:음",
+            structural_claim_errors(_spec(), wrong_labeled_sequence),
+        )
+        corrected_sequence = (
+            "연주는 천간 戊로 오행은 금이 아니라 토, "
+            "음양은 음이 아니라 양이고, 지지 辰입니다."
+        )
+        coverage = _pillar_field_claim_coverage(corrected_sequence)
+        self.assertIn(("year", "stem_element", "토"), coverage)
+        self.assertIn(("year", "stem_yin_yang", "양"), coverage)
+        corrected_element_wrong_yin_yang = (
+            "연주는 천간 戊로 오행은 금이 아니라 토, 음양은 음입니다."
+        )
+        mixed_coverage = _pillar_field_claim_coverage(
+            corrected_element_wrong_yin_yang
+        )
+        self.assertIn(("year", "stem_element", "토"), mixed_coverage)
+        self.assertIn(("year", "stem_yin_yang", "음"), mixed_coverage)
+        self.assertIn(
+            "natal_year_stem_yin_yang_confusion:음",
+            structural_claim_errors(_spec(), corrected_element_wrong_yin_yang),
+        )
+        for wrong, expected_error in (
+            (
+                "연주는 천간 戊로 오행은 토가 아니라 금, 음양은 양입니다.",
+                "natal_year_stem_element_confusion:금",
+            ),
+            (
+                "연주는 천간 戊로 오행은 토, 음양은 양이 아니고 음입니다.",
+                "natal_year_stem_yin_yang_confusion:음",
+            ),
+        ):
+            with self.subTest(wrong=wrong):
+                self.assertIn(expected_error, structural_claim_errors(_spec(), wrong))
 
     def test_natural_pillar_corrections_use_the_final_value(self) -> None:
         valid = (
@@ -1208,6 +1272,39 @@ class Mix2KV4ContractTests(unittest.TestCase):
         )
         self.assertEqual(required_fact_errors(spec, positioned_literal), [])
 
+        role_literal = positioned_literal.replace(
+            "천간 자리가 십신이 아니라 기준이 되는 '일간'으로 표기되어 있고",
+            "천간이 일간 자리 그 자체이고",
+        )
+        self.assertEqual(required_fact_errors(spec, role_literal), [])
+        self.assertIn(
+            "natal_year_stem_ten_god_confusion:일간",
+            structural_claim_errors(_spec(), "연주는 천간이 일간 자리 그 자체입니다."),
+        )
+        corrected_role = role_literal.replace(
+            "일간 자리 그 자체이고",
+            "정재 자리가 아니라 일간 자리이고",
+        )
+        self.assertEqual(required_fact_errors(spec, corrected_role), [])
+
+        for negated_role in (
+            "일주는 천간이 일간 자리 그 자체와 다릅니다.",
+            "일주는 천간이 일간 자리 그 자체와 같지 않습니다.",
+            "일주는 천간이 일간 자리 그 자체와 무관합니다.",
+            "일주는 천간이 일간 자리 그 자체라고 하기 어렵습니다.",
+            "일주는 천간이 일간 자리 그 자체일 리 없습니다.",
+            "일주는 천간이 일간 자리 그 자체, 라고 보면 안 됩니다.",
+            "일주는 천간이 일간 자리 그 자체, 라는 해석은 맞지 않습니다.",
+            "일주는 천간이 일간 자리 그 자체, 라는 표현은 틀립니다.",
+            "일주는 천간이 일간 자리 그 자체, 라고 단정하기 어렵습니다.",
+            "일주는 천간이 일간 자리 그 자체, 라고 할 수 없습니다.",
+        ):
+            with self.subTest(negated_role=negated_role):
+                self.assertNotIn(
+                    ("day", "stem_ten_god", "일간"),
+                    _pillar_field_claim_coverage(negated_role),
+                )
+
         for negated in (
             positioned_literal.replace("표기되어", "표기되지 않고"),
             positioned_literal.replace("표기되어", "표기하면 안 되고"),
@@ -1254,6 +1351,31 @@ class Mix2KV4ContractTests(unittest.TestCase):
             Mix2KV4ContractError, "provided_period_day_fact_omitted"
         ):
             validate_draft(spec, draft)
+
+    def test_equal_period_year_and_day_ganzhi_are_not_label_confusion(self) -> None:
+        spec = deepcopy(_spec())
+        year_path = "period.hard_facts.period.year_ganzhi"
+        day_path = "period.hard_facts.period.day_ganzhi"
+        year_value = spec["allowed_fact_values"][
+            spec["allowed_fact_paths"].index(year_path)
+        ]
+        day_index = spec["allowed_fact_paths"].index(day_path)
+        spec["allowed_fact_values"][day_index] = year_value
+        answer = (
+            f"선택 날짜의 연간지는 {year_value}입니다. "
+            f"같은 날짜의 일진도 우연히 {year_value}입니다."
+        )
+        self.assertNotIn(
+            "period_year_called_day_ganzhi",
+            structural_claim_errors(spec, answer),
+        )
+
+        unequal_errors = structural_claim_errors(_spec(), answer)
+        self.assertIn(
+            f"period_day_ganzhi_label_confusion:{year_value}",
+            unequal_errors,
+        )
+        self.assertIn("period_year_called_day_ganzhi", unequal_errors)
 
     def test_role_order_and_three_line_contract_fail_closed(self) -> None:
         malformed = _spec()
