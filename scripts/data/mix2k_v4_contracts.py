@@ -889,6 +889,18 @@ def pillar_position_detail_claims(
             r"(?P<element>[목화토금수])\s*[\)\]]",
             re.IGNORECASE,
         ),
+        re.compile(
+            anchor
+            + r"\s*[\(\[]\s*오행\s*(?P<element>[목화토금수])\s*[,，·/]\s*"
+            r"음양\s*(?P<yin_yang>음|양)\s*[\)\]]",
+            re.IGNORECASE,
+        ),
+        re.compile(
+            anchor
+            + r"\s*[\(\[]\s*음양\s*(?P<yin_yang>음|양)\s*[,，·/]\s*"
+            r"오행\s*(?P<element>[목화토금수])\s*[\)\]]",
+            re.IGNORECASE,
+        ),
     )
     trailing_element = re.compile(
         anchor
@@ -1076,6 +1088,19 @@ def _pillar_blocks(answer: str) -> list[tuple[str, str]]:
                 r"[^\n.!?。！？;；]{0,16}$",
                 block[: owner_boundary.start()],
                 re.IGNORECASE,
+            ):
+                continue
+            if owner_boundary.group(0) == "일간" and (
+                re.search(
+                    r"(?:천간|stem)[^\n.!?。！？;；]{0,40}$",
+                    block[: owner_boundary.start()],
+                    re.IGNORECASE,
+                )
+                and re.match(
+                    r"[\"'“”‘’]*\s*(?:으로\s*)?"
+                    r"(?:표기|표시|쓰이|사용)",
+                    block[owner_boundary.end() :],
+                )
             ):
                 continue
             block = block[: owner_boundary.start()]
@@ -2298,6 +2323,27 @@ def _pillar_field_claim_coverage(answer: str) -> set[tuple[str, str, str]]:
                 for match in pattern.finditer(block)
                 if not _explicit_claim_is_negated(block, match.start(), match.end())
             )
+        literal_stem_ten_god = re.compile(
+            r"(?:천간|stem)[^\n.!?。！？;；]{0,40}?"
+            rf"[\"'“”‘’]?(?P<value>{TEN_GOD_ENTITY})[\"'“”‘’]?\s*"
+            r"(?:으로\s*)?(?:표기|표시|쓰이|사용)",
+            re.IGNORECASE,
+        )
+        coverage.update(
+            (pillar, "stem_ten_god", match.group("value"))
+            for match in literal_stem_ten_god.finditer(block)
+            if not _explicit_claim_is_negated(block, match.start(), match.end())
+        )
+        reference_literal_stem_ten_god = re.compile(
+            r"(?:천간|stem)[^\n.!?。！？;；]{0,40}?기준(?:이|으로)\s*되는\s*"
+            rf"[\"'“”‘’]?(?P<value>{TEN_GOD_ENTITY})[\"'“”‘’]?\s*"
+            r"(?:으로\s*)?(?:표기|표시|쓰이|사용)",
+            re.IGNORECASE,
+        )
+        coverage.update(
+            (pillar, "stem_ten_god", match.group("value"))
+            for match in reference_literal_stem_ten_god.finditer(block)
+        )
         for position, entity_source in (
             ("stem", STEM_ENTITY),
             ("branch", BRANCH_ENTITY),

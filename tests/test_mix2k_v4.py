@@ -31,6 +31,7 @@ from scripts.data.mix2k_v4_teachers import (
     CODEX_DISABLED_FEATURES,
     _draft_schema,
     _mandatory_answer_checklist,
+    _normalize_draft_answer_layout,
     _selection,
     draft_prompt,
     review_prompt,
@@ -741,6 +742,7 @@ class Mix2KV4ContractTests(unittest.TestCase):
                 "지지 辰의 오행은 토이고 음양도 양입니다."
             ),
             "연주는 천간 戊(양·토), 지지 辰(토·양)입니다.",
+            "연주는 천간 戊(오행 토, 음양 양)과 지지 辰(오행 토, 음양 양)입니다.",
             (
                 "연주는 천간은 양의 토 기운을 가진 戊이고, "
                 "지지는 양의 토 기운을 가진 辰입니다."
@@ -748,6 +750,15 @@ class Mix2KV4ContractTests(unittest.TestCase):
         ):
             with self.subTest(answer=answer):
                 self.assertTrue(expected <= _pillar_field_claim_coverage(answer))
+
+        wrong_labeled_compact = (
+            "연주는 천간 戊(오행 토, 음양 음)과 "
+            "지지 辰(오행 토, 음양 양)입니다."
+        )
+        self.assertIn(
+            "natal_year_stem_yin_yang_confusion:음",
+            structural_claim_errors(_spec(), wrong_labeled_compact),
+        )
 
     def test_natural_pillar_corrections_use_the_final_value(self) -> None:
         valid = (
@@ -1188,6 +1199,15 @@ class Mix2KV4ContractTests(unittest.TestCase):
             required_fact_errors(spec, answer),
         )
 
+        positioned_literal = (
+            "연주는 천간 십신이 정재, 지지 십신이 편재입니다.\n"
+            "월주는 천간 십신이 겁재, 지지 십신이 편인입니다.\n"
+            "일주는 천간 자리가 십신이 아니라 기준이 되는 '일간'으로 표기되어 있고, "
+            "지지 십신은 편재입니다.\n"
+            "시주는 천간 십신이 정인, 지지 십신이 식신입니다."
+        )
+        self.assertEqual(required_fact_errors(spec, positioned_literal), [])
+
     def test_today_flow_requires_natal_and_period_day_evidence(self) -> None:
         spec = _spec()
         draft = {
@@ -1226,6 +1246,52 @@ class Mix2KV4ContractTests(unittest.TestCase):
         }
         with self.assertRaisesRegex(Mix2KV4ContractError, "최소 줄·문장"):
             validate_draft(spec, short)
+
+    def test_teacher_layout_normalizer_only_splits_complete_sentences(self) -> None:
+        spec = _spec()
+        one_line = {
+            "record_id": spec["id"],
+            "answer": (
+                "2026. 9. 2. 날짜를 먼저 확인합니다. "
+                "원국과 날짜 정보는 서로 구분합니다. "
+                "확인된 범위에서 차근차근 설명합니다."
+            ),
+            "used_fact_paths": [],
+            "used_fact_values": [],
+            "soft_interpretation_used": False,
+            "limitations": [],
+            "self_check": "PASS",
+        }
+        normalized, changed = _normalize_draft_answer_layout(spec, one_line)
+        self.assertTrue(changed)
+        self.assertEqual(len(normalized["answer"].splitlines()), 3)
+        self.assertIn("2026. 9. 2. 날짜", normalized["answer"])
+
+        too_short = deepcopy(one_line)
+        too_short["answer"] = "첫 문장입니다. 둘째 문장입니다."
+        unchanged, changed = _normalize_draft_answer_layout(spec, too_short)
+        self.assertFalse(changed)
+        self.assertEqual(unchanged["answer"], too_short["answer"])
+
+        already_multiline = deepcopy(one_line)
+        already_multiline["answer"] = "첫 문장입니다.\n둘째 문장입니다.\n셋째 문장입니다."
+        unchanged, changed = _normalize_draft_answer_layout(spec, already_multiline)
+        self.assertFalse(changed)
+        self.assertEqual(unchanged["answer"], already_multiline["answer"])
+
+        for protected in (
+            '`foo. bar. baz.`를 코드로 표시합니다.',
+            "[참고. 예시. 항목.](https://example.com) 한 문장으로 안내합니다.",
+            "- 첫 문장입니다. 둘째 문장입니다. 셋째 문장입니다.",
+            "설명은 두 문장입니다. . . 마지막 문장입니다.",
+            "e.g. i.e. 실제 설명은 하나입니다.",
+        ):
+            with self.subTest(protected=protected):
+                markup = deepcopy(one_line)
+                markup["answer"] = protected
+                unchanged, changed = _normalize_draft_answer_layout(spec, markup)
+                self.assertFalse(changed)
+                self.assertEqual(unchanged["answer"], protected)
 
     def test_teacher_prompt_has_four_explicit_evidence_sections(self) -> None:
         spec = _spec()

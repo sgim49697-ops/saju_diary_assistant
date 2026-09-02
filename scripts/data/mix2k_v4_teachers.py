@@ -37,8 +37,10 @@ from scripts.data.mix2k_v4_contracts import (
     PRIVATE_FILE_MODE,
     Mix2KV4ContractError,
     jsonl_bytes,
+    nonempty_lines,
     normalize_answer,
     read_jsonl,
+    sentence_count,
     sha256_bytes,
     sha256_file,
     validate_draft,
@@ -81,6 +83,16 @@ SPEC_IDENTITY_FIELDS = {
     "projection_report_sha256",
 }
 PROVIDER_NAMES = frozenset({"claude", "codex"})
+LAYOUT_NORMALIZER_VERSION = "sentence-whitespace-v1"
+ANSWER_HORIZONTAL_SENTENCE_BOUNDARY = re.compile(
+    r"((?:[!?。！？]|(?<!\d)\.)(?:[\"'”’)]*))[ \t]+"
+)
+MEANINGFUL_LAYOUT_CHARACTER = re.compile(r"[0-9A-Za-z가-힣甲-龥]")
+UNSAFE_LAYOUT_MARKUP = re.compile(
+    r"```|`|https?://|\[[^\]]*\]\(|(?<![A-Za-z])(?:[A-Za-z]\.){2,}|"
+    r"(?:^|\n)\s*(?:[-*+]|\d{1,3}[.)])\s+",
+    re.MULTILINE,
+)
 CODEX_DISABLED_FEATURES = (
     "apps",
     "browser_use",
@@ -554,6 +566,39 @@ def _mandatory_answer_checklist(spec: Mapping[str, Any]) -> list[str]:
     return checklist
 
 
+def _normalize_draft_answer_layout(
+    spec: Mapping[str, Any], draft: Mapping[str, Any]
+) -> tuple[dict[str, Any], bool]:
+    """충분한 완결 문장이 한 줄에 몰린 경우에만 공백을 줄바꿈으로 바꾼다."""
+
+    normalized = dict(draft)
+    answer = normalized.get("answer")
+    contract = spec.get("response_contract")
+    if not isinstance(answer, str) or not isinstance(contract, Mapping):
+        return normalized, False
+    minimum_lines = contract.get("minimum_nonempty_lines")
+    minimum_sentences = contract.get("minimum_sentences")
+    if (
+        not isinstance(minimum_lines, int)
+        or not isinstance(minimum_sentences, int)
+        or minimum_lines <= 1
+        or len(nonempty_lines(answer)) >= minimum_lines
+        or sentence_count(answer) < minimum_sentences
+        or UNSAFE_LAYOUT_MARKUP.search(answer)
+    ):
+        return normalized, False
+
+    candidate = ANSWER_HORIZONTAL_SENTENCE_BOUNDARY.sub(r"\1\n", answer)
+    candidate_lines = nonempty_lines(candidate)
+    if len(candidate_lines) < minimum_lines or any(
+        len(MEANINGFUL_LAYOUT_CHARACTER.findall(line)) < 2
+        for line in candidate_lines
+    ):
+        return normalized, False
+    normalized["answer"] = candidate
+    return normalized, candidate != answer
+
+
 def draft_prompt(
     specs: Sequence[Mapping[str, Any]], feedback: Mapping[str, str]
 ) -> str:
@@ -564,6 +609,7 @@ def draft_prompt(
             "Gold가 아니며, 아래 RAW·ALLOWED에 없는 사실은 추가하지 마세요. 모든 record에 "
             "대해 서로 독립된 JSON draft를 하나씩 작성하세요. 실질 답변은 최소 3개의 "
             "완결 문장과 3개의 의미 있는 줄을 쓰고, 1줄 계약인 intake·HARD QA만 예외입니다. "
+            "answer 문자열에는 완결 문장 사이 실제 줄바꿈(구조화 출력에서는 \\n)을 넣으세요. "
             "답을 짧게 끝내려고 하지 말고 질문에 필요한 만큼 자연스럽게 풀어 쓰세요. "
             "사용자 답변에 JSON·runtime·allowlist·Gold 같은 내부 용어를 노출하지 마세요. "
             "used_fact_paths·used_fact_values에는 answer에 명시한 날짜·간지·십신의 "
@@ -932,6 +978,7 @@ def _process_draft_batch(
     for record_id in record_ids:
         record = state["records"][record_id]
         draft = drafts[record_id]
+        provider_draft = dict(draft)
         if all(
             isinstance(draft.get(field), list)
             and all(isinstance(value, str) for value in draft[field])
@@ -940,10 +987,18 @@ def _process_draft_batch(
             draft = dict(draft)
             for field in ("used_fact_paths", "used_fact_values"):
                 draft[field] = list(dict.fromkeys(draft[field]))
+        draft, layout_normalized = _normalize_draft_answer_layout(
+            specs_by_id[record_id], draft
+        )
         attempt = {
             "provider": provider,
             "attempt": len(record["draft_attempts"]) + 1,
+            "provider_draft": provider_draft,
             "draft": draft,
+            "layout_normalized": layout_normalized,
+            "layout_normalizer_version": (
+                LAYOUT_NORMALIZER_VERSION if layout_normalized else None
+            ),
             "deterministic_pass": False,
             "deterministic_error": None,
         }
@@ -1161,6 +1216,10 @@ def _write_candidates(
         ),
         "peer_review_passed": True,
         "deterministic_validation_passed": True,
+        "layout_normalized_rows": sum(
+            bool(record["draft_attempts"][-1].get("layout_normalized"))
+            for record in state["records"].values()
+        ),
         "full_runtime_snapshot_used": True,
         "development_targets_accessed": False,
         "api_keys_used": False,

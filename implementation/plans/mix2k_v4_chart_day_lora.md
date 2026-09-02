@@ -84,3 +84,9 @@ Teacher 절반은 Claude 초안→Codex grounding 검수, 나머지 절반은 Co
 - 원인: 실패 9행은 schema-literacy의 전 기둥 오행·음양, 전 기둥 stem/branch ten-god, 원국 전체·일주 구분 질문에 집중됐다. teacher가 긴 RAW·ALLOWED 목록에서 질문이 요구한 위치별 값을 일부 생략하거나 일주 `stem_ten_god=일간` literal을 다른 표현으로 바꾼 실제 출력 오류이며 validator 완화 사유가 아니다.
 - 교정: immutable spec과 validator는 변경하지 않고 draft·review prompt에 질문별 `[MANDATORY ANSWER CHECKLIST]`를 추가했다. 원국 네 기둥, 일간, period 세 label, 위치별 천간·지지·오행·음양·십신·지장간·표면 오행을 해당 질문에 맞춰 literal 값으로 제시하고 질문 밖 기간·관계·대운을 덧붙이지 않게 했다.
 - 검증: Ruff, `git diff --check`, checklist 회귀를 포함한 `tests.test_mix2k_v4` 44건을 통과했다. 새 runner hash의 full target에서 초기 schema-literacy batch를 다시 검증한 뒤 전체 생성을 재개한다.
+
+### 2026-09-03 - teacher 답변 줄바꿈 정규화
+
+- 재검증 결과: checklist 적용 runner의 첫 schema-literacy 20건은 각 답변을 5~6개 완결 문장으로 작성하면서도 한 줄에 직렬화해 앞단에서 모두 최소 3줄 계약에 걸렸다. layout 정규화 후 재검사에서는 12건이 즉시 통과했고, 8건은 올바른 `천간 庚(오행 금, 음양 양)` 형식과 일주 천간 십신 literal `일간` 표현을 parser가 놓친 사실 누락 오탐으로 확인됐다.
+- 교정: validator의 사실·문장·최소 줄 기준은 완화하지 않았다. 최소 문장 수를 이미 충족하면서 최소 줄 수만 부족한 답변에 한해 문장 사이 수평 공백을 실제 줄바꿈으로 바꾸며, 숫자로 끝나는 날짜 표기(`2026. 9. 2.` 등)는 분리하지 않는 layout-only 정규화를 teacher runner에 추가했다. 문장이 부족하거나 이미 여러 줄인 답변, 1줄 계약 행은 손대지 않는다. code fence·inline code·Markdown link·URL·목록이 있는 답변과 구두점·약어만으로 줄 수를 만드는 답변도 자동 보정하지 않고 재작성 경로에 남긴다. 구조 parser에는 괄호 안의 명시적 `오행 …, 음양 …` 쌍과 `천간 자리가 … '일간'으로 표기`된 십신 literal만 좁게 추가하고, 잘못된 위치 값은 계속 차단한다. private state에는 provider 원본 draft와 정규화 버전을 남기고 최종 teacher manifest에는 정규화 행 수를 집계한다.
+- 실행 이력: 기존 `full-build-59d68bc841a0-64253f1d-117d55cb` checkpoint는 첫 provider call만 담은 비후보 불변 이력으로 보존한다. 새 runner hash target에서 같은 초기 20건을 다시 통과시킨 뒤 전체 교차 생성을 재개한다.
