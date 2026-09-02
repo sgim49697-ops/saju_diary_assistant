@@ -1168,6 +1168,24 @@ class Mix2KV4ContractTests(unittest.TestCase):
                     "surface_five_elements_목_confusion:3",
                     structural_claim_errors(_spec(), answer),
                 )
+        correct_with_additive_particle = (
+            "표면 오행 가운데 목은 2개이고 화는 1개입니다.\n"
+            "토는 3개이고 금도 0개입니다.\n"
+            "수는 2개이며, 이상이 다섯 오행의 표면 개수 전부입니다."
+        )
+        spec = deepcopy(_spec())
+        spec["task_axis"] = "structured_fact_schema_literacy"
+        spec["prompt"][-1]["content"] = (
+            "표면 오행 개수를 누락 없이 읽고, 계산되지 않은 판단은 덧붙이지 마."
+        )
+        self.assertEqual(required_fact_errors(spec, correct_with_additive_particle), [])
+        self.assertIn(
+            "surface_five_elements_금_confusion:1",
+            structural_claim_errors(
+                spec,
+                correct_with_additive_particle.replace("금도 0개", "금도 1개"),
+            ),
+        )
 
     def test_nested_json_schema_claims_are_position_checked(self) -> None:
         cases = {

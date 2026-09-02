@@ -123,7 +123,7 @@ TEN_GOD_ENTITY = (
 )
 SURFACE_ELEMENT_COUNT = re.compile(
     r"(?<![가-힣])([목화토금수])(?:\s*(?:수치|개수))?"
-    r"(?:은|는|이|가|:|=|\s)*([0-9]+)(?:\s*개)?"
+    r"(?:은|는|이|가|도|:|=|\s)*([0-9]+)(?:\s*개)?"
 )
 UNSUPPORTED_STRUCTURAL_PATTERNS = (
     (

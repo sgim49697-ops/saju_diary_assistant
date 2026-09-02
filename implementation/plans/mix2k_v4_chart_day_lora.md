@@ -119,3 +119,12 @@ Teacher 절반은 Claude 초안→Codex grounding 판정, 나머지 절반은 Co
 - downstream pin: LoRA config SHA는 `09267a1bbb6ee6f67ee1d94e005b1c190b48ce9b5d8835c905641a00a477517e`, 5-arm 평가 config SHA는 `e81566047d137ecbe9f137dc88f631fb2f98f08046dbadb507c3bb2f6a7c4162`다.
 - 재생 결과: 첫 live batch의 기존 20개 Claude 초안은 19/20 deterministic PASS이며, 유일한 탈락은 쓰지 않은 값을 provenance에 추가한 실제 오류다. 병렬 자동 red-team의 최종 P0는 없고 보고된 P1 두 건은 회귀 3종과 직접 재현으로 닫았다.
 - provider 가용성: 최종 target 시작 시 Claude Pro가 session limit에 도달해 09:00 KST 재설정을 반환했다. `--provider-only` 실행 경로를 추가해 사용 가능한 provider의 담당 draft/review만 처리하고, 반대 provider pending은 그대로 보존한다. 이 경로는 단일 teacher 결과를 candidate로 강등하지 않으며 최종 peer PASS 조건도 바꾸지 않는다. Claude 복구 전에는 Codex 담당 초안을 먼저 누적한다.
+
+### 2026-09-03 - Codex 선행 batch와 표면 오행 계수 교정
+
+- 실행 결과: `build-f0152c6533f4` 기반 provider별 target에서 Codex 초안 40행을 2회 호출로 생성했다. 첫 판정에서는 38행이 다음 teacher 대기 상태였고, 2행은 답변의 `금도 2개`를 표면 오행 계수로 읽지 못해 deterministic DROP됐다. 이 target은 삭제하지 않고 비후보 이력으로 보존한다.
+- 계약 교정: `목은 2개이고 ... 금도 0개`처럼 병렬 조사 `도`를 사용한 구조적 계수만 좁게 인식하도록 parser와 대칭 회귀를 보강했다. 수정 계약으로 40개 초안을 전수 재생해 40/40 deterministic PASS를 확인했으며, 잘못된 `금도 1개`는 계속 confusion으로 차단한다.
+- immutable 산출물: 계약 SHA `b64933b3a2d54c270df043a0650c7df8f7f8c1aa83e26747a03ed962fcc70558`를 포함한 private `build-d9468dfae98e`, build SHA `d9468dfae98e3700b4f67764ec7b5eb5a7c69e701e97f3a762dc80677803c61d`로 새로 동결했다. dev SHA `2614d5e3578340969e03b2779b26c365bf774729bbc3838ff35998ec22faaf86`, training spec SHA `7cf01c8146190da0e77b717d72a687dce44056de542da8aae15b71ce43fbc229`, projection SHA `c889ccd27fc161144a0e3a8739020aa697c27c7d1615b5547e1c7488acd99458`는 동일하다.
+- downstream pin: LoRA config SHA는 `68345cfc248ad00b2a150c34b6437c1d58ad51ee5e3379938ef610133aee6573`, 5-arm 평가 config SHA는 `1783d6acd87048f83413287cc2797c62fd1dc4e2cc916a8f341f8516dd5856f3`로 갱신했다.
+- 검증: 새 spec identity 2,000행, 관련 unittest 72건, Ruff, JSON parse, `git diff --check`, LoRA `validate-contract`, 5-arm evaluation `validate-contract`를 통과했다. `.venv-data`에는 PyTorch·Transformers가 없어 학습 계약 CLI를 실행할 수 없었고, 고정 의존성이 설치된 `.venv`에서 같은 계약을 정상 확인했다.
+- 다음 단계: `build-d9468dfae98e` 전용 target에서 Codex 담당 초안을 다시 누적하고 Claude 복구 뒤 반대편 판정과 Claude 담당 초안 생성을 이어간다. deterministic PASS와 양쪽 teacher PASS를 모두 충족하기 전에는 finalization·학습으로 진행하지 않는다.
