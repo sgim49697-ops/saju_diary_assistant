@@ -1,0 +1,69 @@
+{
+  "_description": "승인 v1.4 원국 adapter를 공개 dashboard v1.9에 제한 결합하는 production 계약이다.",
+  "schema_version": "1.0.0",
+  "binding_id": "saju-chart-only-dashboard-binding-v1.0.0",
+  "status": "limited_public_chart_only_binding_candidate",
+  "parent_operations_registry": {
+    "path": "configs/runtime/operations/registry-v1.0.0.json",
+    "sha256": "2fe57a7f36c871d3374b1a33e02df9acdfeb44a91274a851d04c5c59ac2e9f76"
+  },
+  "parent_release": {
+    "path": "configs/runtime/calculation/releases/v1.4.0/release_registry.json",
+    "sha256": "5f63edacf2d1736715304283eab56ff45a83de749e2a1a64f7775d2a505d00e9",
+    "release_id": "saju-runtime-release-v1.4.0-63dc8d398e90"
+  },
+  "dashboard": {
+    "schema_version": "1.9.0",
+    "config": "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.9.0.json",
+    "asset_root": "scripts/training/phase5_dashboard_assets/v1.9.0",
+    "bind_host": "127.0.0.1",
+    "public_client_authentication": "none",
+    "feature_enabled_by_default": false,
+    "explicit_enable_required": true
+  },
+  "api": {
+    "status": "GET /api/runtime/status",
+    "create_session": "POST /api/runtime/sessions",
+    "apply_event": "POST /api/runtime/sessions/{session_id}/events",
+    "delete_session": "DELETE /api/runtime/sessions/{session_id}",
+    "legacy_routes_status": 410,
+    "exact_host_origin_and_csrf_required": true,
+    "free_text_runtime_parser_allowed": false,
+    "period_calculation_allowed": false
+  },
+  "security": {
+    "hmac_and_aead_keys_private": true,
+    "key_file_mode": "0600",
+    "persistence": "AES-256-GCM",
+    "retention_seconds": 1800,
+    "explicit_delete_supported": true,
+    "single_owning_process": true,
+    "multiple_request_threads_serialized": true,
+    "stale_revision_status": 409,
+    "busy_status": 429,
+    "request_body_logged": false,
+    "birth_data_logged": false,
+    "runtime_identifier_logged": false
+  },
+  "rate_limits_per_minute": {
+    "session_or_chart": 30,
+    "runtime_event": 300,
+    "model_generation": 10
+  },
+  "model_binding": {
+    "enabled": true,
+    "same_canonical_snapshot_for_all_selected_engines": true,
+    "runtime_capability_passed_to_model_process": false,
+    "allowed_fact_fields": ["status", "fact_authority", "hard_facts", "message", "limitations"]
+  },
+  "governance": {
+    "production_application_binding": true,
+    "runtime_feature_default": false,
+    "public_arbitrary_birth_input_allowed": true,
+    "period_runtime_allowed": false,
+    "sealed_blind_access_allowed": false,
+    "mix20k_v3_1_generation_allowed": false,
+    "training_execution_allowed": false,
+    "model_promotion_allowed": false
+  }
+}

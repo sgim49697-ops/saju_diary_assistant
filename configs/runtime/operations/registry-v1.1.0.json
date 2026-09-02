@@ -1,0 +1,62 @@
+{
+  "_description": "기존 chart-only adapter 근거를 보존하면서 dashboard v1.9 production binding과 자동 canary를 묶는다.",
+  "schema_version": "1.1.0",
+  "registry_id": "saju-chart-only-operations-registry-v1.1.0",
+  "status": "production_binding_implementation_ready_canary_required",
+  "parent_registry": {
+    "path": "configs/runtime/operations/registry-v1.0.0.json",
+    "sha256": "2fe57a7f36c871d3374b1a33e02df9acdfeb44a91274a851d04c5c59ac2e9f76",
+    "registry_id": "saju-chart-only-operations-registry-v1.0.0"
+  },
+  "parent_release": {
+    "path": "configs/runtime/calculation/releases/v1.4.0/release_registry.json",
+    "sha256": "5f63edacf2d1736715304283eab56ff45a83de749e2a1a64f7775d2a505d00e9",
+    "release_id": "saju-runtime-release-v1.4.0-63dc8d398e90"
+  },
+  "artifacts": [
+    {
+      "path": "configs/runtime/operations/chart_only_dashboard_binding-v1.0.0.json",
+      "sha256": "b8ef4f14604866029136b6774e42b4fdefa184a6a160249b7c19632fbcc7957e"
+    },
+    {
+      "path": "configs/runtime/operations/chart_only_dashboard_canary_gate-v1.0.0.json",
+      "sha256": "d2cf2eb5064ddbb371653401c513afd4ee22e7d14ebfd54d87c3b1fae56c36c5"
+    },
+    {
+      "path": "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.9.0.json",
+      "sha256": "f65ca1aa3fea9ebf1ca02a06e568f3114f1867491ee56dcde87f93ccb737f567"
+    },
+    {
+      "path": "scripts/training/phase5_dashboard_assets/v1.9.0/index.html",
+      "sha256": "a94153b6acfb6d83fcc9d806ad594f5d2bebdb6c312dd7a6dd0807c2a3e2ae34"
+    },
+    {
+      "path": "scripts/training/phase5_dashboard_assets/v1.9.0/dashboard.js",
+      "sha256": "eaa2dbe1e24acc25b2a0eb17130307419dec97126455c30a61cdccbbad00d985"
+    },
+    {
+      "path": "scripts/training/phase5_dashboard_assets/v1.9.0/dashboard.css",
+      "sha256": "10a2bb69eb25dc461a3b3ba3a9679bd6f906270d56bbb6d65b309be1c4434db9"
+    },
+    {
+      "path": "scripts/training/phase5_dashboard_assets/v1.9.0/prompt-examples.json",
+      "sha256": "568e0535d112edadbb31f6f2b66f0870ebaa47ab7a2ca20f0224bd48d3fde009"
+    },
+    {
+      "path": "requirements-runtime-adapter-v1.0.txt",
+      "sha256": "abecdc234a10ffa940c892934e9f8e41e6ba7648926eb9571bba0e98e49066f0"
+    }
+  ],
+  "governance": {
+    "production_application_binding": true,
+    "runtime_feature_default": false,
+    "limited_public_chart_only": true,
+    "period_runtime_allowed": false,
+    "raw_case_output_tracking_allowed": false,
+    "sealed_blind_access_allowed": false,
+    "mix20k_v3_1_generation_allowed": false,
+    "training_execution_allowed": false,
+    "model_promotion_allowed": false,
+    "phase6_status_auto_change_allowed": false
+  }
+}
