@@ -4,9 +4,9 @@
 
 | 항목 | 값 |
 |---|---|
-| 문서 버전 | `runtime-calculator-adoption-v2.13.0` |
+| 문서 버전 | `runtime-calculator-adoption-v2.14.0` |
 | 정본화 기준일 | 2026-09-02 |
-| 현재 구현 기준 `master` | `a2239118581762d940bf13ba1e9dd32ed0d71d77` |
+| 현재 구현 기준 `master` | `2298573ec2a2a14e6ae003ca45bccdeda54ade37` |
 | 기준 모델 run | `KI20-MIX-v2/run-1f5d732cae67` |
 | 모델 run 상태 | `trained_and_reloaded`, production 승격 금지 |
 | runtime profile | `KR_CIVIL_MIDNIGHT_V1` |
@@ -17,6 +17,7 @@
 
 - v3 repair 정본: LLM tool/state trajectory와 20K 데이터 계약
 - 이 정본: tool이 반환할 원국·기간 계산 사실의 권위, 구현, 검증, 앱 연결
+- v1.5·v1.11 이후 실행 순서: [`saju_product_roadmap/README.md`](saju_product_roadmap/README.md)
 
 ## 1. 결론
 
