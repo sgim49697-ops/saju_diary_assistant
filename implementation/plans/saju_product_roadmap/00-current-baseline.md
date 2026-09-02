@@ -56,4 +56,4 @@
 - `project-audit-v1.1.0`에 v1.5 계약·release·conformance v10과 dashboard v1.11 config·entrypoint·asset·Grounding Gate hash 검증을 추가했다.
 - 현황 v1.4 `build-faf55ff6886d`와 registry 포인터를 생성했다. 제한 release·앱 연결은 통과, strict/full Runtime은 차단, MIX20K-v3.1·학습·모델 승격은 금지로 분리했다.
 - sealed blind payload는 열지 않았고 GPU·학습·tracked audit write를 실행하지 않았다.
-- 격리 worktree의 표적 자동 검증은 통과했다. 기존 Git 제외 private build가 있는 master에서 통합 quick audit을 한 번 더 실행한 뒤 00 Gate를 완료로 전환한다.
+- 격리 worktree 표적 검증과 기존 private build를 읽기 전용으로 연결한 v1.1 quick audit을 모두 통과했다. 결과는 conformance v10 8,522건·dashboard v1.11 자산 5개를 검증했고 sealed blind·GPU·학습·tracked write·strict/full·v3.1·모델 승격이 모두 false임을 확인했다.
