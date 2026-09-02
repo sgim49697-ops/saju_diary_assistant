@@ -184,3 +184,10 @@ Teacher 절반은 Claude 초안→Codex grounding 판정, 나머지 절반은 Co
 - 다양성 상태: 상대 판정 전 초안의 exact 중복 excess는 130행이고 normalized excess는 138행이다. 아직 Gold가 아니며, 2,000행 상대 판정 완료 뒤 기존 diversity 계약의 duplicate repair를 실행해 exact 0과 normalized multiplicity 2 이하를 충족해야 한다.
 - 도구 버전: final Claude 호출 전에 실제 Claude Code `2.1.259`와 Codex CLI `0.150.1`을 확인했다. 5-arm 평가의 Claude CLI pin을 `2.1.259`로 맞췄고 평가 config SHA는 `8f9dc776fe81a24d39c1d642a0f1a67a4e0d811eceb744415066d68d96001d5c`다.
 - 다음 단계: 강화된 runner hash의 새 target으로 Codex 1,000행을 재검증 이관한 뒤 Claude가 Codex 초안을 먼저 상대 판정하고, 이어 Claude 담당 1,000행을 작성한다.
+
+### 2026-09-03 - 중복 재작성 예산 분리
+
+- 위험 진단: Codex 1,000행의 final diversity 예상 repair 대상은 133행이며 intake 91행, uncertainty 22행, HARD QA 15행에 집중됐다. 기존 runner는 사실 오류·상대 teacher FAIL과 중복 repair가 같은 2회 예산을 공유해, 정확한 답변도 마지막 중복 단계에서 즉시 terminal failed가 될 수 있었다.
+- 교정: 사실·grounding 재작성 예산은 기존 2회를 유지하고, 중복 전용 예산 3회를 별도 `duplicate_rewrites_used`로 관리한다. 중복 feedback에는 exact/normalized 원인과 피해야 할 직전 답변을 포함해 첫 문장·설명 순서·문장 구조·예시를 함께 바꾸도록 한다. final manifest에는 중복 재작성 행·시도 수와 최대 라운드를 기록한다.
+- 검증: 일반 재작성 예산을 이미 2회 사용한 accepted 행도 중복 때문에 즉시 실패하지 않고 별도 재작성 상태로 전환되며, 기존 답변과 구체적인 회피 지침이 feedback에 포함되는 회귀를 통과했다. finalizer의 exact 중복 0·normalized multiplicity 2 이하 fail-closed 기준은 그대로 유지한다.
+- 다음 단계: 새 runner target에 Codex 1,000행을 재검증 이관하고 Claude 교차 작업을 시작한다. 양방향 상대 판정 이후 duplicate repair는 provider를 교대해 전용 예산 안에서 수렴시킨다.

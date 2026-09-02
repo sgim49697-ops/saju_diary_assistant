@@ -29,7 +29,9 @@ from scripts.data.mix2k_v4_contracts import (
 from scripts.data.mix2k_v4_finalize import select_training_max_length
 from scripts.data.mix2k_v4_teachers import (
     CODEX_DISABLED_FEATURES,
+    MAXIMUM_DUPLICATE_REWRITE_ROUNDS,
     _draft_schema,
+    _duplicate_repairs,
     _import_seed_drafts,
     _mandatory_answer_checklist,
     _normalize_draft_answer_layout,
@@ -342,6 +344,35 @@ class Mix2KV4ContractTests(unittest.TestCase):
                 "view_image",
             }.issubset(CODEX_DISABLED_FEATURES)
         )
+
+    def test_duplicate_repair_has_separate_budget_and_specific_feedback(self) -> None:
+        answer = "같은 첫 문장입니다.\n같은 둘째 문장입니다.\n같은 셋째 문장입니다."
+        state = {
+            "selection_order": ["r1", "r2", "r3"],
+            "records": {
+                record_id: {
+                    "status": "accepted",
+                    "rewrites_used": 2,
+                    "duplicate_rewrites_used": 0,
+                    "feedback": "",
+                    "accepted": {"draft": {"answer": answer}},
+                }
+                for record_id in ("r1", "r2", "r3")
+            },
+        }
+        self.assertEqual(
+            _duplicate_repairs(state, normalized_maximum=2),
+            2,
+        )
+        self.assertEqual(state["records"]["r1"]["status"], "accepted")
+        for record_id in ("r2", "r3"):
+            record = state["records"][record_id]
+            self.assertEqual(record["status"], "needs_draft")
+            self.assertEqual(record["rewrites_used"], 2)
+            self.assertEqual(record["duplicate_rewrites_used"], 1)
+            self.assertIn("PREVIOUS ANSWER TO AVOID", record["feedback"])
+            self.assertIn(answer, record["feedback"])
+        self.assertEqual(MAXIMUM_DUPLICATE_REWRITE_ROUNDS, 3)
 
     def test_training_and_evaluation_share_one_gpu_lock(self) -> None:
         with tempfile.TemporaryDirectory(prefix="mix2k-v4-lock-") as directory:

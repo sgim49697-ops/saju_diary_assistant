@@ -58,8 +58,9 @@ RUNNER_PATH = Path(__file__).resolve()
 CONTRACTS_PATH = RUNNER_PATH.with_name("mix2k_v4_contracts.py")
 MAX_JSON_BYTES = 64 * 1024 * 1024
 MAX_PROVIDER_OUTPUT_BYTES = 32 * 1024 * 1024
-STATE_SCHEMA_VERSION = "1.1.0"
+STATE_SCHEMA_VERSION = "1.2.0"
 SEED_IMPORT_VERSION = "1.0.0"
+MAXIMUM_DUPLICATE_REWRITE_ROUNDS = 3
 EXPECTED_SPEC_BUILD_ID = "build-da9014c5f24a"
 EXPECTED_SPEC_BUILD_SHA256 = (
     "da9014c5f24a6ffc239cd8bf1ec64d2ba50855caff6ec90438d5a41a4fefd980"
@@ -985,6 +986,7 @@ def _new_state(
                 "spec_sha256": sha256_bytes(canonical_json_bytes(row)),
                 "status": "needs_draft",
                 "rewrites_used": 0,
+                "duplicate_rewrites_used": 0,
                 "feedback": "",
                 "draft_attempts": [],
                 "review_attempts": [],
@@ -1400,9 +1402,7 @@ def _process_review_batch(
     return float(call["elapsed_seconds"])
 
 
-def _duplicate_repairs(
-    state: dict[str, Any], *, maximum_rewrites: int, normalized_maximum: int
-) -> int:
+def _duplicate_repairs(state: dict[str, Any], *, normalized_maximum: int) -> int:
     exact_groups: dict[str, list[str]] = {}
     normalized_groups: dict[str, list[str]] = {}
     for record_id in state["selection_order"]:
@@ -1412,23 +1412,32 @@ def _duplicate_repairs(
         answer = record["accepted"]["draft"]["answer"].strip()
         exact_groups.setdefault(answer, []).append(record_id)
         normalized_groups.setdefault(normalize_answer(answer), []).append(record_id)
-    repair: set[str] = set()
+    repair: dict[str, set[str]] = {}
     for ids in exact_groups.values():
-        repair.update(ids[1:])
+        for record_id in ids[1:]:
+            repair.setdefault(record_id, set()).add("exact")
     for ids in normalized_groups.values():
-        repair.update(ids[normalized_maximum:])
-    for record_id in repair:
+        for record_id in ids[normalized_maximum:]:
+            repair.setdefault(record_id, set()).add("normalized")
+    for record_id, reasons in repair.items():
         record = state["records"][record_id]
+        previous_answer = record["accepted"]["draft"]["answer"].strip()
         record["accepted"] = None
-        if record["rewrites_used"] >= maximum_rewrites:
+        duplicate_rewrites = int(record.get("duplicate_rewrites_used", 0))
+        if duplicate_rewrites >= MAXIMUM_DUPLICATE_REWRITE_ROUNDS:
             record["status"] = "failed"
             record["feedback"] = "전체 dataset 답변 중복을 해소하지 못했습니다."
         else:
-            record["rewrites_used"] += 1
+            record["duplicate_rewrites_used"] = duplicate_rewrites + 1
             record["status"] = "needs_draft"
             record["feedback"] = (
-                "전체 dataset에서 답변이 중복됐습니다. 사실은 유지하되 "
-                "문장 구조·예시·설명 순서를 자연스럽게 다시 작성하세요."
+                "전체 dataset에서 "
+                + "/".join(sorted(reasons))
+                + " 답변 중복이 발견됐습니다. 사실은 유지하되 첫 문장, 설명 순서, "
+                "문장 구조와 예시를 모두 달리해 자연스럽게 다시 작성하세요. "
+                "아래 이전 답변의 문장 골격이나 구절을 그대로 재사용하지 마세요.\n"
+                "[PREVIOUS ANSWER TO AVOID]\n"
+                + previous_answer
             )
     return len(repair)
 
@@ -1524,6 +1533,15 @@ def _write_candidates(
             bool(record["draft_attempts"][-1].get("particle_normalized"))
             for record in state["records"].values()
         ),
+        "duplicate_rewrite_rows": sum(
+            int(record.get("duplicate_rewrites_used", 0)) > 0
+            for record in state["records"].values()
+        ),
+        "duplicate_rewrite_attempts": sum(
+            int(record.get("duplicate_rewrites_used", 0))
+            for record in state["records"].values()
+        ),
+        "maximum_duplicate_rewrite_rounds": MAXIMUM_DUPLICATE_REWRITE_ROUNDS,
         "full_runtime_snapshot_used": True,
         "development_targets_accessed": False,
         "api_keys_used": False,
@@ -1640,7 +1658,6 @@ def run_pipeline(
                     break
                 repaired = _duplicate_repairs(
                     state,
-                    maximum_rewrites=maximum_rewrites,
                     normalized_maximum=int(
                         config["diversity"]["normalized_answer_multiplicity_maximum"]
                     ),
