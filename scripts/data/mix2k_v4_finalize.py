@@ -44,7 +44,7 @@ from scripts.data.mix2k_v4_teachers import _validate_spec_build
 from scripts.runtime.calculation.canonical import canonical_json_bytes
 
 DEFAULT_OUTPUT_ROOT = REPO_ROOT / (
-    "data/derived/saju_1b_baseline/mix2k-v4-chart-day-8k/final/v1.0.0"
+    "data/derived/saju_1b_baseline/mix2k-v4-chart-day-8k/final/v1.0.1"
 )
 FINALIZER_PATH = Path(__file__).resolve()
 CONTRACTS_PATH = FINALIZER_PATH.with_name("mix2k_v4_contracts.py")
@@ -101,8 +101,10 @@ def _json_bytes(value: Any) -> bytes:
 
 
 def _load_json(path: Path, label: str) -> dict[str, Any]:
+    _reject_symlink_components(path, label)
     if (
-        path.is_symlink()
+        not path.is_absolute()
+        or path.is_symlink()
         or not path.is_file()
         or not 1 <= path.stat().st_size <= MAX_JSON_BYTES
     ):
@@ -119,12 +121,21 @@ def _load_json(path: Path, label: str) -> dict[str, Any]:
 def _atomic_build(
     root: Path, build_id: str, files: Mapping[str, bytes]
 ) -> tuple[Path, str]:
+    if not root.is_absolute():
+        raise Mix2KV4FinalizeError("final build root는 절대경로여야 합니다.")
+    _reject_symlink_components(root, "final build root")
     target = root / build_id
+    _reject_symlink_components(target, "final build target")
     if target.exists():
+        if target.is_symlink() or not target.is_dir():
+            raise Mix2KV4FinalizeError("기존 final build 경로가 안전하지 않습니다.")
         for relative, payload in files.items():
             path = target / relative
+            _reject_symlink_components(path, f"final build artifact {relative}")
             if path.is_symlink() or not path.is_file() or path.read_bytes() != payload:
-                raise Mix2KV4FinalizeError("기존 final build가 동일 identity와 다릅니다.")
+                raise Mix2KV4FinalizeError(
+                    "기존 final build가 동일 identity와 다릅니다."
+                )
         return target, "reused"
     root.mkdir(parents=True, exist_ok=True, mode=PRIVATE_DIR_MODE)
     root.chmod(PRIVATE_DIR_MODE)
@@ -234,7 +245,9 @@ def _validate_candidates(
             or not isinstance(teacher.get("rewrites_used"), int)
             or not 0 <= teacher["rewrites_used"] <= 2
         ):
-            raise Mix2KV4FinalizeError(f"teacher candidate identity가 다릅니다: {record_id}")
+            raise Mix2KV4FinalizeError(
+                f"teacher candidate identity가 다릅니다: {record_id}"
+            )
         draft = {
             "record_id": record_id,
             "answer": row["assistant"],
@@ -256,10 +269,10 @@ def _validate_candidates(
     normalized = Counter(normalize_answer(answer) for answer in answers)
     exact_duplicates = sum(count - 1 for count in exact.values() if count > 1)
     normalized_maximum = max(normalized.values(), default=0)
-    if (
-        exact_duplicates > int(config["diversity"]["exact_duplicate_answers_maximum"])
-        or normalized_maximum
-        > int(config["diversity"]["normalized_answer_multiplicity_maximum"])
+    if exact_duplicates > int(
+        config["diversity"]["exact_duplicate_answers_maximum"]
+    ) or normalized_maximum > int(
+        config["diversity"]["normalized_answer_multiplicity_maximum"]
     ):
         raise Mix2KV4FinalizeError("teacher candidate 답변 중복 계약을 넘었습니다.")
     axes = Counter(row["task_axis"] for row in candidates)
@@ -294,7 +307,10 @@ def _stats(values: Sequence[int]) -> dict[str, int | float]:
 
 
 def _tokenize_row(tokenizer: Any, row: Mapping[str, Any]) -> dict[str, Any]:
-    messages = [*deepcopy(row["prompt"]), {"role": "assistant", "content": row["assistant"]}]
+    messages = [
+        *deepcopy(row["prompt"]),
+        {"role": "assistant", "content": row["assistant"]},
+    ]
     try:
         processed = tokenizer.apply_chat_template(
             messages,
@@ -372,12 +388,16 @@ def _tokenize_row(tokenizer: Any, row: Mapping[str, Any]) -> dict[str, Any]:
 
 
 def _token_audit(
-    candidates: Sequence[dict[str, Any]], tokenizer_path: Path, config: Mapping[str, Any]
+    candidates: Sequence[dict[str, Any]],
+    tokenizer_path: Path,
+    config: Mapping[str, Any],
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     try:
         from transformers import AutoTokenizer
     except Exception as exc:
-        raise Mix2KV4FinalizeError("Transformers tokenizer import가 실패했습니다.") from exc
+        raise Mix2KV4FinalizeError(
+            "Transformers tokenizer import가 실패했습니다."
+        ) from exc
     tokenizer = AutoTokenizer.from_pretrained(
         tokenizer_path,
         local_files_only=True,
@@ -490,9 +510,7 @@ def finalize(
         "config_sha256": sha256_file(config_path),
         "spec_build_sha256": spec_manifest["build_sha256"],
         "teacher_candidate_sha256": sha256_file(candidate_path),
-        "teacher_manifest_sha256": sha256_file(
-            teacher_build / "teacher_manifest.json"
-        ),
+        "teacher_manifest_sha256": sha256_file(teacher_build / "teacher_manifest.json"),
         "finalizer_sha256": sha256_file(FINALIZER_PATH),
         "contracts_sha256": sha256_file(CONTRACTS_PATH),
         "base_model_files": model_files,
@@ -523,9 +541,7 @@ def finalize(
         "artifact_sha256": {
             "training/train_2000.jsonl": identity["training_rows_sha256"],
             "reports/token_audit_2000.jsonl": identity["token_audit_rows_sha256"],
-            "reports/token_audit_summary.json": identity[
-                "token_audit_summary_sha256"
-            ],
+            "reports/token_audit_summary.json": identity["token_audit_summary_sha256"],
         },
     }
     files = {

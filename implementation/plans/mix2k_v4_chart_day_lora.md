@@ -45,8 +45,8 @@ Teacher 절반은 Claude 초안→Codex grounding 검수, 나머지 절반은 Co
 
 - 작업 요약: 20행 shard, 초안→deterministic validator→반대 teacher review→최대 2회 재작성, 중복 답변 재작성, 파일 lock·원자적 state·resume를 구현했다. teacher에는 생성된 공개 synthetic runtime fact만 전달하며 dev target 경로는 읽지 않는다.
 - 보안: 자식 프로세스에서 provider API key·cloud credential 환경을 제거하고 Claude는 safe mode·tool 없음, Codex는 ephemeral·read-only·rule 없음으로 실행한다. raw provider envelope와 식별정보는 저장하지 않는다.
-- 검증: Codex ChatGPT subscription structured-output smoke는 통과했다. Claude CLI는 auth 상태가 만료되어 초안 0건에서 fail-closed로 종료했고, 단일 teacher 결과를 Gold로 승격하지 않았다.
-- 후속: `claude` 재로그인 후 같은 pilot state를 재실행하고 4건의 초안·교차 검수를 모두 통과시킨 뒤 full 2,000행을 시작한다.
+- 당시 검증: Codex ChatGPT subscription structured-output smoke는 통과했다. 당시 Claude CLI auth가 만료되어 초안 0건에서 fail-closed로 종료했고, 단일 teacher 결과를 Gold로 승격하지 않았다.
+- 후속 상태: Claude subscription 복구 후 아래 v1.0.1 양방향 pilot에서 해소했다. full 2,000행은 별도 장시간 실행으로 남아 있다.
 
 ### 2026-09-02 - token audit·LoRA 실행 Gate
 
@@ -56,3 +56,16 @@ Teacher 절반은 Claude 초안→Codex grounding 검수, 나머지 절반은 Co
 - package: 기존 PyTorch 2.13.0+cu130 환경을 변경하지 않고 `uv pip --no-deps`로 PEFT 0.20.0 overlay만 추가했다. 새 overlay lock은 base training lock과 분리했다.
 - 검증: CPU에서 K0에 `all-linear` r=16을 실제 적용해 target linear 224개, trainable 18,677,760개, base trainable 0개를 확인했다. r=8과 r=32의 고정 기대값은 각각 9,338,880개와 37,355,520개다. 저장한 safetensors와 다시 로드한 PEFT state를 tensor 단위로 대조한다. K0 runtime·LoRA config 검증이 통과했고, single-turn·follow-up 샘플의 assistant mask leakage 0과 supervised EOS를 확인했다.
 - 실행 순서: 완성 data manifest 통과 후 각 rank의 longest 8행 1-step forward/backward/optimizer·adapter reload preflight를 순차 실행한다. 그 다음에만 각 rank 250 optimizer step을 순차 실행하며 K0 base hash를 전·후 대조한다.
+
+### 2026-09-02 - v1.0.1 교정 계약·평가 관문 고정
+
+- 작업 요약: 실제 Dashboard v1.11 full runtime 형식을 유지한 v1.0.1 spec을 다시 생성하고, teacher·LoRA·5-arm 평가가 같은 immutable build를 참조하도록 ID와 SHA를 연쇄 고정했다. 기존 Dashboard v1.11 prompt와 runtime 파일은 변경하지 않았으며 `bound_chart_v2`는 별도 production 승격 전제인 candidate로만 유지한다.
+- immutable 산출물: private 경로의 `build-59d68bc841a0`, build SHA `59d68bc841a02e366711045383ebea0f37be138244e0e213fe7eb15bfa109826`. training spec SHA는 `7cf01c8146190da0e77b717d72a687dce44056de542da8aae15b71ce43fbc229`, frozen dev SHA는 `2614d5e3578340969e03b2779b26c365bf774729bbc3838ff35998ec22faaf86`이다. 이전 build는 최신 source hash와 달라 의도대로 거부된다.
+- 분포 확인: training 2,000행은 300/300/450/300/250/250/100/50의 고정 축을 정확히 만족하고 Claude→Codex 1,000행, Codex→Claude 1,000행으로 배정됐다. dev 200건은 40/30/50/40/20/20이며 `actual-chart-day-label-confusion-20260902`를 release blocker로 포함한다. uncertainty 축은 runtime 연결 50건과 미연결 50건이다.
+- token·projection 결과: pinned Kanana tokenizer와 현재 chat template 기준 full runtime prompt 최대 1,774, p99 1,768, 2,048 초과 0건이다. audit-only projection은 평균 458.298 token을 줄이지만 학습에는 사용하지 않았고, training은 raw full snapshot을 유지한다.
+- validator 보강: 원국 전체/단일 기둥, 연주·월주·일주·시주, 연간지·월간지·일진, 천간·지지·오행·음양·십신·지장간의 명시 구조 claim을 위치별로 검사한다. 교정문·조사·wrapper·병렬 표현·날짜 기간 표현과 일반 한국어 오탐 회귀를 테스트로 고정했다. 제공되지 않은 통근·합충·신강약 등은 계속 차단한다.
+- LoRA 실행 안전성: final training row의 ID·axis·prompt·runtime snapshot SHA를 frozen spec과 직접 대조한다. 손상된 token audit 타입은 예외 대신 fail-closed로 거부하며, preflight/training 재사용 시 manifest 전체 계약과 실제 adapter hash·config·rank·reload·adapter-only 상태를 다시 확인한다.
+- 평가 계약: K0, LoRA r=8/16/32, KI20의 5개 arm과 10개 지표를 동일 runtime·prompt·generation 설정으로 고정했다. LoRA config SHA는 `cb156569841002495b2e6d87107cd30e6e7766342eee3a185fadc1d31805f9a1`, 평가 config SHA는 `20eabbc1e492d8b8c57553be586103c0c0f66a2b347b0e8a8cb85651b12598d4`이다.
+- 양방향 pilot: 새 build에서 Claude 초안→Codex grounding 검수와 Codex 초안→Claude 자연성 검수를 각각 1건 실행해 2/2 accepted를 확인했다. candidate SHA는 `074bd0d3faad743b0abdf67af09e2951e5432bb521a05299c2e96025efd79dc9`이며 두 답변 모두 deterministic PASS·peer PASS·최소 3줄/3문장을 만족했다. API key·dev target·sealed data 접근과 training 실행은 모두 false다.
+- 검증: `uvx ruff check ...`, 관련 unittest 85건 실행(환경상 DE440s private fixture 2건 skip), `git diff --check`, 새 spec의 artifact SHA 재계산, teacher spec current-pass/stale-reject, LoRA `validate-contract`, evaluation `validate-contract`를 통과했다. Orca read-only red-team과 Claude Code의 좁은 no-tool 검토 결과를 반영한 뒤 추가 P0/P1이 없음을 재확인했다.
+- 남은 작업: 실제 2,000행 dual-teacher 생성·교차검수, assistant target까지 포함한 전수 token/mask/EOS/leakage audit, rank별 GPU preflight·1 epoch 학습, 5-arm 추론·이중 품질 검수는 아직 실행하지 않았다. `bound_chart_v2`의 versioned serving 통합과 regression 통과 전에는 production 승격을 허용하지 않는다.

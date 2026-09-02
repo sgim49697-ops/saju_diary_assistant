@@ -21,7 +21,15 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from scripts.data.mix2k_v4_build import DEFAULT_CONFIG, _load_config
+from scripts.data.mix2k_v4_build import (
+    BOUND_PROMPT,
+    DASHBOARD_CONTEXT_PATH,
+    DEFAULT_CONFIG,
+    GENERATOR_PATH,
+    INTAKE_PROMPT,
+    MODEL_PROJECTION_PATH,
+    _load_config,
+)
 from scripts.data.mix2k_v4_contracts import (
     DATASET_VERSION,
     EXPECTED_ROWS,
@@ -38,16 +46,63 @@ from scripts.data.mix2k_v4_contracts import (
     validate_specs,
 )
 from scripts.runtime.calculation.canonical import canonical_json_bytes
+from scripts.runtime.chart_day_model_projection import MODEL_PROJECTION_ID
 
 DEFAULT_OUTPUT_ROOT = REPO_ROOT / (
-    "data/derived/saju_1b_baseline/mix2k-v4-chart-day-8k/teachers/v1.0.0"
+    "data/derived/saju_1b_baseline/mix2k-v4-chart-day-8k/teachers/v1.0.1"
 )
 RUNNER_PATH = Path(__file__).resolve()
 CONTRACTS_PATH = RUNNER_PATH.with_name("mix2k_v4_contracts.py")
 MAX_JSON_BYTES = 64 * 1024 * 1024
 MAX_PROVIDER_OUTPUT_BYTES = 32 * 1024 * 1024
 STATE_SCHEMA_VERSION = "1.0.0"
+EXPECTED_SPEC_BUILD_ID = "build-59d68bc841a0"
+EXPECTED_SPEC_BUILD_SHA256 = (
+    "59d68bc841a02e366711045383ebea0f37be138244e0e213fe7eb15bfa109826"
+)
+SPEC_IDENTITY_FIELDS = {
+    "dataset_version",
+    "config_sha256",
+    "generator_sha256",
+    "contracts_sha256",
+    "dashboard_context_source_sha256",
+    "model_projection_id",
+    "model_projection_source_sha256",
+    "bound_prompt_sha256",
+    "intake_prompt_sha256",
+    "runtime_release_registry_sha256",
+    "ephemeris_sha256",
+    "runtime_release_id",
+    "base_model_repository",
+    "base_model_revision",
+    "base_model_files",
+    "dev_sha256",
+    "specs_sha256",
+    "projection_report_sha256",
+}
 PROVIDER_NAMES = frozenset({"claude", "codex"})
+CODEX_DISABLED_FEATURES = (
+    "apps",
+    "browser_use",
+    "browser_use_external",
+    "browser_use_full_cdp_access",
+    "code_mode_host",
+    "computer_use",
+    "goals",
+    "hooks",
+    "image_generation",
+    "in_app_browser",
+    "multi_agent",
+    "plugin_sharing",
+    "remote_plugin",
+    "shell_snapshot",
+    "shell_tool",
+    "skill_search",
+    "tool_suggest",
+    "unified_exec",
+    "view_image",
+    "workspace_dependencies",
+)
 SECRET_ENV = re.compile(
     r"(?:API[_-]?KEY|TOKEN|SECRET|PASSWORD|CREDENTIAL|ACCESS[_-]?KEY)",
     re.IGNORECASE,
@@ -89,8 +144,10 @@ def _json_bytes(value: Any) -> bytes:
 
 
 def _load_json(path: Path, label: str) -> dict[str, Any]:
+    _reject_symlink_components(path, label)
     if (
-        path.is_symlink()
+        not path.is_absolute()
+        or path.is_symlink()
         or not path.is_file()
         or not 1 <= path.stat().st_size <= MAX_JSON_BYTES
     ):
@@ -105,7 +162,12 @@ def _load_json(path: Path, label: str) -> dict[str, Any]:
 
 
 def _atomic_write(path: Path, payload: bytes) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True, mode=PRIVATE_DIR_MODE)
+    if not path.is_absolute():
+        raise Mix2KV4TeacherError("teacher output file은 절대경로여야 합니다.")
+    _reject_symlink_components(path, "teacher output file")
+    _ensure_private_directory(path.parent, "teacher output parent")
+    if path.exists() and (path.is_symlink() or not path.is_file()):
+        raise Mix2KV4TeacherError("기존 teacher output file이 안전하지 않습니다.")
     descriptor, temporary_name = tempfile.mkstemp(
         prefix=f".{path.name}.", dir=path.parent
     )
@@ -120,6 +182,17 @@ def _atomic_write(path: Path, payload: bytes) -> None:
     finally:
         if temporary.exists():
             temporary.unlink()
+
+
+def _ensure_private_directory(path: Path, label: str) -> None:
+    if not path.is_absolute():
+        raise Mix2KV4TeacherError(f"{label}은 절대경로여야 합니다.")
+    _reject_symlink_components(path, label)
+    if path.exists() and (path.is_symlink() or not path.is_dir()):
+        raise Mix2KV4TeacherError(f"{label} 경로가 안전하지 않습니다.")
+    path.mkdir(parents=True, exist_ok=True, mode=PRIVATE_DIR_MODE)
+    _reject_symlink_components(path, label)
+    path.chmod(PRIVATE_DIR_MODE)
 
 
 def subscription_environment() -> dict[str, str]:
@@ -164,14 +237,18 @@ def _auth_check(environment: Mapping[str, str]) -> dict[str, str]:
             check=False,
         )
     except (OSError, subprocess.SubprocessError, json.JSONDecodeError) as exc:
-        raise Mix2KV4TeacherError("subscription CLI auth 상태를 확인하지 못했습니다.") from exc
+        raise Mix2KV4TeacherError(
+            "subscription CLI auth 상태를 확인하지 못했습니다."
+        ) from exc
     if (
         not isinstance(claude_status, dict)
         or claude_status.get("loggedIn") is not True
         or claude_status.get("authMethod") != "claude.ai"
         or not claude_status.get("subscriptionType")
     ):
-        raise Mix2KV4TeacherError("Claude가 claude.ai subscription auth 상태가 아닙니다.")
+        raise Mix2KV4TeacherError(
+            "Claude가 claude.ai subscription auth 상태가 아닙니다."
+        )
     codex_status = (codex.stdout + codex.stderr).casefold()
     if codex.returncode != 0 or "chatgpt" not in codex_status:
         raise Mix2KV4TeacherError("Codex가 ChatGPT subscription auth 상태가 아닙니다.")
@@ -181,24 +258,84 @@ def _auth_check(environment: Mapping[str, str]) -> dict[str, str]:
 def _validate_spec_build(
     spec_build: Path, config_path: Path
 ) -> tuple[dict[str, Any], dict[str, Any], list[dict[str, Any]]]:
-    if spec_build.is_symlink() or not spec_build.is_dir() or not spec_build.is_absolute():
-        raise Mix2KV4TeacherError("spec build는 symlink가 아닌 절대경로 디렉터리여야 합니다.")
+    if (
+        spec_build.is_symlink()
+        or not spec_build.is_dir()
+        or not spec_build.is_absolute()
+    ):
+        raise Mix2KV4TeacherError(
+            "spec build는 symlink가 아닌 절대경로 디렉터리여야 합니다."
+        )
     config = _load_config(config_path)
     manifest_path = spec_build / "build_manifest.json"
     manifest = _load_json(manifest_path, "spec build manifest")
+    identity = manifest.get("identity")
     specs_path = spec_build / "training/specs_2000.jsonl"
+    dev_path = spec_build / "evaluation/dev_cases_200.jsonl"
+    projection_path = spec_build / "reports/full_runtime_projection_ab.json"
+    for path, label in (
+        (manifest_path, "spec build manifest"),
+        (specs_path, "training spec"),
+        (dev_path, "frozen dev"),
+        (projection_path, "projection report"),
+    ):
+        _reject_symlink_components(path, label)
     if specs_path.is_symlink() or not specs_path.is_file():
         raise Mix2KV4TeacherError("training spec이 없거나 symlink입니다.")
+    artifact_sha = manifest.get("artifact_sha256")
+    expected_artifacts = {
+        "evaluation/dev_cases_200.jsonl": (dev_path, "dev_sha256"),
+        "training/specs_2000.jsonl": (specs_path, "specs_sha256"),
+        "reports/full_runtime_projection_ab.json": (
+            projection_path,
+            "projection_report_sha256",
+        ),
+    }
     if (
-        manifest.get("dataset_version") != DATASET_VERSION
+        not isinstance(identity, Mapping)
+        or set(identity) != SPEC_IDENTITY_FIELDS
+        or manifest.get("schema_version") != "1.0.0"
+        or manifest.get("dataset_version") != DATASET_VERSION
+        or manifest.get("build_id") != EXPECTED_SPEC_BUILD_ID
         or manifest.get("build_id") != spec_build.name
+        or manifest.get("build_sha256") != EXPECTED_SPEC_BUILD_SHA256
+        or manifest.get("build_sha256") != sha256_bytes(canonical_json_bytes(identity))
+        or identity.get("dataset_version") != DATASET_VERSION
+        or identity.get("config_sha256") != sha256_file(config_path)
+        or identity.get("generator_sha256") != sha256_file(GENERATOR_PATH)
+        or identity.get("contracts_sha256") != sha256_file(CONTRACTS_PATH)
+        or identity.get("dashboard_context_source_sha256")
+        != sha256_file(DASHBOARD_CONTEXT_PATH)
+        or identity.get("model_projection_id") != MODEL_PROJECTION_ID
+        or identity.get("model_projection_id")
+        != config["runtime"]["model_projection_id"]
+        or identity.get("model_projection_source_sha256")
+        != sha256_file(MODEL_PROJECTION_PATH)
+        or identity.get("bound_prompt_sha256") != sha256_file(BOUND_PROMPT)
+        or identity.get("intake_prompt_sha256") != sha256_file(INTAKE_PROMPT)
+        or identity.get("runtime_release_registry_sha256")
+        != sha256_file(REPO_ROOT / config["runtime"]["release_registry"])
+        or identity.get("runtime_release_id") != config["runtime"]["release_id"]
+        or identity.get("base_model_repository") != config["base_model"]["repository"]
+        or identity.get("base_model_revision") != config["base_model"]["revision"]
+        or identity.get("base_model_files") != config["base_model"]["files"]
+        or manifest.get("rows")
+        != {"development_evaluation": 200, "training_specs": EXPECTED_ROWS}
         or manifest.get("development_frozen_before_teacher_generation") is not True
         or manifest.get("teacher_target_access_allowed") is not False
+        or manifest.get("full_runtime_snapshot_used") is not True
         or manifest.get("training_execution_allowed") is not False
+        or manifest.get("training_performed") is not False
         or manifest.get("sealed_blind_accessed") is not False
-        or manifest.get("identity", {}).get("config_sha256") != sha256_file(config_path)
-        or manifest.get("artifact_sha256", {}).get("training/specs_2000.jsonl")
-        != sha256_file(specs_path)
+        or not isinstance(artifact_sha, Mapping)
+        or set(artifact_sha) != set(expected_artifacts)
+        or any(
+            path.is_symlink()
+            or not path.is_file()
+            or sha256_file(path) != artifact_sha.get(relative)
+            or artifact_sha.get(relative) != identity.get(identity_field)
+            for relative, (path, identity_field) in expected_artifacts.items()
+        )
     ):
         raise Mix2KV4TeacherError("spec build identity·dev 격리 계약이 다릅니다.")
     try:
@@ -228,12 +365,10 @@ def _draft_schema(record_ids: Sequence[str]) -> dict[str, Any]:
             "used_fact_paths": {
                 "type": "array",
                 "items": {"type": "string"},
-                "uniqueItems": True,
             },
             "used_fact_values": {
                 "type": "array",
                 "items": {"type": "string"},
-                "uniqueItems": True,
             },
             "soft_interpretation_used": {"type": "boolean"},
             "limitations": {"type": "array", "items": {"type": "string"}},
@@ -327,7 +462,9 @@ def draft_prompt(
             "답을 짧게 끝내려고 하지 말고 질문에 필요한 만큼 자연스럽게 풀어 쓰세요. "
             "사용자 답변에 JSON·runtime·allowlist·Gold 같은 내부 용어를 노출하지 마세요. "
             "used_fact_paths·used_fact_values에는 answer에 명시한 날짜·간지·십신의 "
-            "정확한 ALLOWED 값을 누락 없이 기록하세요. 도구를 사용하지 마세요."
+            "정확한 ALLOWED 값을 누락 없이 기록하세요. period의 year_ganzhi·month_ganzhi·"
+            "day_ganzhi는 반드시 선택 날짜의 연간지·월간지·일진이라고 부르고, 이를 "
+            "연주·월주·일주 또는 날짜의 원국이라고 부르지 마세요. 도구를 사용하지 마세요."
         )
     ]
     for spec in specs:
@@ -340,7 +477,9 @@ def draft_prompt(
             [
                 f"\n=== RECORD {spec['id']} ===",
                 "[RAW RUNTIME FACTS]\n"
-                + json.dumps(raw, ensure_ascii=False, separators=(",", ":"), sort_keys=True),
+                + json.dumps(
+                    raw, ensure_ascii=False, separators=(",", ":"), sort_keys=True
+                ),
                 "[ALLOWED EVIDENCE]\n"
                 + json.dumps(
                     _evidence_payload(spec),
@@ -370,9 +509,13 @@ def review_prompt(
         (
             "당신은 반대 teacher의 초안을 교차 검수합니다. 정확한 field·label grounding, "
             "제공되지 않은 관계·신강약·예측 금지, 후속 evidence 일관성, 일반인이 "
-            "이해할 수 있는 자연스러운 한국어, 3줄·3문장 계약, 의미 없는 입력 재진술 "
+            "이해할 수 있는 자연스러운 한국어, 최소 3줄·최소 3문장 계약, 의미 없는 입력 재진술 "
             "여부를 모두 보세요. 하나라도 문제가 있으면 FAIL이며 구체적 rewrite_instructions를 "
             "적습니다. PASS일 때 failure_codes, fact_errors, rewrite_instructions는 비우세요. "
+            "3줄·3문장은 최소 조건이며 최대 길이 제한이 아닙니다. 4줄 이상이라는 이유만으로 "
+            "FAIL하거나 정확히 3줄로 줄이라고 요구하지 마세요. "
+            "period의 year_ganzhi·month_ganzhi·day_ganzhi는 선택 날짜의 연간지·월간지·"
+            "일진이어야 하며 연주·월주·일주 또는 날짜의 원국이라고 부르면 FAIL하세요. "
             "도구를 사용하지 마세요."
         )
     ]
@@ -386,7 +529,9 @@ def review_prompt(
             [
                 f"\n=== RECORD {spec['id']} ===",
                 "[RAW RUNTIME FACTS]\n"
-                + json.dumps(raw, ensure_ascii=False, separators=(",", ":"), sort_keys=True),
+                + json.dumps(
+                    raw, ensure_ascii=False, separators=(",", ":"), sort_keys=True
+                ),
                 "[ALLOWED EVIDENCE]\n"
                 + json.dumps(
                     _evidence_payload(spec),
@@ -421,6 +566,7 @@ def _provider_call(
     schema: Mapping[str, Any],
     environment: Mapping[str, str],
     timeout_seconds: int,
+    model: str | None = None,
 ) -> dict[str, Any]:
     started = time.monotonic()
     with tempfile.TemporaryDirectory(prefix=f"mix2k-v4-{provider}-") as directory:
@@ -431,6 +577,7 @@ def _provider_call(
                 "claude",
                 "-p",
                 "--safe-mode",
+                "--strict-mcp-config",
                 "--disable-slash-commands",
                 "--tools",
                 "",
@@ -438,7 +585,7 @@ def _provider_call(
                 "dontAsk",
                 "--no-session-persistence",
                 "--model",
-                "sonnet",
+                model or "sonnet",
                 "--output-format",
                 "json",
                 "--json-schema",
@@ -456,6 +603,12 @@ def _provider_call(
                 "--ephemeral",
                 "--ignore-user-config",
                 "--ignore-rules",
+                "--strict-config",
+                *(
+                    argument
+                    for feature in CODEX_DISABLED_FEATURES
+                    for argument in ("--disable", feature)
+                ),
                 "--skip-git-repo-check",
                 "--sandbox",
                 "read-only",
@@ -463,6 +616,7 @@ def _provider_call(
                 str(working),
                 "--color",
                 "never",
+                *(["--model", model] if model is not None else []),
                 "--output-schema",
                 str(schema_path),
                 "--output-last-message",
@@ -483,7 +637,9 @@ def _provider_call(
                 check=False,
             )
         except (OSError, subprocess.SubprocessError) as exc:
-            raise Mix2KV4TeacherError(f"{provider} subscription call이 중단됐습니다.") from exc
+            raise Mix2KV4TeacherError(
+                f"{provider} subscription call이 중단됐습니다."
+            ) from exc
         if result.returncode != 0:
             raise Mix2KV4TeacherError(
                 f"{provider} subscription call이 exit {result.returncode}로 실패했습니다."
@@ -496,16 +652,22 @@ def _provider_call(
                 structured = envelope.get("structured_output")
             else:
                 if output_path is None or not output_path.is_file():
-                    raise Mix2KV4TeacherError("Codex structured output 파일이 없습니다.")
+                    raise Mix2KV4TeacherError(
+                        "Codex structured output 파일이 없습니다."
+                    )
                 if output_path.stat().st_size > MAX_PROVIDER_OUTPUT_BYTES:
                     raise Mix2KV4TeacherError("Codex output이 용량 상한을 넘었습니다.")
                 structured = json.loads(output_path.read_text(encoding="utf-8"))
         except (OSError, UnicodeError, json.JSONDecodeError, AttributeError) as exc:
             if isinstance(exc, Mix2KV4TeacherError):
                 raise
-            raise Mix2KV4TeacherError(f"{provider} structured output을 읽지 못했습니다.") from exc
+            raise Mix2KV4TeacherError(
+                f"{provider} structured output을 읽지 못했습니다."
+            ) from exc
         if not isinstance(structured, dict):
-            raise Mix2KV4TeacherError(f"{provider} structured output이 object가 아닙니다.")
+            raise Mix2KV4TeacherError(
+                f"{provider} structured output이 object가 아닙니다."
+            )
     return {
         "structured": structured,
         "elapsed_seconds": round(time.monotonic() - started, 3),
@@ -621,7 +783,9 @@ def _load_or_create_state(
 
 
 def _status_counts(state: Mapping[str, Any]) -> dict[str, int]:
-    return dict(sorted(Counter(row["status"] for row in state["records"].values()).items()))
+    return dict(
+        sorted(Counter(row["status"] for row in state["records"].values()).items())
+    )
 
 
 def _ordered_pending(
@@ -630,8 +794,7 @@ def _ordered_pending(
     return [
         record_id
         for record_id in state["selection_order"]
-        if state["records"][record_id]["status"] == status
-        and record_id in specs_by_id
+        if state["records"][record_id]["status"] == status and record_id in specs_by_id
     ]
 
 
@@ -647,8 +810,7 @@ def _process_draft_batch(
 ) -> float:
     specs = [specs_by_id[record_id] for record_id in record_ids]
     feedback = {
-        record_id: state["records"][record_id]["feedback"]
-        for record_id in record_ids
+        record_id: state["records"][record_id]["feedback"] for record_id in record_ids
     }
     call = _provider_call(
         provider=provider,
@@ -661,6 +823,14 @@ def _process_draft_batch(
     for record_id in record_ids:
         record = state["records"][record_id]
         draft = drafts[record_id]
+        if all(
+            isinstance(draft.get(field), list)
+            and all(isinstance(value, str) for value in draft[field])
+            for field in ("used_fact_paths", "used_fact_values")
+        ):
+            draft = dict(draft)
+            for field in ("used_fact_paths", "used_fact_values"):
+                draft[field] = list(dict.fromkeys(draft[field]))
         attempt = {
             "provider": provider,
             "attempt": len(record["draft_attempts"]) + 1,
@@ -926,8 +1096,7 @@ def run_pipeline(
     target = output_root / (
         f"{mode}-{spec_manifest['build_id']}-{code_sha[:8]}-{selection_sha[:8]}"
     )
-    target.mkdir(parents=True, exist_ok=True, mode=PRIVATE_DIR_MODE)
-    target.chmod(PRIVATE_DIR_MODE)
+    _ensure_private_directory(target, "teacher pipeline target")
     lock_path = target / ".pipeline.lock"
     lock_descriptor = os.open(lock_path, os.O_CREAT | os.O_RDWR, PRIVATE_FILE_MODE)
     try:

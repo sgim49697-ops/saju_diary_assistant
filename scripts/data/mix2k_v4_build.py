@@ -48,22 +48,25 @@ from scripts.runtime.chart_day_adapter import (
     public_chart,
     public_period,
 )
+from scripts.runtime.chart_day_model_projection import (
+    MODEL_PROJECTION_ID,
+)
 from scripts.training.phase5_dashboard_v1_11 import (
     _runtime_model_context_from_binding,
 )
 
 DEFAULT_CONFIG = REPO_ROOT / (
-    "configs/data_versions/saju_1b_baseline/"
-    "mix2k-v4-chart-day-8k-v1.0.0.json"
+    "configs/data_versions/saju_1b_baseline/mix2k-v4-chart-day-8k-v1.0.1.json"
 )
 DEFAULT_OUTPUT_ROOT = REPO_ROOT / (
-    "data/derived/saju_1b_baseline/mix2k-v4-chart-day-8k/specs/v1.0.0"
+    "data/derived/saju_1b_baseline/mix2k-v4-chart-day-8k/specs/v1.0.1"
 )
-BOUND_PROMPT = REPO_ROOT / "configs/chat_prompts/saju_bound_chart_v1.txt"
+BOUND_PROMPT = REPO_ROOT / "configs/chat_prompts/saju_bound_chart_v2.txt"
 INTAKE_PROMPT = REPO_ROOT / "configs/chat_prompts/saju_intake_handoff_v1.txt"
 GENERATOR_PATH = Path(__file__).resolve()
 CONTRACTS_PATH = GENERATOR_PATH.with_name("mix2k_v4_contracts.py")
 DASHBOARD_CONTEXT_PATH = REPO_ROOT / "scripts/training/phase5_dashboard_v1_11.py"
+MODEL_PROJECTION_PATH = REPO_ROOT / "scripts/runtime/chart_day_model_projection.py"
 MAX_CONFIG_BYTES = 128 * 1024
 EXPECTED_DEV_AXES = {
     "schema_literacy": 40,
@@ -85,7 +88,18 @@ REGRESSION_PERIOD = {
     "month_ganzhi": "丙申",
     "day_ganzhi": "己卯",
 }
-CITIES = ("서울", "부산", "대구", "인천", "광주", "대전", "울산", "제주", "수원", "춘천")
+CITIES = (
+    "서울",
+    "부산",
+    "대구",
+    "인천",
+    "광주",
+    "대전",
+    "울산",
+    "제주",
+    "수원",
+    "춘천",
+)
 
 
 class Mix2KV4BuildError(RuntimeError):
@@ -112,7 +126,11 @@ def _json_bytes(value: Any) -> bytes:
 
 
 def _load_config(path: Path) -> dict[str, Any]:
-    if path.is_symlink() or not path.is_file() or not 1 <= path.stat().st_size <= MAX_CONFIG_BYTES:
+    if (
+        path.is_symlink()
+        or not path.is_file()
+        or not 1 <= path.stat().st_size <= MAX_CONFIG_BYTES
+    ):
         raise Mix2KV4BuildError("MIX2K v4 config가 없거나 안전하지 않습니다.")
     try:
         value = json.loads(path.read_text(encoding="utf-8"))
@@ -120,7 +138,11 @@ def _load_config(path: Path) -> dict[str, Any]:
         raise Mix2KV4BuildError("MIX2K v4 config를 읽지 못했습니다.") from exc
     if not isinstance(value, dict):
         raise Mix2KV4BuildError("MIX2K v4 config 최상위는 object여야 합니다.")
-    axes = {item.get("id"): item.get("rows") for item in value.get("axes", []) if isinstance(item, dict)}
+    axes = {
+        item.get("id"): item.get("rows")
+        for item in value.get("axes", [])
+        if isinstance(item, dict)
+    }
     base_model = value.get("base_model")
     token_budget = value.get("token_budget")
     runtime = value.get("runtime")
@@ -135,8 +157,7 @@ def _load_config(path: Path) -> dict[str, Any]:
         or axes != EXPECTED_AXES
         or not isinstance(base_model, dict)
         or base_model.get("repository") != "kakaocorp/kanana-2-1.3b-instruct"
-        or base_model.get("revision")
-        != "bf4786aa2a1908adce942d53976270132732f720"
+        or base_model.get("revision") != "bf4786aa2a1908adce942d53976270132732f720"
         or set(base_model.get("files", {}))
         != {
             "chat_template.jinja",
@@ -163,13 +184,23 @@ def _load_config(path: Path) -> dict[str, Any]:
         or runtime.get("release_id") != RUNTIME_RELEASE_ID
         or runtime.get("binding_id") != RUNTIME_BINDING_ID
         or runtime.get("binding_schema_version") != RUNTIME_BINDING_SCHEMA
+        or runtime.get("model_projection_id") != MODEL_PROJECTION_ID
+        or runtime.get("training_prompt_profile") != "bound_chart_v2"
+        or runtime.get("serving_prompt_profile_required") != "bound_chart_v2"
+        or runtime.get("current_dashboard_prompt_profile") != "bound_chart_v1"
+        or runtime.get("promotion_requires_prompt_profile_upgrade") is not True
         or runtime.get("unique_charts") != 600
         or runtime.get("unique_target_dates") != 300
         or runtime.get("approved_target_minimum") != "2026-09-02"
         or runtime.get("approved_target_maximum") != "2049-12-31"
         or any(
             runtime.get(key) is not False
-            for key in ("allow_relations", "allow_daeun", "allow_range_periods", "allow_model_tool_calls")
+            for key in (
+                "allow_relations",
+                "allow_daeun",
+                "allow_range_periods",
+                "allow_model_tool_calls",
+            )
         )
         or not isinstance(dev, dict)
         or dev.get("rows") != 200
@@ -217,7 +248,9 @@ def _validate_model_snapshot(
     for name, expected in model["files"].items():
         path = tokenizer_path / name
         if path.is_symlink() or not path.is_file():
-            raise Mix2KV4BuildError(f"K0 model snapshot 파일이 없거나 symlink입니다: {name}")
+            raise Mix2KV4BuildError(
+                f"K0 model snapshot 파일이 없거나 symlink입니다: {name}"
+            )
         observed[name] = sha256_file(path)
         if observed[name] != expected:
             raise Mix2KV4BuildError(f"K0 model snapshot hash가 다릅니다: {name}")
@@ -275,14 +308,19 @@ def _find_regression_chart(
             return chart_id, chart
         current += timedelta(days=1)
         index += 1
-    raise Mix2KV4BuildError("필수 실제 regression 원국을 runtime으로 재현하지 못했습니다.")
+    raise Mix2KV4BuildError(
+        "필수 실제 regression 원국을 runtime으로 재현하지 못했습니다."
+    )
 
 
 def _target_dates(count: int) -> list[str]:
     start = date(2026, 9, 2)
     end = date(2049, 12, 31)
     span = (end - start).days
-    values = [start + timedelta(days=math.floor(index * span / (count - 1))) for index in range(count)]
+    values = [
+        start + timedelta(days=math.floor(index * span / (count - 1)))
+        for index in range(count)
+    ]
     if len(set(values)) != count or values[0] != start or values[-1] != end:
         raise Mix2KV4BuildError("단일 일진 날짜 표본이 고유하지 않습니다.")
     return [value.isoformat() for value in values]
@@ -314,8 +352,13 @@ def _calculate_periods(
     return values
 
 
-def _binding(chart: dict[str, Any], period: dict[str, Any], namespace: str) -> dict[str, Any]:
-    value = {"chart": deepcopy(chart), "period": deepcopy(period)}
+def _binding(
+    chart: dict[str, Any], period: dict[str, Any], namespace: str
+) -> dict[str, Any]:
+    value = {
+        "chart": deepcopy(chart),
+        "period": deepcopy(period),
+    }
     snapshot_sha256 = sha256_bytes(canonical_json_bytes(value))
     capability_sha256 = sha256_bytes(
         b"mix2k-v4-public-synthetic\0" + namespace.encode("ascii")
@@ -353,7 +396,7 @@ SCHEMA_QUESTIONS = (
     "연주·월주·일주·시주가 각각 무엇인지 JSON에서 정확히 읽어줘.",
     "이 원국의 일간과 그 오행·음양을 근거와 함께 풀어줘.",
     "선택 날짜의 연간지, 월간지, 일진을 서로 바꾸지 말고 알려줘.",
-    "원국의 각 기둥 천간과 지지를 항목별로 읽어줘.",
+    "원국 각 기둥의 천간·지지와 각각의 오행·음양을 항목별로 읽어줘.",
     "일주의 천간·지지·지장간을 JSON에 있는 값만 사용해서 알려줘.",
     "각 기둥의 stem ten-god와 branch ten-god를 위치별로 구분해줘.",
     "표면 오행 개수를 누락 없이 읽고, 계산되지 않은 판단은 덧붙이지 마.",
@@ -433,23 +476,58 @@ UNCERTAINTY_QUESTIONS = (
     "제공되지 않은 십신도 추정해서 채워줘.",
 )
 HARD_QA = (
-    ("원국 전체와 일주는 같은 말이야?", "원국 전체는 네 기둥이고 일주는 그중 day 위치의 한 기둥이다."),
-    ("일간은 원국의 어느 값에서 읽어?", "일간은 일주 천간이며 chart.hard_facts.day_master에도 표시된다."),
-    ("날짜의 year_ganzhi가 오늘 일진이야?", "아니다. 오늘 일진은 period.day_ganzhi이고 year_ganzhi는 해당 날짜가 속한 해의 간지다."),
-    ("period.month_ganzhi와 day_ganzhi는 같은 값이야?", "아니다. month_ganzhi는 월간지이고 day_ganzhi는 해당 날짜의 일진이다."),
-    ("hidden_stems에 없는 천간을 추가해도 돼?", "안 된다. hidden_stems는 제공된 배열의 값만 읽어야 한다."),
-    ("relation이 없으면 합충을 직접 계산해도 돼?", "안 된다. 관계 계산 결과가 제공되지 않았으면 새 사실처럼 만들지 않는다."),
-    ("blocked 결과를 계산 완료라고 말해도 돼?", "안 된다. blocked 상태와 한계를 그대로 설명해야 한다."),
-    ("원국의 year와 period의 year_ganzhi는 같은 필드야?", "아니다. 하나는 출생 원국의 연주이고 다른 하나는 선택 날짜가 속한 해의 간지다."),
-    ("오행 개수로 신강약을 바로 정할 수 있어?", "아니다. surface five elements만으로 제공되지 않은 신강약을 새로 판정하지 않는다."),
-    ("K0의 자연스러운 설명에 새 간지가 나오면 Gold로 써도 돼?", "안 된다. 사주 사실은 현재 허용 evidence와 일치하는 값만 Gold로 사용한다."),
+    (
+        "원국 전체와 일주는 같은 말이야?",
+        "원국 전체는 네 기둥이고 일주는 그중 day 위치의 한 기둥이다.",
+    ),
+    (
+        "일간은 원국의 어느 값에서 읽어?",
+        "일간은 일주 천간이며 chart.hard_facts.day_master에도 표시된다.",
+    ),
+    (
+        "날짜의 year_ganzhi가 오늘 일진이야?",
+        "아니다. 오늘 일진은 period.day_ganzhi이고 year_ganzhi는 해당 날짜가 속한 해의 간지다.",
+    ),
+    (
+        "period.month_ganzhi와 day_ganzhi는 같은 값이야?",
+        "아니다. month_ganzhi는 월간지이고 day_ganzhi는 해당 날짜의 일진이다.",
+    ),
+    (
+        "hidden_stems에 없는 천간을 추가해도 돼?",
+        "안 된다. hidden_stems는 제공된 배열의 값만 읽어야 한다.",
+    ),
+    (
+        "relation이 없으면 합충을 직접 계산해도 돼?",
+        "안 된다. 관계 계산 결과가 제공되지 않았으면 새 사실처럼 만들지 않는다.",
+    ),
+    (
+        "blocked 결과를 계산 완료라고 말해도 돼?",
+        "안 된다. blocked 상태와 한계를 그대로 설명해야 한다.",
+    ),
+    (
+        "원국의 year와 period의 year_ganzhi는 같은 필드야?",
+        "아니다. 하나는 출생 원국의 연주이고 다른 하나는 선택 날짜가 속한 해의 간지다.",
+    ),
+    (
+        "오행 개수로 신강약을 바로 정할 수 있어?",
+        "아니다. surface five elements만으로 제공되지 않은 신강약을 새로 판정하지 않는다.",
+    ),
+    (
+        "K0의 자연스러운 설명에 새 간지가 나오면 Gold로 써도 돼?",
+        "안 된다. 사주 사실은 현재 허용 evidence와 일치하는 값만 Gold로 사용한다.",
+    ),
 )
 
 
-def _full_prompt(binding: dict[str, Any], user_messages: Sequence[dict[str, str]]) -> list[dict[str, str]]:
+def _full_prompt(
+    binding: dict[str, Any], user_messages: Sequence[dict[str, str]]
+) -> list[dict[str, str]]:
     runtime_context, _, _ = _runtime_model_context_from_binding(binding)
     system = BOUND_PROMPT.read_text(encoding="utf-8").strip()
-    return [{"role": "system", "content": f"{system}\n\n{runtime_context}"}, *deepcopy(list(user_messages))]
+    return [
+        {"role": "system", "content": f"{system}\n\n{runtime_context}"},
+        *deepcopy(list(user_messages)),
+    ]
 
 
 def _safe_previous_answer(binding: Mapping[str, Any]) -> str:
@@ -486,7 +564,11 @@ def _spec(
     static_evidence: Sequence[tuple[str, str]] = (),
 ) -> dict[str, Any]:
     row_id = _stable_id("m2v4_", DATASET_VERSION, axis, local_index)
-    flattened = flatten_runtime_facts(binding["value"]) if binding is not None else list(static_evidence)
+    flattened = (
+        flatten_runtime_facts(binding["value"])
+        if binding is not None
+        else list(static_evidence)
+    )
     drafter = "claude" if global_index % 2 == 0 else "codex"
     substantive = axis in SUBSTANTIVE_AXES
     return {
@@ -543,19 +625,35 @@ def _training_specs(
                     binding,
                     [
                         {"role": "user", "content": first},
-                        {"role": "assistant", "content": _safe_previous_answer(binding)},
+                        {
+                            "role": "assistant",
+                            "content": _safe_previous_answer(binding),
+                        },
                         {"role": "user", "content": followup},
                     ],
                 )
             elif axis == "intake_state_correction":
                 prompt = [
                     {"role": "system", "content": intake_system},
-                    {"role": "user", "content": INTAKE_QUESTIONS[local_index % len(INTAKE_QUESTIONS)]},
+                    {
+                        "role": "user",
+                        "content": INTAKE_QUESTIONS[
+                            local_index % len(INTAKE_QUESTIONS)
+                        ],
+                    },
                 ]
             elif axis == "general_korean_empathy":
                 prompt = [
-                    {"role": "system", "content": "사용자의 말을 존중하고 자연스러운 한국어로 구체적으로 돕습니다."},
-                    {"role": "user", "content": GENERAL_QUESTIONS[local_index % len(GENERAL_QUESTIONS)]},
+                    {
+                        "role": "system",
+                        "content": "사용자의 말을 존중하고 자연스러운 한국어로 구체적으로 돕습니다.",
+                    },
+                    {
+                        "role": "user",
+                        "content": GENERAL_QUESTIONS[
+                            local_index % len(GENERAL_QUESTIONS)
+                        ],
+                    },
                 ]
             elif axis == "uncertainty_blocked_boundary":
                 if local_index % 2 == 0:
@@ -564,19 +662,34 @@ def _training_specs(
                     binding = _binding(chart, period, f"boundary-{local_index:04d}")
                     prompt = _full_prompt(
                         binding,
-                        [{"role": "user", "content": UNCERTAINTY_QUESTIONS[local_index % len(UNCERTAINTY_QUESTIONS)]}],
+                        [
+                            {
+                                "role": "user",
+                                "content": UNCERTAINTY_QUESTIONS[
+                                    local_index % len(UNCERTAINTY_QUESTIONS)
+                                ],
+                            }
+                        ],
                     )
                     flattened = flatten_runtime_facts(binding["value"])
                     static = list(flattened)
                 else:
                     prompt = [
                         {"role": "system", "content": intake_system},
-                        {"role": "user", "content": UNCERTAINTY_QUESTIONS[local_index % len(UNCERTAINTY_QUESTIONS)]},
+                        {
+                            "role": "user",
+                            "content": UNCERTAINTY_QUESTIONS[
+                                local_index % len(UNCERTAINTY_QUESTIONS)
+                            ],
+                        },
                     ]
             elif axis == "hard_fact_short_qa":
                 question, evidence = HARD_QA[local_index % len(HARD_QA)]
                 prompt = [
-                    {"role": "system", "content": "제공된 schema 규칙만 사용해 짧고 정확하게 답합니다."},
+                    {
+                        "role": "system",
+                        "content": "제공된 schema 규칙만 사용해 짧고 정확하게 답합니다.",
+                    },
                     {"role": "user", "content": question},
                 ]
                 static = [("schema_rule", evidence)]
@@ -609,14 +722,19 @@ def _dev_case(
         messages = _full_prompt(binding, [{"role": "user", "content": turns[0]}])
     else:
         messages = [
-            {"role": "system", "content": "사용자의 요청에 정확하고 자연스러운 한국어로 답합니다."},
+            {
+                "role": "system",
+                "content": "사용자의 요청에 정확하고 자연스러운 한국어로 답합니다.",
+            },
             {"role": "user", "content": turns[0]},
         ]
     expected = None
     if binding is not None:
         values = _pillar_values(binding)
         expected = {
-            "natal_pillars": {key: values[key] for key in ("year", "month", "day", "hour")},
+            "natal_pillars": {
+                key: values[key] for key in ("year", "month", "day", "hour")
+            },
             "day_master": values["day_master"],
             "target_date": values["target_date"],
             "period_year_ganzhi": values["period_year"],
@@ -662,11 +780,10 @@ def _development_cases(
     )
     regression_binding = _binding(regression_chart, regression_period, "dev-regression")
     observed = _pillar_values(regression_binding)
-    if (
-        {key: observed[key] for key in REGRESSION_PILLARS} != REGRESSION_PILLARS
-        or {key: observed[f"period_{key.removesuffix('_ganzhi')}"] for key in REGRESSION_PERIOD}
-        != REGRESSION_PERIOD
-    ):
+    if {key: observed[key] for key in REGRESSION_PILLARS} != REGRESSION_PILLARS or {
+        key: observed[f"period_{key.removesuffix('_ganzhi')}"]
+        for key in REGRESSION_PERIOD
+    } != REGRESSION_PERIOD:
         raise Mix2KV4BuildError("필수 실제 regression facts가 다릅니다.")
     cases.append(
         _dev_case(
@@ -702,7 +819,11 @@ def _development_cases(
                 )
                 index += 1
             question = templates[axis][local_index % len(templates[axis])]
-            turns = (question, FOLLOWUPS[local_index % len(FOLLOWUPS)]) if axis == "followup" else (question,)
+            turns = (
+                (question, FOLLOWUPS[local_index % len(FOLLOWUPS)])
+                if axis == "followup"
+                else (question,)
+            )
             cases.append(
                 _dev_case(
                     case_id=_stable_id("dev2k_", axis, local_index),
@@ -753,7 +874,9 @@ def _projection_report(
     try:
         from transformers import AutoTokenizer
     except Exception as exc:
-        raise Mix2KV4BuildError("token projection용 Transformers import가 실패했습니다.") from exc
+        raise Mix2KV4BuildError(
+            "token projection용 Transformers import가 실패했습니다."
+        ) from exc
     tokenizer = AutoTokenizer.from_pretrained(
         tokenizer_path,
         local_files_only=True,
@@ -786,6 +909,7 @@ def _projection_report(
         raise Mix2KV4BuildError(
             f"production-like prompt가 입력 4096 token 상한을 넘습니다: {maximum}"
         )
+
     def stats(values: Sequence[int]) -> dict[str, int | float]:
         ordered = sorted(values)
         return {
@@ -796,6 +920,7 @@ def _projection_report(
             "maximum": ordered[-1],
             "mean": round(sum(ordered) / len(ordered), 3),
         }
+
     return {
         "schema_version": "1.0.0",
         "report_type": "full_runtime_vs_audit_projection_token_ab",
@@ -813,9 +938,13 @@ def _projection_report(
 
 def _runtime_material(
     config: Mapping[str, Any], ephemeris: Path
-) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]], dict[str, Any]]:
+) -> tuple[
+    list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]], dict[str, Any]
+]:
     if ephemeris.is_symlink() or not ephemeris.is_file() or not ephemeris.is_absolute():
-        raise Mix2KV4BuildError("DE440s ephemeris는 symlink가 아닌 절대경로 파일이어야 합니다.")
+        raise Mix2KV4BuildError(
+            "DE440s ephemeris는 symlink가 아닌 절대경로 파일이어야 합니다."
+        )
     with tempfile.TemporaryDirectory(prefix="mix2k-v4-runtime-") as temporary:
         key = Path(temporary) / "synthetic-runtime-hmac.key"
         key.write_bytes(secrets.token_bytes(32))
@@ -826,7 +955,9 @@ def _runtime_material(
             enable_approved_runtime=True,
             ephemeris_path=ephemeris,
             id_key_file=key,
-            today_provider=lambda: date.fromisoformat(config["runtime"]["fixed_today_kst"]),
+            today_provider=lambda: date.fromisoformat(
+                config["runtime"]["fixed_today_kst"]
+            ),
         ) as engine:
             chart_total = int(config["runtime"]["unique_charts"]) + sum(
                 EXPECTED_DEV_AXES.values()
@@ -844,7 +975,9 @@ def _runtime_material(
     training_chart_hashes = {
         sha256_bytes(canonical_json_bytes(chart)) for chart in training_charts
     }
-    dev_chart_hashes = {sha256_bytes(canonical_json_bytes(chart)) for chart in dev_charts}
+    dev_chart_hashes = {
+        sha256_bytes(canonical_json_bytes(chart)) for chart in dev_charts
+    }
     if len(training_chart_hashes) != training_count:
         raise Mix2KV4BuildError("합성 training 원국이 600건 고유하지 않습니다.")
     if training_chart_hashes.intersection(dev_chart_hashes):
@@ -868,7 +1001,9 @@ def build(
     _reject_symlink_components(output_root, "private output")
     config = _load_config(config_path)
     model_files = _validate_model_snapshot(tokenizer_path, config)
-    training_charts, dev_charts, periods, regression_chart = _runtime_material(config, ephemeris)
+    training_charts, dev_charts, periods, regression_chart = _runtime_material(
+        config, ephemeris
+    )
     dev = _development_cases(dev_charts, periods, regression_chart)
     specs = _training_specs(config, training_charts, periods)
     dev_bytes = jsonl_bytes(dev)
@@ -885,6 +1020,8 @@ def build(
         "generator_sha256": sha256_file(GENERATOR_PATH),
         "contracts_sha256": sha256_file(CONTRACTS_PATH),
         "dashboard_context_source_sha256": sha256_file(DASHBOARD_CONTEXT_PATH),
+        "model_projection_id": MODEL_PROJECTION_ID,
+        "model_projection_source_sha256": sha256_file(MODEL_PROJECTION_PATH),
         "bound_prompt_sha256": sha256_file(BOUND_PROMPT),
         "intake_prompt_sha256": sha256_file(INTAKE_PROMPT),
         "runtime_release_registry_sha256": sha256_file(
@@ -911,7 +1048,9 @@ def build(
         "artifact_sha256": {
             "evaluation/dev_cases_200.jsonl": identity["dev_sha256"],
             "training/specs_2000.jsonl": identity["specs_sha256"],
-            "reports/full_runtime_projection_ab.json": identity["projection_report_sha256"],
+            "reports/full_runtime_projection_ab.json": identity[
+                "projection_report_sha256"
+            ],
         },
         "rows": {"development_evaluation": 200, "training_specs": 2000},
         "development_frozen_before_teacher_generation": True,
@@ -950,7 +1089,9 @@ def build(
 
 
 def _parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="MIX2K v4 full-runtime spec/dev builder")
+    parser = argparse.ArgumentParser(
+        description="MIX2K v4 full-runtime spec/dev builder"
+    )
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
     parser.add_argument("--ephemeris", type=Path, required=True)
     parser.add_argument("--tokenizer", type=Path, required=True)

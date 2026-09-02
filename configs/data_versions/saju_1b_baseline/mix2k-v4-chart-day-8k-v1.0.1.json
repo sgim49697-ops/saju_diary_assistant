@@ -1,0 +1,104 @@
+{
+  "schema_version": "1.0.0",
+  "dataset_version": "mix2k-v4-chart-day-8k",
+  "record_schema_version": "4.0.0",
+  "selection_seed": "mix2k-v4-chart-day-8k|20260902|v1",
+  "base_model": {
+    "repository": "kakaocorp/kanana-2-1.3b-instruct",
+    "revision": "bf4786aa2a1908adce942d53976270132732f720",
+    "files": {
+      "model.safetensors": "49aa6cd8686563c59321d83810731956c61ec8d5c8538a249d38007986cdc942",
+      "tokenizer.json": "1c4be9ecf77c926456fb82d4cf07ff1218a91907f3408f44895d2b01e0f2b5ab",
+      "tokenizer_config.json": "1cdee8fcd4f6209e07e6d9966c8a3ff2d738830d79475193e94e448e153ae2d5",
+      "chat_template.jinja": "b8ee6b31575eada17ebbe73d3f1ac65d3efde64f0a25ff922031dec7e1cae3e3",
+      "config.json": "fe14b20b4b616d62ca0682312c2fcd2b90d9a836d14a1ff6448db3f533fd15a1"
+    }
+  },
+  "runtime": {
+    "release_registry": "configs/runtime/calculation/releases/v1.5.0/release_registry.json",
+    "release_id": "saju-runtime-release-v1.5.0-8b1d6ea2d46e",
+    "binding_schema_version": "1.1.0",
+    "binding_id": "saju-chart-day-dashboard-binding-v1.1.0",
+    "model_projection_id": "saju-chart-day-model-projection-v1.0.0",
+    "training_prompt_profile": "bound_chart_v2",
+    "serving_prompt_profile_required": "bound_chart_v2",
+    "current_dashboard_prompt_profile": "bound_chart_v1",
+    "promotion_requires_prompt_profile_upgrade": true,
+    "fixed_today_kst": "2026-09-02",
+    "unique_charts": 600,
+    "unique_target_dates": 300,
+    "approved_target_minimum": "2026-09-02",
+    "approved_target_maximum": "2049-12-31",
+    "allow_relations": false,
+    "allow_daeun": false,
+    "allow_range_periods": false,
+    "allow_model_tool_calls": false
+  },
+  "token_budget": {
+    "max_prompt_tokens": 4096,
+    "max_completion_tokens": 4096,
+    "max_length": 8192,
+    "training_selection_ladder": [2048, 3584, 4096, 8192],
+    "minimum_training_max_length": 2048,
+    "truncate": false,
+    "substantive_minimum_sentences": 3,
+    "substantive_minimum_nonempty_lines": 3,
+    "preferred_completion_maximum": null
+  },
+  "prompt_length_distribution": {
+    "mode": "observe_production_like_no_padding"
+  },
+  "axes": [
+    {"id": "structured_fact_schema_literacy", "rows": 300, "substantive": true, "runtime_scope": "chart_and_day"},
+    {"id": "chart_facts_natural_explanation", "rows": 300, "substantive": true, "runtime_scope": "chart_and_day"},
+    {"id": "chart_day_today_flow", "rows": 450, "substantive": true, "runtime_scope": "chart_and_day"},
+    {"id": "followup_explain_grounding", "rows": 300, "substantive": true, "runtime_scope": "chart_and_day"},
+    {"id": "intake_state_correction", "rows": 250, "substantive": false, "runtime_scope": "mixed"},
+    {"id": "general_korean_empathy", "rows": 250, "substantive": true, "runtime_scope": "none"},
+    {"id": "uncertainty_blocked_boundary", "rows": 100, "substantive": true, "runtime_scope": "mixed"},
+    {"id": "hard_fact_short_qa", "rows": 50, "substantive": false, "runtime_scope": "none"}
+  ],
+  "development_evaluation": {
+    "rows": 200,
+    "freeze_before_training_generation": true,
+    "teacher_target_access_allowed": false,
+    "axes": {
+      "schema_literacy": 40,
+      "natal_explanation": 30,
+      "natal_and_today": 50,
+      "followup": 40,
+      "state_tool": 20,
+      "general_empathy": 20
+    },
+    "required_regression_id": "actual-chart-day-label-confusion-20260902"
+  },
+  "teacher": {
+    "draft_rows_per_provider": 1000,
+    "shard_rows": 20,
+    "maximum_rewrite_rounds": 2,
+    "claude_model": "sonnet",
+    "codex_model": "configured_subscription_default",
+    "require_draft_self_check": true,
+    "require_peer_review": true,
+    "require_deterministic_validation": true,
+    "api_keys_allowed": false,
+    "restricted_rows_allowed": false
+  },
+  "diversity": {
+    "exact_duplicate_answers_maximum": 0,
+    "normalized_answer_multiplicity_maximum": 2,
+    "template_family_rows_maximum": 20,
+    "minimum_multiturn_rows": 300,
+    "minimum_unique_runtime_snapshots": 600,
+    "minimum_unique_target_dates": 300
+  },
+  "governance": {
+    "aihub_content_allowed": false,
+    "personal_data_allowed": false,
+    "sealed_blind_access_allowed": false,
+    "teacher_raw_outputs_public": false,
+    "k0_style_reference_allowed": true,
+    "k0_saju_facts_as_gold_allowed": false,
+    "training_promotion_allowed": false
+  }
+}
