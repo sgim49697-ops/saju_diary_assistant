@@ -1,0 +1,28 @@
+{
+  "_description": "단일 날짜 relation v1의 자동 전수 승인 기준이다.",
+  "schema_version": "1.0.0",
+  "suite_version": "saju-natal-day-relation-conformance-v1.0.0",
+  "status": "candidate_gate",
+  "matrices": {
+    "stem_ten_gods": {"expected_cases": 100, "mismatches_maximum": 0},
+    "branch_ten_gods": {"expected_cases": 120, "mismatches_maximum": 0},
+    "branch_relations": {"expected_cases": 144, "unexpected_relations_maximum": 0, "missing_relations_maximum": 0},
+    "pair_symmetry": {"expected_pair_types": 4, "mismatches_maximum": 0},
+    "punishment_direction": {"expected_distinct_groups": 3, "expected_self_branches": 4, "mismatches_maximum": 0}
+  },
+  "runtime": {
+    "single_date_parent_cases_minimum": 1,
+    "range_parent_accepted_maximum": 0,
+    "tampered_parent_accepted_maximum": 0,
+    "missing_release_accepted_maximum": 0,
+    "interpretation_fields_maximum": 0
+  },
+  "governance": {
+    "dashboard_v1_13_activated": false,
+    "strict_full_runtime_approved": false,
+    "sealed_blind_accessed": false,
+    "mix20k_v3_1_generation_allowed": false,
+    "training_execution_performed": false,
+    "model_promotion_performed": false
+  }
+}

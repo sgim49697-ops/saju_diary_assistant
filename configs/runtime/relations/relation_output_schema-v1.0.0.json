@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "saju-natal-day-relation-output-v1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["status", "fact_authority", "selected_date", "day_master", "period_ten_gods", "direct_relations", "repetitions", "provenance", "interpretation_not_included", "limitations"],
+  "properties": {
+    "status": {"const": "ok"},
+    "fact_authority": {"const": "PROFILE_DETERMINISTIC"},
+    "selected_date": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"},
+    "day_master": {"type": "string", "enum": ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"]},
+    "period_ten_gods": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["year", "month", "day"],
+      "properties": {
+        "year": {"$ref": "#/$defs/periodPillar"},
+        "month": {"$ref": "#/$defs/periodPillar"},
+        "day": {"$ref": "#/$defs/periodPillar"}
+      }
+    },
+    "direct_relations": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/directRelation"}
+    },
+    "repetitions": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/repetition"}
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["chart_snapshot_sha256", "period_snapshot_sha256", "chart_runtime_release_id", "period_runtime_release_id", "relation_policy_id", "relation_table_version", "ten_god_table_version"],
+      "properties": {
+        "chart_snapshot_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "period_snapshot_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "chart_runtime_release_id": {"const": "saju-runtime-release-v1.5.0-8b1d6ea2d46e"},
+        "period_runtime_release_id": {"const": "saju-period-daily-label-release-v1.0.0-59e326f8f086"},
+        "relation_policy_id": {"const": "KR_NATAL_DAY_RELATIONS_V1"},
+        "relation_table_version": {"const": "branch-relations-v1.0.0"},
+        "ten_god_table_version": {"const": "saju-calculation-policy-v1.0.0"}
+      }
+    },
+    "interpretation_not_included": {"const": true},
+    "limitations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string", "minLength": 1}
+    }
+  },
+  "$defs": {
+    "periodPillar": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ganzhi", "stem", "stem_ten_god", "branch", "branch_main_hidden_stem", "branch_ten_god"],
+      "properties": {
+        "ganzhi": {"type": "string", "minLength": 2, "maxLength": 2},
+        "stem": {"type": "string", "minLength": 1, "maxLength": 1},
+        "stem_ten_god": {"type": "string", "minLength": 1},
+        "branch": {"type": "string", "minLength": 1, "maxLength": 1},
+        "branch_main_hidden_stem": {"type": "string", "minLength": 1, "maxLength": 1},
+        "branch_ten_god": {"type": "string", "minLength": 1}
+      }
+    },
+    "directRelation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["period_part", "period_branch", "natal_pillar", "natal_branch", "relation", "direction_rule", "authority", "table_version"],
+      "properties": {
+        "period_part": {"const": "day_branch"},
+        "period_branch": {"type": "string", "minLength": 1, "maxLength": 1},
+        "natal_pillar": {"enum": ["year", "month", "day", "hour"]},
+        "natal_branch": {"type": "string", "minLength": 1, "maxLength": 1},
+        "relation": {"enum": ["합", "충", "형", "파", "해"]},
+        "direction_rule": {"enum": ["symmetric_pair", "symmetric_group_pair", "symmetric_self"]},
+        "authority": {"const": "PROFILE_DETERMINISTIC"},
+        "table_version": {"const": "branch-relations-v1.0.0"}
+      }
+    },
+    "repetition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["period_part", "natal_pillar", "component", "value", "authority", "table_version"],
+      "properties": {
+        "period_part": {"enum": ["year", "month", "day"]},
+        "natal_pillar": {"enum": ["year", "month", "day", "hour"]},
+        "component": {"enum": ["stem", "branch"]},
+        "value": {"type": "string", "minLength": 1, "maxLength": 1},
+        "authority": {"const": "PROFILE_DETERMINISTIC"},
+        "table_version": {"const": "branch-relations-v1.0.0"}
+      }
+    }
+  }
+}

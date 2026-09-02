@@ -1,0 +1,10 @@
+{
+  "build_id": "build-aa13a1333586",
+  "files": {
+    "aggregate.json": "3986664081e53fe60551741056793ab8c12546c77d23c0fb97996c2e82304692"
+  },
+  "immutable": true,
+  "public_summary_only": true,
+  "schema_version": "1.0.0",
+  "suite_version": "saju-natal-day-relation-conformance-v1.0.0"
+}

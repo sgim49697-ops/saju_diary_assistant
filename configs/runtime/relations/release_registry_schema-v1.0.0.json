@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "saju-natal-day-relation-release-registry-v1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "release_id", "status", "parent_chart_release", "parent_period_release", "contract_registry_sha256", "conformance_report", "feature_flag_default", "single_date_only", "dashboard_v1_13_activated", "strict_full_runtime_approved", "sealed_blind_accessed", "mix20k_v3_1_generation_allowed", "training_execution_performed", "model_promotion_performed"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "release_id": {"type": "string", "pattern": "^saju-natal-day-relation-release-v1\\.0\\.0-[0-9a-f]{12}$"},
+    "status": {"const": "approved_single_date_relations_feature_default_off"},
+    "parent_chart_release": {"const": "saju-runtime-release-v1.5.0-8b1d6ea2d46e"},
+    "parent_period_release": {"const": "saju-period-daily-label-release-v1.0.0-59e326f8f086"},
+    "contract_registry_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "conformance_report": {"type": "object"},
+    "feature_flag_default": {"const": false},
+    "single_date_only": {"const": true},
+    "dashboard_v1_13_activated": {"const": false},
+    "strict_full_runtime_approved": {"const": false},
+    "sealed_blind_accessed": {"const": false},
+    "mix20k_v3_1_generation_allowed": {"const": false},
+    "training_execution_performed": {"const": false},
+    "model_promotion_performed": {"const": false}
+  }
+}

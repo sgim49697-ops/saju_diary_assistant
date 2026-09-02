@@ -1,0 +1,41 @@
+{
+  "_description": "원국 네 지지와 승인된 단일 날짜 간의 관계 존재만 계산하는 버전 고정 정책이다.",
+  "schema_version": "1.0.0",
+  "policy_id": "KR_NATAL_DAY_RELATIONS_V1",
+  "table_version": "branch-relations-v1.0.0",
+  "ten_god_table_version": "saju-calculation-policy-v1.0.0",
+  "status": "candidate_for_automatic_conformance",
+  "authority": "PROFILE_DETERMINISTIC",
+  "ten_god_parent": {
+    "path": "configs/saju_calculation_policy-v1.0.0.json",
+    "sha256": "d6a20582dd52d3928674b3e6a65a586d6f71c1e22e2ab8b925ca431debf3286c",
+    "branch_basis": "main_hidden_stem"
+  },
+  "relation_order": ["합", "충", "형", "파", "해"],
+  "pair_relations": {
+    "합": [["子", "丑"], ["寅", "亥"], ["卯", "戌"], ["辰", "酉"], ["巳", "申"], ["午", "未"]],
+    "충": [["子", "午"], ["丑", "未"], ["寅", "申"], ["卯", "酉"], ["辰", "戌"], ["巳", "亥"]],
+    "파": [["子", "酉"], ["丑", "辰"], ["寅", "亥"], ["卯", "午"], ["巳", "申"], ["未", "戌"]],
+    "해": [["子", "未"], ["丑", "午"], ["寅", "巳"], ["卯", "辰"], ["申", "亥"], ["酉", "戌"]]
+  },
+  "punishment": {
+    "distinct_groups": [["寅", "巳", "申"], ["丑", "戌", "未"], ["子", "卯"]],
+    "distinct_group_rule": "all_distinct_pairs_symmetric",
+    "self_branches": ["辰", "午", "酉", "亥"],
+    "self_rule": "same_branch_only_symmetric"
+  },
+  "repetition": {
+    "period_parts": ["year", "month", "day"],
+    "natal_pillars": ["year", "month", "day", "hour"],
+    "components": ["stem", "branch"],
+    "rule": "exact_identity_only"
+  },
+  "scope": {
+    "single_date_only": true,
+    "direct_relation_period_part": "day_branch",
+    "relation_priority_included": false,
+    "transformation_completion_included": false,
+    "interpretation_included": false,
+    "event_prediction_included": false
+  }
+}

@@ -1,0 +1,86 @@
+{
+  "build_id": "build-aa13a1333586",
+  "contract_registry_sha256": "612eb8ea719824765ab82fa260e8935272a3eaee7cde6c09cb35f495e63479ca",
+  "diagnostic_target_met": true,
+  "governance": {
+    "dashboard_v1_13_activated": false,
+    "feature_flag_default": false,
+    "interpretation_included": false,
+    "mix20k_v3_1_generation_allowed": false,
+    "model_promotion_performed": false,
+    "range_relation_arrays_supported": false,
+    "sealed_blind_accessed": false,
+    "single_date_only": true,
+    "strict_full_runtime_approved": false,
+    "training_execution_performed": false
+  },
+  "implementation_sha256": {
+    "configs/runtime/relations/conformance_gate-v1.0.0.json": "457ce645c5ce7bcfd802332cbf74691434841c6d1fe693a13918aa3a84823ebf",
+    "configs/runtime/relations/registry-v1.0.0.json": "612eb8ea719824765ab82fa260e8935272a3eaee7cde6c09cb35f495e63479ca",
+    "configs/runtime/relations/relation_output_schema-v1.0.0.json": "f23b43c5a2efda0dfe66f4d9276b68d6f5b5d2a539cb10b05a4efc2b61e67b18",
+    "configs/runtime/relations/relation_policy-v1.0.0.json": "43741098660317ad37f41bb4ea7eebb62cee02897b5cff291e884913a89baab4",
+    "configs/runtime/relations/release_registry_schema-v1.0.0.json": "70f9872246971ae58c8661582698afe3fae1188b2fa23f47583ed05ad4d55c71",
+    "scripts/evaluation/saju_runtime/relation_conformance_v1.py": "dfe3ad00353f15d11803edcdb38a9a404004dcd3703ef554121ec6cd53694b4d",
+    "scripts/evaluation/saju_runtime/relation_release_registry_v1.py": "0eda20224b6f89ca46bf3135d3d59bd912c75a051bfcfff431c49b91b3c63315",
+    "scripts/runtime/relation_v1/__init__.py": "efa5c8dc05e2b303b400239dc91f23ebf28f16c0731869d45e953fae390795c6",
+    "scripts/runtime/relation_v1/contracts.py": "1a035371be52a3fdfbb248d2f8eb97064e55f0d16d1f69ae4de612d5970443bb",
+    "scripts/runtime/relation_v1/engine.py": "9caf1a3f4a242ff83a1f275d4e07a0927bbdc7b73b86a19f8d7aaa98908401d4",
+    "scripts/runtime/relation_v1/errors.py": "fdfa18b9bf3768e879be871beb023ad14ab272b4df504c9272b4c56199e50467",
+    "scripts/runtime/relation_v1/security.py": "a5228b151e2aa30102012b831ad134fc369466e7da52cd99174dcf73912b6ad2"
+  },
+  "matrices": {
+    "branch_relations": {
+      "cases": 144,
+      "expected_cases": 144,
+      "missing_relations": 0,
+      "occurrence_counts": {
+        "충": 12,
+        "파": 12,
+        "합": 12,
+        "해": 12,
+        "형": 18
+      },
+      "unexpected_relations": 0
+    },
+    "branch_ten_gods": {
+      "cases": 120,
+      "expected_cases": 120,
+      "mismatches": 0
+    },
+    "stem_ten_gods": {
+      "cases": 100,
+      "expected_cases": 100,
+      "mismatches": 0
+    },
+    "symmetry_and_direction": {
+      "distinct_groups": 3,
+      "pair_symmetry_mismatches": 0,
+      "pair_types": 4,
+      "punishment_direction_mismatches": 0,
+      "self_branches": 4
+    }
+  },
+  "parent_releases": {
+    "chart": "saju-runtime-release-v1.5.0-8b1d6ea2d46e",
+    "period": "saju-period-daily-label-release-v1.0.0-59e326f8f086"
+  },
+  "policy": {
+    "authority": "PROFILE_DETERMINISTIC",
+    "policy_id": "KR_NATAL_DAY_RELATIONS_V1",
+    "table_version": "branch-relations-v1.0.0",
+    "ten_god_table_version": "saju-calculation-policy-v1.0.0"
+  },
+  "private_paths_in_report": false,
+  "raw_rows_in_report": false,
+  "runtime": {
+    "interpretation_fields": 0,
+    "missing_release_accepted": 0,
+    "private_runtime_ids_in_public": 0,
+    "range_parent_accepted": 0,
+    "single_date_parent_cases": 1,
+    "tampered_parent_accepted": 0
+  },
+  "schema_version": "1.0.0",
+  "status": "passed",
+  "suite_version": "saju-natal-day-relation-conformance-v1.0.0"
+}

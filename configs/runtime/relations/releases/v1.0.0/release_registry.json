@@ -1,0 +1,23 @@
+{
+  "conformance_report": {
+    "build_id": "build-aa13a1333586",
+    "manifest_path": "data/reports/saju_relation_conformance/v1.0.0/build-aa13a1333586/build_manifest.json",
+    "manifest_sha256": "40b290ac56b228e24e8929037e3f003dd1cf14c5e9fea2eaba9f0d008e3c07f1",
+    "path": "data/reports/saju_relation_conformance/v1.0.0/build-aa13a1333586/aggregate.json",
+    "sha256": "3986664081e53fe60551741056793ab8c12546c77d23c0fb97996c2e82304692"
+  },
+  "contract_registry_sha256": "612eb8ea719824765ab82fa260e8935272a3eaee7cde6c09cb35f495e63479ca",
+  "dashboard_v1_13_activated": false,
+  "feature_flag_default": false,
+  "mix20k_v3_1_generation_allowed": false,
+  "model_promotion_performed": false,
+  "parent_chart_release": "saju-runtime-release-v1.5.0-8b1d6ea2d46e",
+  "parent_period_release": "saju-period-daily-label-release-v1.0.0-59e326f8f086",
+  "release_id": "saju-natal-day-relation-release-v1.0.0-554bb9bfaea9",
+  "schema_version": "1.0.0",
+  "sealed_blind_accessed": false,
+  "single_date_only": true,
+  "status": "approved_single_date_relations_feature_default_off",
+  "strict_full_runtime_approved": false,
+  "training_execution_performed": false
+}
