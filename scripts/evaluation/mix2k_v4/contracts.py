@@ -177,7 +177,7 @@ EXPECTED_QUALITY_REVIEW = {
     "provider_contracts": {
         "claude": {
             "cli": "claude",
-            "cli_version": "2.1.258 (Claude Code)",
+            "cli_version": "2.1.259 (Claude Code)",
             "model": "claude-sonnet-5",
             "auth": "claude.ai_subscription",
         },

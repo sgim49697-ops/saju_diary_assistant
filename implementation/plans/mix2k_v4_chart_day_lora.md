@@ -176,3 +176,11 @@ Teacher 절반은 Claude 초안→Codex grounding 판정, 나머지 절반은 Co
 - immutable 산출물: 계약 SHA `bdb6acb3c2211cd52a46f3f33b27ff103c07a40d2c9206922fd3eadc85e2761a`를 포함한 private `build-da9014c5f24a`, build SHA `da9014c5f24a6ffc239cd8bf1ec64d2ba50855caff6ec90438d5a41a4fefd980`로 재동결했다. training spec·dev·projection·prompt SHA는 직전 build와 동일하다.
 - downstream pin: LoRA config SHA는 `d7c5db056be927319617ac4b932acb9e37d9f9a2e6478598d20f2b7ce12fa728`, 5-arm 평가 config SHA는 `6e9eef929cd2d579636c3ffec5e8c93505ab2df9f9aa6de4b4da2e5b1f56eb20`으로 갱신했다.
 - 다음 단계: `build-45d72dbfca76` target의 현재 초안 975행과 복구 가능한 HARD QA 18행을 새 target에 재검증 이관한 뒤, 남은 Codex 7행을 작성하고 Claude 방향으로 전환한다.
+
+### 2026-09-03 - Codex 절반 완료와 relation 안내 기준 보강
+
+- checkpoint: final `build-da9014c5f24a` target에 Codex 담당 초안 1,000행을 모두 확보했다. 전수 재생은 deterministic 1,000/1,000 PASS, 구조 claim·필수 사실·잔여 조사·질문 밖 period·실제 자기모순 오류 0건이다. 실질 응답 850행은 모두 3줄 이상이며 1줄 150행은 계약상 예외인 intake 125행과 HARD QA 25행이다.
+- 독립 감사 후속: 9행이 현재는 relation·신강약·용신 판단을 거절하면서도 raw 원국이나 간지만 더 받으면 나중에 계산할 수 있다고 암시했다. 양쪽 teacher 지침에 raw fact만으로는 충분하지 않고 deterministic 또는 POLICY_BOUND 계산 결과가 제공된 경우에만 다룰 수 있음을 명시했다. Claude 상대 판정에서 이 안내를 어긴 기존 초안은 FAIL·재작성한다.
+- 다양성 상태: 상대 판정 전 초안의 exact 중복 excess는 130행이고 normalized excess는 138행이다. 아직 Gold가 아니며, 2,000행 상대 판정 완료 뒤 기존 diversity 계약의 duplicate repair를 실행해 exact 0과 normalized multiplicity 2 이하를 충족해야 한다.
+- 도구 버전: final Claude 호출 전에 실제 Claude Code `2.1.259`와 Codex CLI `0.150.1`을 확인했다. 5-arm 평가의 Claude CLI pin을 `2.1.259`로 맞췄고 평가 config SHA는 `8f9dc776fe81a24d39c1d642a0f1a67a4e0d811eceb744415066d68d96001d5c`다.
+- 다음 단계: 강화된 runner hash의 새 target으로 Codex 1,000행을 재검증 이관한 뒤 Claude가 Codex 초안을 먼저 상대 판정하고, 이어 Claude 담당 1,000행을 작성한다.

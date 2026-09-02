@@ -1947,6 +1947,7 @@ class Mix2KV4ContractTests(unittest.TestCase):
         self.assertEqual(prompt.count("[MANDATORY ANSWER CHECKLIST]"), 1)
         self.assertNotIn("출생일", prompt)
         self.assertIn("FORBIDDEN 목록은 금지 기준", prompt)
+        self.assertIn("deterministic 또는 POLICY_BOUND 계산 결과", prompt)
         self.assertIn("limitations는 내부 audit metadata", prompt)
         self.assertIn("날짜 사실과 원국 사실을 각각 최소 하나", prompt)
         self.assertIn("`甲寅로`, `己丑는`처럼", prompt)
@@ -1970,6 +1971,7 @@ class Mix2KV4ContractTests(unittest.TestCase):
         self.assertIn("날짜 사실과 원국 사실을 각각 최소 하나", review)
         self.assertIn("자연성 오류로 FAIL", review)
         self.assertIn("`甲寅으로`, `己丑은`", review)
+        self.assertIn("deterministic 또는 POLICY_BOUND 결과", review)
         self.assertEqual(review.count("[MANDATORY ANSWER CHECKLIST]"), 1)
 
     def test_bound_chart_v2_dual_grounding_is_date_question_only(self) -> None:
