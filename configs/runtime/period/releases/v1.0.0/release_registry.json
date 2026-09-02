@@ -1,0 +1,18 @@
+{
+  "conformance_report": {
+    "build_id": "build-cd8eaaf50792",
+    "manifest_path": "data/reports/saju_period_conformance/v1.0.0/build-cd8eaaf50792/build_manifest.json",
+    "manifest_sha256": "29f7ef187a5f9a5dec4938148027bdac516d44b4c0e167ece5f57b54abcf5845",
+    "path": "data/reports/saju_period_conformance/v1.0.0/build-cd8eaaf50792/aggregate.json",
+    "sha256": "8ddddb67bdd91dc676bbbe622131245f4ae54d9c3e0c5af83368c3e5a49015d8"
+  },
+  "contract_registry_sha256": "212ee38ebeacc4833661be2659e096290d2d3fd3c800062e6f1152ae83480390",
+  "feature_flag_default": false,
+  "parent_runtime_release": "saju-runtime-release-v1.5.0-8b1d6ea2d46e",
+  "release_id": "saju-period-daily-label-release-v1.0.0-59e326f8f086",
+  "schema_version": "1.0.0",
+  "sealed_blind_accessed": false,
+  "status": "approved_daily_labels_feature_default_off",
+  "strict_full_runtime_approved": false,
+  "training_promotion_allowed": false
+}

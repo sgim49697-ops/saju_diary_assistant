@@ -34,7 +34,7 @@
 |---:|---|---|---|
 | 00 | [`00-current-baseline.md`](00-current-baseline.md) | 완료 | 통합 audit가 v1.5·v1.11까지 검증 |
 | 10 | [`10-period-contract-and-restore.md`](10-period-contract-and-restore.md) | 완료 | 기간 v2 계약·원국 재검산 복원 통과 |
-| 20 | [`20-daily-range-runtime.md`](20-daily-range-runtime.md) | 미시작 | 8,522일·263,717 window mismatch 0 |
+| 20 | [`20-daily-range-runtime.md`](20-daily-range-runtime.md) | 완료 | 8,522일·263,717 window mismatch 0 |
 | 30 | [`30-period-dashboard.md`](30-period-dashboard.md) | 미시작 | dashboard v1.12 자동 canary 통과 |
 | 40 | [`40-day-relation-runtime.md`](40-day-relation-runtime.md) | 미시작 | 단일 날짜 relation 자동 전수 Gate 통과 |
 | 50 | [`50-automatic-model-evaluation.md`](50-automatic-model-evaluation.md) | 대기 | 동일 context K0↔KI20 자동 비교 완료 |
@@ -74,3 +74,10 @@
 - 서버 KST 기준 today·tomorrow·주말·이번 주·이번 달과 최대 31일 명시 범위를 결정론적으로 해석하고 과거·연간·2049년 이후를 차단했다.
 - 암호화 session의 exact 출생 slot으로 v1.5 원국을 다시 계산해 chart ID·입력·공개 facts·source hash를 대조하는 내부 authorization을 추가했다.
 - Ruff, 계약 CLI, 표적 unittest 10건과 실제 DE440s·새 engine process 복원 후 단일 일진 실행을 통과했다. 공개 request·resolve 결과에는 opaque Runtime ID나 출생값을 넣지 않았다.
+
+### 2026-09-02 — 일별 label 범위 Runtime 승인
+
+- 기간 Runtime registry v1.1과 공개 일별 label 결과 계약, release-domain HMAC, 승인 release 소비 엔진을 구현했다.
+- conformance v11 `build-cd8eaaf50792`에서 공식 8,522일을 275회로 분할 계산하고 길이 1~31일의 연속 window 263,717개를 전수 구성했다. label·authority·순서·중복·누락 mismatch는 모두 0이었다.
+- `saju-period-daily-label-release-v1.0.0-59e326f8f086`을 write-once registry로 발행했다. feature는 기본 off이며 strict/full Runtime, production 앱 연결, sealed blind, MIX20K-v3.1, 학습·승격 권한은 열지 않았다.
+- Ruff, 기간·원국 Runtime unittest 19건, conformance report 재검증, release 재검증과 `git diff --check`를 통과했다. 공개 보고서에는 원시 일별 행·private path·키를 기록하지 않았다.

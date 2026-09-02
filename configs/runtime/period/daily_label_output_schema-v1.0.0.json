@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "saju-period-daily-label-output-v1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["status", "fact_authority", "period_scope", "days", "boundary_capability", "message", "limitations"],
+  "properties": {
+    "status": {"const": "ok"},
+    "fact_authority": {"const": "HARD_GT"},
+    "period_scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["date_expression", "start_date", "end_date", "day_count", "timezone", "evaluation_local_time"],
+      "properties": {
+        "date_expression": {
+          "enum": ["today", "tomorrow", "this_weekend", "this_week", "this_month", "explicit"]
+        },
+        "start_date": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"},
+        "end_date": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"},
+        "day_count": {"type": "integer", "minimum": 1, "maximum": 31},
+        "timezone": {"const": "Asia/Seoul"},
+        "evaluation_local_time": {"const": "12:00"}
+      }
+    },
+    "days": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 31,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["date", "year_ganzhi", "month_ganzhi", "day_ganzhi", "authority"],
+        "properties": {
+          "date": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"},
+          "year_ganzhi": {"type": "string", "minLength": 1},
+          "month_ganzhi": {"type": "string", "minLength": 1},
+          "day_ganzhi": {"type": "string", "minLength": 1},
+          "authority": {"const": "SOURCE_HARD_FACT"}
+        }
+      }
+    },
+    "boundary_capability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["intraday_segments_supported", "future_physical_instant_claimed"],
+      "properties": {
+        "intraday_segments_supported": {"const": false},
+        "future_physical_instant_claimed": {"const": false}
+      }
+    },
+    "message": {"type": "string", "minLength": 1},
+    "limitations": {"type": "array", "minItems": 1, "items": {"type": "string"}}
+  }
+}

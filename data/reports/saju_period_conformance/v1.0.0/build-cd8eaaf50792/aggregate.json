@@ -1,0 +1,185 @@
+{
+  "blocking_reasons": [],
+  "build_id": "build-cd8eaaf50792",
+  "daily_label_matrix": {
+    "authority_mismatches": 0,
+    "cases": 8522,
+    "date_range": [
+      "2026-09-02",
+      "2049-12-31"
+    ],
+    "duplicate_dates": 0,
+    "engine_requests": 275,
+    "expected_cases": 8522,
+    "label_mismatches": 0,
+    "order_mismatches": 0,
+    "provider_values_written_to_official_snapshot": false,
+    "raw_rows_in_report": false
+  },
+  "daily_labels_gate_passed": true,
+  "gate_checks": {
+    "all_windows_materialized": true,
+    "daily_authority_mismatches_zero": true,
+    "daily_duplicates_zero": true,
+    "daily_label_mismatches_zero": true,
+    "daily_order_mismatches_zero": true,
+    "engine_request_partition_complete": true,
+    "governance_closed": true,
+    "negative_contract_complete": true,
+    "negative_contract_failures_zero": true,
+    "negative_scope_closed": true,
+    "official_date_range_exact": true,
+    "official_dates_complete": true,
+    "official_snapshot_unmodified": true,
+    "parent_v10_verified": true,
+    "resolver_fixture_failures_zero": true,
+    "resolver_fixture_names_exact": true,
+    "resolver_fixtures_complete": true,
+    "window_authority_mismatches_zero": true,
+    "window_label_mismatches_zero": true,
+    "window_lengths_exact": true,
+    "window_missing_or_duplicate_zero": true,
+    "window_order_mismatches_zero": true,
+    "windows_complete": true
+  },
+  "governance": {
+    "feature_flag_default": false,
+    "future_physical_instant_claimed": false,
+    "mix20k_v3_1_generated": false,
+    "production_application_binding": false,
+    "provider_values_written_to_official_snapshot": false,
+    "sealed_blind_accessed": false,
+    "strict_full_runtime_approved": false,
+    "training_promotion_allowed": false
+  },
+  "inputs": {
+    "contract_registry_sha256": "212ee38ebeacc4833661be2659e096290d2d3fd3c800062e6f1152ae83480390",
+    "daily_rows_recorded": false,
+    "ephemeris": {
+      "bytes": 32726016,
+      "private_path_recorded": false,
+      "sha256": "c1c7feeab882263fc493a9d5a5b2ddd71b54826cdf65d8d17a76126b260a49f2"
+    },
+    "gate_sha256": "fdd667269a869b9f4d2a1fdb82e917b078c94744ff5bbb43ea3ff8f9c1ae3142",
+    "implementation_sha256": {
+      "configs/runtime/period/chart_authority_schema-v1.0.0.json": "4458dcd39afe1074f04b29573b4af0aa1e0378246ed231fb2aa2cf765340f370",
+      "configs/runtime/period/conformance_gate-v1.0.0.json": "fdd667269a869b9f4d2a1fdb82e917b078c94744ff5bbb43ea3ff8f9c1ae3142",
+      "configs/runtime/period/daily_label_output_schema-v1.0.0.json": "30dd56d23a602478f83d840712fb210254a1266fb904ce514de6cb2c5e2df56c",
+      "configs/runtime/period/registry-v1.0.0.json": "1b05d27363e0ae8a7f0c3ec763a89fe63f89a567ec6f7084460bf0ae128948ef",
+      "configs/runtime/period/registry-v1.1.0.json": "212ee38ebeacc4833661be2659e096290d2d3fd3c800062e6f1152ae83480390",
+      "configs/runtime/period/release_registry_schema-v1.0.0.json": "c10d860124ad5a6c46dbbac87d83f004f213837cf90d38b2cf12a05b07f9047b",
+      "configs/runtime/period/request_schema-v2.0.0.json": "862f80836b0b868868a807d5d5e705a02c733b041f51fc496b6779fba372ba90",
+      "configs/runtime/period/resolved_scope_schema-v1.0.0.json": "3c2b74cece80c16c288d7af3b1bd3676dfedfe3f47060d9d9ffc53b7d50f26a8",
+      "scripts/evaluation/saju_runtime/conformance_v11.py": "ef703cc83342d50ad9a0fa8693c71c39f8c4356046e582dbcad76c0e843288bf",
+      "scripts/evaluation/saju_runtime/release_registry_period_v1.py": "90ef1c365ac8bf803baca3802aa3f9850b43ad3563fc8c565d2c7fdf7f288f4f",
+      "scripts/runtime/period_v1/contracts.py": "a8e7e3e0ea0d2f8e35e470c0e391bf4cac5615f2f69638dd91235d0c61b77cfb",
+      "scripts/runtime/period_v1/contracts_v1_1.py": "72fa206f0bf859272471b2eca35d1dc0dbd8b26ddbe3cb36ef9a4a31dbfc10bf",
+      "scripts/runtime/period_v1/engine.py": "fb66ba1efeb5e74a966b5f480ef689cf5de8232a3f2508617110ed93cc585995",
+      "scripts/runtime/period_v1/errors.py": "ca8ce09ccbb692725afd2da53eabeb8b57c3d9e326a24875e91b59b7f44674c5",
+      "scripts/runtime/period_v1/rehydration.py": "074d083de3291e3c76a5b53f7dc66275bd9602738470e143eac363cc95ec4e59",
+      "scripts/runtime/period_v1/resolver.py": "7725ca98b4feaca7b3d05d06e724f2ee3433763f8fbef3ab027dea147f466084",
+      "scripts/runtime/period_v1/security.py": "b83eec4b8f5662f1eb8d8bdb722bce1e9374c6574d71cf26bbad7e9b5d8ea424"
+    },
+    "official_snapshots": {
+      "kasi_lunisolar": {
+        "complete": true,
+        "kind": "private_official_full_lunisolar",
+        "manifest_sha256": "824bd313dcced2b15bda75c9c5d136e06b6cb1c2330c3f47dc0ffab007b30b48",
+        "private_path_recorded": false,
+        "provided": true,
+        "sha256": "276de1729cbec4ecba013c9a9f92d80f14fcac0440bc86565047c29ac341ef04",
+        "supported_rows": 54787
+      },
+      "kasi_official_current_solar_terms": {
+        "evidence_class": "SOURCE_HARD_FACT",
+        "expected_jie_rows": 2172,
+        "expected_rows_before_known_omission": 4344,
+        "jie_coverage_complete": true,
+        "jie_rows": 2172,
+        "kind": "private_official_current_calculation_solar_terms",
+        "known_upstream_omissions": [
+          {
+            "source_kind": 2,
+            "year": 2030
+          }
+        ],
+        "manifest_sha256": "6d3c45f469e5f16fafea6e4d2eeec75f9880c39f5cca85983201143a9f0d60d8",
+        "origin_collector_sha256": "cd4556ad762e6fbc97f71f9a4271682c338932ee8055624c18643c8d9175ec25",
+        "origin_collector_version": "kasi-official-solar-terms-collector-v1.0.0",
+        "private_path_recorded": false,
+        "provided": true,
+        "provider_values_used": false,
+        "response_sha256": "ef0c15acc7e673e6aba3c194b5681ac49e54387dd170a21d33c506eac70592e7",
+        "snapshot_sha256": "57ae1e017e7632f1fa5a1ab3966977c512503c4fdd828f504d1103e61d8a3213",
+        "source_range": [
+          1920,
+          2100
+        ],
+        "source_rows": 4343
+      }
+    },
+    "parent_v10_matrix": {
+      "cases": 8522,
+      "date_range": [
+        "2026-09-02",
+        "2049-12-31"
+      ],
+      "evaluation_local_time": "12:00",
+      "evaluation_timezone": "Asia/Seoul",
+      "noon_boundary_quarantine_dates": 0,
+      "official_day_oracle": "kasi_lunisolar_openapi",
+      "official_day_rows": 8522,
+      "official_jie_rows": 2172,
+      "official_minute_uncertainty_seconds": 30,
+      "official_year_month_oracle": "kasi_official_solar_terms_download",
+      "provider_id": "skyfield-1.55-jpl-de440s-builtin-ut1",
+      "provider_label_mismatches": 0,
+      "provider_values_written_to_official_snapshot": false,
+      "raw_rows_in_report": false
+    },
+    "private_paths_recorded": false,
+    "test_key_recorded": false
+  },
+  "negative_contract": {
+    "cases": 6,
+    "failures": 0,
+    "free_text_date_parser_used": false,
+    "intraday_segments_supported": false,
+    "model_generated_runtime_ids_allowed": false
+  },
+  "parent": {
+    "conformance_build_id": "build-46185262164f",
+    "release_id": "saju-runtime-release-v1.5.0-8b1d6ea2d46e",
+    "release_registry_sha256": "db3553529be851a33c3d16c0ec8898de5182c611160d194209ccfd82639f3560",
+    "verified": true
+  },
+  "release_registry_creation_allowed": true,
+  "resolver_fixtures": {
+    "cases": 6,
+    "failures": 0,
+    "fixture_names": [
+      "month_end",
+      "year_end",
+      "leap_day",
+      "saturday",
+      "sunday",
+      "dynamic_today_floor"
+    ]
+  },
+  "schema_version": "1.0.0",
+  "status": "passed_daily_labels_release_allowed",
+  "suite_version": "saju-period-daily-label-conformance-v11.0.0",
+  "window_matrix": {
+    "all_windows_materialized": true,
+    "authority_mismatches": 0,
+    "duplicate_or_missing_days": 0,
+    "expected_windows": 263717,
+    "label_mismatches": 0,
+    "order_mismatches": 0,
+    "window_lengths": [
+      1,
+      31
+    ],
+    "windows": 263717
+  }
+}
