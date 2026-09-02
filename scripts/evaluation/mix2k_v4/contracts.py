@@ -26,7 +26,7 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_CONFIG = REPO_ROOT / "configs/evaluation/mix2k-v4-lora-eval-v1.0.0.json"
 DEFAULT_SPEC_BUILD = Path(
     "data/derived/saju_1b_baseline/mix2k-v4-chart-day-8k/specs/"
-    "v1.0.1/build-d6982e11bbbd"
+    "v1.0.1/build-f0152c6533f4"
 )
 EXPECTED_DEV_AXES = {
     "schema_literacy": 40,
@@ -62,7 +62,7 @@ EXPECTED_DEPENDENCY_CONTRACTS = {
     },
     "lora_config": {
         "path": "configs/model_versions/saju_1b_baseline/mix2k-v4-lora-v1.0.1.json",
-        "sha256": "19039bbb734a399d5db96ee41189da7fbf36c04cfd89266587e25ef58bd1964e",
+        "sha256": "09267a1bbb6ee6f67ee1d94e005b1c190b48ce9b5d8835c905641a00a477517e",
     },
     "bound_prompt": {
         "path": "configs/chat_prompts/saju_bound_chart_v2.txt",
@@ -403,9 +403,9 @@ def validate_config(config_path: Path) -> dict[str, Any]:
         or config.get("evaluation_version") != "v1.0.0"
         or config.get("dataset_version") != DATASET_VERSION
         or not isinstance(source, Mapping)
-        or source.get("build_id") != "build-d6982e11bbbd"
+        or source.get("build_id") != "build-f0152c6533f4"
         or source.get("build_sha256")
-        != "d6982e11bbbd0bc3d13d2101cd14c563d5d99eb3e513c2624208c46277c745f5"
+        != "f0152c6533f463d70f478230a6e242dc97af88cc7bc253e5ef536c4787d75d60"
         or source.get("sha256")
         != "2614d5e3578340969e03b2779b26c365bf774729bbc3838ff35998ec22faaf86"
         or source.get("rows") != 200

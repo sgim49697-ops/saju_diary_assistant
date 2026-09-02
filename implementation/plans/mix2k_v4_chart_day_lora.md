@@ -102,3 +102,19 @@ Teacher 절반은 Claude 초안→Codex grounding 판정, 나머지 절반은 Co
 - downstream pin: LoRA config SHA는 `19039bbb734a399d5db96ee41189da7fbf36c04cfd89266587e25ef58bd1964e`, 5-arm 평가 config SHA는 `d9915af1d1c8995d6b240135b2b474271bb37fe275e7e00f7677eb01b77b5b3b`로 갱신했다.
 - 검증: 관련 3개 unittest 모듈 69건, Ruff, `git diff --check`, 기존 최신 초안 56행 재생, teacher spec identity, LoRA `validate-contract`, 5-arm evaluation `validate-contract`가 모두 통과했다. 병렬 read-only red-team의 P0는 없었고 보고된 P1은 모두 회귀 테스트와 함께 닫았다.
 - 남은 작업: 새 immutable target에서 full 2,000행 Claude↔Codex 교차 teacher 생성·판정을 재개한다. 양쪽 teacher와 deterministic validator를 모두 통과하기 전에는 candidate finalization·학습으로 진행하지 않는다.
+
+### 2026-09-03 - 첫 live batch 피드백 반영
+
+- 실행 결과: `build-d6982e11bbbd` 기반 새 target에서 Claude 초안 20행과 Codex 교차 판정을 각 1회 실행했다. 초기 deterministic PASS는 6행이었고 Codex는 질문 밖 제한사항 나열을 제거하도록 6행 모두 재작성으로 돌렸다. provider call 2회의 target은 삭제하지 않고 비후보 진단 이력으로 보존한다.
+- 원인 분리: 정답인 “일주는 원국 네 기둥 중 하나” 문장을 단일 원국 주장으로 오인한 경우, `일간 자체라/그 자체이므로 '일간'으로 표기`한 문형을 놓친 경우, `포함하지 않습니다/포함되어 있지 않습니다`라는 명시적 부정을 unsupported 주장으로 오인한 경우를 확인했다. 보강 계약으로 같은 20개 초안을 재생한 결과 19/20이 PASS했고, 남은 1개는 answer에서 사용하지 않은 값을 `used_fact_values`에 넣은 실제 provenance 오류였다.
+- prompt 교정: FORBIDDEN 목록은 답변에 반복할 문구가 아니라 생성 금지 기준임을 명시하고, 한계 질문이 아니면 요청 항목만 답하도록 했다. `limitations`와 `used_fact_*`는 audit metadata임을 양쪽 teacher에 명시해, 정확한 metadata가 비어 있지 않다는 이유만으로 답변 범위 이탈 판정을 내리지 않게 했다.
+- immutable 산출물: 계약 SHA `3caa6bfe77df0bd95b31e4335ee247ff90be5e523e515b5893a5e80286c043df`를 포함한 private `build-4187ef6753d8`, build SHA `4187ef6753d895db91b9001fb44b8c188b4358a6a378ec6f649c84899f7c46db`로 재동결했다. dev·training spec·projection SHA는 앞선 build와 동일하다.
+- downstream pin: LoRA config SHA는 `a21066cafa713fe6fc0949be783db1c9b31540242dd8a148504545ab71edad05`, 5-arm 평가 config SHA는 `97e58da46597d90ec3bf23a16baf2916dbb89648e13031791404b3a0718edf6d`다.
+- 검증: 관련 3개 unittest 모듈 69건, Ruff, `git diff --check`, teacher spec identity, LoRA `validate-contract`, 5-arm evaluation `validate-contract`가 모두 통과했다. 새 immutable target의 첫 양방향 batch를 확인한 뒤 full 생성을 계속한다.
+
+### 2026-09-03 - live batch 계약 red-team 종료
+
+- 추가 차단: unsupported 사실을 먼저 단정한 뒤 쉼표 뒤의 다른 부정문으로 숨기는 우회를 막기 위해 부정 면제를 해당 용어부터 다음 쉼표 전까지로 제한했다. `乙丑은 원국 전체다/예요/이야` 같은 서술·구어 종결형도 단일 기둥→원국 전체 오칭으로 차단했다.
+- immutable 산출물: 최종 계약 SHA `28844d3ec8563c2aff657f35498d5c26aa3b191164b439bb505c9cb40edde6f5`를 포함한 private `build-f0152c6533f4`, build SHA `f0152c6533f463d70f478230a6e242dc97af88cc7bc253e5ef536c4787d75d60`로 재동결했다. dev SHA `2614d5e3578340969e03b2779b26c365bf774729bbc3838ff35998ec22faaf86`, training spec SHA `7cf01c8146190da0e77b717d72a687dce44056de542da8aae15b71ce43fbc229`, projection SHA `c889ccd27fc161144a0e3a8739020aa697c27c7d1615b5547e1c7488acd99458`는 그대로다.
+- downstream pin: LoRA config SHA는 `09267a1bbb6ee6f67ee1d94e005b1c190b48ce9b5d8835c905641a00a477517e`, 5-arm 평가 config SHA는 `e81566047d137ecbe9f137dc88f631fb2f98f08046dbadb507c3bb2f6a7c4162`다.
+- 재생 결과: 첫 live batch의 기존 20개 Claude 초안은 19/20 deterministic PASS이며, 유일한 탈락은 쓰지 않은 값을 provenance에 추가한 실제 오류다. 병렬 자동 red-team의 최종 P0는 없고 보고된 P1 두 건은 회귀 3종과 직접 재현으로 닫았다.

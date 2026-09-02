@@ -69,7 +69,8 @@ KOREAN_DATE = re.compile(
 SENTENCE_END = re.compile(r"(?:[.!?]|[。！？])(?:[\"'”’)]*)?(?=\s|$)")
 NEGATED_STRUCTURAL_CLAIM = re.compile(
     r"(?:제공되지|주어지지|확인되지|계산하지|계산되지|판단하지|"
-    r"단정하지|포함되지|다루지|알\s*수\s*없|근거가\s*없|범위가\s*아니|"
+    r"단정하지|포함하지|포함되지|포함(?:되어)?\s*있지\s*않|다루지|"
+    r"알\s*수\s*없|근거가\s*없|범위가\s*아니|"
     r"범위(?:에|에는)\s*(?:(?:들어\s*)?있지\s*않|없)|범위가\s*아닙)"
 )
 UNSUPPORTED_ACTION_NEGATION = re.compile(
@@ -403,7 +404,16 @@ def _explicit_claim_is_negated(answer: str, start: int, end: int) -> bool:
 def _unsupported_claim_is_negated(answer: str, start: int, end: int) -> bool:
     """unsupported 용어와 직접 맞닿은 근거 부재 표현만 면제한다."""
 
-    clause = _claim_clause(answer, start, end)
+    local_end_match = re.search(
+        r"[,，\n.!?。！？;；]",
+        answer[end:],
+    )
+    local_end = (
+        end + local_end_match.start()
+        if local_end_match is not None
+        else len(answer)
+    )
+    clause = answer[start:local_end]
     return (
         NEGATED_STRUCTURAL_CLAIM.search(clause) is not None
         or UNSUPPORTED_ACTION_NEGATION.search(clause) is not None
@@ -1297,6 +1307,18 @@ def _pillar_blocks(answer: str) -> list[tuple[str, str]]:
                 )
                 and re.match(
                     r"\s*자리(?:\s*그\s*자체)?",
+                    block[owner_boundary.end() :],
+                )
+            ):
+                continue
+            if owner_boundary.group(0) == "일간" and (
+                re.search(
+                    r"(?:천간|stem)[^\n.!?。！？;；]{0,24}$",
+                    block[: owner_boundary.start()],
+                    re.IGNORECASE,
+                )
+                and re.match(
+                    r"\s*(?:그\s*)?자체(?:라|이므로|이고|이며)",
                     block[owner_boundary.end() :],
                 )
             ):
@@ -2368,7 +2390,8 @@ def structural_claim_errors(spec: Mapping[str, Any], answer: str) -> list[str]:
         re.compile(
             rf"(?P<value>{GANYI.pattern})\s*(?:하나만|한\s*기둥만)?\s*"
             r"(?:은|는|이|가)?\s*(?:바로\s*)?원국(?:\s*전체)?"
-            r"(?:\s*(?:이다|입니다|이라고))?"
+            r"(?:\s*(?:이다|입니다|이라고|다|예요|이에요|이야|야)|"
+            r"(?=\s*(?:[.!?。！？;；]|$)))"
         ),
         re.compile(
             r"(?:사주\s*)?원국을\s*(?:한마디로\s*(?:하면|말하면)|"

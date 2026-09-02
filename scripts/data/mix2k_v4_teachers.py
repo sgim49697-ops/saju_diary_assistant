@@ -58,9 +58,9 @@ CONTRACTS_PATH = RUNNER_PATH.with_name("mix2k_v4_contracts.py")
 MAX_JSON_BYTES = 64 * 1024 * 1024
 MAX_PROVIDER_OUTPUT_BYTES = 32 * 1024 * 1024
 STATE_SCHEMA_VERSION = "1.0.0"
-EXPECTED_SPEC_BUILD_ID = "build-d6982e11bbbd"
+EXPECTED_SPEC_BUILD_ID = "build-f0152c6533f4"
 EXPECTED_SPEC_BUILD_SHA256 = (
-    "d6982e11bbbd0bc3d13d2101cd14c563d5d99eb3e513c2624208c46277c745f5"
+    "f0152c6533f463d70f478230a6e242dc97af88cc7bc253e5ef536c4787d75d60"
 )
 SPEC_IDENTITY_FIELDS = {
     "dataset_version",
@@ -615,7 +615,11 @@ def draft_prompt(
             "used_fact_paths·used_fact_values에는 answer에 명시한 날짜·간지·십신의 "
             "정확한 ALLOWED 값을 누락 없이 기록하세요. period의 year_ganzhi·month_ganzhi·"
             "day_ganzhi는 반드시 선택 날짜의 연간지·월간지·일진이라고 부르고, 이를 "
-            "연주·월주·일주 또는 날짜의 원국이라고 부르지 마세요. 도구를 사용하지 마세요."
+            "연주·월주·일주 또는 날짜의 원국이라고 부르지 마세요. FORBIDDEN 목록은 "
+            "금지 기준이지 답변에 되풀이할 문구가 아닙니다. 사용자가 한계나 근거를 묻지 "
+            "않았다면 answer에 금지 항목을 기계적으로 나열하지 말고 질문한 내용만 답하세요. "
+            "limitations는 내부 audit metadata이므로 실제로 필요한 한계만 적고, 없으면 빈 "
+            "배열로 두세요. 도구를 사용하지 마세요."
         )
     ]
     for spec in specs:
@@ -667,6 +671,9 @@ def review_prompt(
             "적습니다. PASS일 때 failure_codes, fact_errors, rewrite_instructions는 비우세요. "
             "3줄·3문장은 최소 조건이며 최대 길이 제한이 아닙니다. 4줄 이상이라는 이유만으로 "
             "FAIL하거나 정확히 3줄로 줄이라고 요구하지 마세요. "
+            "used_fact_paths·used_fact_values·limitations는 사용자에게 보이는 answer가 아니라 "
+            "audit metadata입니다. 정확한 비어 있지 않은 limitations 자체를 범위 이탈이나 "
+            "재진술로 판정하지 말고, answer의 내용과 metadata의 정확성을 구분해서 보세요. "
             "period의 year_ganzhi·month_ganzhi·day_ganzhi는 선택 날짜의 연간지·월간지·"
             "일진이어야 하며 연주·월주·일주 또는 날짜의 원국이라고 부르면 FAIL하세요. "
             "도구를 사용하지 마세요."

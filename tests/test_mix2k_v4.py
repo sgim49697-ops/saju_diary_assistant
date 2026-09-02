@@ -300,6 +300,9 @@ class Mix2KV4ContractTests(unittest.TestCase):
             "연결된 승인 원국 사실 乙丑입니다.": "natal_day_called_full_chart",
             "원국은 乙丑을 뜻합니다.": "natal_day_called_full_chart",
             "乙丑이 바로 원국입니다.": "natal_day_called_full_chart",
+            "乙丑은 원국 전체다.": "natal_day_called_full_chart",
+            "乙丑이 원국 전체예요.": "natal_day_called_full_chart",
+            "乙丑은 원국이야.": "natal_day_called_full_chart",
             "원국 전체가 乙丑으로 이루어집니다.": "natal_day_called_full_chart",
             "원국의 간지는 乙丑입니다.": "natal_day_called_full_chart",
             "원국 간지는 乙丑입니다.": "natal_day_called_full_chart",
@@ -995,6 +998,8 @@ class Mix2KV4ContractTests(unittest.TestCase):
             "연간지와 일진은 서로 다르며, 앞의 丙午는 연간지이고 뒤의 己卯는 일진입니다.",
             "일진과 연간지의 차이는 丙午가 올해 값이고 己卯가 오늘 값이라는 점입니다.",
             "합충은 계산되지 않았습니다.",
+            "통근이나 신강약 판정은 포함하지 않습니다.",
+            "통근이나 신강약 같은 추가 판정은 포함되어 있지 않습니다.",
             "일진은 丙午가 아니라, 丙申은 월간지이고 己卯가 일진입니다.",
             "연간지는 己卯가 아니라, 己卯는 일진이고 丙午가 연간지입니다.",
             "연주는 乙丑이 아니라, 乙丑은 일주이고 戊辰이 연주입니다.",
@@ -1003,6 +1008,10 @@ class Mix2KV4ContractTests(unittest.TestCase):
             (
                 "원국 전체는 戊辰·甲子·乙丑·壬午이며, "
                 "乙丑 하나만 원국 전체라는 뜻은 아닙니다."
+            ),
+            (
+                "일주 乙丑은 원국을 구성하는 네 기둥 중 하나이며, "
+                "戊辰·甲子·壬午와 함께 원국 전체를 이룹니다."
             ),
             "연주는 戊辰입니다. 이 원국의 일간 천간은 乙입니다.",
             "연주는 戊辰입니다. 일간의 천간은 乙이고 오행은 목입니다.",
@@ -1092,6 +1101,19 @@ class Mix2KV4ContractTests(unittest.TestCase):
             "乙은 양 기운의 일간입니다.": "day_master_yin_yang_confusion:양",
         }
         for answer, expected in invalid.items():
+            with self.subTest(answer=answer):
+                self.assertIn(expected, structural_claim_errors(_spec(), answer))
+
+    def test_unrelated_later_negation_does_not_mask_unsupported_claim(self) -> None:
+        cases = {
+            "일간 乙은 丑에 통근하며, 신강약 해석은 포함하지 않습니다.": (
+                "unsupported_structural_claim:rooting"
+            ),
+            "용신은 화라고 판단하며, 통근 판정은 포함하지 않습니다.": (
+                "unsupported_structural_claim:strength_pattern_yongshin"
+            ),
+        }
+        for answer, expected in cases.items():
             with self.subTest(answer=answer):
                 self.assertIn(expected, structural_claim_errors(_spec(), answer))
 
@@ -1287,6 +1309,17 @@ class Mix2KV4ContractTests(unittest.TestCase):
         )
         self.assertEqual(required_fact_errors(spec, corrected_role), [])
 
+        for natural_role in (
+            "천간이 일간 자체라 '일간'으로 표기되고",
+            "천간이 일간 그 자체이므로 십신 자리에 '일간'으로 표기되고",
+        ):
+            answer = positioned_literal.replace(
+                "천간 자리가 십신이 아니라 기준이 되는 '일간'으로 표기되어 있고",
+                natural_role,
+            )
+            with self.subTest(natural_role=natural_role):
+                self.assertEqual(required_fact_errors(spec, answer), [])
+
         for negated_role in (
             "일주는 천간이 일간 자리 그 자체와 다릅니다.",
             "일주는 천간이 일간 자리 그 자체와 같지 않습니다.",
@@ -1454,6 +1487,8 @@ class Mix2KV4ContractTests(unittest.TestCase):
         self.assertEqual(prompt.count("[TASK]"), 1)
         self.assertEqual(prompt.count("[MANDATORY ANSWER CHECKLIST]"), 1)
         self.assertNotIn("출생일", prompt)
+        self.assertIn("FORBIDDEN 목록은 금지 기준", prompt)
+        self.assertIn("limitations는 내부 audit metadata", prompt)
 
         draft = {
             "record_id": spec["id"],
@@ -1468,6 +1503,8 @@ class Mix2KV4ContractTests(unittest.TestCase):
         self.assertEqual(review.count("[DRAFT TO REVIEW]"), 1)
         self.assertIn("최소 조건이며 최대 길이 제한이 아닙니다", review)
         self.assertIn("정확히 3줄로 줄이라고 요구하지 마세요", review)
+        self.assertIn("audit metadata입니다", review)
+        self.assertIn("answer의 내용과 metadata의 정확성을 구분", review)
         self.assertEqual(review.count("[MANDATORY ANSWER CHECKLIST]"), 1)
 
     def test_schema_teacher_checklist_expands_every_requested_position(self) -> None:
