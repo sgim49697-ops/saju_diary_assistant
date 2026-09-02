@@ -559,6 +559,12 @@ v3.1 생성과 비학습 preflight 명령은 현재 실행하지 않는다. 기�
 ## 진행 기록
 
 - 2026-09-02
+  - 작업 요약: dashboard v1.9을 WSL2 transient `systemd` service로 재기동하는 과정에서 `nvidia-smi` 탐색 실패가 상태 API 500으로 전파되는 운영 회귀를 발견해 fail-soft 진단으로 교정했다.
+  - 변경 범위: GPU snapshot은 실행 파일 부재·권한 오류·timeout을 `available=false`로 축소 응답하며 chart-only runtime 계산과 보안 경계는 그대로 유지한다. 운영 문서에 WSL2 `/usr/lib/wsl/lib` `PATH`와 native JIT용 Python header `CPATH` 전달 조건을 추가했다.
+  - 검증: 새 CSRF session으로 live `/api/status`, `/api/model-checks`, `/api/runtime/status`가 모두 200이고 GPU가 감지됨을 확인했다. 누락 명령 회귀를 포함한 v1.9 표적 7건, 저장소 전체 unittest 553/553, Ruff, JavaScript syntax와 diff 검사를 통과했다.
+  - 남은 이슈·후속 작업: 수정 병합 뒤 새 구현 fingerprint로 GPU production canary를 다시 생성·검증하고, 해당 build를 적재한 live process의 공개 API·로그·데스크톱/모바일 화면을 재검증한다.
+
+- 2026-09-02
   - 작업 요약: PR #12 병합 후 전체 552건 회귀에서 과거 후보 Gate의 v1.8 `phase5_dashboard.py` byte hash 손상을 발견하고 v1.9 실행 진입점을 별도 파일로 분리했다.
   - 변경 범위: v1.8 진입점과 기존 dashboard 테스트를 원래 불변 바이트로 복원하고, production binding은 `phase5_dashboard_v1_9.py`로 이동했다. v1.9 canary·테스트·운영 문서만 새 진입점을 참조한다. 과거 보고서나 고정 hash를 새 코드에 맞춰 덮어쓰지 않았다.
   - 검증: v1.8 고정 SHA-256 `4a1679aa…093de`를 복원했고, 실패했던 historical candidate 3건을 포함한 관련 회귀 51건과 저장소 전체 unittest 552/552, Ruff, JavaScript syntax와 diff 검사를 통과했다.

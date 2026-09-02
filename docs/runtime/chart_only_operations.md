@@ -93,6 +93,7 @@ canary가 실패하면 production process를 시작하지 않는다. 통과 뒤 
 - `127.0.0.1`에만 bind하고 외부 공개는 기존 tunnel의 exact HTTPS Origin 하나만 신뢰한다.
 - 무인증 공개가 의도된 경우에만 `--allow-unauthenticated-remote`를 사용한다.
 - runtime은 `--enable-chart-only-runtime`과 DE440s, 두 key, encrypted store, process lease 경로를 모두 명시한 경우에만 열린다.
+- WSL2의 transient `systemd` service는 `PATH`에 `/usr/lib/wsl/lib`를 포함해 `nvidia-smi`를 찾을 수 있게 하고, native JIT를 쓰는 실제 K0·KI20 실행에는 활성 Python과 일치하는 `Python.h`·`pyconfig.h` 경로를 `CPATH`로 전달한다. GPU 진단 명령이 없어도 상태 API는 500으로 실패하지 않고 `available=false`로 축소 응답한다.
 - 활성 process에서 합성 정상 원국, 절입 경계, 범위 밖, 변조, 기간 차단, 모델 동일 snapshot과 로그 비노출을 다시 확인한다.
 
 rollback은 v1.9 process를 중지하고 보존된 v1.8 config를 runtime flag 없이 다시 시작하는 명시적 전환이다. tunnel은 dashboard loopback port만 가리키므로 정상 rollback에는 tunnel 재발급이 필요하지 않다. v1.9의 암호화 session은 v1.8에 이관하지 않는다.

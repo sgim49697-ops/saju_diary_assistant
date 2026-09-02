@@ -21,6 +21,7 @@ from scripts.training.phase5_dashboard_v1_9 import (
     V19_ASSET_ROOT,
     DashboardHTTPServer,
     SlidingWindowRateLimiter,
+    _gpu_snapshot,
     _runtime_model_context_from_binding,
 )
 from tests.test_phase5_dashboard import DashboardFixture
@@ -330,6 +331,18 @@ class DashboardV19HTTPTests(unittest.TestCase):
 
 
 class DashboardV19BindingContractTests(unittest.TestCase):
+    @patch(
+        "scripts.training.phase5_dashboard_v1_9.subprocess.run",
+        side_effect=FileNotFoundError,
+    )
+    def test_missing_nvidia_smi_is_reported_without_dashboard_failure(
+        self, _run: object
+    ) -> None:
+        self.assertEqual(
+            _gpu_snapshot(),
+            {"available": False, "error": "nvidia-smi unavailable"},
+        )
+
     def test_model_snapshot_validator_is_hash_bound_and_allowlisted(self) -> None:
         snapshot = _snapshot()
         prompt, digest, capability = _runtime_model_context_from_binding(snapshot)
