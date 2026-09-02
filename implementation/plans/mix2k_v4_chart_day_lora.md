@@ -148,3 +148,12 @@ Teacher 절반은 Claude 초안→Codex grounding 판정, 나머지 절반은 Co
 - downstream pin: LoRA config SHA는 `d79648754096cd6df6be14a944a3acc1dbcd40f534258790d3db4b9b85f2446a`, 5-arm 평가 config SHA는 `0a1ea3e225f0929de5405ed1090046897cecbf87d21f03b84d4bfb1a30c98bcd`로 갱신했다.
 - 검증: teacher·LoRA·평가·Dashboard 관련 unittest 84건, Ruff, `git diff --check`, LoRA `validate-contract`, 5-arm evaluation `validate-contract`를 모두 통과했다. `.venv-data`에는 Transformers가 없어 builder가 환경 오류로 중단됐고, 고정 의존성이 있는 `.venv`에서 같은 builder를 정상 완료했다.
 - 다음 단계: 과거 276행을 새 target에 재검증 이관하고 제외 사유를 집계한 뒤 Codex 담당 초안을 1,000행까지 누적한다. Claude가 사용 가능해지면 Codex 초안의 상대 판정과 Claude 담당 초안 생성을 우선하며, 최종 2,000행 모두 deterministic PASS와 반대 teacher PASS를 충족해야 한다.
+
+### 2026-09-03 - 부정문 오탐 교정과 teacher checkpoint 승계
+
+- 실행 결과: `build-e4f88ecc9b46` target에서 과거 초안 177행을 재검증 이관한 뒤 Codex 신규 초안 205행을 더 확보했다. provider call 11회 시점 상태는 상대 teacher 판정 대기 382행, 초안 대기 1,617행, 실패 1행이다. 독립 감사 기준 신규 초안 188행은 natal-only 날짜 주입 0건, 표면 오행 계수 누락 0건, 구조 사실 오류 0건, 전체 답변 중복 0건이었다.
+- 실패 원인: 유일한 실패 record `m2v4_8e87db048ecd683a9fe1aacd`의 세 시도는 확정 예측을 부정하는 안전 문장을 `FORBIDDEN_PREDICTION`이 정방향 예측으로 오인하거나, 쉼표 뒤 다른 주어의 부정을 앞선 원국 claim에 잘못 전파해 원국 근거 누락으로 판정한 경우였다. 새 계약으로 세 시도를 재생해 3/3 PASS를 확인했다.
+- 계약 교정: 확정 예측 표현은 해당 claim이 실제로 부정되지 않은 경우만 차단하고, claim 뒤 쉼표의 후속 절이 인용 연결어가 아니면 부정 범위를 그 쉼표에서 끝내도록 했다. 정방향 예측은 계속 차단하며, 쉼표 뒤 독립 주어의 부정으로 잘못된 앞 claim을 숨기는 우회도 기존대로 거부한다.
+- immutable 산출물: 계약 SHA `638422550f44cc481ba14482aecdfa8706cab2d94fcb87ba388421b33a1679e5`를 포함한 private `build-8ba27d3b5bb0`, build SHA `8ba27d3b5bb0b8fdb0e4bd4030a87c03c7daab1542e390db638bbc70532069ac`로 재동결했다. prompt SHA `55bdcec6bdf7fa6a91fb68b03cd4a296c705ab9bac0e77abb067190519cc8f90`, dev SHA `7ff700be25c3eaa27401be89afb7eeda6bba4a9c27ef3451d7853a9fd8d8a629`, training spec SHA `d6286e8a00a5ee9f1bfbc660ac92727ed6f5410ec0cb8dce2a95c1ada7f2168e`, projection SHA `3bace953ab5c4a06d967408f30d568eec651c2c30087994f17619a1ec6f7675d`는 유지됐다.
+- downstream pin: LoRA config SHA는 `7e6a45df3d7a698eee5af4211ba0edbca0c0f15554d3524878b65b5279e3e2fe`, 5-arm 평가 config SHA는 `d9543b835acb1c28ad1351294c264e7efc77992daa1120a0da198fafbc245a37`로 갱신했다.
+- 다음 단계: 이전 `build-e4f88ecc9b46` target은 불변 이력으로 보존하고, 382개 현재 초안을 새 target에 재검증 이관한다. 조사 오류가 있는 9개 초안은 상대 teacher 자연성 판정에서 반려·교정하며, 양쪽 teacher와 deterministic validator를 모두 통과한 2,000행만 최종 후보로 확정한다.

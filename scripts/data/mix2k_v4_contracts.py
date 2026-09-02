@@ -374,6 +374,12 @@ def _explicit_claim_is_negated(answer: str, start: int, end: int) -> bool:
     """잘못된 label 바로 뒤의 `아니다/아니라`만 해당 claim의 부정으로 본다."""
 
     local_tail = answer[start : min(len(answer), end + 32)]
+    comma = re.search(r"[,，]", local_tail[max(0, end - start) :])
+    if comma is not None:
+        comma_start = max(0, end - start) + comma.start()
+        continuation = local_tail[comma_start + 1 :]
+        if re.match(r"\s*(?:라고|라는|이라고|이라는)", continuation) is None:
+            local_tail = local_tail[:comma_start]
     return (
         LOCAL_CLAIM_NEGATION.search(local_tail) is not None
         or re.search(
@@ -3192,7 +3198,10 @@ def validate_draft(spec: Mapping[str, Any], draft: Any) -> dict[str, Any]:
         raise Mix2KV4ContractError("teacher 답변이 내부 계약 용어를 노출합니다.")
     if RESTRICTED_MARKERS.search(answer):
         raise Mix2KV4ContractError("teacher 답변이 외부 반출 금지 marker를 포함합니다.")
-    if FORBIDDEN_PREDICTION.search(answer):
+    if any(
+        not _explicit_claim_is_negated(answer, match.start(), match.end())
+        for match in FORBIDDEN_PREDICTION.finditer(answer)
+    ):
         raise Mix2KV4ContractError("teacher 답변이 확정적 사건 예측을 포함합니다.")
     errors = structural_claim_errors(spec, answer)
     errors.extend(required_fact_errors(spec, answer))

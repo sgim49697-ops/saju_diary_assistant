@@ -366,6 +366,19 @@ class Mix2KV4ContractTests(unittest.TestCase):
         }
         self.assertEqual(validate_draft(spec, draft), draft)
 
+        negated_prediction = deepcopy(draft)
+        negated_prediction["answer"] += (
+            "\n어떤 일이 반드시 생긴다고 단정하지 않는 편이 좋습니다."
+        )
+        self.assertEqual(
+            validate_draft(spec, negated_prediction),
+            negated_prediction,
+        )
+        asserted_prediction = deepcopy(draft)
+        asserted_prediction["answer"] += "\n어떤 일이 반드시 생긴다고 말합니다."
+        with self.assertRaisesRegex(Mix2KV4ContractError, "확정적 사건 예측"):
+            validate_draft(spec, asserted_prediction)
+
     def test_training_period_projection_preserves_dashboard_v1_11_content(self) -> None:
         source = deepcopy(_binding()["value"]["period"])
         projected = normalize_model_period_projection(source)
@@ -1713,6 +1726,16 @@ class Mix2KV4ContractTests(unittest.TestCase):
             Mix2KV4ContractError, "provided_period_day_fact_omitted"
         ):
             validate_draft(spec, draft)
+
+        separated = (
+            "선택 날짜의 연간지는 丙午, 월간지는 丙申, 일진은 己卯입니다. "
+            "한편 원국의 일주는 乙丑이므로, 위 날짜 표시는 원국 기둥이 아니라 "
+            "선택 날짜에 붙는 정보입니다. 두 자료를 구분해서 보면 됩니다."
+        )
+        self.assertNotIn(
+            "provided_natal_fact_omitted",
+            required_fact_errors(spec, separated),
+        )
 
     def test_chart_explanation_rejects_unrequested_period_facts(self) -> None:
         spec = deepcopy(_spec())
