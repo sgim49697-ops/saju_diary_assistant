@@ -1,0 +1,55 @@
+{
+  "_description": "실제 DE440s와 합성 입력만 사용하는 chart-only adapter 로컬 canary 자동 Gate다.",
+  "schema_version": "1.0.0",
+  "gate_id": "saju-chart-only-app-canary-v1.0.0",
+  "status": "synthetic_local_canary_only",
+  "required_cases": 130,
+  "maximum_failures": 0,
+  "strata": {
+    "feature_disabled": 10,
+    "past_exact_solar": 10,
+    "past_exact_lunar": 10,
+    "past_range": 10,
+    "past_unknown": 10,
+    "boundary_uncertain_block": 10,
+    "scope_before_block": 10,
+    "scope_after_block": 10,
+    "period_block": 10,
+    "tamper_rejection": 10,
+    "key_rotation_and_separation": 10,
+    "retention_and_deletion": 10,
+    "public_leakage": 10
+  },
+  "required_checks": [
+    "all_cases_passed",
+    "release_identity_verified",
+    "feature_default_off",
+    "disabled_resources_not_opened",
+    "hmac_encryption_keys_separated",
+    "encrypted_persistence_only",
+    "tamper_rejected",
+    "retention_enforced",
+    "period_always_blocked",
+    "boundary_uncertainty_blocked",
+    "public_response_allowlisted",
+    "no_raw_birth_data_in_public_report",
+    "no_runtime_ids_in_public_report",
+    "no_sealed_blind_access",
+    "no_training_or_model_binding"
+  ],
+  "output": {
+    "aggregate_only": true,
+    "raw_case_output_allowed": false,
+    "private_path_recording_allowed": false,
+    "birth_input_recording_allowed": false,
+    "runtime_id_recording_allowed": false
+  },
+  "governance": {
+    "production_application_binding": false,
+    "runtime_feature_default": false,
+    "sealed_blind_accessed": false,
+    "training_execution_performed": false,
+    "model_context_binding": false,
+    "mix20k_v3_1_generated": false
+  }
+}

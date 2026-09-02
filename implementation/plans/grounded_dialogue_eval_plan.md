@@ -22,6 +22,8 @@
 
 자연스러움과 의미 품질은 이 버전에서 `not_measured`다. 저장소 내부 자동 기술 지표 외의 표본 Gate를 추가하지 않는다.
 
+`not_measured` 품질 차원 메타데이터는 `diagnostic_target_met` 계산 입력이 아니다. 최신 누적 재채점 `eval-562c07d0e2e6`의 전체 false는 R0 prompt budget failure 34건, R2/K0 임의 네 기둥 3건·기제공 필드 재질문 24%, R4/model-narrow invalid 100건·exact state 20%·false completion 1건이라는 자동 지표에서 나온다. R1/KI20 oracle과 R3/rule은 자동 목표를 통과했다. 466개 응답의 별도 표본 확인을 완료·승격 조건으로 추가하지 않는다.
+
 ## 2. 현재 저장소 계약 재사용
 
 브랜치 초안의 별도 `scripts/runtime/dialogue` FSM과 `configs/runtime/dialogue` 정책은 제거했다. 저장소에는 다음 정본이 이미 있으므로 진단도 이를 직접 사용한다.
@@ -196,6 +198,12 @@ data/reports/saju_1b_baseline/grounded-dialogue/v0.1.0/eval-<fingerprint>/
 - 과거 공식 근거 후보 화면의 session·결과를 모델 prompt나 이 진단의 재채점 입력으로 재사용
 
 ## 진행 기록
+
+### 2026-09-02 — 자동 목표 미달 원인 재감사
+
+- 작업 요약: 병합 후 full project audit와 최신 공개 재채점 aggregate를 다시 대조해 `diagnostic_target_met=false`의 실제 성분을 확정했다.
+- 검증 결과: R1/KI20 oracle과 R3/rule은 자동 목표를 통과했다. R0는 prompt budget failure 34건, R2/K0는 임의 네 기둥 3건·재질문 24%, R4/model-narrow는 invalid 100건·exact state 20%·false completion 1건으로 미달했다. 품질 차원 `not_measured`는 target 계산 입력이 아니다.
+- 권한 경계: Phase 6 sealed blind는 `spent_completed`, 1회 소비 상태를 공개 registry로만 검증하고 payload를 열지 않았다. 기존 466개 응답의 별도 비자동 표본 작업을 완료 조건으로 추가하지 않았으며 baseline 결정과 학습·모델 승격 상태도 바꾸지 않았다.
 
 ### 2026-09-01 — 브랜치 초안
 

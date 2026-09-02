@@ -44,7 +44,7 @@
 
 Phase 상태 값은 `미시작`, `부분 진행`, `진행 중`, `차단`, `완료`만 사용한다. 앞 Phase가 `완료`가 아니면 뒤 Phase의 공식 산출물을 만들지 않는다.
 
-Phase 6 이후의 비봉인 계산기 연결 대화 진단은 [`grounded_dialogue_eval_plan.md`](../grounded_dialogue_eval_plan.md)를 따른다. 기존 500건 재채점과 2,048↔3,584 token 장문 GPU 진단은 완료됐다. 계산기는 이후 과거 공식 원국 전용 v1.4 chart-only release까지 완료했지만 feature 기본 off이고 앱·모델 context에 연결하지 않았다. 이 결과는 Phase 6 결정, v3.1, 추가 학습과 모델 승격 권한을 변경하지 않는다.
+Phase 6 이후의 비봉인 계산기 연결 대화 진단은 [`grounded_dialogue_eval_plan.md`](../grounded_dialogue_eval_plan.md)를 따른다. 기존 500건 재채점과 2,048↔3,584 token 장문 GPU 진단은 완료됐다. 계산기는 이후 과거 공식 원국 전용 v1.4 chart-only release와 암호화 event adapter의 합성 local canary 130/130까지 완료했지만 feature 기본 off이고 실제 앱·모델 context에 연결하지 않았다. 이 결과는 Phase 6 결정, v3.1, 추가 학습과 모델 승격 권한을 변경하지 않는다.
 
 ```text
 Phase 0 → Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5 → Phase 6

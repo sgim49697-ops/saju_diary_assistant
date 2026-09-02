@@ -1,0 +1,38 @@
+{
+  "_description": "chart-only 운영 보안·adapter·합성 canary 계약과 고정 의존성의 SHA-256을 묶는다.",
+  "schema_version": "1.0.0",
+  "registry_id": "saju-chart-only-operations-registry-v1.0.0",
+  "status": "dry_run_and_synthetic_canary_ready_production_binding_blocked",
+  "parent_release": {
+    "path": "configs/runtime/calculation/releases/v1.4.0/release_registry.json",
+    "sha256": "5f63edacf2d1736715304283eab56ff45a83de749e2a1a64f7775d2a505d00e9",
+    "release_id": "saju-runtime-release-v1.4.0-63dc8d398e90"
+  },
+  "artifacts": [
+    {
+      "path": "configs/runtime/operations/chart_only_security-v1.0.0.json",
+      "sha256": "fc35a4a4fe4a9c719134adeae81280262347007aaf010e27c2b9d8fb4e001ce4"
+    },
+    {
+      "path": "configs/runtime/operations/chart_only_adapter-v1.0.0.json",
+      "sha256": "92f363f0a63d3e6c0aa6288be69cfa8e606a4e60be18fcd9e360893ced39ed43"
+    },
+    {
+      "path": "configs/runtime/operations/chart_only_canary_gate-v1.0.0.json",
+      "sha256": "1296788acf1d0cded5e61f0effcdeb72961d884f12c9f0402a041de209d998fe"
+    },
+    {
+      "path": "requirements-runtime-adapter-v1.0.txt",
+      "sha256": "abecdc234a10ffa940c892934e9f8e41e6ba7648926eb9571bba0e98e49066f0"
+    }
+  ],
+  "governance": {
+    "production_application_binding": false,
+    "runtime_feature_default": false,
+    "raw_case_output_tracking_allowed": false,
+    "sealed_blind_access_allowed": false,
+    "mix20k_v3_1_generation_allowed": false,
+    "training_execution_allowed": false,
+    "model_promotion_allowed": false
+  }
+}
