@@ -14,6 +14,7 @@ import tempfile
 import time
 from collections import Counter
 from collections.abc import Mapping, Sequence
+from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
@@ -57,10 +58,11 @@ RUNNER_PATH = Path(__file__).resolve()
 CONTRACTS_PATH = RUNNER_PATH.with_name("mix2k_v4_contracts.py")
 MAX_JSON_BYTES = 64 * 1024 * 1024
 MAX_PROVIDER_OUTPUT_BYTES = 32 * 1024 * 1024
-STATE_SCHEMA_VERSION = "1.0.0"
-EXPECTED_SPEC_BUILD_ID = "build-67cbcf3317b4"
+STATE_SCHEMA_VERSION = "1.1.0"
+SEED_IMPORT_VERSION = "1.0.0"
+EXPECTED_SPEC_BUILD_ID = "build-e4f88ecc9b46"
 EXPECTED_SPEC_BUILD_SHA256 = (
-    "67cbcf3317b4416aa400ab34960376c46a0e2c42119cc90da766e7af6f31d4ae"
+    "e4f88ecc9b4607eceb79a98633c30a925ef1bb7c7e888901cd848d5094706653"
 )
 SPEC_IDENTITY_FIELDS = {
     "dataset_version",
@@ -497,6 +499,25 @@ def _mandatory_answer_checklist(spec: Mapping[str, Any]) -> list[str]:
         "질문과 production system이 요구한 항목만 답하고, 아래 literal 값과 위치 label을 answer에서 모두 명시하세요.",
         "RAW에 있더라도 질문하지 않은 기간·관계·대운·신강약·용신은 덧붙이지 마세요.",
     ]
+    if spec["task_axis"] == "chart_facts_natural_explanation":
+        checklist.append(
+            "이 질문은 원국 설명만 요구합니다. 선택 날짜와 period의 날짜·간지는 answer에 추가하지 마세요."
+        )
+        if "표면 구성" in question or "오행 분포" in question:
+            checklist.append(
+                "질문이 요구한 표면 오행 개수: "
+                + ", ".join(
+                    f"{element}={fact(f'chart.hard_facts.surface_five_elements.{element}')}"
+                    for element in "목화토금수"
+                )
+            )
+    elif spec["task_axis"] in {
+        "chart_day_today_flow",
+        "followup_explain_grounding",
+    }:
+        checklist.append(
+            "이 질문은 선택 날짜를 다룹니다. 날짜 사실과 원국 사실을 각각 최소 하나 명시하세요."
+        )
     if spec["task_axis"] != "structured_fact_schema_literacy":
         return checklist
     if "원국 전체 네 기둥과 일주" in question or "연주·월주·일주·시주" in question:
@@ -625,6 +646,9 @@ def draft_prompt(
             "FORBIDDEN 목록은 금지 기준이지 답변에 되풀이할 문구가 아닙니다. "
             "사용자가 한계나 근거를 묻지 "
             "않았다면 answer에 금지 항목을 기계적으로 나열하지 말고 질문한 내용만 답하세요. "
+            "간지 literal 뒤에 독음과 맞지 않는 조사를 붙여 `甲寅로`, `己丑는`처럼 "
+            "쓰지 마세요. `甲寅으로`, `己丑은` 또는 `연주는 甲寅입니다`, "
+            "`일주는 己丑입니다`처럼 자연스럽게 작성하세요. "
             "limitations는 내부 audit metadata이므로 실제로 필요한 한계만 적고, 없으면 빈 "
             "배열로 두세요. 도구를 사용하지 마세요."
         )
@@ -685,6 +709,8 @@ def review_prompt(
             "일진이어야 하며 연주·월주·일주 또는 날짜의 원국이라고 부르면 FAIL하세요. "
             "해당 record의 MANDATORY ANSWER CHECKLIST가 동시 사용을 요구하는데 날짜 "
             "사실과 원국 사실을 각각 최소 하나 명시하지 않으면 FAIL하세요. "
+            "`甲寅로`, `己丑는`처럼 한자 간지의 독음에 맞지 않는 조사를 붙인 문장도 "
+            "자연성 오류로 FAIL하고 `甲寅으로`, `己丑은`처럼 고치게 하세요. "
             "도구를 사용하지 마세요."
         )
     ]
@@ -951,6 +977,146 @@ def _load_or_create_state(
     if set(state.get("records", {})) != set(expected["records"]):
         raise Mix2KV4TeacherError("teacher pipeline state record 집합이 다릅니다.")
     return state
+
+
+def _seed_draft_provider(record: Mapping[str, Any]) -> str | None:
+    """현재 초안을 실제로 만든 provider를 과거 attempt에서 확인한다."""
+
+    current = record.get("current_draft")
+    attempts = record.get("draft_attempts")
+    if not isinstance(current, Mapping) or not isinstance(attempts, list):
+        return None
+    for attempt in reversed(attempts):
+        if (
+            isinstance(attempt, Mapping)
+            and attempt.get("deterministic_pass") is True
+            and attempt.get("draft") == current
+            and attempt.get("provider") in PROVIDER_NAMES
+        ):
+            return str(attempt["provider"])
+    return None
+
+
+def _import_seed_drafts(
+    *,
+    state: dict[str, Any],
+    seed_state: Mapping[str, Any],
+    seed_state_sha256: str,
+    specs_by_id: Mapping[str, dict[str, Any]],
+) -> dict[str, Any]:
+    """이전 불변 target의 초안을 새 계약으로 재검증해 review 대기로 이관한다."""
+
+    existing = state.get("seed_import")
+    if existing is not None:
+        if (
+            not isinstance(existing, Mapping)
+            or existing.get("version") != SEED_IMPORT_VERSION
+            or existing.get("source_state_sha256") != seed_state_sha256
+        ):
+            raise Mix2KV4TeacherError("teacher seed import identity가 다릅니다.")
+        return dict(existing)
+    if state.get("provider_calls") != 0 or any(
+        record.get("status") != "needs_draft"
+        or record.get("draft_attempts")
+        or record.get("current_draft") is not None
+        for record in state["records"].values()
+    ):
+        raise Mix2KV4TeacherError("비어 있지 않은 target에는 seed 초안을 넣을 수 없습니다.")
+    if (
+        seed_state.get("dataset_version") != DATASET_VERSION
+        or seed_state.get("mode") != state.get("mode")
+        or seed_state.get("selection_order") != state.get("selection_order")
+        or not isinstance(seed_state.get("records"), Mapping)
+    ):
+        raise Mix2KV4TeacherError("teacher seed selection identity가 다릅니다.")
+
+    imported = 0
+    eligible = 0
+    rejected = Counter()
+    seed_records = seed_state["records"]
+    for record_id in state["selection_order"]:
+        source = seed_records.get(record_id)
+        if not isinstance(source, Mapping) or source.get("status") not in {
+            "needs_review",
+            "accepted",
+        }:
+            continue
+        draft = source.get("current_draft")
+        if not isinstance(draft, Mapping):
+            rejected["missing_current_draft"] += 1
+            continue
+        eligible += 1
+        provider = _seed_draft_provider(source)
+        if provider != specs_by_id[record_id]["drafter"]:
+            rejected["draft_provider_mismatch"] += 1
+            continue
+        candidate = deepcopy(dict(draft))
+        try:
+            validate_draft(specs_by_id[record_id], candidate)
+        except Mix2KV4ContractError as exc:
+            message = str(exc)
+            prefix = "teacher 구조 사실 claim 오류: "
+            reasons = (
+                message.removeprefix(prefix).split(",")
+                if message.startswith(prefix)
+                else [message.split(":", 1)[0]]
+            )
+            for reason in set(reasons):
+                rejected[reason] += 1
+            continue
+        target_record = state["records"][record_id]
+        target_record["draft_attempts"].append(
+            {
+                "provider": provider,
+                "attempt": 1,
+                "provider_draft": deepcopy(candidate),
+                "draft": candidate,
+                "layout_normalized": False,
+                "layout_normalizer_version": None,
+                "deterministic_pass": True,
+                "deterministic_error": None,
+                "imported_from_seed": True,
+                "source_rewrites_used": source.get("rewrites_used"),
+            }
+        )
+        target_record["current_draft"] = candidate
+        target_record["status"] = "needs_review"
+        target_record["feedback"] = ""
+        imported += 1
+
+    report = {
+        "version": SEED_IMPORT_VERSION,
+        "source_state_sha256": seed_state_sha256,
+        "source_state_schema_version": seed_state.get("schema_version"),
+        "eligible_current_drafts": eligible,
+        "imported_current_drafts": imported,
+        "rejected_current_drafts": eligible - imported,
+        "rejection_counts": dict(sorted(rejected.items())),
+        "peer_review_reused": False,
+    }
+    state["seed_import"] = report
+    return report
+
+
+def _load_seed_state(
+    *, seed_target: Path, output_root: Path, current_target: Path
+) -> tuple[dict[str, Any], str]:
+    """동일 private output root의 과거 target state만 seed로 연다."""
+
+    _reject_symlink_components(seed_target, "teacher seed target")
+    if (
+        not seed_target.is_absolute()
+        or seed_target.is_symlink()
+        or not seed_target.is_dir()
+        or seed_target.parent != output_root
+        or seed_target == current_target
+    ):
+        raise Mix2KV4TeacherError("teacher seed target 경로가 안전하지 않습니다.")
+    state_path = _state_path(seed_target)
+    return (
+        _load_json(state_path, "teacher seed pipeline state"),
+        sha256_file(state_path),
+    )
 
 
 def _status_counts(state: Mapping[str, Any]) -> dict[str, int]:
@@ -1258,6 +1424,7 @@ def run_pipeline(
     timeout_seconds: int,
     max_provider_calls: int,
     provider_only: str | None = None,
+    seed_target: Path | None = None,
 ) -> dict[str, Any]:
     _reject_symlink_components(config_path, "config")
     _reject_symlink_components(spec_build, "spec build")
@@ -1299,6 +1466,30 @@ def run_pipeline(
             spec_manifest_path=spec_build / "build_manifest.json",
         )
         specs_by_id = {row["id"]: row for row in selected}
+        seed_import = state.get("seed_import")
+        if seed_target is not None:
+            seed_state, seed_state_sha256 = _load_seed_state(
+                seed_target=seed_target,
+                output_root=output_root,
+                current_target=target,
+            )
+            seed_import = _import_seed_drafts(
+                state=state,
+                seed_state=seed_state,
+                seed_state_sha256=seed_state_sha256,
+                specs_by_id=specs_by_id,
+            )
+            _atomic_write(_state_path(target), _json_bytes(state))
+            print(
+                "seed_import="
+                + json.dumps(
+                    seed_import,
+                    ensure_ascii=False,
+                    separators=(",", ":"),
+                    sort_keys=True,
+                ),
+                flush=True,
+            )
         maximum_rewrites = int(config["teacher"]["maximum_rewrite_rounds"])
         calls_this_run = 0
         while True:
@@ -1404,6 +1595,7 @@ def run_pipeline(
             "provider_calls_total": state["provider_calls"],
             "provider_calls_this_run": calls_this_run,
             "provider_only": provider_only,
+            "seed_import": seed_import,
             "auth": auth,
             "manifest": manifest,
         }
@@ -1431,6 +1623,14 @@ def _parser() -> argparse.ArgumentParser:
             "다른 provider의 교차 PASS 요건은 유지됩니다."
         ),
     )
+    parser.add_argument(
+        "--seed-target",
+        type=Path,
+        help=(
+            "동일 private output root의 과거 teacher target에서 현재 초안만 "
+            "새 spec으로 재검증해 이관합니다. 과거 peer PASS는 재사용하지 않습니다."
+        ),
+    )
     return parser
 
 
@@ -1455,6 +1655,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             timeout_seconds=args.timeout_seconds,
             max_provider_calls=args.max_provider_calls,
             provider_only=args.provider_only,
+            seed_target=(
+                _absolute(args.seed_target) if args.seed_target is not None else None
+            ),
         )
     except (Mix2KV4TeacherError, Mix2KV4ContractError) as exc:
         print(str(exc), file=sys.stderr)

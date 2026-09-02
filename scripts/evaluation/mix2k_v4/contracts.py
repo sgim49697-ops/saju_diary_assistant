@@ -26,7 +26,7 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_CONFIG = REPO_ROOT / "configs/evaluation/mix2k-v4-lora-eval-v1.0.0.json"
 DEFAULT_SPEC_BUILD = Path(
     "data/derived/saju_1b_baseline/mix2k-v4-chart-day-8k/specs/"
-    "v1.0.1/build-67cbcf3317b4"
+    "v1.0.1/build-e4f88ecc9b46"
 )
 EXPECTED_DEV_AXES = {
     "schema_literacy": 40,
@@ -62,11 +62,11 @@ EXPECTED_DEPENDENCY_CONTRACTS = {
     },
     "lora_config": {
         "path": "configs/model_versions/saju_1b_baseline/mix2k-v4-lora-v1.0.1.json",
-        "sha256": "9c243b1ecfe0ff4cbceb4afb0e3ff7ccab03e876f5327025d9efbe018bd59a94",
+        "sha256": "d79648754096cd6df6be14a944a3acc1dbcd40f534258790d3db4b9b85f2446a",
     },
     "bound_prompt": {
         "path": "configs/chat_prompts/saju_bound_chart_v2.txt",
-        "sha256": "d93a8f03a45697dbf5df2d78eaa4dde480f5bef70f30a148a0c146576406e917",
+        "sha256": "55bdcec6bdf7fa6a91fb68b03cd4a296c705ab9bac0e77abb067190519cc8f90",
     },
     "model_projection": {
         "path": "scripts/runtime/chart_day_model_projection.py",
@@ -160,7 +160,7 @@ EXPECTED_GENERATION = {
     "same_generation_config": True,
     "system_prompt_profile": "bound_chart_v2",
     "system_prompt_sha256": (
-        "d93a8f03a45697dbf5df2d78eaa4dde480f5bef70f30a148a0c146576406e917"
+        "55bdcec6bdf7fa6a91fb68b03cd4a296c705ab9bac0e77abb067190519cc8f90"
     ),
     "model_projection_id": "saju-chart-day-model-projection-v1.0.0",
     "ignore_model_directory_generation_config": True,
@@ -403,11 +403,11 @@ def validate_config(config_path: Path) -> dict[str, Any]:
         or config.get("evaluation_version") != "v1.0.0"
         or config.get("dataset_version") != DATASET_VERSION
         or not isinstance(source, Mapping)
-        or source.get("build_id") != "build-67cbcf3317b4"
+        or source.get("build_id") != "build-e4f88ecc9b46"
         or source.get("build_sha256")
-        != "67cbcf3317b4416aa400ab34960376c46a0e2c42119cc90da766e7af6f31d4ae"
+        != "e4f88ecc9b4607eceb79a98633c30a925ef1bb7c7e888901cd848d5094706653"
         or source.get("sha256")
-        != "2614d5e3578340969e03b2779b26c365bf774729bbc3838ff35998ec22faaf86"
+        != "7ff700be25c3eaa27401be89afb7eeda6bba4a9c27ef3451d7853a9fd8d8a629"
         or source.get("rows") != 200
         or source.get("axes") != EXPECTED_DEV_AXES
         or source.get("required_regression_id") != REGRESSION_ID

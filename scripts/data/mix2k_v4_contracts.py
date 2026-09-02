@@ -1943,7 +1943,10 @@ def _day_master_detail_errors(spec: Mapping[str, Any], answer: str) -> list[str]
         for match in pattern.finditer(answer):
             tail = stop.split(match.group("tail"), maxsplit=1)[0]
             element_match = re.search(
-                r"([목화토금수])(?:의\s*기운|이고|이며|입니다|이다|으로|,|·|/|\s|$)",
+                r"(?:(?:은|는|이|가)\s*(?:음|양)?\s*|"
+                r"(?:음|양)(?:의|\s*)|오행(?:은|는|이|가|:|=|\s)*)"
+                r"([목화토금수])"
+                r"(?:의\s*기운|이고|이며|입니다|이다|으로|,|·|/|\s|$)",
                 tail,
             )
             yin_yang_match = re.search(
@@ -2940,15 +2943,42 @@ def required_fact_errors(spec: Mapping[str, Any], answer: str) -> list[str]:
         elif "원국 네 기둥과 선택 날짜 세 간지" in question:
             require_suffixes([*pillar_ganzhi, *period_ganzhi])
 
-    if axis == "chart_facts_natural_explanation" and not any(
-        value in answer for value in natal
-    ):
-        errors.append("provided_natal_fact_omitted")
+        schema_period_requested = (
+            "선택 날짜의 연간지" in question
+            or "year/month/day ganzhi" in question
+            or "원국 네 기둥과 선택 날짜 세 간지" in question
+        )
+        if not schema_period_requested:
+            period_date = _path_value(spec, "period.hard_facts.period.target_date")
+            if _explicit_period_ganzhi_paths(spec, answer) or (
+                period_date is not None and period_date in normalized_dates(answer)
+            ):
+                errors.append("unrequested_period_fact")
+
+    if axis == "chart_facts_natural_explanation":
+        if not _explicit_natal_fact_paths(spec, answer):
+            errors.append("provided_natal_fact_omitted")
+        period_date = _path_value(spec, "period.hard_facts.period.target_date")
+        if _explicit_period_ganzhi_paths(spec, answer) or (
+            period_date is not None and period_date in normalized_dates(answer)
+        ):
+            errors.append("unrequested_period_fact")
+        if "표면 구성" in question or "오행 분포" in question:
+            observed = dict(surface_element_claims(answer))
+            for element in "목화토금수":
+                expected = _path_value(
+                    spec, f"chart.hard_facts.surface_five_elements.{element}"
+                )
+                if expected is not None and observed.get(element) != int(expected):
+                    errors.append(
+                        "required_chart_fact_omitted:"
+                        f"chart.hard_facts.surface_five_elements.{element}"
+                    )
     if axis in {"chart_day_today_flow", "followup_explain_grounding"}:
         period_day = _path_value(spec, "period.hard_facts.period.day_ganzhi")
         if period_day is not None and period_day not in answer:
             errors.append("provided_period_day_fact_omitted")
-        if natal and not any(value in answer for value in natal):
+        if natal and not _explicit_natal_fact_paths(spec, answer):
             errors.append("provided_natal_fact_omitted")
     if axis == "hard_fact_short_qa":
         natal_day = _path_value(spec, "chart.hard_facts.pillars.day.ganzhi")

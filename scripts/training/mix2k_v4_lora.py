@@ -480,9 +480,9 @@ def _validate_config(path: Path) -> dict[str, Any]:
     }
     expected_data = {
         "rows": 2000,
-        "spec_build_id": "build-67cbcf3317b4",
+        "spec_build_id": "build-e4f88ecc9b46",
         "spec_build_sha256": (
-            "67cbcf3317b4416aa400ab34960376c46a0e2c42119cc90da766e7af6f31d4ae"
+            "e4f88ecc9b4607eceb79a98633c30a925ef1bb7c7e888901cd848d5094706653"
         ),
         "manifest_name": "build_manifest.json",
         "training_path": "training/train_2000.jsonl",
@@ -566,7 +566,7 @@ def _validate_config(path: Path) -> dict[str, Any]:
             "required_prompt_profile": "bound_chart_v2",
             "required_prompt_path": "configs/chat_prompts/saju_bound_chart_v2.txt",
             "required_prompt_sha256": (
-                "d93a8f03a45697dbf5df2d78eaa4dde480f5bef70f30a148a0c146576406e917"
+                "55bdcec6bdf7fa6a91fb68b03cd4a296c705ab9bac0e77abb067190519cc8f90"
             ),
             "current_dashboard_version": "v1.11",
             "current_dashboard_prompt_profile": "bound_chart_v1",

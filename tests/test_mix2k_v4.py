@@ -30,6 +30,7 @@ from scripts.data.mix2k_v4_finalize import select_training_max_length
 from scripts.data.mix2k_v4_teachers import (
     CODEX_DISABLED_FEATURES,
     _draft_schema,
+    _import_seed_drafts,
     _mandatory_answer_checklist,
     _normalize_draft_answer_layout,
     _selection,
@@ -198,9 +199,105 @@ class Mix2KV4ContractTests(unittest.TestCase):
                 "/tmp/spec-build",
                 "--provider-only",
                 "codex",
+                "--seed-target",
+                "/tmp/old-teacher-target",
             ]
         )
         self.assertEqual(arguments.provider_only, "codex")
+        self.assertEqual(arguments.seed_target, Path("/tmp/old-teacher-target"))
+
+    def test_seed_import_revalidates_drafts_without_reusing_peer_pass(self) -> None:
+        spec = _spec()
+        answer = (
+            "원국 전체는 연주 戊辰, 월주 甲子, 일주 乙丑, 시주 壬午입니다.\n"
+            "2026-09-02의 연간지는 丙午, 월간지는 丙申, 일진은 己卯입니다.\n"
+            "원국과 선택 날짜는 서로 다른 사실로 구분해서 확인하면 됩니다."
+        )
+        draft = {
+            "record_id": spec["id"],
+            "answer": answer,
+            "used_fact_paths": [],
+            "used_fact_values": [
+                "戊辰",
+                "甲子",
+                "乙丑",
+                "壬午",
+                "2026-09-02",
+                "丙午",
+                "丙申",
+                "己卯",
+            ],
+            "soft_interpretation_used": False,
+            "limitations": [],
+            "self_check": "PASS",
+        }
+        source_record = {
+            "status": "accepted",
+            "rewrites_used": 1,
+            "current_draft": draft,
+            "draft_attempts": [
+                {
+                    "provider": "claude",
+                    "deterministic_pass": True,
+                    "draft": draft,
+                }
+            ],
+        }
+
+        def empty_state() -> dict[str, object]:
+            return {
+                "mode": "full",
+                "provider_calls": 0,
+                "selection_order": [spec["id"]],
+                "records": {
+                    spec["id"]: {
+                        "status": "needs_draft",
+                        "rewrites_used": 0,
+                        "feedback": "",
+                        "draft_attempts": [],
+                        "review_attempts": [],
+                        "current_draft": None,
+                        "accepted": None,
+                    }
+                },
+            }
+
+        seed_state = {
+            "schema_version": "1.0.0",
+            "dataset_version": DATASET_VERSION,
+            "mode": "full",
+            "selection_order": [spec["id"]],
+            "records": {spec["id"]: source_record},
+        }
+        state = empty_state()
+        report = _import_seed_drafts(
+            state=state,
+            seed_state=seed_state,
+            seed_state_sha256="a" * 64,
+            specs_by_id={spec["id"]: spec},
+        )
+        self.assertEqual(report["imported_current_drafts"], 1)
+        self.assertFalse(report["peer_review_reused"])
+        imported = state["records"][spec["id"]]
+        self.assertEqual(imported["status"], "needs_review")
+        self.assertIsNone(imported["accepted"])
+        self.assertTrue(imported["draft_attempts"][0]["imported_from_seed"])
+
+        chart_spec = deepcopy(spec)
+        chart_spec["task_axis"] = "chart_facts_natural_explanation"
+        rejected_state = empty_state()
+        rejected = _import_seed_drafts(
+            state=rejected_state,
+            seed_state=seed_state,
+            seed_state_sha256="b" * 64,
+            specs_by_id={chart_spec["id"]: chart_spec},
+        )
+        self.assertEqual(rejected["imported_current_drafts"], 0)
+        self.assertEqual(rejected["rejected_current_drafts"], 1)
+        self.assertEqual(rejected["rejection_counts"]["unrequested_period_fact"], 1)
+        self.assertEqual(
+            rejected_state["records"][spec["id"]]["status"], "needs_draft"
+        )
 
     def test_codex_teacher_disables_host_read_tools(self) -> None:
         self.assertTrue(
@@ -750,6 +847,21 @@ class Mix2KV4ContractTests(unittest.TestCase):
             with self.subTest(answer=answer):
                 self.assertIn(expected, structural_claim_errors(_spec(), answer))
 
+        for answer in (
+            "일간 丁을 중심으로 함께 볼 수 있는 원국의 겉구성입니다.",
+            "일간 丁을 중심으로 함께 살펴볼 수 있는 원국의 겉구성입니다.",
+        ):
+            with self.subTest(answer=answer):
+                spec = deepcopy(_spec())
+                stem_path = "chart.hard_facts.day_master.stem"
+                spec["allowed_fact_values"][
+                    spec["allowed_fact_paths"].index(stem_path)
+                ] = "丁"
+                self.assertNotIn(
+                    "day_master_element_confusion:수",
+                    structural_claim_errors(spec, answer),
+                )
+
         for valid in (
             "연주의 천간 戊(토·양), 지지 辰(토·양)입니다.",
             "연주의 천간 戊(양·토), 지지 辰(양·토)입니다.",
@@ -1275,6 +1387,22 @@ class Mix2KV4ContractTests(unittest.TestCase):
             with self.subTest(question=question, state="complete"):
                 self.assertEqual(required_fact_errors(spec, complete_answer), [])
 
+        natal_schema = deepcopy(_spec())
+        natal_schema["task_axis"] = "structured_fact_schema_literacy"
+        natal_schema["prompt"][-1]["content"] = (
+            "원국 전체 네 기둥과 일주를 서로 구분해서 설명해줘."
+        )
+        natal_answer = "연주 戊辰, 월주 甲子, 일주 乙丑, 시주 壬午입니다."
+        self.assertEqual(required_fact_errors(natal_schema, natal_answer), [])
+        self.assertIn(
+            "unrequested_period_fact",
+            required_fact_errors(
+                natal_schema,
+                natal_answer
+                + " 선택 날짜의 연간지는 丙午, 월간지는 丙申, 일진은 己卯입니다.",
+            ),
+        )
+
         period_spec = deepcopy(_spec())
         period_spec["task_axis"] = "structured_fact_schema_literacy"
         period_spec["prompt"][-1]["content"] = (
@@ -1586,6 +1714,46 @@ class Mix2KV4ContractTests(unittest.TestCase):
         ):
             validate_draft(spec, draft)
 
+    def test_chart_explanation_rejects_unrequested_period_facts(self) -> None:
+        spec = deepcopy(_spec())
+        spec["task_axis"] = "chart_facts_natural_explanation"
+        chart_only = (
+            "원국은 연주 戊辰, 월주 甲子, 일주 乙丑, 시주 壬午입니다. "
+            "일간은 乙입니다. 네 기둥과 일간을 구분해서 보면 됩니다."
+        )
+        self.assertEqual(required_fact_errors(spec, chart_only), [])
+
+        with_period = (
+            chart_only
+            + " 선택 날짜 2026-09-02의 연간지는 丙午, 월간지는 丙申, 일진은 己卯입니다."
+        )
+        self.assertIn(
+            "unrequested_period_fact",
+            required_fact_errors(spec, with_period),
+        )
+
+        day_master_only = (
+            "원국의 일간은 乙입니다.\n"
+            "일간은 일주 천간에서 읽는 중심값입니다.\n"
+            "질문한 원국 범위 안에서 이 값을 먼저 구분하면 됩니다."
+        )
+        self.assertEqual(required_fact_errors(spec, day_master_only), [])
+
+        spec["prompt"][-1]["content"] = (
+            "일간을 중심으로 원국의 표면 구성을 설명해줘."
+        )
+        self.assertTrue(
+            any(
+                error.startswith("required_chart_fact_omitted:")
+                for error in required_fact_errors(spec, day_master_only)
+            )
+        )
+        with_surface = (
+            day_master_only
+            + "\n표면 오행은 목 2, 화 1, 토 3, 금 0, 수 2입니다."
+        )
+        self.assertEqual(required_fact_errors(spec, with_surface), [])
+
     def test_equal_period_year_and_day_ganzhi_are_not_label_confusion(self) -> None:
         spec = deepcopy(_spec())
         year_path = "period.hard_facts.period.year_ganzhi"
@@ -1691,6 +1859,8 @@ class Mix2KV4ContractTests(unittest.TestCase):
         self.assertIn("FORBIDDEN 목록은 금지 기준", prompt)
         self.assertIn("limitations는 내부 audit metadata", prompt)
         self.assertIn("날짜 사실과 원국 사실을 각각 최소 하나", prompt)
+        self.assertIn("`甲寅로`, `己丑는`처럼", prompt)
+        self.assertIn("`甲寅으로`, `己丑은`", prompt)
 
         draft = {
             "record_id": spec["id"],
@@ -1708,7 +1878,23 @@ class Mix2KV4ContractTests(unittest.TestCase):
         self.assertIn("audit metadata입니다", review)
         self.assertIn("answer의 내용과 metadata의 정확성을 구분", review)
         self.assertIn("날짜 사실과 원국 사실을 각각 최소 하나", review)
+        self.assertIn("자연성 오류로 FAIL", review)
+        self.assertIn("`甲寅으로`, `己丑은`", review)
         self.assertEqual(review.count("[MANDATORY ANSWER CHECKLIST]"), 1)
+
+    def test_bound_chart_v2_dual_grounding_is_date_question_only(self) -> None:
+        prompt = Path("configs/chat_prompts/saju_bound_chart_v2.txt").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("사용자가 선택 날짜나 오늘의 흐름을 묻는다면", prompt)
+        self.assertIn(
+            "원국만 묻는 질문에는 `period`가 연결됐다는 이유만으로 날짜 사실을 덧붙이지 마세요",
+            prompt,
+        )
+        self.assertNotIn(
+            "현재 snapshot에 승인된 단일 날짜 `period`가 있다면 해당 날짜 사실과 원국 사실을 각각",
+            prompt,
+        )
 
     def test_schema_teacher_checklist_expands_every_requested_position(self) -> None:
         spec = _spec()

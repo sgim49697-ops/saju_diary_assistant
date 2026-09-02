@@ -196,6 +196,14 @@ class DashboardV111GroundingTests(unittest.TestCase):
 
     def test_grounding_gate_requires_chart_and_selected_date_facts(self) -> None:
         binding = _binding()
+        natal_only = evaluate_bound_output(
+            "내 원국 네 기둥을 설명해줘.",
+            "연결된 원국의 일주는 壬辰입니다.",
+            binding,
+        )
+        self.assertTrue(natal_only["passed"])
+        self.assertNotIn("period_fact_missing", natal_only["reasons"])
+
         passed = evaluate_bound_output(
             "내 오늘 사주 봐줄래?",
             "연결된 壬辰 원국과 2026-09-02의 己卯 일진을 함께 살펴보겠습니다.",
