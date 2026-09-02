@@ -251,6 +251,12 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
 ## 진행 기록
 
 - 2026-09-02
+  - 작업 요약: chart-only dashboard v1.9의 WSL2 운영 재기동에서 GPU 진단 실행 파일 탐색 실패가 상태 API 500으로 전파되지 않도록 축소 응답 회귀 방어를 추가했다.
+  - 변경 범위: `nvidia-smi` 실패는 GPU 미가용 진단으로만 남기고 원국 runtime·모델·데이터·Phase 상태는 변경하지 않았다. transient service의 WSL2 `PATH`와 native JIT `CPATH` 조건을 운영 문서에 고정했다.
+  - 검증: live 상태 API 3종 200, v1.9 표적 unittest 7건, 저장소 전체 unittest 553/553, Ruff, JavaScript syntax와 diff 검사를 통과했다.
+  - 남은 이슈·후속 작업: 병합된 구현으로 새 GPU production canary와 공개 UI canary를 완료하기 전까지 기존 제한 활성화 판단을 새 build의 증거로 대체하지 않는다.
+
+- 2026-09-02
   - 작업 요약: dashboard v1.9 병합 후 통합 회귀가 발견한 과거 v1.8 구현 hash 손상을 versioned 진입점 분리로 교정했다.
   - 변경 범위: 과거 `phase5_dashboard.py`와 그 테스트는 원래 바이트로 복원하고 chart-only production binding을 `phase5_dashboard_v1_9.py`로 옮겼다. 과거 보고서·Gate hash·Phase 상태는 수정하지 않았다.
   - 검증: historical candidate 실패 3건을 포함한 관련 51건과 저장소 전체 unittest 552/552, Ruff, JavaScript syntax와 v1.8 SHA-256 복원을 확인했다.

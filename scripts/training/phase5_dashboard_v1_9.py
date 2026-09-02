@@ -1647,17 +1647,20 @@ def _service_snapshot(unit: Any) -> dict[str, Any]:
 
 
 def _gpu_snapshot() -> dict[str, Any]:
-    result = subprocess.run(
-        [
-            "nvidia-smi",
-            "--query-gpu=index,name,memory.used,memory.total,driver_version",
-            "--format=csv,noheader,nounits",
-        ],
-        check=False,
-        capture_output=True,
-        text=True,
-        timeout=5,
-    )
+    try:
+        result = subprocess.run(
+            [
+                "nvidia-smi",
+                "--query-gpu=index,name,memory.used,memory.total,driver_version",
+                "--format=csv,noheader,nounits",
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return {"available": False, "error": "nvidia-smi unavailable"}
     if result.returncode != 0 or not result.stdout.strip():
         return {"available": False, "error": "nvidia-smi unavailable"}
     values = [value.strip() for value in result.stdout.splitlines()[0].split(",")]
