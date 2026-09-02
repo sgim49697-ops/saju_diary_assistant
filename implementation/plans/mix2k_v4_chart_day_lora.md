@@ -157,3 +157,13 @@ Teacher 절반은 Claude 초안→Codex grounding 판정, 나머지 절반은 Co
 - immutable 산출물: 계약 SHA `638422550f44cc481ba14482aecdfa8706cab2d94fcb87ba388421b33a1679e5`를 포함한 private `build-8ba27d3b5bb0`, build SHA `8ba27d3b5bb0b8fdb0e4bd4030a87c03c7daab1542e390db638bbc70532069ac`로 재동결했다. prompt SHA `55bdcec6bdf7fa6a91fb68b03cd4a296c705ab9bac0e77abb067190519cc8f90`, dev SHA `7ff700be25c3eaa27401be89afb7eeda6bba4a9c27ef3451d7853a9fd8d8a629`, training spec SHA `d6286e8a00a5ee9f1bfbc660ac92727ed6f5410ec0cb8dce2a95c1ada7f2168e`, projection SHA `3bace953ab5c4a06d967408f30d568eec651c2c30087994f17619a1ec6f7675d`는 유지됐다.
 - downstream pin: LoRA config SHA는 `7e6a45df3d7a698eee5af4211ba0edbca0c0f15554d3524878b65b5279e3e2fe`, 5-arm 평가 config SHA는 `d9543b835acb1c28ad1351294c264e7efc77992daa1120a0da198fafbc245a37`로 갱신했다.
 - 다음 단계: 이전 `build-e4f88ecc9b46` target은 불변 이력으로 보존하고, 382개 현재 초안을 새 target에 재검증 이관한다. 조사 오류가 있는 9개 초안은 상대 teacher 자연성 판정에서 반려·교정하며, 양쪽 teacher와 deterministic validator를 모두 통과한 2,000행만 최종 후보로 확정한다.
+
+### 2026-09-03 - 간지 조사 자동 교정과 자기모순 차단
+
+- 실행 결과: `build-8ba27d3b5bb0` target에 기존 382행을 전부 재검증 이관하고 Codex 현재 초안을 236행 추가해 상대 teacher 판정 대기 618행을 확보했다. 진행 중 호출은 checkpoint 저장 전 안전하게 중단했고 완료 state는 그대로 보존했다.
+- 독립 감사: 신규 196행 snapshot에서 구조 사실·금지 추론 오류와 전체 답변 중복은 0건이었다. 다만 14개 record에 `辛丑는`, `乙丑로`, `丁未이라는` 같은 간지 독음-조사 불일치가 있었고, 1개 record는 `辛丑은 원국의 일주가 아니라, 원국의 일주는 辛丑`이라는 자기모순을 포함했다.
+- 교정: 12지 독음의 받침과 `ㄹ` 예외를 기준으로 은/는·이/가·을/를·과/와·으로/로·이라는/라는·이라고/라고만 결정적으로 고친다. 서술격 표현 `辛亥이더라도`는 건드리지 않으며 provider 원문과 교정본·버전을 private attempt 이력에 함께 남긴다. seed 이관에도 같은 교정을 적용한다. 제공된 올바른 원국·날짜 label 값을 바로 뒤에서 `아니다/아니라`로 부정하는 claim은 자기모순으로 DROP한다.
+- 전수 재생: checkpoint의 현재 초안 618행에 새 교정을 적용했을 때 조사 표현 48건이 정정됐고, 617행은 새 계약 PASS, 실제 자기모순 1행만 DROP됐다. 정상적인 `날짜 일진은 원국 일주가 아니라 별도 정보` 문형과 다음 문장의 한계 부정은 통과한다.
+- immutable 산출물: 계약 SHA `dfd004bbe48ba84e009070ec30b25a805410dfa1127e5ef06776ab1312714fbb`를 포함한 private `build-45d72dbfca76`, build SHA `45d72dbfca76535d5290e55d478a5fca81f33d269a0fd895e34aea09625eb465`로 재동결했다. training spec·dev·projection·prompt SHA는 직전 build와 동일하다.
+- downstream pin: LoRA config SHA는 `b1a3c67bc17f64854f2df6cd6884e2bb6d8f3a1baeab2e128095e3421c55deec`, 5-arm 평가 config SHA는 `83b6aa65f855cc0e4ab241373e76fff40bdb5056c74769ffac0e117932656b47`로 갱신했다.
+- 다음 단계: `build-8ba27d3b5bb0`의 617개 통과 초안을 새 target으로 이관하고 자기모순 1개만 다시 작성한다. 이후 Codex 담당 1,000행을 채우고 Claude 상대 판정 및 반대 방향 생성을 순차적으로 진행한다.

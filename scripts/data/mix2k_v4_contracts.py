@@ -370,10 +370,62 @@ def _claim_clause(answer: str, start: int, end: int) -> str:
     return answer[left:right]
 
 
+def _expected_labeled_fact_negation_errors(
+    spec: Mapping[str, Any], answer: str
+) -> list[str]:
+    """제공된 정답 label·값 자체를 부정하는 자기모순 claim을 찾는다."""
+
+    errors: list[str] = []
+    groups = (
+        ("natal", PILLAR_LABELS, "chart.hard_facts.pillars.{}.ganzhi"),
+        ("period", PERIOD_LABELS, "period.hard_facts.period.{}"),
+    )
+    for prefix, labels, path_template in groups:
+        for label, field in labels.items():
+            expected = _path_value(spec, path_template.format(field))
+            if expected is None:
+                continue
+            escaped_label = re.escape(label)
+            escaped_value = re.escape(expected)
+            direct = re.compile(
+                rf"(?:(?:원국|사주|오늘|날짜|선택된\s*날짜)(?:의)?\s*)?"
+                rf"(?P<label>{escaped_label})\s*"
+                rf"(?:은|는|이|가|인|:|=)?\s*{escaped_value}"
+            )
+            reverse = re.compile(
+                rf"{escaped_value}\s*(?:은|는|이|가)?\s*"
+                rf"(?:(?:원국|사주|오늘|날짜|선택된\s*날짜)(?:의)?\s*)?"
+                rf"{escaped_label}"
+            )
+            direct_matches = (
+                match
+                for match in direct.finditer(answer)
+                if not _label_completes_reverse_claim(
+                    answer, match.start("label")
+                )
+            )
+            if any(
+                LOCAL_CLAIM_NEGATION.match(
+                    answer[match.end() : min(len(answer), match.end() + 24)]
+                )
+                is not None
+                for match in (*direct_matches, *reverse.finditer(answer))
+            ):
+                errors.append(f"{prefix}_{field}_expected_fact_negated")
+    return list(dict.fromkeys(errors))
+
+
 def _explicit_claim_is_negated(answer: str, start: int, end: int) -> bool:
     """잘못된 label 바로 뒤의 `아니다/아니라`만 해당 claim의 부정으로 본다."""
 
     local_tail = answer[start : min(len(answer), end + 32)]
+    boundary = re.search(
+        r"[\n.!?。！？;；]",
+        local_tail[max(0, end - start) :],
+    )
+    if boundary is not None:
+        boundary_start = max(0, end - start) + boundary.start()
+        local_tail = local_tail[:boundary_start]
     comma = re.search(r"[,，]", local_tail[max(0, end - start) :])
     if comma is not None:
         comma_start = max(0, end - start) + comma.start()
@@ -2363,6 +2415,7 @@ def structural_claim_errors(spec: Mapping[str, Any], answer: str) -> list[str]:
     errors.extend(_dated_period_claim_errors(spec, answer))
     errors.extend(_relative_period_claim_errors(spec, answer))
     errors.extend(_schema_path_claim_errors(spec, answer))
+    errors.extend(_expected_labeled_fact_negation_errors(spec, answer))
     for label, value, _, _ in _labeled_entity_claims(
         answer, PILLAR_LABELS, GANYI.pattern
     ):

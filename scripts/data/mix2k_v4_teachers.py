@@ -60,9 +60,9 @@ MAX_JSON_BYTES = 64 * 1024 * 1024
 MAX_PROVIDER_OUTPUT_BYTES = 32 * 1024 * 1024
 STATE_SCHEMA_VERSION = "1.1.0"
 SEED_IMPORT_VERSION = "1.0.0"
-EXPECTED_SPEC_BUILD_ID = "build-8ba27d3b5bb0"
+EXPECTED_SPEC_BUILD_ID = "build-45d72dbfca76"
 EXPECTED_SPEC_BUILD_SHA256 = (
-    "8ba27d3b5bb0b8fdb0e4bd4030a87c03c7daab1542e390db638bbc70532069ac"
+    "45d72dbfca76535d5290e55d478a5fca81f33d269a0fd895e34aea09625eb465"
 )
 SPEC_IDENTITY_FIELDS = {
     "dataset_version",
@@ -86,6 +86,7 @@ SPEC_IDENTITY_FIELDS = {
 }
 PROVIDER_NAMES = frozenset({"claude", "codex"})
 LAYOUT_NORMALIZER_VERSION = "sentence-whitespace-v1"
+PARTICLE_NORMALIZER_VERSION = "ganzhi-particle-v1"
 ANSWER_HORIZONTAL_SENTENCE_BOUNDARY = re.compile(
     r"(([다요죠까네군라자])(?:[.!?。！？])(?:[\"'”’)]*))[ \t]+"
 )
@@ -95,6 +96,12 @@ UNSAFE_LAYOUT_MARKUP = re.compile(
     r"(?:^|\n)\s*(?:>|[-*+]|\d{1,3}[.)])\s+",
     re.MULTILINE,
 )
+GANZHI_PARTICLE = re.compile(
+    r"(?P<ganzhi>[甲乙丙丁戊己庚辛壬癸](?P<branch>[子丑寅卯辰巳午未申酉戌亥]))"
+    r"(?P<particle>이라는|이라고|라는|라고|으로|은|는|이|가|을|를|과|와|로)"
+)
+FINAL_CONSONANT_BRANCHES = frozenset("丑寅辰申戌")
+FINAL_RIEUL_BRANCHES = frozenset("戌")
 CODEX_DISABLED_FEATURES = (
     "apps",
     "browser_use",
@@ -624,6 +631,51 @@ def _normalize_draft_answer_layout(
     return normalized, candidate != answer
 
 
+def _normalize_draft_answer_particles(
+    draft: Mapping[str, Any],
+) -> tuple[dict[str, Any], bool]:
+    """간지 독음의 받침에 맞지 않는 조사만 결정적으로 교정한다."""
+
+    normalized = dict(draft)
+    answer = normalized.get("answer")
+    if not isinstance(answer, str):
+        return normalized, False
+
+    def replacement(match: re.Match[str]) -> str:
+        branch = match.group("branch")
+        has_final = branch in FINAL_CONSONANT_BRANCHES
+        particle = match.group("particle")
+        if particle == "이" and re.match(r"[가-힣]", answer[match.end() :]):
+            return match.group(0)
+        pair = {
+            "은": ("은", "는"),
+            "는": ("은", "는"),
+            "이": ("이", "가"),
+            "가": ("이", "가"),
+            "을": ("을", "를"),
+            "를": ("을", "를"),
+            "과": ("과", "와"),
+            "와": ("과", "와"),
+            "이라는": ("이라는", "라는"),
+            "라는": ("이라는", "라는"),
+            "이라고": ("이라고", "라고"),
+            "라고": ("이라고", "라고"),
+        }.get(particle)
+        if pair is not None:
+            corrected = pair[0] if has_final else pair[1]
+        else:
+            corrected = (
+                "으로"
+                if has_final and branch not in FINAL_RIEUL_BRANCHES
+                else "로"
+            )
+        return match.group("ganzhi") + corrected
+
+    candidate = GANZHI_PARTICLE.sub(replacement, answer)
+    normalized["answer"] = candidate
+    return normalized, candidate != answer
+
+
 def draft_prompt(
     specs: Sequence[Mapping[str, Any]], feedback: Mapping[str, str]
 ) -> str:
@@ -1050,7 +1102,10 @@ def _import_seed_drafts(
         if provider != specs_by_id[record_id]["drafter"]:
             rejected["draft_provider_mismatch"] += 1
             continue
-        candidate = deepcopy(dict(draft))
+        provider_draft = deepcopy(dict(draft))
+        candidate, particle_normalized = _normalize_draft_answer_particles(
+            provider_draft
+        )
         try:
             validate_draft(specs_by_id[record_id], candidate)
         except Mix2KV4ContractError as exc:
@@ -1069,8 +1124,12 @@ def _import_seed_drafts(
             {
                 "provider": provider,
                 "attempt": 1,
-                "provider_draft": deepcopy(candidate),
+                "provider_draft": provider_draft,
                 "draft": candidate,
+                "particle_normalized": particle_normalized,
+                "particle_normalizer_version": (
+                    PARTICLE_NORMALIZER_VERSION if particle_normalized else None
+                ),
                 "layout_normalized": False,
                 "layout_normalizer_version": None,
                 "deterministic_pass": True,
@@ -1169,6 +1228,7 @@ def _process_draft_batch(
             draft = dict(draft)
             for field in ("used_fact_paths", "used_fact_values"):
                 draft[field] = list(dict.fromkeys(draft[field]))
+        draft, particle_normalized = _normalize_draft_answer_particles(draft)
         draft, layout_normalized = _normalize_draft_answer_layout(
             specs_by_id[record_id], draft
         )
@@ -1177,6 +1237,10 @@ def _process_draft_batch(
             "attempt": len(record["draft_attempts"]) + 1,
             "provider_draft": provider_draft,
             "draft": draft,
+            "particle_normalized": particle_normalized,
+            "particle_normalizer_version": (
+                PARTICLE_NORMALIZER_VERSION if particle_normalized else None
+            ),
             "layout_normalized": layout_normalized,
             "layout_normalizer_version": (
                 LAYOUT_NORMALIZER_VERSION if layout_normalized else None
@@ -1400,6 +1464,10 @@ def _write_candidates(
         "deterministic_validation_passed": True,
         "layout_normalized_rows": sum(
             bool(record["draft_attempts"][-1].get("layout_normalized"))
+            for record in state["records"].values()
+        ),
+        "particle_normalized_rows": sum(
+            bool(record["draft_attempts"][-1].get("particle_normalized"))
             for record in state["records"].values()
         ),
         "full_runtime_snapshot_used": True,

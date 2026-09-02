@@ -33,6 +33,7 @@ from scripts.data.mix2k_v4_teachers import (
     _import_seed_drafts,
     _mandatory_answer_checklist,
     _normalize_draft_answer_layout,
+    _normalize_draft_answer_particles,
     _selection,
     draft_prompt,
     review_prompt,
@@ -211,7 +212,7 @@ class Mix2KV4ContractTests(unittest.TestCase):
         answer = (
             "원국 전체는 연주 戊辰, 월주 甲子, 일주 乙丑, 시주 壬午입니다.\n"
             "2026-09-02의 연간지는 丙午, 월간지는 丙申, 일진은 己卯입니다.\n"
-            "원국과 선택 날짜는 서로 다른 사실로 구분해서 확인하면 됩니다."
+            "乙丑는 원국의 일주이고, 원국과 선택 날짜는 서로 다른 사실로 구분하면 됩니다."
         )
         draft = {
             "record_id": spec["id"],
@@ -282,6 +283,8 @@ class Mix2KV4ContractTests(unittest.TestCase):
         self.assertEqual(imported["status"], "needs_review")
         self.assertIsNone(imported["accepted"])
         self.assertTrue(imported["draft_attempts"][0]["imported_from_seed"])
+        self.assertTrue(imported["draft_attempts"][0]["particle_normalized"])
+        self.assertIn("乙丑은 원국의 일주", imported["current_draft"]["answer"])
 
         chart_spec = deepcopy(spec)
         chart_spec["task_axis"] = "chart_facts_natural_explanation"
@@ -378,6 +381,18 @@ class Mix2KV4ContractTests(unittest.TestCase):
         asserted_prediction["answer"] += "\n어떤 일이 반드시 생긴다고 말합니다."
         with self.assertRaisesRegex(Mix2KV4ContractError, "확정적 사건 예측"):
             validate_draft(spec, asserted_prediction)
+
+        contradictory = deepcopy(draft)
+        contradictory["answer"] = contradictory["answer"].replace(
+            "일주 乙丑",
+            "乙丑은 원국의 일주가 아니라, 원국의 일주는 乙丑",
+            1,
+        )
+        with self.assertRaisesRegex(
+            Mix2KV4ContractError,
+            "natal_day_expected_fact_negated",
+        ):
+            validate_draft(spec, contradictory)
 
     def test_training_period_projection_preserves_dashboard_v1_11_content(self) -> None:
         source = deepcopy(_binding()["value"]["period"])
@@ -1869,6 +1884,30 @@ class Mix2KV4ContractTests(unittest.TestCase):
                 unchanged, changed = _normalize_draft_answer_layout(spec, markup)
                 self.assertFalse(changed)
                 self.assertEqual(unchanged["answer"], protected)
+
+    def test_teacher_particle_normalizer_uses_ganzhi_pronunciation(self) -> None:
+        draft = {
+            "answer": (
+                "辛丑는 乙丑로 이어지고 癸丑와 구분합니다. "
+                "丁未은 乙未을 뜻하며 丁未이라는 표현을 씁니다. "
+                "壬戌으로 향하고 辛亥이더라도 그대로 둡니다."
+            )
+        }
+        normalized, changed = _normalize_draft_answer_particles(draft)
+        self.assertTrue(changed)
+        self.assertEqual(
+            normalized["answer"],
+            (
+                "辛丑은 乙丑으로 이어지고 癸丑과 구분합니다. "
+                "丁未는 乙未를 뜻하며 丁未라는 표현을 씁니다. "
+                "壬戌로 향하고 辛亥이더라도 그대로 둡니다."
+            ),
+        )
+        self.assertEqual(draft["answer"], (
+            "辛丑는 乙丑로 이어지고 癸丑와 구분합니다. "
+            "丁未은 乙未을 뜻하며 丁未이라는 표현을 씁니다. "
+            "壬戌으로 향하고 辛亥이더라도 그대로 둡니다."
+        ))
 
     def test_teacher_prompt_has_four_explicit_evidence_sections(self) -> None:
         spec = _spec()
