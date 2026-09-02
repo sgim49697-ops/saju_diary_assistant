@@ -58,9 +58,9 @@ CONTRACTS_PATH = RUNNER_PATH.with_name("mix2k_v4_contracts.py")
 MAX_JSON_BYTES = 64 * 1024 * 1024
 MAX_PROVIDER_OUTPUT_BYTES = 32 * 1024 * 1024
 STATE_SCHEMA_VERSION = "1.0.0"
-EXPECTED_SPEC_BUILD_ID = "build-d9468dfae98e"
+EXPECTED_SPEC_BUILD_ID = "build-60f73934fd43"
 EXPECTED_SPEC_BUILD_SHA256 = (
-    "d9468dfae98e3700b4f67764ec7b5eb5a7c69e701e97f3a762dc80677803c61d"
+    "60f73934fd439bf179fd31db02a4e2858c8899098876cc8341f246dc4c8a3e2b"
 )
 SPEC_IDENTITY_FIELDS = {
     "dataset_version",
@@ -494,7 +494,7 @@ def _mandatory_answer_checklist(spec: Mapping[str, Any]) -> list[str]:
 
     question = str(spec["prompt"][-1]["content"])
     checklist = [
-        "질문이 직접 요구한 항목만 답하고, 아래 literal 값과 위치 label을 answer에서 모두 명시하세요.",
+        "질문과 production system이 요구한 항목만 답하고, 아래 literal 값과 위치 label을 answer에서 모두 명시하세요.",
         "RAW에 있더라도 질문하지 않은 기간·관계·대운·신강약·용신은 덧붙이지 마세요.",
     ]
     if spec["task_axis"] != "structured_fact_schema_literacy":
@@ -514,6 +514,10 @@ def _mandatory_answer_checklist(spec: Mapping[str, Any]) -> list[str]:
         )
     elif "선택 날짜의 연간지" in question or "year/month/day ganzhi" in question:
         checklist.extend(period_ganzhi())
+        checklist.append(
+            "선택 날짜 질문의 동시 근거로 원국 사실도 명시하세요: "
+            "원국 일주=" + fact("chart.hard_facts.pillars.day.ganzhi")
+        )
     elif "각 기둥의 천간·지지" in question:
         labels = {"year": "연주", "month": "월주", "day": "일주", "hour": "시주"}
         for pillar in ("year", "month", "day", "hour"):
@@ -615,8 +619,11 @@ def draft_prompt(
             "used_fact_paths·used_fact_values에는 answer에 명시한 날짜·간지·십신의 "
             "정확한 ALLOWED 값을 누락 없이 기록하세요. period의 year_ganzhi·month_ganzhi·"
             "day_ganzhi는 반드시 선택 날짜의 연간지·월간지·일진이라고 부르고, 이를 "
-            "연주·월주·일주 또는 날짜의 원국이라고 부르지 마세요. FORBIDDEN 목록은 "
-            "금지 기준이지 답변에 되풀이할 문구가 아닙니다. 사용자가 한계나 근거를 묻지 "
+            "연주·월주·일주 또는 날짜의 원국이라고 부르지 마세요. "
+            "해당 record의 MANDATORY ANSWER CHECKLIST가 동시 사용을 요구할 때는 "
+            "날짜 사실과 원국 사실을 각각 최소 하나 answer에 명시하세요. "
+            "FORBIDDEN 목록은 금지 기준이지 답변에 되풀이할 문구가 아닙니다. "
+            "사용자가 한계나 근거를 묻지 "
             "않았다면 answer에 금지 항목을 기계적으로 나열하지 말고 질문한 내용만 답하세요. "
             "limitations는 내부 audit metadata이므로 실제로 필요한 한계만 적고, 없으면 빈 "
             "배열로 두세요. 도구를 사용하지 마세요."
@@ -676,6 +683,8 @@ def review_prompt(
             "재진술로 판정하지 말고, answer의 내용과 metadata의 정확성을 구분해서 보세요. "
             "period의 year_ganzhi·month_ganzhi·day_ganzhi는 선택 날짜의 연간지·월간지·"
             "일진이어야 하며 연주·월주·일주 또는 날짜의 원국이라고 부르면 FAIL하세요. "
+            "해당 record의 MANDATORY ANSWER CHECKLIST가 동시 사용을 요구하는데 날짜 "
+            "사실과 원국 사실을 각각 최소 하나 명시하지 않으면 FAIL하세요. "
             "도구를 사용하지 마세요."
         )
     ]

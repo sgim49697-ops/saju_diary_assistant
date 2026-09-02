@@ -394,6 +394,20 @@ def _explicit_claim_is_negated(answer: str, start: int, end: int) -> bool:
         )
         is not None
         or re.match(
+            r"\s*(?:(?:일|인)(?:지는?)?\s*)?"
+            r"(?:알\s*수\s*없|수\s*없|리\s*없|"
+            r"(?:과|와)\s*무관|확인(?:되지|할\s*수\s*없))",
+            answer[end : min(len(answer), end + 48)],
+        )
+        is not None
+        or re.match(
+            r"\s*(?:이?라는?\s*)?(?:근거(?:는|가)?\s*없|"
+            r"(?:인지(?:는)?\s*)?불확실|(?:으)?로\s*보이지\s*않|"
+            r"일\s*가능성(?:은|이)?\s*없)",
+            answer[end : min(len(answer), end + 56)],
+        )
+        is not None
+        or re.match(
             rf"\s*(?:은|는|이|가)?\s*{CORRECTION_CONNECTOR}",
             answer[end : min(len(answer), end + 48)],
         )
@@ -620,6 +634,9 @@ def _corrected_owner_claims(
         (match.group("label"), match.group("value"))
         for match in pattern.finditer(answer)
         if match.group("label") != match.group("negated")
+        and not _explicit_claim_is_negated(
+            answer, match.start("label"), match.end("label")
+        )
     ]
 
 
@@ -2674,6 +2691,99 @@ def _pillar_field_claim_coverage(answer: str) -> set[tuple[str, str, str]]:
     return coverage
 
 
+def _requires_explicit_natal_period_anchor(spec: Mapping[str, Any]) -> bool:
+    if spec.get("task_axis") != "structured_fact_schema_literacy":
+        return False
+    prompt = spec.get("prompt")
+    if not isinstance(prompt, list) or not prompt:
+        return False
+    question = str(prompt[-1].get("content", ""))
+    return "선택 날짜의 연간지" in question or "year/month/day ganzhi" in question
+
+
+def _explicit_period_ganzhi_paths(spec: Mapping[str, Any], answer: str) -> set[str]:
+    """올바른 period label과 함께 긍정적으로 명시한 세 간지 path를 반환한다."""
+
+    paths: set[str] = set()
+    claims = [
+        (label, value)
+        for label, value, _, _ in _labeled_entity_claims(
+            answer, PERIOD_LABELS, GANYI.pattern
+        )
+    ]
+    claims.extend(_corrected_owner_claims(answer, PERIOD_LABELS, GANYI.pattern))
+    for label, value in claims:
+        path = f"period.hard_facts.period.{PERIOD_LABELS[label]}"
+        if value == _path_value(spec, path):
+            paths.add(path)
+    label_pattern = re.compile(_label_pattern(PERIOD_LABELS))
+    for clause in re.split(r"[\n.!?。！？;；]+", answer):
+        label_matches = list(label_pattern.finditer(clause))
+        value_matches = list(GANYI.finditer(clause))
+        if (
+            len(label_matches) != 3
+            or len(value_matches) != 3
+            or label_matches[-1].end() > value_matches[0].start()
+        ):
+            continue
+        bridge = clause[label_matches[-1].end() : value_matches[0].start()]
+        if re.search(r"(?:각각|순서(?:대로|로)?|순으로|[:：])", bridge) is None:
+            continue
+        for label_match, value_match in zip(
+            label_matches, value_matches, strict=True
+        ):
+            label = label_match.group(0)
+            path = f"period.hard_facts.period.{PERIOD_LABELS[label]}"
+            if value_match.group(0) == _path_value(spec, path):
+                paths.add(path)
+    return paths
+
+
+def _explicit_natal_fact_paths(spec: Mapping[str, Any], answer: str) -> set[str]:
+    """label 또는 원국 owner와 함께 긍정적으로 명시한 원국 fact path를 반환한다."""
+
+    paths: set[str] = set()
+    claims = [
+        (label, value)
+        for label, value, _, _ in _labeled_entity_claims(
+            answer, PILLAR_LABELS, GANYI.pattern
+        )
+    ]
+    claims.extend(_corrected_owner_claims(answer, PILLAR_LABELS, GANYI.pattern))
+    for label, value in claims:
+        path = f"chart.hard_facts.pillars.{PILLAR_LABELS[label]}.ganzhi"
+        if value == _path_value(spec, path):
+            paths.add(path)
+
+    day_master_path = "chart.hard_facts.day_master.stem"
+    day_master = _path_value(spec, day_master_path)
+    if day_master is not None and any(
+        value == day_master
+        for _, value, _, _ in _labeled_entity_claims(
+            answer, {"일간": "stem"}, STEM_ENTITY, maximum_gap=16
+        )
+    ):
+        paths.add(day_master_path)
+
+    full_chart = re.compile(
+        rf"원국(?:의)?\s*(?:전체\s*)?(?:(?:네|4)\s*기둥)?\s*"
+        rf"(?:은|는|이|가|:|=)?\s*(?P<values>{GANYI.pattern}"
+        rf"(?:\s*[,，·/]\s*{GANYI.pattern}){{3}})"
+    )
+    expected_paths = [
+        f"chart.hard_facts.pillars.{pillar}.ganzhi"
+        for pillar in ("year", "month", "day", "hour")
+    ]
+    expected_values = [_path_value(spec, path) for path in expected_paths]
+    for match in full_chart.finditer(answer):
+        if (
+            not _explicit_claim_is_negated(answer, match.start(), match.end())
+            and GANYI.findall(match.group("values")) == expected_values
+        ):
+            paths.update(expected_paths)
+    return paths
+
+
 def required_fact_errors(spec: Mapping[str, Any], answer: str) -> list[str]:
     """질문 축이 요구하는 최소 natal·period evidence 누락만 검사한다."""
 
@@ -2756,7 +2866,12 @@ def required_fact_errors(spec: Mapping[str, Any], answer: str) -> list[str]:
                     "required_schema_fact_omitted:chart.hard_facts.day_master.yin_yang"
                 )
         elif "선택 날짜의 연간지" in question or "year/month/day ganzhi" in question:
-            require_suffixes(period_ganzhi)
+            explicit_period_paths = _explicit_period_ganzhi_paths(spec, answer)
+            for path in period_ganzhi:
+                if path not in explicit_period_paths:
+                    errors.append(f"required_schema_fact_omitted:{path}")
+            if not _explicit_natal_fact_paths(spec, answer):
+                errors.append("explicit_natal_fact_omitted")
         elif "각 기둥의 천간·지지" in question:
             require_positioned_pillar_fields(
                 (
@@ -3023,6 +3138,16 @@ def validate_draft(spec: Mapping[str, Any], draft: Any) -> dict[str, Any]:
     errors.extend(required_fact_errors(spec, answer))
     if errors:
         raise Mix2KV4ContractError("teacher 구조 사실 claim 오류: " + ",".join(errors))
+    if _requires_explicit_natal_period_anchor(spec):
+        answer_fact_paths = _explicit_period_ganzhi_paths(
+            spec, answer
+        ) | _explicit_natal_fact_paths(spec, answer)
+        missing_paths = answer_fact_paths - set(draft["used_fact_paths"])
+        if missing_paths:
+            raise Mix2KV4ContractError(
+                "teacher used_fact_paths에 날짜 QA의 명시 근거가 빠졌습니다: "
+                + ",".join(sorted(missing_paths))
+            )
     claimed_values = {
         *GANYI.findall(answer),
         *normalized_dates(answer),

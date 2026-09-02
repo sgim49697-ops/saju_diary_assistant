@@ -1230,7 +1230,8 @@ class Mix2KV4ContractTests(unittest.TestCase):
                 "일간은 乙이고 오행은 목이며 음양은 음입니다."
             ),
             "선택 날짜의 연간지, 월간지, 일진을 서로 바꾸지 말고 알려줘.": (
-                "연간지는 丙午, 월간지는 丙申, 일진은 己卯입니다."
+                "연간지는 丙午, 월간지는 丙申, 일진은 己卯입니다. "
+                "함께 연결된 원국의 일주는 乙丑입니다."
             ),
             "원국 각 기둥의 천간·지지와 각각의 오행·음양을 항목별로 읽어줘.": (
                 "연주는 천간 戊(토·양), 지지 辰(토·양), "
@@ -1254,7 +1255,8 @@ class Mix2KV4ContractTests(unittest.TestCase):
                 "원국은 戊辰·甲子·乙丑·壬午이고, 날짜는 丙午·丙申·己卯입니다."
             ),
             "날짜 JSON의 year/month/day ganzhi를 일반인이 혼동하지 않게 풀어줘.": (
-                "연간지는 丙午, 월간지는 丙申, 일진은 己卯입니다."
+                "연간지는 丙午, 월간지는 丙申, 일진은 己卯입니다. "
+                "함께 연결된 원국의 일주는 乙丑입니다."
             ),
         }
         for question, complete_answer in cases.items():
@@ -1272,6 +1274,143 @@ class Mix2KV4ContractTests(unittest.TestCase):
                 )
             with self.subTest(question=question, state="complete"):
                 self.assertEqual(required_fact_errors(spec, complete_answer), [])
+
+        period_spec = deepcopy(_spec())
+        period_spec["task_axis"] = "structured_fact_schema_literacy"
+        period_spec["prompt"][-1]["content"] = (
+            "선택 날짜의 연간지, 월간지, 일진을 서로 바꾸지 말고 알려줘."
+        )
+        period_only = (
+            "선택 날짜의 연간지는 丙午입니다. "
+            "월간지는 丙申이고 일진은 己卯입니다."
+        )
+        self.assertIn(
+            "explicit_natal_fact_omitted",
+            required_fact_errors(period_spec, period_only),
+        )
+        unlabeled_period = (
+            "첫 값은 丙午입니다. 둘째 값은 丙申입니다. "
+            "마지막 값은 己卯이고 원국 일주는 乙丑입니다."
+        )
+        self.assertEqual(
+            sum(
+                error.startswith("required_schema_fact_omitted:period.")
+                for error in required_fact_errors(period_spec, unlabeled_period)
+            ),
+            3,
+        )
+        for parallel_period in (
+            "연간지·월간지·일진은 각각 丙午·丙申·己卯입니다.",
+            "연간지, 월간지, 일진은 순서대로 丙午, 丙申, 己卯입니다.",
+            "연간지/월간지/일진: 丙午/丙申/己卯입니다.",
+        ):
+            with self.subTest(parallel_period=parallel_period):
+                self.assertEqual(
+                    required_fact_errors(
+                        period_spec,
+                        parallel_period + " 원국 일주는 乙丑입니다.",
+                    ),
+                    [],
+                )
+        wrong_parallel = (
+            "연간지·월간지·일진은 각각 丙午·己卯·丙申입니다. "
+            "원국 일주는 乙丑입니다."
+        )
+        self.assertEqual(
+            sum(
+                error.startswith("required_schema_fact_omitted:period.")
+                for error in required_fact_errors(period_spec, wrong_parallel)
+            ),
+            2,
+        )
+        negated_period = (
+            "연간지가 丙午라는 근거는 없습니다. "
+            "월간지는 丙申이고 일진은 己卯입니다. "
+            "원국 일주는 乙丑입니다."
+        )
+        self.assertIn(
+            "required_schema_fact_omitted:period.hard_facts.period.year_ganzhi",
+            required_fact_errors(period_spec, negated_period),
+        )
+        year_path = "period.hard_facts.period.year_ganzhi"
+        natal_day = "乙丑"
+        period_spec["allowed_fact_values"][
+            period_spec["allowed_fact_paths"].index(year_path)
+        ] = natal_day
+        same_literal_period_only = period_only.replace("丙午", natal_day)
+        self.assertIn(
+            "explicit_natal_fact_omitted",
+            required_fact_errors(period_spec, same_literal_period_only),
+        )
+
+        for negated_anchor in (
+            "원국의 일주는 乙丑일 수 없습니다.",
+            "원국의 일주가 乙丑인지는 알 수 없습니다.",
+            "원국의 일주는 乙丑과 무관합니다.",
+            "원국의 일주가 乙丑이라는 근거는 없습니다.",
+            "원국의 일주가 乙丑인지 불확실합니다.",
+            "원국의 일주는 乙丑으로 보이지 않습니다.",
+            "원국의 일주가 乙丑일 가능성이 없습니다.",
+            "戊辰은 일주가 아니라 연주가 아닙니다.",
+        ):
+            with self.subTest(negated_anchor=negated_anchor):
+                self.assertIn(
+                    "explicit_natal_fact_omitted",
+                    required_fact_errors(
+                        period_spec,
+                        same_literal_period_only + " " + negated_anchor,
+                    ),
+                )
+        for valid_anchor in (
+            "乙丑은 연주가 아니라 일주입니다.",
+            "원국의 일간은 乙입니다.",
+            "원국 네 기둥은 戊辰·甲子·乙丑·壬午입니다.",
+            "원국 전체는 戊辰·甲子·乙丑·壬午입니다.",
+        ):
+            with self.subTest(valid_anchor=valid_anchor):
+                self.assertNotIn(
+                    "explicit_natal_fact_omitted",
+                    required_fact_errors(
+                        period_spec,
+                        same_literal_period_only + " " + valid_anchor,
+                    ),
+                )
+
+    def test_period_schema_natal_anchor_requires_matching_provenance_path(self) -> None:
+        spec = deepcopy(_spec())
+        spec["task_axis"] = "structured_fact_schema_literacy"
+        spec["prompt"][-1]["content"] = (
+            "선택 날짜의 연간지, 월간지, 일진을 서로 바꾸지 말고 알려줘."
+        )
+        period_paths = [
+            f"period.hard_facts.period.{field}"
+            for field in ("year_ganzhi", "month_ganzhi", "day_ganzhi")
+        ]
+        natal_path = "chart.hard_facts.pillars.day.ganzhi"
+        draft = {
+            "record_id": spec["id"],
+            "answer": (
+                "선택 날짜의 연간지는 丙午입니다.\n"
+                "월간지는 丙申이고 일진은 己卯입니다.\n"
+                "이 날짜 정보는 원국의 일주 乙丑과 별개입니다."
+            ),
+            "used_fact_paths": period_paths,
+            "used_fact_values": ["丙午", "丙申", "己卯", "乙丑"],
+            "soft_interpretation_used": False,
+            "limitations": [],
+            "self_check": "PASS",
+        }
+        with self.assertRaisesRegex(
+            Mix2KV4ContractError, "명시 근거가 빠졌습니다"
+        ):
+            validate_draft(spec, draft)
+        draft["used_fact_paths"].append(natal_path)
+        self.assertEqual(validate_draft(spec, draft), draft)
+        draft["used_fact_paths"] = [natal_path]
+        with self.assertRaisesRegex(
+            Mix2KV4ContractError, "명시 근거가 빠졌습니다"
+        ):
+            validate_draft(spec, draft)
 
     def test_general_replay_blocks_saju_injection_without_word_false_positives(
         self,
@@ -1520,6 +1659,7 @@ class Mix2KV4ContractTests(unittest.TestCase):
         self.assertNotIn("출생일", prompt)
         self.assertIn("FORBIDDEN 목록은 금지 기준", prompt)
         self.assertIn("limitations는 내부 audit metadata", prompt)
+        self.assertIn("날짜 사실과 원국 사실을 각각 최소 하나", prompt)
 
         draft = {
             "record_id": spec["id"],
@@ -1536,6 +1676,7 @@ class Mix2KV4ContractTests(unittest.TestCase):
         self.assertIn("정확히 3줄로 줄이라고 요구하지 마세요", review)
         self.assertIn("audit metadata입니다", review)
         self.assertIn("answer의 내용과 metadata의 정확성을 구분", review)
+        self.assertIn("날짜 사실과 원국 사실을 각각 최소 하나", review)
         self.assertEqual(review.count("[MANDATORY ANSWER CHECKLIST]"), 1)
 
     def test_schema_teacher_checklist_expands_every_requested_position(self) -> None:
@@ -1569,6 +1710,14 @@ class Mix2KV4ContractTests(unittest.TestCase):
         self.assertIn("선택 날짜의 연간지=丙午", checklist)
         self.assertIn("선택 날짜의 월간지=丙申", checklist)
         self.assertIn("선택 날짜의 일진=己卯", checklist)
+        self.assertIn("원국 일주=乙丑", checklist)
+
+        hard_qa = deepcopy(_spec())
+        hard_qa["task_axis"] = "hard_fact_short_qa"
+        hard_qa["prompt"][-1]["content"] = "날짜의 year_ganzhi가 오늘 일진이야?"
+        hard_checklist = "\n".join(_mandatory_answer_checklist(hard_qa))
+        self.assertNotIn("원국 일주=", hard_checklist)
+        self.assertNotIn("선택 날짜의 동시 근거", hard_checklist)
 
     def test_draft_schema_is_codex_compatible_and_validator_rejects_duplicates(
         self,

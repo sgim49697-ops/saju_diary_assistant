@@ -128,3 +128,12 @@ Teacher 절반은 Claude 초안→Codex grounding 판정, 나머지 절반은 Co
 - downstream pin: LoRA config SHA는 `68345cfc248ad00b2a150c34b6437c1d58ad51ee5e3379938ef610133aee6573`, 5-arm 평가 config SHA는 `1783d6acd87048f83413287cc2797c62fd1dc4e2cc916a8f341f8516dd5856f3`로 갱신했다.
 - 검증: 새 spec identity 2,000행, 관련 unittest 72건, Ruff, JSON parse, `git diff --check`, LoRA `validate-contract`, 5-arm evaluation `validate-contract`를 통과했다. `.venv-data`에는 PyTorch·Transformers가 없어 학습 계약 CLI를 실행할 수 없었고, 고정 의존성이 설치된 `.venv`에서 같은 계약을 정상 확인했다.
 - 다음 단계: `build-d9468dfae98e` 전용 target에서 Codex 담당 초안을 다시 누적하고 Claude 복구 뒤 반대편 판정과 Claude 담당 초안 생성을 이어간다. deterministic PASS와 양쪽 teacher PASS를 모두 충족하기 전에는 finalization·학습으로 진행하지 않는다.
+
+### 2026-09-03 - 선택 날짜 QA의 원국 동시 근거 고정
+
+- 실행 진단: `build-d9468dfae98e` target은 provider call 12회, Codex 초안 시도 240회, deterministic PASS 236행, 영구 실패 0행까지 진행했다. 이 가운데 direct period schema QA 60행이 날짜의 연간지·월간지·일진만 답해 `bound_chart_v2`의 날짜 사실+원국 사실 동시 사용 규칙과 어긋났다. dashboard v1.11 Gate 재생에서는 47행이 `chart_fact_missing`으로 차단됐고 13행은 period와 natal 간지의 우연한 문자열 일치 때문에 의미상 잘못 통과했다. 진행 중이던 다음 호출은 state 기록 전에 중단했으며 기존 target은 비후보 진단 이력으로 보존한다.
+- 계약 교정: 두 direct period schema 질문에 날짜 세 label과 함께 명시적 원국 근거 하나를 요구한다. 권장 anchor는 `원국 일주=<정확한 일주>`이며, 정확한 pillar label·일간 label·정순서 원국 네 기둥도 허용한다. 단순 문자열 일치, 부정된 claim, 잘못된 위치는 근거로 세지 않으며 answer의 claim에 대응하는 `used_fact_paths`도 필수다. teacher 전역 지침은 `[MANDATORY ANSWER CHECKLIST]`가 동시 사용을 요구하는 record에만 적용해 natal snapshot이 없는 HARD QA로 번지지 않게 했다.
+- immutable 산출물: 최종 계약 SHA `23eabc25023ec396c783daa18feb573de846767dab9055f49b84708327862127`을 포함한 private `build-60f73934fd43`, build SHA `60f73934fd439bf179fd31db02a4e2858c8899098876cc8341f246dc4c8a3e2b`로 새로 동결했다. dev SHA `2614d5e3578340969e03b2779b26c365bf774729bbc3838ff35998ec22faaf86`, training spec SHA `7cf01c8146190da0e77b717d72a687dce44056de542da8aae15b71ce43fbc229`, projection SHA `c889ccd27fc161144a0e3a8739020aa697c27c7d1615b5547e1c7488acd99458`는 동일하다. 중간 `build-5f1eb11a58e2`도 삭제하지 않고 비후보 이력으로 보존한다.
+- downstream pin: LoRA config SHA는 `bdf9108af868fe72ceb63e049652ca964570a86627cdfa89c183ea88dcc53dbb`, 5-arm 평가 config SHA는 `9d3bb60c5d868b0d1f2d67bcbcf3bd302f5b3f0d3f3720d34e92295db8979738`로 갱신했다.
+- 검증: 부정·우연 일치·올바른 correction·일간·원국 네 기둥·provenance·HARD QA 범위 회귀를 포함한 관련 unittest 73건, Ruff, JSON parse, `git diff --check`, 새 spec identity 2,000행, LoRA `validate-contract`, 5-arm evaluation `validate-contract`를 통과했다.
+- 다음 단계: `build-60f73934fd43` 전용 target에서 Codex 담당 초안을 다시 생성한다. Claude 가용 시 반대편 판정을 먼저 붙이고 조사·내부 field 표현·자연스러운 풀이 품질까지 확인한 뒤 나머지 축으로 확대한다.

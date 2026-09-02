@@ -24,8 +24,8 @@
   },
   "required_data": {
     "rows": 2000,
-    "spec_build_id": "build-d9468dfae98e",
-    "spec_build_sha256": "d9468dfae98e3700b4f67764ec7b5eb5a7c69e701e97f3a762dc80677803c61d",
+    "spec_build_id": "build-60f73934fd43",
+    "spec_build_sha256": "60f73934fd439bf179fd31db02a4e2858c8899098876cc8341f246dc4c8a3e2b",
     "manifest_name": "build_manifest.json",
     "training_path": "training/train_2000.jsonl",
     "token_audit_path": "reports/token_audit_summary.json",
