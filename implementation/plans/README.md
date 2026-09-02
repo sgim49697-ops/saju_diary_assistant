@@ -7,8 +7,11 @@
 - `mix20k_v3_repair_plan.md`: 외부 MIX20K-v3 후보의 감사·자동 보정·학습 차단 정본
 - `saju_runtime_calculator_adoption.md`: 한국 만세력 계산 core·공식 conformance·v3.1 이관을 결정하는 runtime 정본
 - `grounded_dialogue_eval_plan.md`: 계산기 연결 대화의 자동 사실·상태·장문 진단 정본
+- `saju_product_roadmap/README.md`: 현재 v1.5·v1.11 이후 기간 Runtime·앱·자동 모델평가·v3.1의 실행순서 정본
 
 종합 가이드와 정본이 충돌하면 해당 workstream 정본을 따른다. 학습 Phase·현재 모델 상태는 `saju_1b_10k_20k_baseline/README.md`, v3 후보는 `mix20k_v3_repair_plan.md`, 계산기·공식 근거·release 경계는 `saju_runtime_calculator_adoption.md`, 계산기 연결 대화 진단은 `grounded_dialogue_eval_plan.md`가 우선한다.
+
+완료된 이력 다음의 신규 구현 순서는 `saju_product_roadmap/README.md`가 소유한다. 이 로드맵은 앞선 정본의 사실·release·Gate를 덮어쓰지 않는다.
 
 ## 현재 정본 상태
 

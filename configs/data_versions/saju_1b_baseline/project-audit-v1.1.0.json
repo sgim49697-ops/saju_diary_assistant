@@ -1,0 +1,58 @@
+{
+  "_description": "sealed blind payload를 열지 않고 Phase 6·MIX20K-v3.0.1·Runtime v1.5·conformance v10·dashboard v1.11·현재 현황을 통합 검증한다.",
+  "schema_version": "1.1.0",
+  "audit_id": "saju-project-audit-v1.1.0",
+  "phase6": {
+    "config": "configs/model_versions/saju_1b_baseline/phase6-technical-evaluation-v1.0.0.json",
+    "registry": "configs/data_versions/saju_1b_baseline/registry.json",
+    "evaluation_build_id": "eval-e8630962cab2",
+    "public_root": "data/reports/saju_1b_baseline/phase6-technical/v1.0.0/eval-e8630962cab2"
+  },
+  "grounded_dialogue": {
+    "base_config": "configs/evaluation/grounded_dialogue_eval-v0.1.0.json",
+    "followup_config": "configs/evaluation/grounded_dialogue_followup-v0.2.0.json",
+    "postscore_config": "configs/evaluation/grounded_dialogue_postscore-v0.1.0.json"
+  },
+  "mix20k_v3": {
+    "private_build": "data/derived/saju_1b_baseline/mix20k-v3.0.1-repaired/build-94eb7b543490",
+    "public_build": "data/reports/saju_1b_baseline/mix20k-v3-intake/v3.0.0/intake-99c0b48231d6"
+  },
+  "project_status": {
+    "config": "configs/data_versions/saju_1b_baseline/project-status-v1.4.0.json",
+    "build_id": "build-faf55ff6886d"
+  },
+  "runtime": {
+    "engine_version": "1.5",
+    "release_registry": "configs/runtime/calculation/releases/v1.5.0/release_registry.json",
+    "release_id": "saju-runtime-release-v1.5.0-8b1d6ea2d46e",
+    "conformance_build_id": "build-46185262164f",
+    "tracked_report": "data/reports/saju_runtime_conformance/v1.8.0/build-46185262164f",
+    "snapshots": {
+      "kasi_lunar": "data/raw/saju_runtime/kasi/v1.1.0/lunisolar/kasi_lunisolar.jsonl",
+      "kasi_official_solar_term": "data/raw/saju_runtime/kasi/v1.3.0/official-solar-terms/kasi_official_solar_terms.jsonl"
+    },
+    "ephemeris_sha256": "c1c7feeab882263fc493a9d5a5b2ddd71b54826cdf65d8d17a76126b260a49f2"
+  },
+  "dashboard": {
+    "config": "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.11.0.json",
+    "config_sha256": "74ead36ac4e29201c5615c2f0bd72c643abde27380a5b004b3dcc76f238a01f8",
+    "entrypoint": "scripts/training/phase5_dashboard_v1_11.py",
+    "entrypoint_sha256": "49ce3bc2aa6deff6f737805317263ac87eab36a2838e4d9e57206310b8619c17",
+    "assets": {
+      "scripts/training/phase5_dashboard_assets/v1.11.0/dashboard.css": "42298ceb6da3ef39f5d680de232b3431aadf38ab00eaf562888a9e607f0cc864",
+      "scripts/training/phase5_dashboard_assets/v1.11.0/dashboard.js": "47789cf9e535c1b1e01e733ddc96189390c0143d372934f9448a2b3af7b98843",
+      "scripts/training/phase5_dashboard_assets/v1.11.0/index.html": "b3a7b723ad0813d75defda8df1250b76e4560944874005e83a522f4ae25b68ad",
+      "scripts/training/phase5_dashboard_assets/v1.11.0/prompt-examples.json": "568e0535d112edadbb31f6f2b66f0870ebaa47ab7a2ca20f0224bd48d3fde009",
+      "configs/chat_prompts/saju_bound_chart_v1.txt": "b5d4df4e4e38040aa15c372ca670c91e59dfa3b332369e5477a0a6d43884583d"
+    }
+  },
+  "governance": {
+    "sealed_blind_payload_open_allowed": false,
+    "gpu_execution_allowed": false,
+    "training_execution_allowed": false,
+    "tracked_writes_allowed": false,
+    "strict_full_runtime_allowed": false,
+    "mix20k_v3_1_generation_allowed": false,
+    "model_promotion_allowed": false
+  }
+}

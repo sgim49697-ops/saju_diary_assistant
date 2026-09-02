@@ -4,9 +4,9 @@
 
 | 항목 | 값 |
 |---|---|
-| 문서 버전 | `runtime-calculator-adoption-v2.13.0` |
+| 문서 버전 | `runtime-calculator-adoption-v2.14.0` |
 | 정본화 기준일 | 2026-09-02 |
-| 현재 구현 기준 `master` | `a2239118581762d940bf13ba1e9dd32ed0d71d77` |
+| 현재 구현 기준 `master` | `2298573ec2a2a14e6ae003ca45bccdeda54ade37` |
 | 기준 모델 run | `KI20-MIX-v2/run-1f5d732cae67` |
 | 모델 run 상태 | `trained_and_reloaded`, production 승격 금지 |
 | runtime profile | `KR_CIVIL_MIDNIGHT_V1` |
@@ -17,6 +17,7 @@
 
 - v3 repair 정본: LLM tool/state trajectory와 20K 데이터 계약
 - 이 정본: tool이 반환할 원국·기간 계산 사실의 권위, 구현, 검증, 앱 연결
+- v1.5·v1.11 이후 실행 순서: [`saju_product_roadmap/README.md`](saju_product_roadmap/README.md)
 
 ## 1. 결론
 
@@ -593,7 +594,7 @@ v3.1 생성과 비학습 preflight 명령은 현재 실행하지 않는다. 기�
 - 2026-09-02
   - 작업 요약: PR #16을 master merge commit `737846c`로 병합하고 dashboard v1.11 원국+단일 일진 binding을 기존 8765 공개 process에 제한 활성화했다.
   - 변경 범위: v1.11 전용 Git 제외 0700 private root, 서로 다른 0600 단일-link HMAC·AEAD key, 새 encrypted session store·lease를 준비했다. transient systemd unit의 loopback port와 기존 tunnel은 유지하고 v1.9 진입점·config만 v1.11로 교체했다. 검증 worktree의 구 v1.9 key hardlink alias 두 개는 alias만 제거해 원본 key의 단일-link 조건을 복구했으며 rollback용 v1.9 구현·key는 보존했다.
-  - 검증: master에서 `uvx ruff check scripts tests`, 전체 unit 576건, Phase 1 원천 4종, v1.5 contract·release·conformance와 `uv pip check`를 모두 통과했다. 전환 전 loopback 9/9, 전환 후 공개 HTTPS 원국+일진 7/7과 사용자 재현 문장 `내 오늘 사주 봐줄래?` 실제 KI20 생성 7/7을 통과했다. HTTP 500·Grounding 실패·출생값·도시·원시 runtime ID 로그는 0건이고 합성 runtime·수동 대화 파일은 삭제했다.
+  - 검증: master에서 `uvx ruff check scripts tests`, 전체 unit 576건, Phase 1 원천 4종, v1.5 contract·release·conformance와 `uv pip check`를 모두 통과했다. 전환 전 loopback 9/9, 전환 후 공개 HTTPS 원국+일진 7/7과 사용자 재현 문장 `내 오늘 사주 봐줄래?` 실제 KI20 생성 7/7을 통과했다. HTTP 500·Grounding 실패·출생값·도시·원시 runtime ID 로그는 0건이고 합성 runtime·진단 대화 파일은 삭제했다.
   - 남은 이슈·후속 작업: 사용자는 서버 재시작 전에 열어 둔 브라우저 탭을 새로고침해야 새 CSRF token과 v1.11 asset을 받는다. release의 feature 기본 off와 `production_application_binding=false`, strict/full runtime, 주·월·연 기간, 원국 관계·사건 예측, Phase 6, sealed blind, MIX20K-v3.1, 추가 학습·모델 승격은 변경하지 않는다.
 
 - 2026-09-02

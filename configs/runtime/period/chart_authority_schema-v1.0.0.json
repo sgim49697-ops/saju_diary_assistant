@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "saju-period-chart-authority-v1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "authorization_version",
+    "chart_id",
+    "state_revision",
+    "normalized_input_sha256",
+    "public_hard_facts_sha256",
+    "source_versions_sha256",
+    "release_id",
+    "engine_version",
+    "policy_id",
+    "fact_authority",
+    "publicly_exposable"
+  ],
+  "properties": {
+    "authorization_version": {"const": "saju-period-chart-authorization-v1"},
+    "chart_id": {"type": "string", "pattern": "^sc2_[0-9a-f]{64}$"},
+    "state_revision": {"type": "integer", "minimum": 0},
+    "normalized_input_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "public_hard_facts_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "source_versions_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "release_id": {"const": "saju-runtime-release-v1.5.0-8b1d6ea2d46e"},
+    "engine_version": {"const": "saju-runtime-python-v1.5.0"},
+    "policy_id": {"const": "KR_CIVIL_MIDNIGHT_V1"},
+    "fact_authority": {"const": "HARD_GT"},
+    "publicly_exposable": {"const": false}
+  }
+}

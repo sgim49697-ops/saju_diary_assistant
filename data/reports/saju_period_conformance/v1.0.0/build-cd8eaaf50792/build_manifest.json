@@ -1,0 +1,15 @@
+{
+  "artifacts": {
+    "aggregate.json": {
+      "bytes": 7788,
+      "sha256": "8ddddb67bdd91dc676bbbe622131245f4ae54d9c3e0c5af83368c3e5a49015d8"
+    }
+  },
+  "build_id": "build-cd8eaaf50792",
+  "private_paths_recorded": false,
+  "raw_case_output_tracked": false,
+  "raw_daily_rows_tracked": false,
+  "schema_version": "1.0.0",
+  "sealed_blind_accessed": false,
+  "suite_version": "saju-period-daily-label-conformance-v11.0.0"
+}

@@ -46,6 +46,8 @@ Phase 상태 값은 `미시작`, `부분 진행`, `진행 중`, `차단`, `완�
 
 Phase 6 이후의 비봉인 계산기 연결 대화 진단은 [`grounded_dialogue_eval_plan.md`](../grounded_dialogue_eval_plan.md)를 따른다. 기존 500건 재채점과 2,048↔3,584 token 장문 GPU 진단은 완료됐다. 계산기는 이후 과거 공식 원국 v1.4를 부모로 exact 원국에 결합된 단일 일진 v1.5 release `saju-runtime-release-v1.5.0-8b1d6ea2d46e`를 추가했고, conformance v10 `build-46185262164f`에서 8,522/8,522일 공식 label mismatch 0을 확인했다. dashboard v1.11은 `이 원국·날짜로 새 대화 시작`과 snapshot 변경 차단·자동 Grounding Gate를 구현해 별도 actual HTTP 10축과 실제 KI20 단독·K0↔KI20 순차 canary를 통과했다. master `737846c` 운영 process도 공개 HTTPS 원국+일진과 실제 KI20 live canary 뒤 명시 flag로 제한 활성화했으며 설정 기본값은 off다. 이 결과는 Phase 6 결정, strict/full runtime, v3.1, 추가 학습과 모델 승격 권한을 변경하지 않는다.
 
+v1.5·v1.11 이후의 기간 범위·관계·자동 평가·v3.1 실행 순서는 [`saju_product_roadmap/README.md`](../saju_product_roadmap/README.md)를 따른다. 완료된 Phase 0~6의 번호와 상태는 새 로드맵에서 재사용하거나 다시 열지 않는다.
+
 ```text
 Phase 0 → Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5 → Phase 6
                          데이터 Gate ─┘       └─ 모델 Gate

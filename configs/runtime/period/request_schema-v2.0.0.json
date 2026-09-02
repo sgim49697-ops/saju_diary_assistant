@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "saju-period-request-v2.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["type", "request"],
+  "properties": {
+    "type": {"const": "request_period"},
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "date_expression", "start_date", "end_date"],
+      "properties": {
+        "schema_version": {"const": "saju-period-request-v2"},
+        "date_expression": {
+          "enum": ["today", "tomorrow", "this_weekend", "this_week", "this_month", "explicit"]
+        },
+        "start_date": {
+          "type": ["string", "null"],
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        "end_date": {
+          "type": ["string", "null"],
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        }
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"date_expression": {"const": "explicit"}}},
+          "then": {
+            "properties": {
+              "start_date": {"type": "string"},
+              "end_date": {"type": "string"}
+            }
+          },
+          "else": {
+            "properties": {
+              "start_date": {"type": "null"},
+              "end_date": {"type": "null"}
+            }
+          }
+        }
+      ]
+    }
+  }
+}

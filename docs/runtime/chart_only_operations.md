@@ -96,7 +96,7 @@ v1.11은 conformance v10 `build-46185262164f`와 v1.5 release를 먼저 검증�
 
 ### v1.11 운영 전환 checkpoint
 
-PR #16을 master merge commit `737846c`로 병합한 뒤 Git 제외 전용 0700 root, 서로 다른 0600 단일-link HMAC·AEAD key와 새 session store를 준비했다. 전환 직전 v1.11 loopback canary 9/9, 전환 직후 공개 HTTPS 원국+일진 canary 7/7과 사용자 재현 문장 `내 오늘 사주 봐줄래?`의 실제 KI20 생성 7/7을 통과했다. 생성 응답은 원국·일진 binding과 Grounding Gate를 통과했고 출생정보를 다시 묻지 않았다. 합성 runtime·수동 대화 파일은 검증 직후 삭제했으며 새 runtime store는 비어 있다.
+PR #16을 master merge commit `737846c`로 병합한 뒤 Git 제외 전용 0700 root, 서로 다른 0600 단일-link HMAC·AEAD key와 새 session store를 준비했다. 전환 직전 v1.11 loopback canary 9/9, 전환 직후 공개 HTTPS 원국+일진 canary 7/7과 사용자 재현 문장 `내 오늘 사주 봐줄래?`의 실제 KI20 생성 7/7을 통과했다. 생성 응답은 원국·일진 binding과 Grounding Gate를 통과했고 출생정보를 다시 묻지 않았다. 합성 runtime·진단 대화 파일은 검증 직후 삭제했으며 새 runtime store는 비어 있다.
 
 운영 unit은 같은 127.0.0.1:8765와 기존 tunnel을 유지한 채 v1.11 config·진입점으로 교체됐다. 전환 뒤 HTTP 500, Grounding 실패, 출생값·도시·원시 runtime ID 로그는 0건이었고 session route는 `{opaque_id}`로 기록됐다. 검증 worktree가 만들었던 구 v1.9 key hardlink 두 개는 alias만 제거해 원본 key의 0600·단일-link 조건을 복구했다. rollback용 v1.9 구현과 key는 변경하지 않았다.
 

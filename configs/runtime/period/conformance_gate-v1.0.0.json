@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0.0",
+  "suite_version": "saju-period-daily-label-conformance-v11.0.0",
+  "parent_conformance": {
+    "suite_version": "saju-runtime-conformance-v10.0.0",
+    "build_id": "build-46185262164f",
+    "aggregate_sha256": "e8652eca026f1ecc515a9009df76c0470697ef2f62e3c52912a0bd5c3468ce55"
+  },
+  "approved_date_range": {
+    "minimum": "2026-09-02",
+    "maximum": "2049-12-31",
+    "official_dates": 8522
+  },
+  "window_matrix": {
+    "minimum_days": 1,
+    "maximum_days": 31,
+    "expected_windows": 263717,
+    "order_mismatches_maximum": 0,
+    "duplicate_or_missing_days_maximum": 0,
+    "label_mismatches_maximum": 0,
+    "authority_mismatches_maximum": 0
+  },
+  "resolver_fixtures": [
+    "month_end",
+    "year_end",
+    "leap_day",
+    "saturday",
+    "sunday",
+    "dynamic_today_floor"
+  ],
+  "governance": {
+    "feature_flag_default": false,
+    "strict_full_runtime_approved": false,
+    "future_physical_instant_claimed": false,
+    "provider_values_written_to_official_snapshot": false,
+    "sealed_blind_accessed": false,
+    "mix20k_v3_1_generated": false,
+    "training_promotion_allowed": false
+  }
+}

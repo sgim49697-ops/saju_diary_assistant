@@ -1,0 +1,122 @@
+{
+  "schema_version": "1.4.0",
+  "canonical_plan_version": "4.0.5",
+  "dataset_name": "saju_1b_baseline",
+  "status_version": "v1.4.0",
+  "as_of": "2026-09-02",
+  "stage": "phase6_completed_automatic_repair_required",
+  "decision": {
+    "stage_label": "PHASE 6 COMPLETE · LIMITED RUNTIME LIVE",
+    "stage_status": "완료",
+    "signal": "REPAIR",
+    "signal_tone": "stop",
+    "headline": "모델 baseline 판정은 유지하고,",
+    "headline_accent": "원국·단일 일진만 제한 운영 중입니다.",
+    "summary": "Phase 6의 AUTOMATED_REPAIR_REQUIRED와 KI20 승격 차단은 그대로입니다. 별도 계산 축에서는 공식 과거 원국 v1.4와 KST 정오 단일 일진 v1.5가 conformance v10 8,522일 전수 Gate를 통과했고 dashboard v1.11에 명시 연결됐습니다. 설정 기본값은 off이며 strict/full Runtime, 주·월·연 범위, 관계, MIX20K-v3.1과 추가 학습은 승인하지 않습니다.",
+    "ki10_baseline": "완료",
+    "ki20_promotion": "차단",
+    "domain_semantics": "not_measured",
+    "sealed_blind": "완료",
+    "runtime_release": "허용",
+    "strict_full_runtime": "차단",
+    "dashboard_binding": "허용",
+    "mix20k_v3_training": "금지",
+    "phase4_rerun": "불필요 · canonical MIX20-v2 fingerprint 불변"
+  },
+  "components": [
+    {"name": "원천 bundle", "version": "v1.1.0", "build_id": "build-9462ec148dcd", "sha256": "9462ec148dcd93328b3b68522ad6c6f0d2c3694161d32a2d54332e8069d82f0a", "status": "완료"},
+    {"name": "승인 audit", "version": "v1.2.0", "build_id": "build-ca756f3eb89f", "sha256": "ca756f3eb89fa404c08dc49215b540b3294ed195c39c597303ec14777bb9c4f1", "status": "완료"},
+    {"name": "품질 보정 staging", "version": "v1.0.0", "build_id": "build-a5a9e76d6a8c", "sha256": "a5a9e76d6a8cd524314fbdb0d4ebf11f0b984c3748606eda56de2d7708d3cd23", "status": "완료"},
+    {"name": "고정 모델·환경", "version": "v1.0.0", "build_id": "build-32e2c84af3d3", "sha256": "32e2c84af3d3da1c2938f21d368453185535340fbbb281382a1051a2f789451d", "status": "완료"},
+    {"name": "canonical MIX20-v2", "version": "v2.0.0", "build_id": "build-6f32d52c2868", "sha256": "6f32d52c2868bb8b5e07724cbdc00a6bc0b2f1608fe53ac54c357a6ec0832ee9", "status": "완료"},
+    {"name": "평가 역할 계약", "version": "v1.2.0", "build_id": "build-e885b47cae74", "sha256": "e885b47cae74c63dec1e813f6223df064cb01e507f85717eaa9bcccbe8f21759", "status": "완료"},
+    {"name": "KI10 Gate v2", "version": "v2.0.0", "build_id": "gate-df26e962e145", "sha256": "df26e962e1450b5b2c956b3b0f96531fa567c0c7ac897be233d5375879d878f4", "status": "완료"},
+    {"name": "KI10 Full FT", "version": "v1.0.0", "build_id": "run-e6b712f0d45e", "sha256": "e6b712f0d45e8a12602c586ae8921df0dec758d3bb5eadef23a65f3efc97a0d6", "status": "완료"},
+    {"name": "KI20 preflight", "version": "v1.1.0", "build_id": "preflight-b47fe12f03a4", "sha256": "b47fe12f03a4114a8b9c30bb39b1cc57c12bcfc0525747209b50d0113fcbcd2e", "status": "완료"},
+    {"name": "KI20 Full FT", "version": "v1.2.0", "build_id": "run-1f5d732cae67", "sha256": "1f5d732cae67c9d0988d587b8a6354967b69c1ad6436c90b9a93bb73fdb1d174", "status": "완료"},
+    {"name": "Phase 6 자동 기술평가", "version": "v1.0.0", "build_id": "eval-e8630962cab2", "sha256": "e8630962cab24c9c2d59721de2c4c92be55c4c621680bcdedb3fee1c3ae434f7", "status": "완료"},
+    {"name": "MIX20K-v3.0.1 후보", "version": "v3.0.1", "build_id": "build-94eb7b543490", "sha256": "94eb7b5434907539d7041fc81846169dc2e80f332e99b53d710722dcd5564454", "status": "차단"},
+    {"name": "원국·단일 일진 Runtime", "version": "v1.5.0", "build_id": "build-46185262164f", "sha256": "e8652eca026f1ecc515a9009df76c0470697ef2f62e3c52912a0bd5c3468ce55", "status": "완료"},
+    {"name": "Dashboard v1.11", "version": "v1.11.0", "build_id": "build-74ead36ac4e2", "sha256": "74ead36ac4e29201c5615c2f0bd72c643abde27380a5b004b3dcc76f238a01f8", "status": "완료"},
+    {"name": "Grounded dialogue 재채점", "version": "v0.1.2", "build_id": "eval-562c07d0e2e6", "sha256": "562c07d0e2e6954afa16e4032fc3ca70c4a6d25e0af78a087be2061955ba357f", "status": "완료"},
+    {"name": "Grounded dialogue 장문 진단", "version": "v0.1.1", "build_id": "eval-56d1357560d5", "sha256": "56d1357560d5867f5bc9eef0cc5e1b0b4e7429800d0b484f23309f0f87f2e13e", "status": "완료"}
+  ],
+  "phases": [
+    {"phase": 0, "title": "범위 고정", "status": "완료", "note": "1.3B·10K/20K baseline과 비공개 경계를 고정"},
+    {"phase": 1, "title": "원천 수집·감사", "status": "완료", "note": "고정 revision·라이선스·AI Hub 로컬 경계 고정"},
+    {"phase": 2, "title": "품질 보정 전처리", "status": "완료", "note": "7축 24K staging과 로컬 reservoir 완결"},
+    {"phase": 3, "title": "모델·CUDA 환경", "status": "완료", "note": "Kanana BF16·torch 2.13.0+cu130 smoke 통과"},
+    {"phase": 4, "title": "학습 전 기술 검증", "status": "완료", "note": "768 Full FT 200-step resume와 canonical v2 승인"},
+    {"phase": 5, "title": "10K·20K baseline 학습", "status": "완료", "note": "KI10·KI20 Full FT와 final reload 완료, production 승격 금지"},
+    {"phase": 6, "title": "봉인 자동 평가·결정", "status": "완료", "note": "500건 단회 평가 완료 · AUTOMATED_REPAIR_REQUIRED"}
+  ],
+  "dataset_axes": [
+    {"label": "Nemotron 사주 해석", "rows": 6800, "assistant_token_share_percent": 58.080955, "evidence": "SOFT_REF"},
+    {"label": "bazi-sft 규칙 파생", "rows": 4000, "assistant_token_share_percent": 25.218343, "evidence": "RULE_GT"},
+    {"label": "AI Hub 단일턴", "rows": 1500, "assistant_token_share_percent": 0.861964, "evidence": "DIALOGUE_REF"},
+    {"label": "AI Hub 멀티턴", "rows": 1500, "assistant_token_share_percent": 0.906623, "evidence": "DIALOGUE_REF"},
+    {"label": "YEJI 신살 파생", "rows": 1000, "assistant_token_share_percent": 2.890489, "evidence": "RULE_GT"},
+    {"label": "deterministic 사주 QA", "rows": 2000, "assistant_token_share_percent": 3.589891, "evidence": "HARD_GT"},
+    {"label": "사주 일기 브리지", "rows": 3200, "assistant_token_share_percent": 8.451735, "evidence": "GROUNDED_BRIDGE"}
+  ],
+  "evidence_tiers": [
+    {"code": "SOURCE_HARD_FACT", "title": "공식 원천 사실", "description": "고정 공식 snapshot에서 확인된 날짜·간지 사실", "tone": "hard"},
+    {"code": "HARD_GT", "title": "승인 계산 사실", "description": "승인 release와 고정 정책으로 재계산 가능한 사실", "tone": "hard"},
+    {"code": "RULE_GT", "title": "검산 규칙 파생", "description": "고정 조건·긍부정 자동 계약을 통과한 규칙형 답변", "tone": "rule"},
+    {"code": "DIALOGUE_REF", "title": "대화 문체 참조", "description": "승인 범위의 로컬 전용 공감·대화 문체", "tone": "dialogue"},
+    {"code": "SOFT_REF", "title": "합성 해석 참조", "description": "의미 정답 주장을 하지 않는 합성 해석·문체 자료", "tone": "soft"},
+    {"code": "GROUNDED_BRIDGE", "title": "구조화 사실 연결", "description": "입력으로 제공된 구조화 명식을 상담·기록 대화로 연결", "tone": "rule"}
+  ],
+  "gates": [
+    {"name": "원천·Phase 4 hash chain", "status": "통과", "criterion": "고정 source·audit·staging·canonical MIX20-v2 재검증", "result": "build-9462ec148dcd → build-6f32d52c2868"},
+    {"name": "Phase 6 단회 봉인 실행", "status": "통과", "criterion": "500행·350 component·세 모델·최대 1회·동일 fingerprint", "result": "eval-e8630962cab2 · spent_completed"},
+    {"name": "KI20 자동 baseline Gate", "status": "차단", "criterion": "결정론·규칙·handoff·zero-tolerance 자동 기준", "result": "AUTOMATED_REPAIR_REQUIRED 유지 · 모델 승격 차단"},
+    {"name": "계약 밖 의미 품질", "status": "주의", "criterion": "자동 계약이 없는 의미 정확성은 판정·주장하지 않음", "result": "not_measured · Phase 완료 blocker 아님"},
+    {"name": "Grounded dialogue 자동 진단", "status": "통과", "criterion": "기존 500건 재채점과 2,048·3,584 token paired 진단", "result": "응답 재생성 없음 · 두 장문 arm 자동 목표 통과"},
+    {"name": "MIX20K-v3 기술 preflight", "status": "통과", "criterion": "20K tokenization·mask·tool round-trip·기본 leakage", "result": "build-94eb7b543490 · 후보 전용"},
+    {"name": "MIX20K-v3 학습 적격성", "status": "차단", "criterion": "canonical·state·grounding·언어·정책·다양성 자동 Gate", "result": "v3.0.1 후보 유지 · training_promotion_allowed=false"},
+    {"name": "KASI 데이터 가용성", "status": "통과", "criterion": "음양력 전수와 공식 절입 가용분 전량", "result": "54,787/54,787 · 절입 2,172/2,172"},
+    {"name": "원국·단일 일진 제한 release", "status": "통과", "criterion": "과거 공식 원국 v1.4 + 2026-09-02~2049-12-31 KST 정오 단일 일진", "result": "v1.5 · build-46185262164f · 8,522/8,522 mismatch 0"},
+    {"name": "Dashboard v1.11 제한 연결", "status": "통과", "criterion": "명시적 원국·날짜 새 대화 연결·snapshot 고정·자동 Grounding Gate", "result": "v1.11 제한 운영 · config 기본 off"},
+    {"name": "strict/full Runtime", "status": "차단", "criterion": "미래 물리 절입 시각·주월년 범위·관계·사건 예측", "result": "full_runtime_gate_passed=false"},
+    {"name": "MIX20K-v3.1·추가 학습", "status": "금지", "criterion": "새 Runtime·data/split/preflight 자동 Gate", "result": "v3.1 미생성 · 학습·모델 승격 미실행"}
+  ],
+  "known_risks": [
+    {"id": "R-TOKEN-DOMINANCE", "severity": "주의", "title": "canonical MIX20-v2 token 편중", "finding": "Nemotron+bazi가 assistant loss token의 83.299298%를 차지합니다.", "disposition": "행 비율과 token 비율을 함께 공개하고 축별 macro 지표로 회귀를 분리합니다."},
+    {"id": "R-PHASE6-AUTOMATED-GATES", "severity": "주의", "title": "KI20 자동 기술 Gate 미달", "finding": "결정론·규칙·handoff와 zero-tolerance 계약이 baseline 승격 기준에 못 미칩니다.", "disposition": "AUTOMATED_REPAIR_REQUIRED를 유지하고 실패 축을 다음 보정 입력으로만 사용합니다."},
+    {"id": "R-DOMAIN-SEMANTICS", "severity": "주의", "title": "계약 밖 의미 품질 미측정", "finding": "현재 자동 계약이 다루지 않는 해석 의미 정확성은 not_measured입니다.", "disposition": "측정하지 않은 품질을 주장하지 않으며 Phase 완료 blocker로 만들지 않습니다."},
+    {"id": "R-MIX20K-V3-BLOCKERS", "severity": "주의", "title": "MIX20K-v3 자동 Gate blocker", "finding": "canonical·state·grounding·언어·정책·다양성 자동 계약이 남았습니다.", "disposition": "v3.0.1을 후보로 유지하고 v3.1 생성·2K/10K/20K 학습을 금지합니다."},
+    {"id": "R-RUNTIME-SCOPE", "severity": "주의", "title": "Runtime 승인 범위 제한", "finding": "승인은 과거 원국과 exact 원국에 결합된 KST 정오 단일 일진에만 적용됩니다.", "disposition": "주·월·연 범위, 관계, 분 단위 미래 절입과 사건 예측을 차단합니다."},
+    {"id": "R-DASHBOARD-FLAG", "severity": "주의", "title": "운영 flag와 설정 기본값 분리", "finding": "현재 운영 process는 명시 flag로 제한 활성화됐지만 배포 config 기본값은 off입니다.", "disposition": "새 버전 canary 없이 기본값이나 운영 service를 자동 변경하지 않습니다."}
+  ],
+  "web_sources": [
+    {"name": "Kanana 2 1.3B Instruct", "url": "https://huggingface.co/kakaocorp/kanana-2-1.3b-instruct", "revision": "bf4786aa2a1908adce942d53976270132732f720", "role": "학습 시작 모델", "decision": "고정 BF16 snapshot만 사용"},
+    {"name": "Nemotron-Personas-Korea-Saju", "url": "https://huggingface.co/datasets/rayraykim/Nemotron-Personas-Korea-Saju", "revision": "ffb934248746a2dea64ef771c0d86e1743d25702", "role": "합성 해석 원천", "decision": "SOFT_REF·페르소나 비인과 검사"},
+    {"name": "bazi-sft", "url": "https://huggingface.co/datasets/AmareshHebbar/bazi-sft", "revision": "fad87063b317612e4164dfb0e0e08572c3831df4", "role": "규칙 구조 원천", "decision": "원문 답변 대신 검산 파생만 사용"},
+    {"name": "KASI 음양력 정보", "url": "https://www.data.go.kr/data/15012679/openapi.do", "revision": "2026-08-31 snapshot", "role": "양음력·일진 공식 근거", "decision": "54,787일 전수 대조"},
+    {"name": "KASI 공식 24기", "url": "https://astro.kasi.re.kr/kor/almanac/solarTerms/download", "revision": "2026-08-31 snapshot", "role": "1920~2100 절입 분 라벨", "decision": "가용성·provider·strict Gate 분리"},
+    {"name": "Skyfield", "url": "https://rhodesmill.org/skyfield/", "revision": "1.55", "role": "절입 provider", "decision": "DE440s·builtin UT1·오프라인 고정"},
+    {"name": "JPL DE440s", "url": "https://ssd.jpl.nasa.gov/ftp/eph/planets/bsp/de440s.bsp", "revision": "c1c7feeab882…0a49f2", "role": "태양 위치 ephemeris", "decision": "Git 제외 고정 hash, 자동 다운로드 금지"},
+    {"name": "TRL SFTTrainer", "url": "https://huggingface.co/docs/trl/v1.12.0/en/sft_trainer", "revision": "v1.12.0", "role": "SFT 목적함수·mask 계약", "decision": "assistant-only chunked_nll"}
+  ],
+  "validation_summary": [
+    "canonical MIX20-v2 20,000행·7축 수량·record hash와 승인 chain 재검증",
+    "KI10·KI20 고정 Instruct snapshot과 Full FT run identity 확인",
+    "Phase 6 봉인 500행·350 component·세 모델 단회 실행과 spent_completed marker 확인",
+    "Phase 6 baseline 결정 AUTOMATED_REPAIR_REQUIRED와 공개 경계 재검증",
+    "grounded dialogue 기존 500건 재채점과 장문 2-arm 200건 자동 진단 확인",
+    "KASI 음양력 54,787일·공식 절입 가용분 전량·1964 역서 hash chain 확인",
+    "원국 v1.4·단일 일진 v1.5 release와 conformance v10 8,522일 mismatch 0 확인",
+    "dashboard v1.11 config·asset·명시 binding·자동 Grounding Gate fingerprint 확인",
+    "strict/full false, feature config 기본 off, v3.1·학습·모델 승격 false 확인",
+    "원시 응답·출생값·내부 ID·private 경로·checkpoint를 공개 현황 산출물에서 제외"
+  ],
+  "outputs": {
+    "root_html": "PROJECT_STATUS.html",
+    "snapshot_root": "data/reports/saju_1b_baseline/project-status/v1.4.0/{build_id}"
+  },
+  "implementation_files": [
+    "scripts/status/project_status.py",
+    "scripts/status/project_status_v1_4.py"
+  ]
+}

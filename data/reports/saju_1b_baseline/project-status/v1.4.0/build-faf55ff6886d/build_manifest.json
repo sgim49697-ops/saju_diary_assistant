@@ -1,0 +1,30 @@
+{
+  "artifact_sha256": {
+    "index.html": "6319175516dea25835f9b4bebd0dd37a43ea7fab2b406d79ecbd8b8b0fbdcdaa"
+  },
+  "build_id": "build-faf55ff6886d",
+  "build_inputs": {
+    "as_of": "2026-09-02",
+    "components_sha256": "8df3596af03bd73bd55af545b20729926b4dedd65042dd5ff191208fafa234b4",
+    "dataset_axes_sha256": "f717d7ec9319a341bb5103203f3e93013e77c9b0a22141cac56c159dbd78aa01",
+    "decision_sha256": "f0c69322fe19dca56872e81a33997440588dd46b81986c9602d833df4608d4d0",
+    "evidence_sha256": "b5e2153189cf1589edd1ea87d894bd1a942f82667d00dc2d6a19eee053923217",
+    "gates_sha256": "ee84d081a4510df0f51db3ecaf4f59cc4b30fd3c8718d9df1e14b06554c690f4",
+    "implementation_hashes": {
+      "configs/data_versions/saju_1b_baseline/project-status-v1.4.0.json": "e043c033f94a49bab04331981c2319d036191b2161c73f90f470a8545dab1b67",
+      "scripts/status/project_status.py": "6acbc1fed199405e7f9ff2853ad14939aa43b0350a1f5face99c4180180c1c2a",
+      "scripts/status/project_status_v1_4.py": "ecc281fd9a6423cfa03befc0037bab99d8b21450223c1a3c7e4b5e34261b1099"
+    },
+    "phases_sha256": "6fbe4a78de22730764643ea7f97725a58240130db3efc3186750516aac85d730",
+    "risks_sha256": "3e588259452a63fdd2586f1dad9170658d71b1384591ef0e8f5e505931b6bb9e",
+    "stage": "phase6_completed_automatic_repair_required",
+    "status_version": "v1.4.0",
+    "web_sources_sha256": "48c32c2f23657869ee51a7d16c655483e8f1b92dd69a13b9bdf0b44edb1fe423"
+  },
+  "build_sha256": "faf55ff6886d6fb9b65cedcabc3e7a30002f5887f46a9967b221cbbe35a38ec3",
+  "report_type": "project_status_public_manifest",
+  "restricted_content_included": false,
+  "root_html_byte_identical": true,
+  "schema_version": "1.4.0",
+  "status_version": "v1.4.0"
+}
