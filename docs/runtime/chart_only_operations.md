@@ -84,6 +84,10 @@ Gate는 feature off 10, 정상 원국 20, 절입 경계 10, 승인 범위 밖 20
 
 공개 경로에는 `aggregate.json`과 `build_manifest.json`만 둔다. case별 입력·응답, 모델 원문, runtime capability, key, ciphertext, private path, 공개 URL은 기록하지 않는다. `verify`는 생성된 새 build 경로를 명시해 실행한다.
 
+현재 검증된 production checkpoint는 `build-ea53c272c1d6`이다. `master` 구현 기준 `a2239118581762d940bf13ba1e9dd32ed0d71d77`에서 합성 HTTP 100/100과 실제 K0·KI20 1쌍이 비어 있지 않은 출력을 만들고 동일 canonical runtime snapshot을 받은 것을 확인했다. 공개 build에는 aggregate와 manifest 두 파일만 있으며 sealed blind 접근·학습·모델 승격·기간 runtime은 모두 false다.
+
+같은 구현을 적재한 loopback 운영 process에서는 상태 API 3종, 정상 원국, 절입 경계, 승인 범위 밖, capability 변조, 기간·legacy route와 잘못된 Origin 차단을 재검증했다. 공개 HTTPS smoke와 데스크톱·모바일 렌더링도 통과했고, 로그에는 출생값·도시·runtime 식별자·500이 없으며 smoke 종료 뒤 암호화 session record는 남지 않았다.
+
 ## 활성화와 rollback
 
 canary가 실패하면 production process를 시작하지 않는다. 통과 뒤 dashboard를 아래 조건으로 시작한다.

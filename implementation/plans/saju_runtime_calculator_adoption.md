@@ -4,13 +4,13 @@
 
 | 항목 | 값 |
 |---|---|
-| 문서 버전 | `runtime-calculator-adoption-v2.11.0` |
+| 문서 버전 | `runtime-calculator-adoption-v2.12.0` |
 | 정본화 기준일 | 2026-09-02 |
-| 현재 구현 기준 `master` | `8eafea0397634ab4c5acbcafadd7c7c2e9a0c459` |
+| 현재 구현 기준 `master` | `a2239118581762d940bf13ba1e9dd32ed0d71d77` |
 | 기준 모델 run | `KI20-MIX-v2/run-1f5d732cae67` |
 | 모델 run 상태 | `trained_and_reloaded`, production 승격 금지 |
 | runtime profile | `KR_CIVIL_MIDNIGHT_V1` |
-| runtime 상태 | Skyfield/DE440s+builtin UT1 v1.3 후보와 원국 전용 v1.4 release를 보존한다. dashboard v1.9 production binding, 무인증 공개 경계, 암호화 session, rate/concurrency/process 제어, K0·KI20 동일 snapshot 결합과 합성 HTTP 100건 Gate를 구현했으며 feature는 기본 off다. 실제 GPU 1쌍·live process canary 전에는 제한 활성화하지 않는다. strict/full runtime Gate와 기간 계산은 계속 차단 |
+| runtime 상태 | Skyfield/DE440s+builtin UT1 v1.3 후보와 원국 전용 v1.4 release를 보존한다. dashboard v1.9 production canary `build-ea53c272c1d6`가 합성 HTTP 100/100과 실제 K0·KI20 1쌍을 통과했다. 설정 기본값은 off로 유지하면서 검증된 운영 process만 명시 flag로 무인증 공개 chart-only 제한 활성화했다. strict/full runtime Gate와 기간 계산은 계속 차단 |
 | 데이터 상태 | v3.1 생성·비학습 preflight 구현은 보존하되 chart-only release는 기간 tool을 승인하지 않으므로 v3.1 생성·preflight·학습은 미실행 |
 
 이 문서는 앞서 제공된 `SAJU_RUNTIME_CALCULATOR_ADOPTION_PLAN.md` 조사 초안을 대체하는 저장소 실행 정본이다. 기존 데이터 보정 정본인 [`mix20k_v3_repair_plan.md`](mix20k_v3_repair_plan.md)와 역할을 나눈다.
@@ -43,7 +43,7 @@ conformance v9는 부모 v8을 실제 원본으로 재계산한 뒤 scope matrix
 
 운영 준비 v1.0은 runtime HMAC key와 session AEAD key를 32바이트 0600 단일-link 파일로 분리하고, AES-256-GCM·write별 12바이트 nonce·associated data·0700 root·0600 record·최대 100 session·1,800초 보존을 고정했다. 구조화 event-only adapter는 v1.4 release와 HMAC ID를 다시 검증하고 공개 응답에 allowlist 사실만 남긴다. 실제 DE440s 합성 local canary `build-ddde6dce3d3c`는 13개 층화 130/130을 통과했다.
 
-dashboard binding v1.0은 기존 v1.8 파일을 보존한 새 v1.9 config·asset으로 이 adapter를 production process에 결합한다. public client authentication은 두지 않되 exact Host·Origin·CSRF, session/chart 30·event 300·model 10회/분, single-process lease, runtime 계산 직렬화와 `429`, stale revision `409`, legacy runtime route `410`을 고정했다. HMAC/AEAD key는 공개하지 않으며 출생정보·capability·request body도 로그에 남기지 않는다. K0와 KI20에는 같은 allowlist snapshot만 전달한다. 구현과 합성 HTTP 100건은 통과했지만 실제 GPU 1쌍과 live canary가 완료되기 전까지 feature 기본 off를 유지한다.
+dashboard binding v1.0은 기존 v1.8 파일을 보존한 새 v1.9 config·asset으로 이 adapter를 production process에 결합한다. public client authentication은 두지 않되 exact Host·Origin·CSRF, session/chart 30·event 300·model 10회/분, single-process lease, runtime 계산 직렬화와 `429`, stale revision `409`, legacy runtime route `410`을 고정했다. HMAC/AEAD key는 공개하지 않으며 출생정보·capability·request body도 로그에 남기지 않는다. K0와 KI20에는 같은 allowlist snapshot만 전달한다. production canary `build-ea53c272c1d6`는 합성 HTTP 100/100과 실제 GPU K0·KI20 1쌍을 통과했으며, 같은 구현을 적재한 loopback process만 명시 flag로 제한 활성화했다. 설정과 재기동의 기본값은 계속 off다.
 
 후속 디버깅에서는 다른 provider 경계, 빈 role, 변조된 권한 요약과 JSON integer/boolean 혼동을 절입 증거로 받아들이던 경로를 차단했다. provider가 계산하지 않은 경계와 비정상 연도·index 타입도 거부하고, provider 종료 뒤 기간 계산은 예외를 누출하지 않고 `blocked`로 닫는다. 이 보강은 정상 계산값을 바꾸지 않았으며 최종 conformance 보고서는 최초 v8과 구현 hash를 제외한 집계가 같다.
 
@@ -345,7 +345,9 @@ strict/full runtime의 남은 실패 원인은 데이터 수량이나 근찾기 
 - `chart_release_registry_creation_allowed=true`
 - `chart_only_release_approval_performed=true`
 - `runtime_feature_flag_default=false`
-- `production_application_binding=true` (dashboard v1.9 구현 계약, live feature는 기본 off)
+- `production_application_binding=true` (설정 기본 off, 검증된 live process만 명시 활성)
+- `production_canary_gate_passed=true` (`build-ea53c272c1d6`, HTTP 100/100 + GPU 1쌍)
+- `limited_chart_only_live_enabled=true` (검증된 process의 명시 flag에만 적용)
 - `mix20k_v3_1_regeneration_allowed=false`
 - `training_promotion_allowed=false`
 
@@ -360,10 +362,10 @@ strict/full runtime의 남은 실패 원인은 데이터 수량이나 근찾기 
 | R4 | KASI 전수·계층형 절입 snapshot 수집 | 완료(음양력 54,787일, OpenAPI 150년 scan, 공식 현재 계산 1920~2100 절입 2,172행, 표시 분 84건, 1964 역서). 1900~1919 공식 절입 미coverage는 별도 등급으로 명시 |
 | R5 | full conformance와 profile ADR 승인 | v8 후보 conformance와 v9 chart-only 자동 Gate 완료. chart-only release 생성, strict/full provider Gate는 계속 실패 |
 | R6 | v3.1 5,250 tool call 전수 재생성·새 split/preflight | 생성기·preflight 구현만 보존. v1.4가 period를 승인하지 않고 현재 작업 범위에서도 제외했으므로 생성·preflight 미실행 |
-| R7 | 대시보드 `KI20 + Runtime` local lane·앱 canary | 기존 v1.8 canary는 비활성. v1.4 분리 키·AES-GCM adapter와 local canary 130/130, dashboard v1.9 production binding과 합성 HTTP 100/100을 완료했다. feature는 기본 off이며 실제 GPU 1쌍·live process canary는 배포 직전 Gate로 남음 |
+| R7 | 대시보드 `KI20 + Runtime` local lane·앱 canary | 완료. v1.4 분리 키·AES-GCM adapter local 130/130과 v1.9 production `build-ea53c272c1d6` HTTP 100/100·실제 GPU 1쌍을 통과했다. 같은 구현의 loopback process를 명시 flag로 제한 활성화했고 공개 HTTPS smoke·로그 비노출·rollback 경계를 확인했다. 설정 기본값은 off |
 | R8 | 새 모델 학습 handoff | 이 계획 범위 밖 |
 
-chart-only release는 원국 계산 엔진의 제한된 기술 승인일 뿐 학습 Gold나 full runtime 승인이 아니다. v1.9 binding은 공개 UI와 모델 context 연결 코드를 제공하지만 명시 flag 전에는 runtime resource를 열지 않는다. 실제 GPU·live canary가 실패하면 v1.8을 runtime flag 없이 유지하거나 복구한다.
+chart-only release는 원국 계산 엔진의 제한된 기술 승인일 뿐 학습 Gold나 full runtime 승인이 아니다. v1.9 binding은 공개 UI와 모델 context 연결 코드를 제공하지만 명시 flag 전에는 runtime resource를 열지 않는다. 현재 제한 활성화는 `build-ea53c272c1d6`와 같은 구현·release·운영 경계에만 적용하며, 이후 canary나 live smoke가 실패하면 v1.8을 runtime flag 없이 복구한다.
 
 ## 12. MIX20K-v3.1 계약
 
@@ -503,7 +505,7 @@ IERS 수집기는 HTTPS same-origin redirect, regular file·symlink, 0600 권한
 
 v3.1 생성과 비학습 preflight 명령은 현재 실행하지 않는다. 기존 generator는 chart 4,350회와 period 900회를 같은 full release로 재생성하는 계약이며, chart-only v1.4 release를 그 입력으로 대체할 수 없다. 미래 full runtime release와 새 versioned generator 계약이 별도로 고정될 때 production HMAC key 수명주기·source build·split·preflight 명령을 함께 다시 발행한다.
 
-기존 dashboard v1.8 canary는 v1.1 release 소비 코드이므로 v1.4 승인 근거로 재사용하지 않는다. v1.4 구조화 adapter와 암호화 persistence·보존 정책의 독립 dry-run 및 합성 local Gate는 완료했다. 그러나 실제 앱/대시보드 process에는 연결하지 않았으므로 인증·권한·rate limit·동시성까지 포함한 별도 production 통합 Gate 전에는 `--enable-runtime-canary`로 재기동하지 않는다.
+기존 dashboard v1.8 canary는 v1.1 release 소비 코드이므로 v1.4 승인 근거로 재사용하지 않는다. v1.4 구조화 adapter와 암호화 persistence·보존 정책의 독립 dry-run 및 합성 local Gate에 이어 v1.9 production 통합 Gate `build-ea53c272c1d6`까지 완료했다. 현재 운영 process는 v1.9 전용 `--enable-chart-only-runtime`을 명시해 제한 활성화하며, v1.8의 `--enable-runtime-canary`는 사용하지 않는다.
 
 ## 14. 완료 기준
 
@@ -554,9 +556,15 @@ v3.1 생성과 비학습 preflight 명령은 현재 실행하지 않는다. 기�
 - [x] 실제 운영 key의 private provisioning·rotation·폐기와 retention 절차를 고정한다. 공개 앱 접근과 key 공개를 혼동하지 않는다.
 - [x] 무인증 공개 권한, exact Origin·CSRF, rate limit·동시 process·로그 비노출을 포함한 dashboard v1.9 production binding을 구현한다.
 - [ ] v3.1을 새 fingerprint로 생성하고 split/preflight를 재실행한다.
-- [ ] feature 기본 off 상태에서 합성 HTTP 100건과 실제 K0·KI20 1쌍의 production canary를 검증하고, 통과한 process만 제한 활성화한다.
+- [x] feature 기본 off 상태에서 합성 HTTP 100건과 실제 K0·KI20 1쌍의 production canary를 검증하고, 통과한 process만 제한 활성화한다.
 
 ## 진행 기록
+
+- 2026-09-02
+  - 작업 요약: 병합된 dashboard v1.9 구현으로 GPU production canary와 실제 공개 앱 통합 canary를 완료하고, 검증된 process만 chart-only로 제한 활성화했다.
+  - 변경 범위: 공개 산출물은 `build-ea53c272c1d6`의 `aggregate.json`·`build_manifest.json` 두 파일뿐이다. 운영 key·원시 case·모델 원문·출생 입력·runtime 식별자·private path·공개 URL은 기록하지 않았다. 설정 기본 off, 기간 차단, strict/full runtime 차단을 유지했다.
+  - 검증: production canary HTTP 100/100과 실제 K0·KI20 1쌍의 비어 있지 않은 출력·동일 snapshot을 통과했다. 같은 구현의 live process에서 상태 API 3종 200, 정상 원국, 절입 경계, 범위 밖, 변조 capability, 기간·legacy route, 잘못된 Origin을 검증했고 공개 HTTPS에서도 정상 원국과 보안 차단을 확인했다. 데스크톱·모바일 렌더링에 오류가 없었고, 운영 로그 110줄에 출생값·도시·24자리 capability·500이 없으며 session record는 0개다.
+  - 남은 이슈·후속 작업: 이 완료는 limited chart-only 활성화만 허용한다. strict/full runtime·미래·기간, Phase 6 결정, MIX20K-v3.1, 추가 학습과 모델 승격은 계속 변경하지 않는다.
 
 - 2026-09-02
   - 작업 요약: dashboard v1.9을 WSL2 transient `systemd` service로 재기동하는 과정에서 `nvidia-smi` 탐색 실패가 상태 API 500으로 전파되는 운영 회귀를 발견해 fail-soft 진단으로 교정했다.
