@@ -1,0 +1,156 @@
+{
+  "schema_version": "1.0.0",
+  "experiment_id": "K0-MIX2K-V4-LORA",
+  "training_version": "v1.0.0",
+  "dataset_version": "mix2k-v4-chart-day-8k",
+  "base_model": {
+    "repository": "kakaocorp/kanana-2-1.3b-instruct",
+    "revision": "bf4786aa2a1908adce942d53976270132732f720",
+    "local_subdir": "models/saju_1b_baseline/kanana-2-1.3b-instruct/bf4786aa2a1908adce942d53976270132732f720",
+    "parameter_count": 1291478272,
+    "dtype": "bfloat16",
+    "attention_backend": "sdpa",
+    "local_files_only": true,
+    "trust_remote_code": true,
+    "files": {
+      "model.safetensors": "49aa6cd8686563c59321d83810731956c61ec8d5c8538a249d38007986cdc942",
+      "tokenizer.json": "1c4be9ecf77c926456fb82d4cf07ff1218a91907f3408f44895d2b01e0f2b5ab",
+      "tokenizer_config.json": "1cdee8fcd4f6209e07e6d9966c8a3ff2d738830d79475193e94e448e153ae2d5",
+      "chat_template.jinja": "b8ee6b31575eada17ebbe73d3f1ac65d3efde64f0a25ff922031dec7e1cae3e3",
+      "config.json": "fe14b20b4b616d62ca0682312c2fcd2b90d9a836d14a1ff6448db3f533fd15a1"
+    }
+  },
+  "required_data": {
+    "rows": 2000,
+    "manifest_name": "build_manifest.json",
+    "training_path": "training/train_2000.jsonl",
+    "token_audit_path": "reports/token_audit_summary.json",
+    "training_execution_allowed": true,
+    "full_runtime_snapshot_used": true,
+    "compact_projection_used_for_training": false,
+    "development_targets_accessed": false,
+    "truncation": false,
+    "assistant_only_loss": true,
+    "allowed_max_lengths": [2048, 3584],
+    "larger_context_requires_separate_preflight": true
+  },
+  "runtime_versions": {
+    "python": "3.10",
+    "torch": "2.13.0+cu130",
+    "torch_cuda": "13.0",
+    "transformers": "4.57.6",
+    "trl": "1.12.0",
+    "datasets": "4.7.0",
+    "accelerate": "1.14.0",
+    "bitsandbytes": "0.50.2",
+    "peft": "0.20.0",
+    "base_lock": {
+      "path": "requirements-phase3.lock.txt",
+      "sha256": "0301de92dea4a21eb8077abb01aae6eaf412590ac670e436bcd5d7b3717b8aed"
+    },
+    "lora_overlay": {
+      "path": "requirements-lora-v1.0.txt",
+      "sha256": "467334a76497e7f691e6e9848dc9b7dbe23f622470c1db0a6f3e953fbbd3fe10"
+    }
+  },
+  "lora": {
+    "ranks": [8, 16, 32],
+    "primary_rank": 16,
+    "target_modules": "all-linear",
+    "use_rslora": true,
+    "bias": "none",
+    "lora_dropout": 0.05,
+    "lora_alpha": 32,
+    "alpha_policy": "fixed_across_rank_ablation",
+    "task_type": "CAUSAL_LM",
+    "modules_to_save": null,
+    "expected_target_linear_modules": 224,
+    "expected_trainable_parameters": {
+      "8": 9338880,
+      "16": 18677760,
+      "32": 37355520
+    },
+    "base_weights_frozen": true,
+    "adapter_only_save": true
+  },
+  "training": {
+    "max_length_source": "required_data_manifest",
+    "max_length_floor": 2048,
+    "pad_to_multiple_of": 8,
+    "per_device_train_batch_size": 1,
+    "gradient_accumulation_steps": 8,
+    "effective_batch_size": 8,
+    "num_train_epochs": 1,
+    "expected_optimizer_steps": 250,
+    "learning_rate": 0.00005,
+    "warmup_ratio": 0.03,
+    "lr_scheduler_type": "cosine",
+    "weight_decay": 0.01,
+    "max_grad_norm": 1.0,
+    "optim": "adamw_torch_fused",
+    "gradient_checkpointing": true,
+    "gradient_checkpointing_use_reentrant": false,
+    "assistant_only_loss": true,
+    "packing": false,
+    "padding_free": false,
+    "loss_type": "chunked_nll",
+    "bf16": true,
+    "fp16": false,
+    "tf32": false,
+    "use_cache": false,
+    "logging_steps": 5,
+    "logging_nan_inf_filter": false,
+    "save_steps": 50,
+    "save_total_limit": 2,
+    "save_only_model": false,
+    "save_safetensors": true,
+    "dataloader_num_workers": 0,
+    "seed": 42,
+    "data_seed": 42,
+    "torch_compile": false,
+    "report_to": []
+  },
+  "preflight": {
+    "required_for_each_rank": true,
+    "longest_rows": 8,
+    "optimizer_steps": 1,
+    "require_finite_loss": true,
+    "require_finite_nonzero_lora_gradient": true,
+    "require_base_gradient_absent": true,
+    "require_adapter_reload_match": true,
+    "require_peak_memory_within_limit": true
+  },
+  "operational_limits": {
+    "expected_gpu_count": 1,
+    "max_total_gpu_memory_used_mib": 16384,
+    "min_free_gpu_memory_before_start_mib": 12000,
+    "min_system_ram_available_bytes": 4294967296,
+    "min_disk_available_bytes": 32212254720,
+    "require_no_active_compute_process_before_start": true,
+    "run_ranks_sequentially": true
+  },
+  "evaluation": {
+    "frozen_dev_rows": 200,
+    "arms": ["K0", "LORA_R8", "LORA_R16", "LORA_R32", "KI20"],
+    "primary_arm": "LORA_R16",
+    "same_runtime_snapshot": true,
+    "same_system_prompt": true,
+    "same_generation_config": true,
+    "loss_only_selection_forbidden": true,
+    "actual_regression_is_release_blocker": true
+  },
+  "governance": {
+    "explicit_user_confirmation_received": true,
+    "confirmation_date": "2026-09-02",
+    "confirmation_scope": "k0_mix2k_v4_lora_r8_r16_r32_one_epoch",
+    "ki20_training_allowed": false,
+    "full_fine_tuning_allowed": false,
+    "partial_fine_tuning_allowed": false,
+    "production_promotion_allowed": false,
+    "sealed_blind_accessed": false
+  },
+  "outputs": {
+    "run_root": "runs/K0-MIX2K-V4-LORA/v1.0.0/{rank}/{run_build_id}",
+    "report_root": "data/reports/saju_1b_baseline/mix2k-v4-lora/v1.0.0/{rank}/{run_build_id}"
+  }
+}

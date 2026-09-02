@@ -47,3 +47,12 @@ Teacher 절반은 Claude 초안→Codex grounding 검수, 나머지 절반은 Co
 - 보안: 자식 프로세스에서 provider API key·cloud credential 환경을 제거하고 Claude는 safe mode·tool 없음, Codex는 ephemeral·read-only·rule 없음으로 실행한다. raw provider envelope와 식별정보는 저장하지 않는다.
 - 검증: Codex ChatGPT subscription structured-output smoke는 통과했다. Claude CLI는 auth 상태가 만료되어 초안 0건에서 fail-closed로 종료했고, 단일 teacher 결과를 Gold로 승격하지 않았다.
 - 후속: `claude` 재로그인 후 같은 pilot state를 재실행하고 4건의 초안·교차 검수를 모두 통과시킨 뒤 full 2,000행을 시작한다.
+
+### 2026-09-02 - token audit·LoRA 실행 Gate
+
+- 작업 요약: 교차 검수가 완료된 candidate 2,000행을 pinned K0 tokenizer·chat template로 재렌더하고 rendered/prompt/supervised token, assistant mask, 마지막 EOS, user·system loss leakage, truncation을 전수 검사하는 finalizer를 구현했다.
+- 길이 판정: 입력·출력 각 4,096 token을 넘으면 즉시 차단한다. 2,048을 넘는 행이 20건 또는 1%보다 많으면 `max_length`를 자동 상향하지 않고 full-runtime·projection 검토 상태로 학습을 차단한다.
+- LoRA 계약: K0에서만 r=8/16/32, `all-linear`, rsLoRA, dropout 0.05, bias 없음, LR 5e-5, 1 epoch, assistant-only loss를 고정했다. 공통 `lora_alpha=32`로 rank 이외 scaling 인자를 고정했다.
+- package: 기존 PyTorch 2.13.0+cu130 환경을 변경하지 않고 `uv pip --no-deps`로 PEFT 0.20.0 overlay만 추가했다. 새 overlay lock은 base training lock과 분리했다.
+- 검증: CPU에서 K0에 `all-linear` r=16을 실제 적용해 target linear 224개, trainable 18,677,760개, base trainable 0개를 확인했다. r=8과 r=32의 고정 기대값은 각각 9,338,880개와 37,355,520개다. 저장한 safetensors와 다시 로드한 PEFT state를 tensor 단위로 대조한다. K0 runtime·LoRA config 검증이 통과했고, single-turn·follow-up 샘플의 assistant mask leakage 0과 supervised EOS를 확인했다.
+- 실행 순서: 완성 data manifest 통과 후 각 rank의 longest 8행 1-step forward/backward/optimizer·adapter reload preflight를 순차 실행한다. 그 다음에만 각 rank 250 optimizer step을 순차 실행하며 K0 base hash를 전·후 대조한다.

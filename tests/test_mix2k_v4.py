@@ -21,6 +21,7 @@ from scripts.data.mix2k_v4_contracts import (
     validate_draft,
     validate_spec,
 )
+from scripts.data.mix2k_v4_finalize import select_training_max_length
 from scripts.data.mix2k_v4_teachers import (
     _selection,
     draft_prompt,
@@ -28,6 +29,8 @@ from scripts.data.mix2k_v4_teachers import (
     subscription_environment,
 )
 from scripts.runtime.calculation.canonical import canonical_json_bytes
+from scripts.training.mix2k_v4_lora import DEFAULT_CONFIG as LORA_CONFIG
+from scripts.training.mix2k_v4_lora import _validate_config as validate_lora_config
 
 
 def _binding() -> dict[str, object]:
@@ -287,6 +290,25 @@ class Mix2KV4ContractTests(unittest.TestCase):
         self.assertNotIn("EXAMPLE_API_KEY", environment)
         self.assertNotIn("GITHUB_TOKEN", environment)
         self.assertEqual(environment["SAFE_VALUE"], "kept")
+
+    def test_training_max_length_uses_smallest_non_truncating_ladder_value(self) -> None:
+        ladder = [2048, 3584, 4096, 8192]
+        self.assertEqual(select_training_max_length(2048, ladder), 2048)
+        self.assertEqual(select_training_max_length(2049, ladder), 3584)
+        self.assertEqual(select_training_max_length(4096, ladder), 4096)
+        self.assertIsNone(select_training_max_length(8193, ladder))
+
+    def test_lora_contract_pins_k0_three_ranks_and_assistant_only_loss(self) -> None:
+        config = validate_lora_config(LORA_CONFIG)
+        self.assertEqual(config["lora"]["ranks"], [8, 16, 32])
+        self.assertEqual(config["lora"]["primary_rank"], 16)
+        self.assertEqual(config["lora"]["target_modules"], "all-linear")
+        self.assertTrue(config["lora"]["use_rslora"])
+        self.assertEqual(config["training"]["learning_rate"], 5e-5)
+        self.assertEqual(config["training"]["num_train_epochs"], 1)
+        self.assertTrue(config["training"]["assistant_only_loss"])
+        self.assertFalse(config["governance"]["full_fine_tuning_allowed"])
+        self.assertFalse(config["governance"]["ki20_training_allowed"])
 
 
 if __name__ == "__main__":
