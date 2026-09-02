@@ -17,5 +17,6 @@
 /.venv/
 /.venv-data/
 /.venv-runtime/
+/.serena/
 __pycache__/
 *.py[cod]
