@@ -37,6 +37,7 @@ from scripts.data.mix2k_v4_teachers import (
     review_prompt,
     subscription_environment,
 )
+from scripts.data.mix2k_v4_teachers import _parser as teacher_parser
 from scripts.runtime.chart_day_model_projection import (
     model_projection_digest,
     normalize_model_period_projection,
@@ -189,6 +190,18 @@ def _spec() -> dict[str, object]:
 
 
 class Mix2KV4ContractTests(unittest.TestCase):
+    def test_teacher_provider_only_preserves_explicit_provider_choice(self) -> None:
+        arguments = teacher_parser().parse_args(
+            [
+                "full",
+                "--spec-build",
+                "/tmp/spec-build",
+                "--provider-only",
+                "codex",
+            ]
+        )
+        self.assertEqual(arguments.provider_only, "codex")
+
     def test_codex_teacher_disables_host_read_tools(self) -> None:
         self.assertTrue(
             {

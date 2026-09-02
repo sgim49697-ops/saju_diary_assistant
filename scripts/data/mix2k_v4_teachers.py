@@ -1248,6 +1248,7 @@ def run_pipeline(
     shard_rows: int,
     timeout_seconds: int,
     max_provider_calls: int,
+    provider_only: str | None = None,
 ) -> dict[str, Any]:
     _reject_symlink_components(config_path, "config")
     _reject_symlink_components(spec_build, "spec build")
@@ -1295,9 +1296,26 @@ def run_pipeline(
             counts = _status_counts(state)
             if counts.get("failed", 0):
                 break
-            review_ids = _ordered_pending(state, "needs_review", specs_by_id)
-            draft_ids = _ordered_pending(state, "needs_draft", specs_by_id)
+            all_review_ids = _ordered_pending(state, "needs_review", specs_by_id)
+            all_draft_ids = _ordered_pending(state, "needs_draft", specs_by_id)
+            review_ids = all_review_ids
+            draft_ids = all_draft_ids
+            if provider_only is not None:
+                review_ids = [
+                    record_id
+                    for record_id in review_ids
+                    if specs_by_id[record_id]["reviewer"] == provider_only
+                ]
+                draft_ids = [
+                    record_id
+                    for record_id in draft_ids
+                    if specs_by_id[record_id]["drafter"] == provider_only
+                ]
             if not review_ids and not draft_ids:
+                if provider_only is not None and (
+                    all_review_ids or all_draft_ids
+                ):
+                    break
                 repaired = _duplicate_repairs(
                     state,
                     maximum_rewrites=maximum_rewrites,
@@ -1376,6 +1394,7 @@ def run_pipeline(
             "complete": complete,
             "provider_calls_total": state["provider_calls"],
             "provider_calls_this_run": calls_this_run,
+            "provider_only": provider_only,
             "auth": auth,
             "manifest": manifest,
         }
@@ -1395,6 +1414,14 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--shard-rows", type=int, default=20)
     parser.add_argument("--timeout-seconds", type=int, default=900)
     parser.add_argument("--max-provider-calls", type=int, default=0)
+    parser.add_argument(
+        "--provider-only",
+        choices=tuple(sorted(PROVIDER_NAMES)),
+        help=(
+            "지정 provider가 담당하는 pending draft/review만 처리합니다. "
+            "다른 provider의 교차 PASS 요건은 유지됩니다."
+        ),
+    )
     return parser
 
 
@@ -1418,6 +1445,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             shard_rows=args.shard_rows,
             timeout_seconds=args.timeout_seconds,
             max_provider_calls=args.max_provider_calls,
+            provider_only=args.provider_only,
         )
     except (Mix2KV4TeacherError, Mix2KV4ContractError) as exc:
         print(str(exc), file=sys.stderr)
