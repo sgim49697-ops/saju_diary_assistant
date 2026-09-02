@@ -69,3 +69,11 @@ Teacher 절반은 Claude 초안→Codex grounding 검수, 나머지 절반은 Co
 - 양방향 pilot: 새 build에서 Claude 초안→Codex grounding 검수와 Codex 초안→Claude 자연성 검수를 각각 1건 실행해 2/2 accepted를 확인했다. candidate SHA는 `074bd0d3faad743b0abdf67af09e2951e5432bb521a05299c2e96025efd79dc9`이며 두 답변 모두 deterministic PASS·peer PASS·최소 3줄/3문장을 만족했다. API key·dev target·sealed data 접근과 training 실행은 모두 false다.
 - 검증: `uvx ruff check ...`, 관련 unittest 85건 실행(환경상 DE440s private fixture 2건 skip), `git diff --check`, 새 spec의 artifact SHA 재계산, teacher spec current-pass/stale-reject, LoRA `validate-contract`, evaluation `validate-contract`를 통과했다. Orca read-only red-team과 Claude Code의 좁은 no-tool 검토 결과를 반영한 뒤 추가 P0/P1이 없음을 재확인했다.
 - 남은 작업: 실제 2,000행 dual-teacher 생성·교차검수, assistant target까지 포함한 전수 token/mask/EOS/leakage audit, rank별 GPU preflight·1 epoch 학습, 5-arm 추론·이중 품질 검수는 아직 실행하지 않았다. `bound_chart_v2`의 versioned serving 통합과 regression 통과 전에는 production 승격을 허용하지 않는다.
+
+### 2026-09-02 - full 교차 teacher 첫 checkpoint
+
+- 작업 요약: 불변 spec `build-59d68bc841a0`에서 full 2,000행 실행을 시작하고 20행 shard의 Claude 초안→Codex 검수와 Codex 초안을 실제 subscription CLI로 처리했다.
+- checkpoint: private target `full-build-59d68bc841a0-97b7404b-117d55cb`에 provider call 5회가 원자 저장됐다. 현재 accepted 16행, Claude 검수 대기 20행, 초안 대기 1,964행, permanent failed 0행이다. Claude 초안에서 걸린 구조 사실 누락·period label 혼동·금지 추론은 Gold에 들어가지 않고 재작성 상태로 남았다.
+- 중단 원인: Codex 초안 20행은 deterministic validator를 20/20 통과했으나 다음 Claude 검수에서 Pro session limit에 도달해 CLI가 exit 1로 종료됐다. 인증은 유효하며 2026-09-03 02:00 KST reset을 안내했다. 실패한 provider call은 state에 반영되지 않아 같은 명령으로 재개할 수 있다.
+- 보안·범위: API key, AI Hub, 개인정보, sealed blind, dev target과 training은 접근하거나 실행하지 않았다. raw teacher 출력과 private state는 Git에 넣지 않는다.
+- 남은 작업: Claude 사용량 복구 후 동일 target을 재개해 2,000행 전수를 양방향 교차검수해야 한다. 단일 teacher 결과를 Gold로 강등하지 않는다.
