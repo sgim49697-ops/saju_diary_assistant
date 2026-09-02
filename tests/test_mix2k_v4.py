@@ -1208,6 +1208,33 @@ class Mix2KV4ContractTests(unittest.TestCase):
         )
         self.assertEqual(required_fact_errors(spec, positioned_literal), [])
 
+        for negated in (
+            positioned_literal.replace("표기되어", "표기되지 않고"),
+            positioned_literal.replace("표기되어", "표기하면 안 되고"),
+            positioned_literal.replace(
+                "표기되어 있고", "표기되는 것은 아닙니다. 또한"
+            ),
+            positioned_literal.replace(
+                "표기되어 있고", "표기된다는 뜻은 아닙니다. 또한"
+            ),
+            positioned_literal.replace(
+                "표기되어 있고", "표기되는 게 아니라 다른 기준이며,"
+            ),
+            positioned_literal.replace("표기되어", "표기되어서는 안 되고"),
+            positioned_literal.replace("십신이 아니라 ", "").replace(
+                "표기되어 있고", "표기되어서는 안 됩니다. 또한"
+            ),
+            positioned_literal.replace("십신이 아니라 ", "").replace(
+                "표기되어 있고", "표기되지 않고,"
+            ),
+        ):
+            with self.subTest(negated=negated):
+                self.assertIn(
+                    "required_schema_fact_omitted:"
+                    "chart.hard_facts.pillars.day.stem_ten_god",
+                    required_fact_errors(spec, negated),
+                )
+
     def test_today_flow_requires_natal_and_period_day_evidence(self) -> None:
         spec = _spec()
         draft = {
@@ -1283,8 +1310,11 @@ class Mix2KV4ContractTests(unittest.TestCase):
             '`foo. bar. baz.`를 코드로 표시합니다.',
             "[참고. 예시. 항목.](https://example.com) 한 문장으로 안내합니다.",
             "- 첫 문장입니다. 둘째 문장입니다. 셋째 문장입니다.",
+            "> 첫 문장입니다. 둘째 문장입니다. 셋째 문장입니다.",
             "설명은 두 문장입니다. . . 마지막 문장입니다.",
             "e.g. i.e. 실제 설명은 하나입니다.",
+            "Dr. Kim. 실제 설명입니다.",
+            "핵심: 감정. 상황. 차근차근 설명합니다.",
         ):
             with self.subTest(protected=protected):
                 markup = deepcopy(one_line)

@@ -58,9 +58,9 @@ CONTRACTS_PATH = RUNNER_PATH.with_name("mix2k_v4_contracts.py")
 MAX_JSON_BYTES = 64 * 1024 * 1024
 MAX_PROVIDER_OUTPUT_BYTES = 32 * 1024 * 1024
 STATE_SCHEMA_VERSION = "1.0.0"
-EXPECTED_SPEC_BUILD_ID = "build-59d68bc841a0"
+EXPECTED_SPEC_BUILD_ID = "build-de0fdf57f45a"
 EXPECTED_SPEC_BUILD_SHA256 = (
-    "59d68bc841a02e366711045383ebea0f37be138244e0e213fe7eb15bfa109826"
+    "de0fdf57f45aa2e4f4705f8c94f9136dd8c05891bce58eedd31787b29cdec1c2"
 )
 SPEC_IDENTITY_FIELDS = {
     "dataset_version",
@@ -85,12 +85,12 @@ SPEC_IDENTITY_FIELDS = {
 PROVIDER_NAMES = frozenset({"claude", "codex"})
 LAYOUT_NORMALIZER_VERSION = "sentence-whitespace-v1"
 ANSWER_HORIZONTAL_SENTENCE_BOUNDARY = re.compile(
-    r"((?:[!?。！？]|(?<!\d)\.)(?:[\"'”’)]*))[ \t]+"
+    r"(([다요죠까네군라자])(?:[.!?。！？])(?:[\"'”’)]*))[ \t]+"
 )
 MEANINGFUL_LAYOUT_CHARACTER = re.compile(r"[0-9A-Za-z가-힣甲-龥]")
 UNSAFE_LAYOUT_MARKUP = re.compile(
     r"```|`|https?://|\[[^\]]*\]\(|(?<![A-Za-z])(?:[A-Za-z]\.){2,}|"
-    r"(?:^|\n)\s*(?:[-*+]|\d{1,3}[.)])\s+",
+    r"(?:^|\n)\s*(?:>|[-*+]|\d{1,3}[.)])\s+",
     re.MULTILINE,
 )
 CODEX_DISABLED_FEATURES = (

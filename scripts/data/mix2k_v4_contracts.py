@@ -376,6 +376,12 @@ def _explicit_claim_is_negated(answer: str, start: int, end: int) -> bool:
     return (
         LOCAL_CLAIM_NEGATION.search(local_tail) is not None
         or re.search(
+            r"(?:되지|하지)(?:\s*않|는|고|만|도|라|$)|"
+            r"(?:되어서는|해서는|되면|하면)\s*안",
+            local_tail,
+        )
+        is not None
+        or re.search(
             r"(?:이라고|라고)?\s*(?:볼|말할|부를)\s*수(?:는|가)?\s*없",
             local_tail,
         )
@@ -2343,6 +2349,15 @@ def _pillar_field_claim_coverage(answer: str) -> set[tuple[str, str, str]]:
         coverage.update(
             (pillar, "stem_ten_god", match.group("value"))
             for match in reference_literal_stem_ten_god.finditer(block)
+            if not _explicit_claim_is_negated(
+                block, match.start("value"), match.end()
+            )
+            and re.match(
+                r"\s*(?:되지|하지|하면\s*안|해서는\s*안|되어서는\s*안|"
+                r"할\s*수\s*없)",
+                block[match.end() : match.end() + 24],
+            )
+            is None
         )
         for position, entity_source in (
             ("stem", STEM_ENTITY),
