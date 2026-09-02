@@ -2,7 +2,7 @@
 
 # 사주 Runtime 사용 정책
 
-현재 제한 승인 경로는 Skyfield 1.55·고정 JPL DE440s·내장 UT1을 사용한 `saju-runtime-python-v1.5.0` 원국+단일 일진 release다. 부모 v1.4 원국 범위와 conformance v9를 보존하고, conformance v10.0.0 `build-46185262164f`와 release `saju-runtime-release-v1.5.0-8b1d6ea2d46e`에 단일 날짜 8,522일을 결합했다. feature는 기본 off다. dashboard v1.11의 명시적 원국·날짜 binding과 actual HTTP·GPU canary는 통과했지만 strict/full runtime Gate, 주·월·연 기간과 데이터·모델 승격 권한은 열지 않았다. 기존 v1~v1.4 계약과 보고서는 불변 이력으로 보존한다.
+현재 제한 승인 경로는 Skyfield 1.55·고정 JPL DE440s·내장 UT1을 사용한 `saju-runtime-python-v1.5.0` 원국+단일 일진 release다. 부모 v1.4 원국 범위와 conformance v9를 보존하고, conformance v10.0.0 `build-46185262164f`와 release `saju-runtime-release-v1.5.0-8b1d6ea2d46e`에 단일 날짜 8,522일을 결합했다. feature는 기본 off다. dashboard v1.11의 명시적 원국·날짜 binding은 actual HTTP·GPU canary와 master `737846c` 운영 전환 후 공개 HTTPS·실제 KI20 live canary까지 통과해 명시 flag로 제한 활성화했다. strict/full runtime Gate, 주·월·연 기간과 데이터·모델 승격 권한은 열지 않았다. 기존 v1~v1.4 계약과 보고서는 불변 이력으로 보존한다.
 
 - 기본 `ApprovedSajuRuntimeEngineV15()`은 release가 없으면 `RUNTIME_RELEASE_REQUIRED`, feature가 꺼져 있으면 `RUNTIME_FEATURE_DISABLED`를 반환한다.
 - 활성화에는 고정 release 경로, 고정 DE440s 절대경로, 현재 사용자 소유 0600 32바이트 production key와 명시적 `enable_approved_runtime=True`가 모두 필요하다. 자동 ephemeris 다운로드, Astronomy fallback, 상대경로 추측은 금지한다.

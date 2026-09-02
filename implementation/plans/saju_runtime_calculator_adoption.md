@@ -10,7 +10,7 @@
 | 기준 모델 run | `KI20-MIX-v2/run-1f5d732cae67` |
 | 모델 run 상태 | `trained_and_reloaded`, production 승격 금지 |
 | runtime profile | `KR_CIVIL_MIDNIGHT_V1` |
-| runtime 상태 | 과거 원국 v1.4를 부모로 exact 원국에 결합된 KST 정오 단일 일진 v1.5 release `saju-runtime-release-v1.5.0-8b1d6ea2d46e`를 추가했다. conformance v10 `build-46185262164f`는 2026-09-02~2049-12-31의 8,522일을 공식 label과 mismatch 0으로 검증했다. dashboard v1.11 통합·실제 GPU·별도 HTTP canary는 통과했으며 설정 기본값은 off다. strict/full runtime, 주·월·연 기간과 사건 예측은 계속 차단 |
+| runtime 상태 | 과거 원국 v1.4를 부모로 exact 원국에 결합된 KST 정오 단일 일진 v1.5 release `saju-runtime-release-v1.5.0-8b1d6ea2d46e`를 추가했다. conformance v10 `build-46185262164f`는 2026-09-02~2049-12-31의 8,522일을 공식 label과 mismatch 0으로 검증했다. dashboard v1.11 통합·실제 GPU·별도 HTTP canary와 master `737846c` 운영 live canary까지 통과해 8765 process를 명시 flag로 제한 활성화했으며 설정 기본값은 off다. strict/full runtime, 주·월·연 기간과 사건 예측은 계속 차단 |
 | 데이터 상태 | v3.1 생성·비학습 preflight 구현은 보존한다. v1.5는 단일 일진만 승인해 기존 period 900건 전체를 같은 full release로 재생성할 수 없으므로 v3.1 생성·preflight·학습은 미실행 |
 
 이 문서는 앞서 제공된 `SAJU_RUNTIME_CALCULATOR_ADOPTION_PLAN.md` 조사 초안을 대체하는 저장소 실행 정본이다. 기존 데이터 보정 정본인 [`mix20k_v3_repair_plan.md`](mix20k_v3_repair_plan.md)와 역할을 나눈다.
@@ -228,7 +228,7 @@ source/Gate v1.4부터 데이터 가용성과 provider 판단을 분리하고, v
 | candidate runtime 결합 | 선택된 Skyfield provider의 1,800개 TT root·UTC·표시 분이 별도 validator와 일치하고 전/정확/후 5,400건 배정 mismatch 0 | 통과 |
 | chart-only runtime | 정규화 양력 `1920-01-07~2026-08-31`, 과거 공식 근거 원국만 승인. exact 77,908건 실패 0, ±1초 격리 분 50건, period 항상 차단 | 통과: v1.4 release, feature 기본 off |
 | 단일 일진 runtime | 동일 process exact `HARD_GT` 원국에 결합된 `day`만 승인. `2026-09-02~2049-12-31` 8,522일, KST 12:00, 공식 label mismatch 0, 정오 경계 격리 0 | 통과: v1.5 release, feature 기본 off |
-| dashboard 원국·날짜 binding | v1.11 명시 연결, snapshot 변경 차단, exact Host·Origin·CSRF, 암호화 저장, 로그 비노출, 실제 KI20·K0 순차 Grounding Gate | 통합 canary 통과, 운영 전환은 별도 checkpoint |
+| dashboard 원국·날짜 binding | v1.11 명시 연결, snapshot 변경 차단, exact Host·Origin·CSRF, 암호화 저장, 로그 비노출, 실제 KI20·K0 순차 Grounding Gate | 통합 canary와 master `737846c` 운영 live canary 통과, 8765 명시 flag 제한 활성 |
 | strict/full runtime | 미래 물리 절입 순간, 주·월·연 기간, 원국 관계·사건 계산까지 포함한 전체 승인 | 실패/미승인 |
 
 provider 선택 뒤에도 아래 공통 conformance가 모두 참이어야 기술 Gate를 통과한다.
@@ -376,7 +376,7 @@ strict/full runtime의 남은 실패 원인은 데이터 수량이나 근찾기 
 | R4 | KASI 전수·계층형 절입 snapshot 수집 | 완료(음양력 54,787일, OpenAPI 150년 scan, 공식 현재 계산 1920~2100 절입 2,172행, 표시 분 84건, 1964 역서). 1900~1919 공식 절입 미coverage는 별도 등급으로 명시 |
 | R5 | full conformance와 profile ADR 승인 | v8 후보, v9 chart-only와 v10 단일 일진 자동 Gate 완료. v1.5 제한 release 생성, strict/full provider Gate는 계속 실패 |
 | R6 | v3.1 5,250 tool call 전수 재생성·새 split/preflight | 생성기·preflight 구현만 보존. v1.4가 period를 승인하지 않고 현재 작업 범위에서도 제외했으므로 생성·preflight 미실행 |
-| R7 | 대시보드 `KI20 + Runtime` local lane·앱 canary | v1.9 원국 운영 canary와 제한 활성화를 보존한다. v1.11은 exact 원국+단일 날짜 명시 연결, snapshot 변경 차단과 자동 Grounding Gate를 구현해 별도 HTTP 10축·실제 KI20 단독·K0↔KI20 canary를 통과했다. 설정 기본값은 off이며 기존 8765 process는 병합 전까지 변경하지 않음 |
+| R7 | 대시보드 `KI20 + Runtime` local lane·앱 canary | v1.9 원국 운영 이력과 rollback 경계를 보존한다. v1.11은 exact 원국+단일 날짜 명시 연결, snapshot 변경 차단과 자동 Grounding Gate를 구현해 별도 HTTP 10축·실제 KI20 단독·K0↔KI20 canary를 통과했다. master `737846c`의 공개 HTTPS 원국+일진 7/7·실제 KI20 생성 7/7 뒤 8765 process를 명시 flag로 제한 활성화했으며 설정 기본값은 off다. |
 | R8 | 새 모델 학습 handoff | 이 계획 범위 밖 |
 
 chart-only release는 원국 계산 엔진의 제한된 기술 승인일 뿐 학습 Gold나 full runtime 승인이 아니다. v1.9 binding은 공개 UI와 모델 context 연결 코드를 제공하지만 명시 flag 전에는 runtime resource를 열지 않는다. 현재 제한 활성화는 `build-ea53c272c1d6`와 같은 구현·release·운영 경계에만 적용하며, 이후 canary나 live smoke가 실패하면 v1.8을 runtime flag 없이 복구한다.
@@ -589,6 +589,12 @@ v3.1 생성과 비학습 preflight 명령은 현재 실행하지 않는다. 기�
 - [x] feature 기본 off 상태에서 합성 HTTP 100건과 실제 K0·KI20 1쌍의 production canary를 검증하고, 통과한 process만 제한 활성화한다.
 
 ## 진행 기록
+
+- 2026-09-02
+  - 작업 요약: PR #16을 master merge commit `737846c`로 병합하고 dashboard v1.11 원국+단일 일진 binding을 기존 8765 공개 process에 제한 활성화했다.
+  - 변경 범위: v1.11 전용 Git 제외 0700 private root, 서로 다른 0600 단일-link HMAC·AEAD key, 새 encrypted session store·lease를 준비했다. transient systemd unit의 loopback port와 기존 tunnel은 유지하고 v1.9 진입점·config만 v1.11로 교체했다. 검증 worktree의 구 v1.9 key hardlink alias 두 개는 alias만 제거해 원본 key의 단일-link 조건을 복구했으며 rollback용 v1.9 구현·key는 보존했다.
+  - 검증: master에서 `uvx ruff check scripts tests`, 전체 unit 576건, Phase 1 원천 4종, v1.5 contract·release·conformance와 `uv pip check`를 모두 통과했다. 전환 전 loopback 9/9, 전환 후 공개 HTTPS 원국+일진 7/7과 사용자 재현 문장 `내 오늘 사주 봐줄래?` 실제 KI20 생성 7/7을 통과했다. HTTP 500·Grounding 실패·출생값·도시·원시 runtime ID 로그는 0건이고 합성 runtime·수동 대화 파일은 삭제했다.
+  - 남은 이슈·후속 작업: 사용자는 서버 재시작 전에 열어 둔 브라우저 탭을 새로고침해야 새 CSRF token과 v1.11 asset을 받는다. release의 feature 기본 off와 `production_application_binding=false`, strict/full runtime, 주·월·연 기간, 원국 관계·사건 예측, Phase 6, sealed blind, MIX20K-v3.1, 추가 학습·모델 승격은 변경하지 않는다.
 
 - 2026-09-02
   - 작업 요약: 과거 공식 원국 v1.4를 부모로 exact 원국에 결합된 단일 일진 runtime v1.5와 dashboard v1.11의 명시적 원국·날짜 대화 연결을 구현했다.

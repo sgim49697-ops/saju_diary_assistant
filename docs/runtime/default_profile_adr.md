@@ -36,6 +36,6 @@ v1.4는 이 profile을 정규화 양력 `1920-01-07~2026-08-31`의 과거 공식
 
 v1.5는 v1.4 원국 범위를 수정하지 않고 같은 process에서 exact `HARD_GT`로 계산한 원국에 결합된 단일 일진만 추가 승인한다. 날짜는 release 하한 `2026-09-02`와 서버 KST 오늘 중 늦은 날부터 `2049-12-31`까지이며 `12:00 Asia/Seoul`의 연주·월주·일주 label만 계산한다. conformance v10 `build-46185262164f`는 8,522일의 KASI 공식 일진·절입 label mismatch 0과 정오 경계 격리 0을 확인했다. 이 결과는 미래 절입의 물리 순간을 확정하지 않으며 주·월·연, 원국과의 길흉 관계, 사건 예측을 승인하지 않는다.
 
-release `saju-runtime-release-v1.5.0-8b1d6ea2d46e`은 `calculate_saju_chart`와 제한된 `calculate_saju_period(day)`를 승인한다. feature 기본 off, production key와 current-process exact chart 필수 조건을 유지한다. dashboard v1.11의 명시적 원국·날짜 binding은 통합 canary를 통과했지만 strict/full provider 승인, MIX20K-v3.1 생성·학습과 모델 승격을 허용하지 않는다.
+release `saju-runtime-release-v1.5.0-8b1d6ea2d46e`은 `calculate_saju_chart`와 제한된 `calculate_saju_period(day)`를 승인한다. feature 기본 off, production key와 current-process exact chart 필수 조건을 유지한다. dashboard v1.11의 명시적 원국·날짜 binding은 통합 canary와 master `737846c` 운영 live canary를 통과해 명시 flag로 제한 활성화했다. 이 운영 상태도 strict/full provider 승인, MIX20K-v3.1 생성·학습과 모델 승격을 허용하지 않는다.
 
 실행 정본과 수량·hash는 [`saju_runtime_calculator_adoption.md`](../../implementation/plans/saju_runtime_calculator_adoption.md)를 따른다.

@@ -4,7 +4,7 @@
 
 이 문서는 원국 release `saju-runtime-release-v1.4.0-63dc8d398e90`의 dashboard `v1.9.0` 운영 이력과, 이를 부모로 단일 일진 release `saju-runtime-release-v1.5.0-8b1d6ea2d46e`를 연결하는 dashboard `v1.11.0` 절차를 설명한다. 앱은 로그인이나 API key 없이 공개할 수 있지만 runtime HMAC key와 session AEAD key는 공개 자격 증명이 아니다. 두 key의 값·hash·실제 경로는 브라우저, 모델 process, 로그, Git, 공개 보고서에 노출하지 않는다.
 
-runtime feature의 설정 기본값은 계속 off다. v1.9는 합성 HTTP 100건과 실제 K0·KI20 GPU 1쌍을 통과한 process에서만 `--enable-chart-only-runtime`을 명시해 원국을 제한 활성화했다. v1.11은 별도 HTTP 10축과 실제 KI20 단독·K0↔KI20 원국+날짜 Grounding Gate를 통과했으며, 병합 뒤 동일 구현의 live smoke 전에는 기존 8765/v1.9 process를 바꾸지 않는다.
+runtime feature의 설정 기본값은 계속 off다. v1.9는 합성 HTTP 100건과 실제 K0·KI20 GPU 1쌍을 통과한 process에서만 `--enable-chart-only-runtime`을 명시해 원국을 제한 활성화했다. v1.11은 별도 HTTP 10축과 실제 KI20 단독·K0↔KI20 원국+날짜 Grounding Gate를 통과한 뒤 master `737846c` 기준으로 기존 8765 process를 교체했다. 현재 운영 process도 명시 flag를 사용하며 설정 기본값 자체는 바꾸지 않았다.
 
 v1.9 실행 진입점은 `scripts/training/phase5_dashboard_v1_9.py`, v1.11은 `scripts/training/phase5_dashboard_v1_11.py`다. v1.10은 원국 명시 연결 복구 이력으로 보존한다. `scripts/training/phase5_dashboard.py`는 과거 후보 Gate가 byte hash로 고정한 v1.8 진입점이므로 수정하거나 새 실행에 재사용하지 않는다.
 
@@ -93,6 +93,12 @@ Gate는 feature off 10, 정상 원국 20, 절입 경계 10, 승인 범위 밖 20
 v1.11은 conformance v10 `build-46185262164f`와 v1.5 release를 먼저 검증한다. 실제 RTX 5070 Ti에서 합성 exact 원국과 `2026-09-02` 일진을 같은 snapshot으로 묶어 사용자 재현 문장 `내 오늘 사주 봐줄래?`를 실행했다. KI20 단독과 K0↔KI20 순차 비교 모두 출력이 비어 있지 않고 Grounding Gate를 통과했다. KI20은 결정론적 안전 답변으로 한 번 보정됐으며 첫 실패 출력은 저장하지 않았다. tokenizer는 v1.11부터 `fix_mistral_regex=True`로 로드하고, 고정 모델 snapshot의 RoPE 경고는 모델 파일을 바꾸지 않은 채 진단으로 남긴다.
 
 별도 `127.0.0.1:8771` HTTP canary는 versioned UI, runtime status의 서버 KST 날짜, Host·Origin, exact 원국+단일 일진, stale revision, 자유문 날짜, 승인 하한 전 날짜, legacy route와 즉시 삭제 10축을 통과했다. request log는 session ID를 `{opaque_id}`로 치환했고 출생정보·도시·runtime ID를 기록하지 않았다. 이 검증은 원시 모델 출력이나 case별 입력을 Git에 추가하지 않았고 기존 8765/v1.9 process를 중지하거나 재시작하지 않았다.
+
+### v1.11 운영 전환 checkpoint
+
+PR #16을 master merge commit `737846c`로 병합한 뒤 Git 제외 전용 0700 root, 서로 다른 0600 단일-link HMAC·AEAD key와 새 session store를 준비했다. 전환 직전 v1.11 loopback canary 9/9, 전환 직후 공개 HTTPS 원국+일진 canary 7/7과 사용자 재현 문장 `내 오늘 사주 봐줄래?`의 실제 KI20 생성 7/7을 통과했다. 생성 응답은 원국·일진 binding과 Grounding Gate를 통과했고 출생정보를 다시 묻지 않았다. 합성 runtime·수동 대화 파일은 검증 직후 삭제했으며 새 runtime store는 비어 있다.
+
+운영 unit은 같은 127.0.0.1:8765와 기존 tunnel을 유지한 채 v1.11 config·진입점으로 교체됐다. 전환 뒤 HTTP 500, Grounding 실패, 출생값·도시·원시 runtime ID 로그는 0건이었고 session route는 `{opaque_id}`로 기록됐다. 검증 worktree가 만들었던 구 v1.9 key hardlink 두 개는 alias만 제거해 원본 key의 0600·단일-link 조건을 복구했다. rollback용 v1.9 구현과 key는 변경하지 않았다.
 
 ## 활성화와 rollback
 

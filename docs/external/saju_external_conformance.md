@@ -67,7 +67,7 @@ KASI 공개 API 페이지는 무료·이용허락범위 제한 없음으로 표�
 - v1.4 경계 정책: 과거 원시 분 mismatch 14 보존, ±1초 격리 분·동일-분 range 차단·unknown 안정 각 50건
 - chart-only release: `saju-runtime-release-v1.4.0-63dc8d398e90`, chart만 승인·period 차단·feature 기본 off
 - single-day release: `saju-runtime-release-v1.5.0-8b1d6ea2d46e`, exact current-process chart에 결합된 `day` 8,522건만 승인·feature 기본 off
-- 앱 runtime 연결: `production_application_binding=false`, `configs/saju_calculation_policy.json` 비활성 유지
+- 앱 runtime 연결: release의 `production_application_binding=false`와 `configs/saju_calculation_policy.json` 기본 비활성을 유지한다. dashboard v1.11 운영 process만 master `737846c`의 명시 flag로 exact 원국+단일 `day`를 제한 활성화했다.
 - MIX20K-v3.1 재생성·학습: 보류
 - 계약 밖 의미 품질: `not_measured`, runtime 승인 blocker로 사용하지 않음
 

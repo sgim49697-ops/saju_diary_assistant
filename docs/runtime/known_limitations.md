@@ -26,7 +26,7 @@
 - HMAC key를 교체하면 기존 v2 세션 ID와 fingerprint는 무효가 되며 세션을 재계산해야 한다. v2 도입 전 확인된 runtime 세션은 0건이라 legacy ID migration은 수행하지 않았다.
 - 과거 `session_state_schema_v2.json`에는 최상위 `period` key가 중복돼 일반 JSON parser가 상세 계약을 약한 object 계약으로 덮어쓰는 결함이 있다. 과거 파일은 불변 보존하되 앱 연결에는 중복 key를 거부하는 `session_state_schema_v2.1.0.json`과 `intake_registry-v1.1.0.json`만 사용한다.
 - 구조화 intake FSM v1.1은 slot·provenance·입력 fingerprint를 재검증하고 현재 `scr2_` HMAC call ID와 일치하는 tool 결과만 받는다. 이 call ID는 결과 내용의 전문적 정확성을 보증하지 않으며 앱 adapter가 요청과 응답에 그대로 결합해야 한다.
-- v1.4 adapter local 130/130과 v1.9 dashboard production HTTP 100/100·GPU 1쌍을 통과했다. v1.11 원국+단일 일진 binding도 별도 actual HTTP 10축과 KI20 단독·K0↔KI20 순차 Grounding Gate를 통과했지만 설정 기본값은 off이고 병합 전 기존 v1.9 운영 process는 변경하지 않았다. 이 결과를 모델의 명리 의미 품질이나 strict/full runtime 승인으로 해석하지 않는다.
+- v1.4 adapter local 130/130과 v1.9 dashboard production HTTP 100/100·GPU 1쌍을 통과했다. v1.11 원국+단일 일진 binding은 별도 actual HTTP 10축과 KI20 단독·K0↔KI20 순차 Grounding Gate를 통과했고, master `737846c` 기준 8765 운영 process도 공개 HTTPS 원국+일진 7/7과 실제 KI20 생성 7/7 뒤 전환했다. 설정 기본값은 여전히 off이며 운영 process만 명시 flag로 제한 활성화한다. 이 결과를 모델의 명리 의미 품질이나 strict/full runtime 승인으로 해석하지 않는다.
 - 기존 MIX20K-v3.1 생성기는 chart 4,350회와 period 900회를 같은 full release로 재생성하는 계약이다. v1.5가 승인한 것은 단일 `day`뿐이므로 전체 period를 재생성할 입력 자격이 없으며 v3.1 데이터 생성·preflight는 실행하지 않았다.
 - 기존 dashboard v1.8 runtime canary는 과거 v1.1 소비 경로다. v1.4/v1.5 제한 release·권한 계약을 소비하지 않으며 현재 승인 근거로 사용할 수 없다.
 - 분리 HMAC/AEAD key, AES-256-GCM persistence, 30분 retention·삭제, 2-key rotation과 dashboard의 Host·Origin·CSRF·rate limit·로그 비노출 경계는 구현됐다. 공개 앱 접근을 허용해도 key 자체를 공개하지 않는다. runtime과 대화 연결은 versioned dashboard의 명시 flag와 사용자 연결 버튼이 모두 있을 때만 열며 기본 경로로 자동 활성화하지 않는다.
