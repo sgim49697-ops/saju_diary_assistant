@@ -2729,6 +2729,23 @@ def _explicit_period_ganzhi_paths(spec: Mapping[str, Any], answer: str) -> set[s
             for match in direct.finditer(answer)
         ):
             paths.add(path)
+        aliases = "|".join(
+            re.escape(alias)
+            for alias, alias_field in PERIOD_LABELS.items()
+            if alias_field == field
+        )
+        appositive = re.compile(
+            rf"{re.escape(label)}\s*(?:은|는|이|가|:|=)?\s*"
+            r"(?:(?:그|해당|선택한)\s*날짜가\s*속한\s*)?"
+            rf"(?:{aliases})\s*(?:인|은|는|이|가|:|=)?\s*"
+            rf"(?P<value>{GANYI.pattern})"
+        )
+        if expected is not None and any(
+            match.group("value") == expected
+            and not _explicit_claim_is_negated(answer, match.start(), match.end())
+            for match in appositive.finditer(answer)
+        ):
+            paths.add(path)
     label_pattern = re.compile(_label_pattern(PERIOD_LABELS))
     for clause in re.split(r"[\n.!?。！？;；]+", answer):
         label_matches = list(label_pattern.finditer(clause))

@@ -1332,6 +1332,20 @@ class Mix2KV4ContractTests(unittest.TestCase):
             "required_schema_fact_omitted:period.hard_facts.period.year_ganzhi",
             required_fact_errors(period_spec, negated_period),
         )
+        appositive_period = (
+            "연간지는 그 날짜가 속한 해의 간지인 丙午입니다.\n"
+            "월간지는 그 날짜가 속한 달의 간지인 丙申입니다.\n"
+            "그날 자체의 일진은 己卯이고 원국 일주는 乙丑입니다."
+        )
+        self.assertEqual(required_fact_errors(period_spec, appositive_period), [])
+        wrong_appositive_owner = appositive_period.replace(
+            "연간지는 그 날짜가 속한 해의 간지인 丙午",
+            "연간지는 그 날짜가 속한 달의 간지인 丙午",
+        )
+        self.assertIn(
+            "required_schema_fact_omitted:period.hard_facts.period.year_ganzhi",
+            required_fact_errors(period_spec, wrong_appositive_owner),
+        )
         equal_day_spec = deepcopy(_spec())
         equal_day_spec["task_axis"] = "structured_fact_schema_literacy"
         equal_day_spec["prompt"][-1]["content"] = (
