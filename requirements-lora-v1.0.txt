@@ -1,0 +1,2 @@
+# requirements-lora-v1.0.txt - 기존 고정 CUDA/PyTorch 환경에 추가하는 LoRA overlay
+peft==0.20.0

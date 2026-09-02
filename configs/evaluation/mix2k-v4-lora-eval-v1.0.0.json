@@ -1,0 +1,243 @@
+{
+  "schema_version": "1.0.0",
+  "evaluation_id": "K0-MIX2K-V4-LORA-DEV200",
+  "evaluation_version": "v1.0.0",
+  "dataset_version": "mix2k-v4-chart-day-8k",
+  "source_suite": {
+    "build_id": "build-59d68bc841a0",
+    "build_sha256": "59d68bc841a02e366711045383ebea0f37be138244e0e213fe7eb15bfa109826",
+    "path": "evaluation/dev_cases_200.jsonl",
+    "sha256": "2614d5e3578340969e03b2779b26c365bf774729bbc3838ff35998ec22faaf86",
+    "rows": 200,
+    "axes": {
+      "schema_literacy": 40,
+      "natal_explanation": 30,
+      "natal_and_today": 50,
+      "followup": 40,
+      "state_tool": 20,
+      "general_empathy": 20
+    },
+    "required_regression_id": "actual-chart-day-label-confusion-20260902",
+    "frozen_before_teacher_generation": true,
+    "teacher_targets_present": false,
+    "training_eligible": false
+  },
+  "dependency_contracts": {
+    "dataset_config": {
+      "path": "configs/data_versions/saju_1b_baseline/mix2k-v4-chart-day-8k-v1.0.1.json",
+      "sha256": "c8267ec438e1bebe46670553a846fa81db371d23c5004a3a3c2aeecafe440f1c"
+    },
+    "lora_config": {
+      "path": "configs/model_versions/saju_1b_baseline/mix2k-v4-lora-v1.0.1.json",
+      "sha256": "cb156569841002495b2e6d87107cd30e6e7766342eee3a185fadc1d31805f9a1"
+    },
+    "bound_prompt": {
+      "path": "configs/chat_prompts/saju_bound_chart_v2.txt",
+      "sha256": "d93a8f03a45697dbf5df2d78eaa4dde480f5bef70f30a148a0c146576406e917"
+    },
+    "model_projection": {
+      "path": "scripts/runtime/chart_day_model_projection.py",
+      "sha256": "0c080e76ba7afff5b8d54bce41dc207f5701c235bb7863308bc565576afe9011"
+    }
+  },
+  "arms": [
+    {
+      "arm_id": "K0",
+      "kind": "fixed_base",
+      "rank": null
+    },
+    {
+      "arm_id": "LORA_R8",
+      "kind": "lora_adapter",
+      "rank": 8
+    },
+    {
+      "arm_id": "LORA_R16",
+      "kind": "lora_adapter",
+      "rank": 16
+    },
+    {
+      "arm_id": "LORA_R32",
+      "kind": "lora_adapter",
+      "rank": 32
+    },
+    {
+      "arm_id": "KI20",
+      "kind": "fixed_comparator",
+      "rank": null
+    }
+  ],
+  "model_contracts": {
+    "k0": {
+      "repository": "kakaocorp/kanana-2-1.3b-instruct",
+      "revision": "bf4786aa2a1908adce942d53976270132732f720",
+      "relative_path": "models/saju_1b_baseline/kanana-2-1.3b-instruct/bf4786aa2a1908adce942d53976270132732f720",
+      "required_file_sha256": {
+        "chat_template.jinja": "b8ee6b31575eada17ebbe73d3f1ac65d3efde64f0a25ff922031dec7e1cae3e3",
+        "config.json": "fe14b20b4b616d62ca0682312c2fcd2b90d9a836d14a1ff6448db3f533fd15a1",
+        "model.safetensors": "49aa6cd8686563c59321d83810731956c61ec8d5c8538a249d38007986cdc942",
+        "configuration_kanana2_tiny.py": "191fb6fbfd63968cc24b3beeb8190aaa88868d4cf1695f8c5a379fb0a077d79d",
+        "modeling_kanana2_tiny.py": "e47cd8cc99e71fc69eea9bf5ba1221526fb8c6d4fc8677177e82de997b766500",
+        "tokenizer.json": "1c4be9ecf77c926456fb82d4cf07ff1218a91907f3408f44895d2b01e0f2b5ab",
+        "tokenizer_config.json": "1cdee8fcd4f6209e07e6d9966c8a3ff2d738830d79475193e94e448e153ae2d5"
+      }
+    },
+    "ki20": {
+      "run_id": "KI20-MIX-v2",
+      "revision": "run-1f5d732cae67",
+      "relative_path": "runs/KI20-MIX-v2/v1.2.0/run-1f5d732cae67/final",
+      "required_file_sha256": {
+        "chat_template.jinja": "b8ee6b31575eada17ebbe73d3f1ac65d3efde64f0a25ff922031dec7e1cae3e3",
+        "config.json": "e02848aa87656f5b33faee0d7354b26c1ff579a60042aa37c7ba204445cf76b7",
+        "configuration_kanana2_tiny.py": "191fb6fbfd63968cc24b3beeb8190aaa88868d4cf1695f8c5a379fb0a077d79d",
+        "model.safetensors": "2fae23e28471c07d7db0c338bc6370493191722180ecc502de7e1e1d5fe5872d",
+        "modeling_kanana2_tiny.py": "e47cd8cc99e71fc69eea9bf5ba1221526fb8c6d4fc8677177e82de997b766500",
+        "special_tokens_map.json": "5931724161899da68f7ba2f903b4f30b1423e96726a73f9b7274271a27a0afb4",
+        "tokenizer.json": "1c4be9ecf77c926456fb82d4cf07ff1218a91907f3408f44895d2b01e0f2b5ab",
+        "tokenizer_config.json": "1cdee8fcd4f6209e07e6d9966c8a3ff2d738830d79475193e94e448e153ae2d5"
+      }
+    }
+  },
+  "generation": {
+    "do_sample": false,
+    "num_beams": 1,
+    "num_beam_groups": 1,
+    "num_return_sequences": 1,
+    "max_input_tokens": 4096,
+    "max_new_tokens": 4096,
+    "min_new_tokens": 0,
+    "native_context_tokens_minimum": 8192,
+    "batch_size": 1,
+    "use_cache": true,
+    "bos_token_id": 128000,
+    "eos_token_id": [128010],
+    "pad_token_id": 128001,
+    "return_dict_in_generate": false,
+    "output_scores": false,
+    "renormalize_logits": false,
+    "remove_invalid_values": false,
+    "fix_mistral_regex": true,
+    "retry_or_grounding_rewrite_allowed": false,
+    "same_runtime_snapshot": true,
+    "same_system_prompt": true,
+    "same_generation_config": true,
+    "system_prompt_profile": "bound_chart_v2",
+    "system_prompt_sha256": "d93a8f03a45697dbf5df2d78eaa4dde480f5bef70f30a148a0c146576406e917",
+    "model_projection_id": "saju-chart-day-model-projection-v1.0.0",
+    "ignore_model_directory_generation_config": true
+  },
+  "metrics": [
+    "schema_field_accuracy",
+    "natal_period_label_confusion",
+    "unsupported_fact_rate",
+    "provided_fact_omission_rate",
+    "natural_explanation_preference",
+    "followup_evidence_consistency",
+    "general_conversation_retention",
+    "repetitive_template_response_rate",
+    "false_saju_injection",
+    "reask_rate"
+  ],
+  "quality_review": {
+    "required": true,
+    "blind_arm_labels": true,
+    "providers": ["claude", "codex"],
+    "minimum_reviews_per_case": 2,
+    "score_minimum": 1,
+    "score_maximum": 5,
+    "cases_per_call": 2,
+    "timeout_seconds": 600,
+    "provider_contracts": {
+      "claude": {
+        "cli": "claude",
+        "cli_version": "2.1.258 (Claude Code)",
+        "model": "claude-sonnet-5",
+        "auth": "claude.ai_subscription"
+      },
+      "codex": {
+        "cli": "codex",
+        "cli_version": "codex-cli 0.150.1",
+        "model": "gpt-5.6-sol",
+        "auth": "chatgpt_subscription"
+      }
+    },
+    "external_transmission": {
+      "candidate_outputs_transmitted": true,
+      "public_synthetic_inputs_only": true,
+      "pii_and_restricted_preflight_required": true,
+      "raw_provider_envelopes_persisted": false,
+      "explicit_operator_approval_required": true,
+      "approval_not_persisted_in_config": true,
+      "heuristic_scan_cannot_exclude_memorization": true,
+      "provider_tool_access_disabled": true
+    },
+    "dimensions": [
+      "natural_explanation",
+      "task_fulfillment",
+      "followup_quality",
+      "general_conversation_retention"
+    ]
+  },
+  "repetition": {
+    "normalized_cross_case_multiplicity_maximum": 2,
+    "minimum_ngram_size": 6,
+    "within_response_repeated_ngram_ratio": 0.35
+  },
+  "release": {
+    "primary_arm": "LORA_R16",
+    "loss_only_selection_forbidden": true,
+    "actual_regression_is_release_blocker": true,
+    "all_regression_turns_must_pass": true,
+    "regression_review_score_minimum": 4,
+    "metric_thresholds": {
+      "schema_field_accuracy_minimum": 0.98,
+      "natal_period_label_confusion_maximum": 0.0,
+      "unsupported_fact_rate_maximum": 0.01,
+      "provided_fact_omission_rate_maximum": 0.05,
+      "natural_explanation_mean_score_minimum": 3.5,
+      "task_fulfillment_mean_score_minimum": 3.5,
+      "task_fulfillment_minimum_score_minimum": 3.0,
+      "followup_evidence_consistency_minimum": 0.95,
+      "followup_review_mean_minimum": 3.5,
+      "general_conversation_retention_minimum": 0.95,
+      "general_conversation_review_mean_minimum": 3.5,
+      "repetitive_template_response_rate_maximum": 0.05,
+      "false_saju_injection_maximum": 0.0,
+      "reask_rate_maximum": 0.0
+    },
+    "k0_noninferiority": {
+      "deterministic_turn_pass_rate_margin": 0.02,
+      "natural_explanation_mean_score_margin": 0.25,
+      "general_conversation_retention_margin": 0.02,
+      "general_conversation_review_mean_margin": 0.25,
+      "followup_review_mean_margin": 0.25
+    },
+    "serving_contract": {
+      "required_prompt_profile": "bound_chart_v2",
+      "current_dashboard_prompt_profile": "bound_chart_v1",
+      "prompt_upgrade_completed": false,
+      "must_pass_before_production_release": true
+    },
+    "automatic_production_promotion_allowed": false
+  },
+  "operational_limits": {
+    "expected_gpu_count": 1,
+    "max_total_gpu_memory_used_mib": 16384,
+    "min_free_gpu_memory_before_start_mib": 12000,
+    "require_no_active_compute_process_before_start": true,
+    "run_arms_sequentially": true
+  },
+  "outputs": {
+    "private_root": "data/derived/saju_1b_baseline/mix2k-v4-chart-day-8k/evaluation/v1.0.0",
+    "public_root": "data/reports/saju_1b_baseline/mix2k-v4-lora-evaluation/v1.0.0"
+  },
+  "governance": {
+    "public_synthetic_only": true,
+    "aihub_content_accessed": false,
+    "personal_data_accessed": false,
+    "sealed_blind_accessed": false,
+    "development_targets_accessed": false,
+    "model_training_performed_by_evaluator": false,
+    "production_promotion_allowed": false
+  }
+}
