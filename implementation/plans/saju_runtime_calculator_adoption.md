@@ -561,6 +561,12 @@ v3.1 생성과 비학습 preflight 명령은 현재 실행하지 않는다. 기�
 ## 진행 기록
 
 - 2026-09-02
+  - 작업 요약: 계산한 원국이 있음에도 KI20이 출생정보를 다시 묻는 운영 재현을 transport 성공·prompt/응답 grounding 실패로 분해하고, dashboard v1.10의 명시적 원국 연결과 자동 Grounding Gate를 구현했다.
+  - 변경 범위: v1.9 config·asset·진입점은 불변 보존했다. 새 `이 원국으로 새 대화 시작` 동작은 기존 대화와 원국을 묵시적으로 섞지 않고 연결 전용 `bound_chart_v1` prompt를 강제한다. 출생정보 재요구·연결 부정·원국 사실 누락·기간 제한 누락·내부 계약 노출을 자동 검사하고 한 번의 비저장 교정 뒤에도 실패하면 `RUNTIME_GROUNDING_FAILED`로 차단한다. v1.9 결합 대화는 capability 재결합 없이 읽기 전용이다.
+  - 검증: v1.9 회귀를 포함한 표적 unittest 13건, Ruff, JavaScript 문법, config·diff 검사를 통과했다. 실제 RTX 5070 Ti에서 합성 원국과 사용자 재현 문장 `내 오늘 사주 봐줄래?`를 실행해 KI20 단독과 K0↔KI20 쌍 모두 출생정보 재질문 없이 같은 snapshot hash를 사용하고 각 엔진의 Grounding Gate를 통과했다. 첫 실패 출력은 저장하지 않고 교정된 답변만 session v1.5에 기록됨을 확인했다. 평가용 `.venv-data`의 모델 의존성 부재는 환경 진단 실패로 분리하고 운영과 같은 `.venv`에서 formal canary를 통과했다.
+  - 남은 이슈·후속 작업: 이 단계는 원국 연결 복구이며 정확한 오늘 날짜 사실은 아직 제공하지 않는다. 다음 versioned 단계에서 exact 원국에 한한 단일 날짜 runtime v1.5와 dashboard v1.11을 구현·전수 검증한다. strict/full runtime, 주·월·연 기간, Phase 6, MIX20K-v3.1, 추가 학습·모델 승격은 변경하지 않는다.
+
+- 2026-09-02
   - 작업 요약: 병합된 dashboard v1.9 구현으로 GPU production canary와 실제 공개 앱 통합 canary를 완료하고, 검증된 process만 chart-only로 제한 활성화했다.
   - 변경 범위: 공개 산출물은 `build-ea53c272c1d6`의 `aggregate.json`·`build_manifest.json` 두 파일뿐이다. 운영 key·원시 case·모델 원문·출생 입력·runtime 식별자·private path·공개 URL은 기록하지 않았다. 설정 기본 off, 기간 차단, strict/full runtime 차단을 유지했다.
   - 검증: production canary HTTP 100/100과 실제 K0·KI20 1쌍의 비어 있지 않은 출력·동일 snapshot을 통과했다. 같은 구현의 live process에서 상태 API 3종 200, 정상 원국, 절입 경계, 범위 밖, 변조 capability, 기간·legacy route, 잘못된 Origin을 검증했고 공개 HTTPS에서도 정상 원국과 보안 차단을 확인했다. 데스크톱·모바일 렌더링에 오류가 없었고, 운영 로그 110줄에 출생값·도시·24자리 capability·500이 없으며 session record는 0개다.

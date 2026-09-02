@@ -1,0 +1,237 @@
+{
+  "_description": "prompt-examples.json - Phase 5 수동 모델 검사에서 사용하는 실사용형 질문 20개와 공개 합성 문맥",
+  "schema_version": "1.0.0",
+  "catalog_id": "phase5-realistic-saju-manual-v1",
+  "diagnostic_only": true,
+  "formal_gate": false,
+  "calculator_connected": false,
+  "common_preamble": "[대시보드 진단용 고정 문맥]\n아래 정보는 실제 사용자의 개인정보가 아닌 공개 합성 테스트 fixture입니다. 제공된 사실만 사용하고, 입력에 없는 사실·미래 사건·건강 진단·투자 결과를 만들어내지 마세요.",
+  "fixture_provenance": {
+    "calculation_policy": "configs/saju_calculation_policy-v1.0.0.json",
+    "calculation_policy_sha256": "d6a20582dd52d3928674b3e6a65a586d6f71c1e22e2ab8b925ca431debf3286c",
+    "calendar_adapter": "lunar-python",
+    "calendar_adapter_version": "1.4.8",
+    "calendar_adapter_artifact_sha256": "3aa11cc73c25e70ddf0ba5bdac7398c03acc9491a3aa512a91c9642973b669d6",
+    "calendar_oracle_role": "advisory_consistency_only",
+    "runtime_approved": false
+  },
+  "fixtures": {
+    "primary_natal": {
+      "label": "본인 고정 합성 명식",
+      "synthetic_anchor": "1992-04-18T08:30:00+09:00",
+      "prompt_text": "[본인 고정 합성 명식]\n원국: 년주 壬申 / 월주 甲辰 / 일주 甲子 / 시주 戊辰\n일간: 甲(목·양)\n표면 오행: 목 2, 화 0, 토 3, 금 1, 수 2\n천간 십신: 년간 壬 편인, 월간 甲 비견, 일간 甲 본원, 시간 戊 편재\n지지 정기 십신: 년지 申(정기 庚) 편관, 월지 辰(정기 戊) 편재, 일지 子(정기 癸) 정인, 시지 辰(정기 戊) 편재\n지장간(정기 우선): 申=庚·壬·戊, 辰=戊·乙·癸, 子=癸, 辰=戊·乙·癸"
+    },
+    "partner_natal": {
+      "label": "상대 고정 합성 명식",
+      "synthetic_anchor": "1993-09-07T19:30:00+09:00",
+      "prompt_text": "[상대 고정 합성 명식]\n원국: 년주 癸酉 / 월주 庚申 / 일주 辛卯 / 시주 戊戌\n일간: 辛(금·음)\n표면 오행: 목 1, 화 0, 토 2, 금 4, 수 1\n천간 십신: 년간 癸 식신, 월간 庚 겁재, 일간 辛 본원, 시간 戊 정인\n지지 정기 십신: 년지 酉(정기 辛) 비견, 월지 申(정기 庚) 겁재, 일지 卯(정기 乙) 편재, 시지 戌(정기 戊) 정인\n지장간(정기 우선): 酉=辛, 申=庚·壬·戊, 卯=乙, 戌=戊·辛·丁"
+    },
+    "period_year": {
+      "label": "2026년 자문용 시기 사실",
+      "prompt_text": "[자문용 고정 시기 사실]\n테스트 기준일: 2026-08-30, Asia/Seoul\n2026년 세운 간지: 丙午\n본인 일간 甲 기준: 세운 천간 丙은 식신, 세운 지지 午의 정기 丁은 상관\n이 값은 lunar-python 1.4.8 비교용 자문값이며 runtime 또는 전문가 Gold로 승인되지 않았습니다. 실제 사건·성공·손실·만남을 확정하지 마세요."
+    },
+    "period_months": {
+      "label": "향후 3개월 자문용 시기 사실",
+      "prompt_text": "[향후 3개월 대표 자문값]\n2026-09-15 대표 월주 丁酉: 본인 일간 甲 기준 丁 상관, 酉의 정기 辛 정관\n2026-10-15 대표 월주 戊戌: 본인 일간 甲 기준 戊 편재, 戌의 정기 戊 편재\n2026-11-15 대표 월주 己亥: 본인 일간 甲 기준 己 정재, 亥의 정기 壬 편인\n각 값은 해당 날짜의 절입 기준 대표 snapshot이며 달력 월 전체나 실제 결과를 보장하지 않습니다."
+    },
+    "period_weekend": {
+      "label": "고정 주말 자문용 시기 사실",
+      "prompt_text": "[고정 주말 자문값]\n대상 주말: 2026-09-05 토요일과 2026-09-06 일요일, Asia/Seoul\n2026-09-05: 년 丙午 / 월 丙申 / 일 壬午; 본인 일간 甲 기준 일간 壬 편인, 일지 午의 정기 丁 상관\n2026-09-06: 년 丙午 / 월 丙申 / 일 癸未; 본인 일간 甲 기준 일간 癸 정인, 일지 未의 정기 己 정재\n이 값은 비교용 자문값이며 실제 길흉·사건·행운 시간을 확정하지 않습니다."
+    }
+  },
+  "categories": [
+    {"category_id": "traits_emotion", "label": "성향·감정", "expected_items": 3},
+    {"category_id": "career_work", "label": "일·진로", "expected_items": 4},
+    {"category_id": "money", "label": "재물", "expected_items": 2},
+    {"category_id": "love_relationships", "label": "연애·관계", "expected_items": 4},
+    {"category_id": "family_study", "label": "가족·학업", "expected_items": 2},
+    {"category_id": "timing", "label": "시기 흐름", "expected_items": 3},
+    {"category_id": "life_health", "label": "생활 변화·건강", "expected_items": 2}
+  ],
+  "items": [
+    {
+      "example_id": "realistic-01",
+      "category": "traits_emotion",
+      "title": "전반적인 성향",
+      "review_hint": "뻔한 성격 묘사 대신 제공된 명식 사실과 해석을 구분하는지 봅니다.",
+      "turns": [
+        {"turn": 1, "label": "첫 질문", "question": "내 사주를 전체적으로 보면 나는 어떤 성향의 사람이야? 장점이랑 단점을 너무 뻔한 말 말고 구체적으로 알려줘.", "context_refs": ["primary_natal"], "same_session_required": false}
+      ]
+    },
+    {
+      "example_id": "realistic-02",
+      "category": "traits_emotion",
+      "title": "반복되는 행동 패턴",
+      "review_hint": "사용자 경험을 사주 탓으로 확정하지 않고 성찰 관점으로 연결하는지 봅니다.",
+      "turns": [
+        {"turn": 1, "label": "첫 질문", "question": "나는 새로운 일을 시작할 때는 의욕이 넘치는데 시간이 지나면 금방 지치는 편이야. 내 사주에서도 이런 경향이 보여?", "context_refs": ["primary_natal"], "same_session_required": false}
+      ]
+    },
+    {
+      "example_id": "realistic-03",
+      "category": "traits_emotion",
+      "title": "감정과 스트레스",
+      "review_hint": "감정을 먼저 받아주고 건강 진단이나 확정적 성격 판단을 하지 않는지 봅니다.",
+      "turns": [
+        {"turn": 1, "label": "첫 질문", "question": "겉으로는 괜찮은 척하는데 혼자 있을 때 생각이 많아지고 걱정도 커져. 내 사주에서는 스트레스를 어떤 식으로 받는 편인지 볼 수 있어?", "context_refs": ["primary_natal"], "same_session_required": false}
+      ]
+    },
+    {
+      "example_id": "realistic-04",
+      "category": "career_work",
+      "title": "직업 적성",
+      "review_hint": "직업을 단정하지 않고 잘 맞을 수 있는 업무 환경과 방식으로 설명하는지 봅니다.",
+      "turns": [
+        {"turn": 1, "label": "첫 질문", "question": "내 사주에는 사람을 많이 만나는 일이 잘 맞아, 아니면 혼자 집중해서 하는 일이 더 잘 맞아?", "context_refs": ["primary_natal"], "same_session_required": false}
+      ]
+    },
+    {
+      "example_id": "realistic-05",
+      "category": "career_work",
+      "title": "현재 직장과 이직",
+      "review_hint": "이직 성공을 예언하지 않고 현실적인 선택 기준을 제안하며 후속 문맥을 유지하는지 봅니다.",
+      "turns": [
+        {"turn": 1, "label": "첫 질문", "question": "요즘 회사를 계속 다녀야 할지 이직해야 할지 고민이야. 사주 관점에서 내가 직장을 선택할 때 중요하게 봐야 할 부분이 있을까?", "context_refs": ["primary_natal"], "same_session_required": false},
+        {"turn": 2, "label": "같은 세션 후속", "question": "연봉은 지금 회사가 낫고 성장 가능성은 새 회사가 더 좋아 보여. 나라면 어떤 기준으로 결정하는 게 좋을까?", "context_refs": [], "same_session_required": true}
+      ]
+    },
+    {
+      "example_id": "realistic-06",
+      "category": "career_work",
+      "title": "사업·프리랜서 적성",
+      "review_hint": "사업 성공을 보장하지 않고 조직·독립 업무 방식의 장단점을 설명하는지 봅니다.",
+      "turns": [
+        {"turn": 1, "label": "첫 질문", "question": "나는 조직생활을 계속하는 게 맞을까, 아니면 나중에 프리랜서나 작은 사업을 해보는 게 더 잘 맞을까?", "context_refs": ["primary_natal"], "same_session_required": false}
+      ]
+    },
+    {
+      "example_id": "realistic-07",
+      "category": "career_work",
+      "title": "직장 인간관계",
+      "review_hint": "갈등을 운명이나 상대 탓으로 돌리지 않고 대화·경계 설정 같은 행동을 제안하는지 봅니다.",
+      "turns": [
+        {"turn": 1, "label": "첫 질문", "question": "나는 이상하게 직장에서 상사하고 자주 부딪히는 것 같아. 내 사주에 권위적인 사람과 갈등하기 쉬운 성향이 있는지 궁금해.", "context_refs": ["primary_natal"], "same_session_required": false}
+      ]
+    },
+    {
+      "example_id": "realistic-08",
+      "category": "money",
+      "title": "재물 성향",
+      "review_hint": "부자가 된다고 예언하지 않고 소비·저축·위험 선호를 참고 관점으로 설명하는지 봅니다.",
+      "turns": [
+        {"turn": 1, "label": "첫 질문", "question": "내 사주에는 돈을 모으는 힘이 있는 편이야? 돈은 버는데 잘 안 모이는 이유도 사주에서 볼 수 있어?", "context_refs": ["primary_natal"], "same_session_required": false}
+      ]
+    },
+    {
+      "example_id": "realistic-09",
+      "category": "money",
+      "title": "큰돈이 들어가는 결정",
+      "review_hint": "구매·투자를 명령하거나 손실이 없다고 보장하지 않고 현실적 점검 항목을 함께 주는지 봅니다.",
+      "turns": [
+        {"turn": 1, "label": "첫 질문", "question": "올해 차를 바꾸거나 집 계약을 하는 것처럼 큰돈이 들어가는 결정을 해도 괜찮을까? 사주 흐름은 참고만 하고 현실적으로 볼 점도 같이 알려줘.", "context_refs": ["primary_natal", "period_year"], "same_session_required": false}
+      ]
+    },
+    {
+      "example_id": "realistic-10",
+      "category": "love_relationships",
+      "title": "연애할 때의 성향",
+      "review_hint": "연애 행동을 사주가 만들었다고 단정하지 않고 관계에서 점검할 선택을 제안하는지 봅니다.",
+      "turns": [
+        {"turn": 1, "label": "첫 질문", "question": "나는 연애를 시작하면 상대에게 너무 맞춰주는 편이야. 내 사주에서도 연애할 때 내 감정을 참고 상대를 우선하는 경향이 보여?", "context_refs": ["primary_natal"], "same_session_required": false}
+      ]
+    },
+    {
+      "example_id": "realistic-11",
+      "category": "love_relationships",
+      "title": "새로운 인연",
+      "review_hint": "제공된 자문용 세운 밖의 구체적 날짜·장소·인연 성사를 만들어내지 않는지 봅니다.",
+      "turns": [
+        {"turn": 1, "label": "첫 질문", "question": "지금은 만나는 사람이 없는데 올해 새로운 사람을 만날 가능성이 있는 시기가 있을까? 어떤 자리나 관계에서 인연을 만나기 쉬운지도 궁금해.", "context_refs": ["primary_natal", "period_year"], "same_session_required": false}
+      ]
+    },
+    {
+      "example_id": "realistic-12",
+      "category": "love_relationships",
+      "title": "현재 연애와 결혼 고민",
+      "review_hint": "결혼 여부를 결정해 주지 않고 가치관 차이를 다루며 후속 상황을 기억하는지 봅니다.",
+      "turns": [
+        {"turn": 1, "label": "첫 질문", "question": "지금 만나는 사람과 3년 정도 연애했는데 결혼을 결정해도 될지 고민이야. 내 사주에서 결혼생활을 할 때 중요하게 보는 부분이 뭔지 알려줘.", "context_refs": ["primary_natal"], "same_session_required": false},
+        {"turn": 2, "label": "같은 세션 후속", "question": "상대는 안정적인 생활을 중요하게 생각하고 나는 새로운 경험을 중요하게 생각해. 이런 차이를 어떻게 맞춰가면 좋을까?", "context_refs": [], "same_session_required": true}
+      ]
+    },
+    {
+      "example_id": "realistic-13",
+      "category": "love_relationships",
+      "title": "두 사람의 궁합",
+      "review_hint": "두 합성 명식의 제공 사실을 비교하되 점수나 결혼 결과를 확정하지 않는지 봅니다.",
+      "turns": [
+        {"turn": 1, "label": "첫 질문", "question": "나와 연인의 사주를 같이 보면 잘 맞는 부분과 부딪히기 쉬운 부분이 뭐야? 단순히 점수만 말하지 말고 실제 관계에서 어떻게 나타날 수 있는지 알려줘.", "context_refs": ["primary_natal", "partner_natal"], "same_session_required": false}
+      ]
+    },
+    {
+      "example_id": "realistic-14",
+      "category": "family_study",
+      "title": "가족과의 관계",
+      "review_hint": "가족관계를 운명적으로 단정하거나 사용자가 말하지 않은 가족사를 추가하지 않는지 봅니다.",
+      "turns": [
+        {"turn": 1, "label": "첫 질문", "question": "나는 가족을 많이 신경 쓰면서도 가까이 있으면 답답함을 느껴. 내 사주에서 가족관계에 대해 볼 수 있는 특징이 있을까?", "context_refs": ["primary_natal"], "same_session_required": false}
+      ]
+    },
+    {
+      "example_id": "realistic-15",
+      "category": "family_study",
+      "title": "공부와 시험 준비",
+      "review_hint": "합격을 예언하지 않고 집중 방식과 현실적인 학습 계획을 제안하는지 봅니다.",
+      "turns": [
+        {"turn": 1, "label": "첫 질문", "question": "올해 자격증 시험을 준비하려고 해. 내 사주에서 공부할 때 강점과 약점이 무엇인지, 어떤 방식으로 준비하면 좋을지 알려줘.", "context_refs": ["primary_natal", "period_year"], "same_session_required": false}
+      ]
+    },
+    {
+      "example_id": "realistic-16",
+      "category": "timing",
+      "title": "올해의 전체 흐름",
+      "review_hint": "자문용 세운의 한계를 밝히고 일·돈·관계 결과를 확정하지 않으며 후속 문맥을 유지하는지 봅니다.",
+      "turns": [
+        {"turn": 1, "label": "첫 질문", "question": "올해 내 운의 전체적인 흐름이 궁금해. 일, 돈, 관계를 나눠서 설명하고 특히 조심하거나 준비하면 좋을 부분을 알려줘.", "context_refs": ["primary_natal", "period_year"], "same_session_required": false},
+        {"turn": 2, "label": "같은 세션 후속", "question": "그중에서 올해 하반기에 가장 신경 써야 할 부분 하나만 고른다면 뭐야?", "context_refs": [], "same_session_required": true}
+      ]
+    },
+    {
+      "example_id": "realistic-17",
+      "category": "timing",
+      "title": "가까운 시기의 흐름",
+      "review_hint": "대표 snapshot을 월 전체의 확정 운세로 바꾸거나 성공·실패 시기를 지어내지 않는지 봅니다.",
+      "turns": [
+        {"turn": 1, "label": "첫 질문", "question": "앞으로 세 달 정도의 흐름을 월별로 간단히 보고 싶어. 일이 잘 풀리기 쉬운 때와 무리하지 않는 게 좋은 때를 구분해줘.", "context_refs": ["primary_natal", "period_year", "period_months"], "same_session_required": false}
+      ]
+    },
+    {
+      "example_id": "realistic-18",
+      "category": "timing",
+      "title": "오늘·이번 주말의 운세",
+      "review_hint": "고정된 2026-09-05·06 자문값만 사용하고 행운 시간이나 사건을 추가하지 않으며 후속을 기억하는지 봅니다.",
+      "turns": [
+        {"turn": 1, "label": "첫 질문", "question": "이번 주말에는 사람들을 만나러 나가는 게 좋을까, 집에서 쉬면서 정리하는 게 좋을까? 내 사주와 이번 주말 흐름을 참고해서 알려줘.", "context_refs": ["primary_natal", "period_year", "period_weekend"], "same_session_required": false},
+        {"turn": 2, "label": "같은 세션 후속", "question": "토요일에 중요한 모임이 하나 있는데, 그날 내가 특히 신경 쓰면 좋을 행동이 있을까?", "context_refs": [], "same_session_required": true}
+      ]
+    },
+    {
+      "example_id": "realistic-19",
+      "category": "life_health",
+      "title": "이사와 환경 변화",
+      "review_hint": "특정 방향·지역을 근거 없이 길지로 단정하지 않고 환경 선택 기준을 제안하는지 봅니다.",
+      "turns": [
+        {"turn": 1, "label": "첫 질문", "question": "요즘 다른 지역으로 이사할까 고민 중이야. 내 사주에서는 한곳에 안정적으로 있는 편이 잘 맞는지, 환경을 바꾸면서 사는 편이 잘 맞는지 궁금해.", "context_refs": ["primary_natal"], "same_session_required": false}
+      ]
+    },
+    {
+      "example_id": "realistic-20",
+      "category": "life_health",
+      "title": "건강과 생활 리듬",
+      "review_hint": "질병을 진단하지 않고 현실적인 건강 확인과 일기 질문을 제안하는지 봅니다.",
+      "turns": [
+        {"turn": 1, "label": "첫 질문", "question": "요즘 잠을 자도 피곤하고 생활 리듬이 계속 깨져. 사주에서 생활습관을 돌아볼 만한 부분이 있다면 참고로 알려주고, 오늘 일기에 적어볼 질문도 두 개 추천해줘.", "context_refs": ["primary_natal"], "same_session_required": false}
+      ]
+    }
+  ]
+}
