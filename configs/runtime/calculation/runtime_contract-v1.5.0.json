@@ -1,0 +1,60 @@
+{
+  "_description": "승인된 과거 원국과 공식 KASI 일진·절입 전수 대조를 통과한 단일 일진만 제공하는 계약이다.",
+  "schema_version": "1.5.0",
+  "runtime_contract_version": "saju-runtime-contract-v1.5.0",
+  "engine_version": "saju-runtime-python-v1.5.0",
+  "output_schema_version": "1.5.0",
+  "id_contract_version": "saju-runtime-id-hmac-v2.0.0",
+  "conformance_suite_version": "saju-runtime-conformance-v10.0.0",
+  "status": "approved_chart_and_single_day_feature_default_off",
+  "runtime_approved_in_static_contract": false,
+  "approval_requires_release_registry": true,
+  "release_contract_created": true,
+  "feature_flag_default": false,
+  "production_id_key_required": true,
+  "profile_id": "KR_CIVIL_MIDNIGHT_V1",
+  "approval_scope": "PAST_OFFICIAL_CHART_PLUS_SINGLE_DAY_1920_2049",
+  "approved_tools": ["calculate_saju_chart", "calculate_saju_period"],
+  "blocked_tools": [],
+  "approved_solar_date_range": {"minimum": "1920-01-07", "maximum": "2026-08-31"},
+  "single_day_range": {"minimum": "2026-09-02", "maximum": "2049-12-31"},
+  "single_day_contract": {
+    "period_type": "day",
+    "timezone": "Asia/Seoul",
+    "evaluation_local_time": "12:00",
+    "end_date_must_equal_start_date": true,
+    "minimum_is_max_of_release_and_server_kst_today": true,
+    "chart_must_be_exact_hard_gt_from_current_process": true,
+    "free_text_date_parsing": false,
+    "future_physical_instant_claimed": false
+  },
+  "authority": {
+    "exact_chart_after_valid_release": "HARD_GT",
+    "range_or_unknown_chart_after_valid_release": "POLICY_BOUND_RULE",
+    "single_day_labels_after_valid_release": "HARD_GT",
+    "single_day_oracles": [
+      "kasi_lunisolar_openapi",
+      "kasi_official_solar_terms_download"
+    ],
+    "provider_generated_value_is_official": false,
+    "heuristic_fields_may_be_upgraded": false
+  },
+  "provider": {
+    "provider_id": "skyfield-1.55-jpl-de440s-builtin-ut1",
+    "root_time_scale": "TT",
+    "automatic_download_or_fallback": false,
+    "astronomy_engine_fallback": false,
+    "strict_runtime_provider_gate_passed": false
+  },
+  "excluded_period_modes": ["week", "month", "year"],
+  "excluded_outputs": [
+    "daeun", "saeun", "natal_day_relations", "deterministic_events",
+    "health_certainty", "finance_certainty", "future_event_prediction"
+  ],
+  "scope_guards": {
+    "production_application_binding": false,
+    "mix20k_v3_1_regeneration_allowed": false,
+    "training_promotion_allowed": false,
+    "sealed_blind_accessed": false
+  }
+}

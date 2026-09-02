@@ -1,0 +1,38 @@
+{
+  "_description": "v1.4 과거 원국과 KST 정오 단일 일진을 결합하되 미래 사건은 계산하지 않는 한국 민간시 profile이다.",
+  "profile_schema_version": "1.5.0",
+  "policy_id": "KR_CIVIL_MIDNIGHT_V1",
+  "profile_revision": "KR_CIVIL_MIDNIGHT_V1-v1.5.0",
+  "parent": {
+    "path": "configs/runtime/calculation/profiles/KR_CIVIL_MIDNIGHT_V1-v1.4.0.json",
+    "sha256": "e54fda66eab876f19fdbf0fe68069cc82662c94b4e0d83a84dfa2c8472862203"
+  },
+  "status": "approved_chart_and_single_day_release_required_feature_default_off",
+  "runtime_approved_in_static_contract": false,
+  "approval_requires_release_registry": true,
+  "supported_country_codes": ["KR"],
+  "iana_time_zone": "Asia/Seoul",
+  "approved_solar_date_range": {"minimum": "1920-01-07", "maximum": "2026-08-31"},
+  "approved_single_day_range": {"minimum": "2026-09-02", "maximum": "2049-12-31"},
+  "single_day_evaluation_local_time": "12:00",
+  "single_day_runtime_minimum": "max(release_minimum,server_kst_today)",
+  "year_boundary": "lichun_tt_root",
+  "month_boundary": "twelve_jie_tt_root",
+  "day_boundary": "civil_midnight",
+  "boundary_comparison_time_scale": "TT",
+  "official_label_coordinate": "UT1_NOMINAL_PLUS_FIXED_KST",
+  "hour_clock": "civil_time",
+  "true_solar_time": false,
+  "equation_of_time": false,
+  "historical_timezone": "iana_tzdb_2026c",
+  "solar_term_provider": "skyfield-1.55-jpl-de440s-builtin-ut1",
+  "approved_tools": ["calculate_saju_chart", "calculate_saju_period"],
+  "approved_period_types": ["day"],
+  "blocked_period_types": ["week", "month", "year"],
+  "free_text_date_parser": false,
+  "future_physical_instant_claimed": false,
+  "excluded_fields": [
+    "daeun", "saeun", "natal_day_relations", "deterministic_events",
+    "health_certainty", "finance_certainty", "future_event_prediction"
+  ]
+}

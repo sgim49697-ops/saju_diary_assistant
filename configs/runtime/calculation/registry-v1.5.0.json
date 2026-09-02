@@ -1,0 +1,20 @@
+{
+  "_description": "원국+단일 일진 runtime v1.5와 conformance v10 계약 파일의 SHA-256을 고정한다.",
+  "schema_version": "1.5.0",
+  "registry_id": "saju-runtime-calculation-registry-v1.5.0",
+  "status": "approved_chart_and_single_day_feature_default_off",
+  "parent": {
+    "path": "configs/runtime/calculation/registry-v1.4.0.json",
+    "sha256": "3ec859653127f6b77dacf7a352c6b22bbaade924a27997c68027ebfccf48bd9a"
+  },
+  "artifacts": [
+    {"path": "configs/runtime/calculation/runtime_contract-v1.5.0.json", "sha256": "0753f0608112a7b9e36c4d0d72f71e8acb6f2059a4620ae1888331eaab3782e2"},
+    {"path": "configs/runtime/calculation/calculation_output_schema-v1.5.0.json", "sha256": "7fe89b8be609c05819694c7029d34d6c9cb3906df444219242368c3bc5616e3f"},
+    {"path": "configs/runtime/calculation/source_registry-v1.8.0.json", "sha256": "aecb588d826efd00f4360b2e3045b42489ab6434c3ae15bcdf3f0745a88d456a"},
+    {"path": "configs/runtime/calculation/conformance_gate-v1.8.0.json", "sha256": "0e9ea8aee35c695ac49b2bb3bcd3d9e842575ba1fd210de31a4c581a2a2bf028"},
+    {"path": "configs/runtime/calculation/profiles/KR_CIVIL_MIDNIGHT_V1-v1.5.0.json", "sha256": "2878680539c1e593e5da90254d88f5961332c9688052b278b81ef4a9cb2735ab"},
+    {"path": "configs/runtime/calculation/release_registry_schema-v1.5.0.json", "sha256": "e5ed01ecca87a87d331494fe4dcb2c37373289bbcef22b9e62ea9404eb90906c"},
+    {"path": "configs/runtime/calculation/id_canonicalization-v2.0.0.json", "sha256": "54290f788af0a57483e8bd6483697a480fc527456227b81acab3c7ff4ab218f5"},
+    {"path": "requirements-runtime-calculator-v1.5.txt", "sha256": "8c0308b4bc5e81ef13976a10e394a85ff18a71f9a67cb6381b78c4f8af860bf7"}
+  ]
+}

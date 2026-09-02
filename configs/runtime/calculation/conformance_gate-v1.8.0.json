@@ -1,0 +1,45 @@
+{
+  "_description": "과거 원국 release를 보존하면서 단일 일진 8,522일의 KASI 공식 라벨과 Skyfield 결과를 전수 검증하는 Gate다.",
+  "schema_version": "1.8.0",
+  "gate_version": "saju-runtime-gate-v1.8.0",
+  "suite_version": "saju-runtime-conformance-v10.0.0",
+  "status": "chart_and_single_day_release_gate",
+  "profile_id": "KR_CIVIL_MIDNIGHT_V1",
+  "approval_scope": "PAST_OFFICIAL_CHART_PLUS_SINGLE_DAY_1920_2049",
+  "parent": {
+    "path": "configs/runtime/calculation/conformance_gate-v1.7.0.json",
+    "sha256": "9251b227f2021261f01fa44e78b5a517f13f87a01db9dc9d50a37a29b70258ef"
+  },
+  "minimum_cases": {
+    "parent_v9_verified": 1,
+    "single_day_dates": 8522,
+    "official_lunisolar_rows": 54787,
+    "official_solar_term_rows": 4343,
+    "official_jie_rows": 2172,
+    "provider_label_mismatches": 0,
+    "noon_boundary_quarantine_dates": 0,
+    "runtime_positive_cases": 3,
+    "runtime_negative_cases": 12
+  },
+  "single_day_policy": {
+    "minimum": "2026-09-02",
+    "maximum": "2049-12-31",
+    "runtime_minimum_is_server_kst_today": true,
+    "evaluation_local_time": "12:00",
+    "official_minute_uncertainty_seconds": 30,
+    "quarantine_when_noon_intersects_uncertainty": true,
+    "mismatch_zero_required": true,
+    "only_exact_current_process_chart": true
+  },
+  "expected_report_state": {
+    "chart_and_single_day_gate_passed": true,
+    "release_registry_creation_allowed": true,
+    "strict_runtime_provider_gate_passed": false,
+    "full_runtime_gate_passed": false,
+    "runtime_feature_flag_default": false,
+    "production_application_binding": false,
+    "mix20k_v3_1_regeneration_allowed": false,
+    "training_promotion_allowed": false,
+    "sealed_blind_accessed": false
+  }
+}
