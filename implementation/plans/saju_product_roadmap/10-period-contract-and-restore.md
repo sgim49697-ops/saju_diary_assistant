@@ -45,3 +45,14 @@
 - model-generated opaque ID 0.
 - stale revision·변조·range/unknown silent fallback 0.
 - 공개 응답의 출생값·ID·key·private path 0.
+
+## 진행 기록
+
+### 2026-09-02 — v1 계약 구현·검증 완료
+
+- `configs/runtime/period/`에 request v2, resolved scope, 내부 chart authorization, 향후 daily-label release schema와 불변 hash registry를 추가했다.
+- `scripts/runtime/period_v1/`에 strict JSON loader, 상대 날짜 resolver, v1.5 chart rehydrator와 read-only CLI를 구현했다.
+- 모델·브라우저 입력은 날짜 표현과 explicit 날짜만 허용한다. timezone·서버 clock·release·policy·session revision·chart ID는 executor 소유로 유지한다.
+- 저장된 exact 원국은 그대로 신뢰하지 않고 새 v1.5 engine에서 재계산한다. chart ID, birth input ID, calculation run ID, normalized input hash, 공개 hard facts hash, source versions hash가 모두 일치해야 내부 권한을 반환한다.
+- Ruff, `validate-contract`, `plan`, 표적 unittest 10건을 통과했다. 고정 DE440s와 동일 0600 HMAC key를 사용한 실제 process 재시작 시나리오에서 원국 복원과 후속 단일 일진 계산도 통과했다.
+- strict/full Runtime, 기간 release, dashboard 운영 전환, sealed blind, MIX20K-v3.1, GPU 학습과 모델 승격은 수행하지 않았다.

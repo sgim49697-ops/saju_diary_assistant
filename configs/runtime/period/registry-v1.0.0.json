@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0.0",
+  "registry_id": "saju-period-contract-registry-v1.0.0",
+  "status": "contract_only_feature_default_off",
+  "parent_runtime_release": {
+    "path": "configs/runtime/calculation/releases/v1.5.0/release_registry.json",
+    "release_id": "saju-runtime-release-v1.5.0-8b1d6ea2d46e",
+    "sha256": "db3553529be851a33c3d16c0ec8898de5182c611160d194209ccfd82639f3560"
+  },
+  "artifacts": [
+    {
+      "path": "configs/runtime/period/request_schema-v2.0.0.json",
+      "sha256": "862f80836b0b868868a807d5d5e705a02c733b041f51fc496b6779fba372ba90"
+    },
+    {
+      "path": "configs/runtime/period/resolved_scope_schema-v1.0.0.json",
+      "sha256": "3c2b74cece80c16c288d7af3b1bd3676dfedfe3f47060d9d9ffc53b7d50f26a8"
+    },
+    {
+      "path": "configs/runtime/period/chart_authority_schema-v1.0.0.json",
+      "sha256": "4458dcd39afe1074f04b29573b4af0aa1e0378246ed231fb2aa2cf765340f370"
+    },
+    {
+      "path": "configs/runtime/period/release_registry_schema-v1.0.0.json",
+      "sha256": "c10d860124ad5a6c46dbbac87d83f004f213837cf90d38b2cf12a05b07f9047b"
+    }
+  ],
+  "governance": {
+    "feature_flag_default": false,
+    "public_request_may_supply_runtime_ids": false,
+    "public_request_may_supply_reference_clock": false,
+    "process_independent_chart_rehydration_required": true,
+    "strict_full_runtime_approved": false,
+    "sealed_blind_accessed": false,
+    "mix20k_v3_1_generation_allowed": false,
+    "training_promotion_allowed": false
+  }
+}
