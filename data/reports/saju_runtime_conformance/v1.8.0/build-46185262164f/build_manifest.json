@@ -1,0 +1,15 @@
+{
+  "artifacts": {
+    "aggregate.json": {
+      "bytes": 9699,
+      "sha256": "e8652eca026f1ecc515a9009df76c0470697ef2f62e3c52912a0bd5c3468ce55"
+    }
+  },
+  "build_id": "build-46185262164f",
+  "private_content_included": false,
+  "private_paths_recorded": false,
+  "raw_case_output_tracked": false,
+  "schema_version": "1.0.0",
+  "sealed_blind_accessed": false,
+  "suite_version": "saju-runtime-conformance-v10.0.0"
+}

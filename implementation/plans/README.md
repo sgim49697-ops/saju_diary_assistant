@@ -16,12 +16,12 @@
 |---|---|---|
 | 10K/20K baseline | Phase 0~6 완료, `eval-e8630962cab2` 단회 자동 평가 완료 | `AUTOMATED_REPAIR_REQUIRED`, production 금지 |
 | MIX20K-v3 | `v3.0.1-repaired/build-94eb7b543490` 기술 후보·비학습 preflight 완료 | canonical 3,800행·다양성·state/grounding·serving 자동 blocker, v3.1·학습 금지 |
-| 만세력 runtime | v1.3 후보를 보존하고 과거 공식 원국 전용 v1.4·conformance v9 `build-9f1784e74a4e`·release `saju-runtime-release-v1.4.0-63dc8d398e90`, 암호화 adapter 합성 canary `build-ddde6dce3d3c` 130/130 완료 | chart만 제한 승인·feature 기본 off, dry-run adapter만 허용, strict/full Gate·period·production 앱 연결·v3.1 차단 |
+| 만세력 runtime | v1.4 과거 원국을 부모로 단일 일진 v1.5·conformance v10 `build-46185262164f`·release `saju-runtime-release-v1.5.0-8b1d6ea2d46e`, dashboard v1.11 actual HTTP·GPU 통합 canary 완료 | exact 원국+단일 `day`만 제한 승인·feature 기본 off, strict/full Gate·주/월/연·v3.1 차단 |
 | 계산기 연결 대화 | 기존 500건을 `eval-562c07d0e2e6`으로 재채점하고 2,048↔3,584 장문 200건 `eval-56d1357560d5` 완료 | 두 장문 arm 자동 목표 통과·3,584 상한 유지 후보, 전체 baseline·release·학습 권한 불변 |
 
-루트 [`PROJECT_STATUS.html`](../../PROJECT_STATUS.html)은 Phase 6·대화 진단까지의 공개 집계를 `project-status/v1.3.0/build-38b9ca77ce45`로 보여준다. 이후 완료한 후보 화면 진단, chart-only v1.4 release와 local adapter canary는 모델·승격 상태를 바꾸지 않으므로 runtime 정본과 각 versioned 보고서에 별도로 고정한다. 계산기 권위는 `data/reports/saju_runtime_conformance/v1.7.0/build-9f1784e74a4e/`, 운영 준비 결과는 `data/reports/saju_runtime_app_canary/v1.0.0/build-ddde6dce3d3c/`를 따른다.
+루트 [`PROJECT_STATUS.html`](../../PROJECT_STATUS.html)은 Phase 6·대화 진단까지의 공개 집계를 `project-status/v1.3.0/build-38b9ca77ce45`로 보여준다. 이후 완료한 runtime release와 앱 통합은 모델·승격 상태를 바꾸지 않으므로 runtime 정본과 각 versioned 보고서에 별도로 고정한다. 현재 계산기 권위는 부모 v9 `data/reports/saju_runtime_conformance/v1.7.0/build-9f1784e74a4e/`와 단일 일진 v10 `data/reports/saju_runtime_conformance/v1.8.0/build-46185262164f/`를 함께 따른다.
 
-과거 공식 근거 전용 후보 화면과 v1.4 adapter canary는 기존 dashboard·모델 context와 분리된 로컬 진단 도구다. AES-GCM persistence와 event adapter 구현은 실제 앱 process에 연결하지 않았으며 production 앱, context 증설, v3.1, 추가 학습과 모델 승격을 승인하지 않는다.
+v1.11 dashboard는 exact 원국과 서버가 검증한 단일 날짜를 사용자가 명시적으로 새 대화에 연결한다. AES-GCM state·공개 allowlist·snapshot hash·자동 Grounding Gate를 적용하며 날짜 변경은 기존 대화에 덮어쓰지 않는다. 이 통합은 strict/full runtime, Phase 6, v3.1, 추가 학습과 모델 승격을 승인하지 않는다.
 
 ## 현재 평가 기본값
 

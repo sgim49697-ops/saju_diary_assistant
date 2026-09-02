@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <meta name="csrf-token" content="__CSRF_TOKEN__">
+    <title>KI20 학습 관제실</title>
+    <link rel="stylesheet" href="/dashboard.css">
+    <script src="/dashboard.js" defer></script>
+  </head>
+  <body>
+    <div class="ambient ambient-one" aria-hidden="true"></div>
+    <div class="ambient ambient-two" aria-hidden="true"></div>
+    <main class="shell">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">KANANA 2 · FULL FINE-TUNING</p>
+          <h1>KI20 학습 관제실</h1>
+          <p class="subtitle">학습 지표와 체크포인트를 읽기 전용으로 추적합니다.</p>
+        </div>
+        <div class="live-block">
+          <span id="live-dot" class="live-dot" aria-hidden="true"></span>
+          <div>
+            <strong id="lifecycle">연결 중</strong>
+            <span id="last-refresh">상태를 불러오는 중입니다.</span>
+          </div>
+        </div>
+      </header>
+
+      <section id="alerts" class="alerts" aria-live="polite"></section>
+
+      <section class="progress-panel panel">
+        <div class="progress-copy">
+          <div>
+            <span class="label">학습 진행률</span>
+            <strong id="progress-value" class="progress-value">—</strong>
+          </div>
+          <div class="progress-meta">
+            <span id="step-value">— / 2,500 step</span>
+            <span id="epoch-value">epoch —</span>
+            <span id="eta-value">예상 종료 —</span>
+          </div>
+        </div>
+        <div class="progress-track" role="progressbar" aria-label="학습 진행률" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div id="progress-bar" class="progress-bar"></div>
+        </div>
+      </section>
+
+      <section class="metric-grid" aria-label="핵심 학습 지표">
+        <article class="metric-card panel">
+          <span class="label">최근 Train loss</span>
+          <strong id="train-loss">—</strong>
+          <small id="train-accuracy">token accuracy —</small>
+        </article>
+        <article class="metric-card panel">
+          <span class="label">최근 Eval loss</span>
+          <strong id="eval-loss">—</strong>
+          <small id="eval-accuracy">token accuracy —</small>
+        </article>
+        <article class="metric-card panel">
+          <span class="label">Gradient norm</span>
+          <strong id="grad-norm">—</strong>
+          <small id="learning-rate">learning rate —</small>
+        </article>
+        <article class="metric-card panel">
+          <span class="label">GPU 전체 사용량</span>
+          <strong id="gpu-used">—</strong>
+          <small id="gpu-detail">16 GiB hard cap</small>
+        </article>
+      </section>
+
+      <nav class="tabs" aria-label="대시보드 화면">
+        <button class="tab active" type="button" data-tab="training">학습 곡선</button>
+        <button class="tab" type="button" data-tab="checkpoints">체크포인트</button>
+        <button class="tab" type="button" data-tab="dataset">데이터 스플릿</button>
+        <button class="tab" type="button" data-tab="model">모델 검사</button>
+      </nav>
+
+      <section id="tab-training" class="tab-panel active">
+        <div class="chart-grid">
+          <article class="panel chart-card">
+            <div class="panel-heading">
+              <div><span class="label">OBJECTIVE</span><h2>Loss</h2></div>
+              <div class="legend"><span class="train-key">Train</span><span class="eval-key">Eval</span></div>
+            </div>
+            <div id="loss-chart" class="chart" aria-label="Train과 eval loss 차트"></div>
+          </article>
+          <article class="panel chart-card">
+            <div class="panel-heading">
+              <div><span class="label">SUPERVISED TOKENS</span><h2>Token accuracy</h2></div>
+              <div class="legend"><span class="train-key">Train</span><span class="eval-key">Eval</span></div>
+            </div>
+            <div id="accuracy-chart" class="chart" aria-label="Token accuracy 차트"></div>
+          </article>
+          <article class="panel chart-card">
+            <div class="panel-heading"><div><span class="label">OPTIMIZER</span><h2>Gradient norm · LR</h2></div></div>
+            <div id="optimizer-chart" class="chart" aria-label="Gradient norm 차트"></div>
+          </article>
+          <article class="panel chart-card">
+            <div class="panel-heading"><div><span class="label">MEMORY</span><h2>GPU memory</h2></div><span class="cap-label">cap 16,384 MiB</span></div>
+            <div id="gpu-chart" class="chart" aria-label="GPU 메모리 차트"></div>
+          </article>
+          <article class="panel chart-card">
+            <div class="panel-heading"><div><span class="label">DISTRIBUTION</span><h2>Entropy</h2></div></div>
+            <div id="entropy-chart" class="chart" aria-label="학습 entropy 차트"></div>
+          </article>
+        </div>
+        <article class="panel identity-card">
+          <div><span class="label">RUN IDENTITY</span><code id="run-identity">—</code></div>
+          <div><span class="label">SERVICE</span><code id="service-identity">—</code></div>
+          <div><span class="label">GOVERNANCE</span><strong class="safe-copy">blind 미열람 · 배포 승격 불가 · 진단 전용</strong></div>
+        </article>
+      </section>
+
+      <section id="tab-checkpoints" class="tab-panel">
+        <article class="panel">
+          <div class="panel-heading">
+            <div><span class="label">ARTIFACT HEALTH</span><h2>체크포인트 상태</h2></div>
+            <span id="disk-free" class="cap-label">디스크 —</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>이름</th><th>상태</th><th>크기</th><th>수정 시각</th><th>보존</th></tr></thead>
+              <tbody id="checkpoint-rows"><tr><td colspan="5">불러오는 중입니다.</td></tr></tbody>
+            </table>
+          </div>
+          <p class="footnote">저장 직후 120초 동안 빠진 파일은 오류가 아닌 ‘저장 중’으로 표시합니다.</p>
+        </article>
+      </section>
+
+      <section id="tab-dataset" class="tab-panel">
+        <article class="panel dataset-overview">
+          <div class="panel-heading dataset-heading">
+            <div><span class="label">DATA MAP · LOCAL ONLY</span><h2>학습·개발·봉인 데이터 구성</h2><p>현재 고정된 split의 역할과 실제 샘플을 함께 확인합니다.</p></div>
+            <span class="status-pill locked">Blind 500 · 봉인 유지</span>
+          </div>
+          <div id="split-cards" class="split-cards" aria-label="데이터 split 선택"></div>
+        </article>
+
+        <article class="panel dataset-detail">
+          <div class="panel-heading">
+            <div><span class="label">AXIS DISTRIBUTION · FILTER</span><h2 id="dataset-detail-title">KI20 학습 구성</h2><p class="dataset-axis-help">전체 혼합 또는 데이터 축을 눌러 샘플 범위를 선택합니다.</p></div>
+            <strong id="dataset-total" class="dataset-total">20,000행</strong>
+          </div>
+          <div id="axis-distribution" class="axis-distribution"></div>
+        </article>
+
+        <article class="panel dataset-samples-panel">
+          <div class="panel-heading dataset-sample-heading">
+            <div><span class="label">RANDOM SAMPLE BROWSER · LOCAL ONLY</span><h2 id="dataset-sample-title">KI20 학습 / 전체 혼합</h2><p id="dataset-sample-meta">실제 후보 풀에서 무작위 10건을 불러옵니다.</p></div>
+            <div class="dataset-random-controls">
+              <span id="dataset-random-status" class="dataset-random-status" aria-live="polite">준비 중</span>
+              <button id="random-dataset-samples-button" class="secondary-button compact-button" type="button">다른 10개 보기</button>
+            </div>
+          </div>
+          <div id="dataset-restriction" class="dataset-restriction hidden" role="note">AI Hub 제한 데이터가 포함돼 있습니다. 이 화면 밖으로 복사·공유하지 마세요.</div>
+          <div id="dataset-samples" class="dataset-samples" aria-live="polite"><p class="empty-conversation">샘플을 불러오는 중입니다.</p></div>
+          <p class="footnote">각 요청은 후보 풀에서 서로 다른 10건을 무작위로 뽑습니다. 묶음이 바뀌면 같은 행이 다시 나올 수 있으며 내부 ID·원천 locator·hash는 표시하지 않습니다. Blind 원문은 읽지 않습니다.</p>
+        </article>
+      </section>
+
+      <section id="tab-model" class="tab-panel">
+        <div id="model-lock" class="panel model-lock">
+          <span class="lock-icon" aria-hidden="true">◇</span>
+          <div><span class="label">SAFE INFERENCE LOCK</span><h2>학습 중에는 모델을 추가로 로드하지 않습니다.</h2><p id="model-lock-copy">학습 종료와 final reload 검증 뒤 자동으로 열립니다.</p><button id="run-probe-button" class="secondary-button hidden" type="button">고정 20건 검사 실행</button></div>
+        </div>
+        <article id="runtime-panel" class="panel runtime-panel hidden">
+          <div class="panel-heading">
+            <div><span class="label">APPROVED CHART + SINGLE DAY · FEATURE OFF BY DEFAULT</span><h2>원국·단일 일진 만세력</h2><p id="runtime-status-copy" class="runtime-copy">runtime 상태를 확인하는 중입니다.</p></div>
+            <span id="runtime-status-pill" class="status-pill locked">확인 중</span>
+          </div>
+          <div id="runtime-remote-warning" class="runtime-warning hidden" role="alert">이 공개 주소는 로그인 없이 사용할 수 있습니다. 출생 입력은 서버에서 AES-256-GCM으로 암호화해 30분만 보관하며 요청 본문과 session 식별자는 로그에 남기지 않습니다.</div>
+          <form id="runtime-chart-form" class="runtime-form">
+            <label class="runtime-consent"><input id="runtime-consent" type="checkbox" required><span>원국 계산을 위해 아래 출생 입력을 암호화해 최대 30분 처리하는 데 동의합니다.</span></label>
+            <div class="runtime-field"><label for="runtime-birth-date">생년월일</label><input id="runtime-birth-date" type="date" min="1920-01-07" max="2026-08-31" required></div>
+            <div class="runtime-field"><label for="runtime-calendar">달력</label><select id="runtime-calendar"><option value="solar">양력</option><option value="lunar">음력</option></select></div>
+            <div id="runtime-leap-field" class="runtime-field hidden"><label for="runtime-leap-month">윤달 여부</label><select id="runtime-leap-month"><option value="false">평달</option><option value="true">윤달</option></select></div>
+            <div class="runtime-field"><label for="runtime-time-precision">출생시각 정확도</label><select id="runtime-time-precision"><option value="exact">정확히 앎</option><option value="range">범위로 앎</option><option value="unknown">모름</option></select></div>
+            <div id="runtime-exact-time-field" class="runtime-field"><label for="runtime-birth-time">출생시각</label><input id="runtime-birth-time" type="time" value="12:00" required></div>
+            <div id="runtime-range-start-field" class="runtime-field hidden"><label for="runtime-range-start">범위 시작</label><input id="runtime-range-start" type="time" value="09:00"></div>
+            <div id="runtime-range-end-field" class="runtime-field hidden"><label for="runtime-range-end">범위 끝</label><input id="runtime-range-end" type="time" value="11:59"></div>
+            <div class="runtime-field"><label for="runtime-city">출생 도시</label><input id="runtime-city" type="text" maxlength="80" value="서울" required></div>
+            <div class="runtime-form-actions"><small>대한민국·Asia/Seoul, 정규화 양력 1920-01-07~2026-08-31만 허용합니다. 절입 불확실성은 자동 차단됩니다.</small><button id="runtime-chart-button" type="submit">원국 계산</button></div>
+          </form>
+          <section id="runtime-facts-panel" class="runtime-facts hidden" aria-live="polite">
+            <div class="runtime-facts-head"><div><span class="label">SERVER FACTS · SAME SNAPSHOT FOR K0/KI20</span><h3>계산 사실</h3></div><span id="runtime-revision" class="cap-label"></span></div>
+            <pre id="runtime-facts-json"></pre>
+            <div class="runtime-day-controls">
+              <div class="runtime-field"><label for="runtime-target-date">연결할 날짜</label><input id="runtime-target-date" type="date" required></div>
+              <button id="runtime-today-button" class="secondary-button compact-button" type="button">오늘</button>
+              <small id="runtime-day-note">서버 KST 기준 오늘부터 2049-12-31까지, 12:00 기준 단일 일진만 연결합니다.</small>
+            </div>
+            <div class="runtime-facts-actions">
+              <span id="runtime-conversation-binding-pill" class="status-pill locked">원국·날짜 대화 미연결</span>
+              <button id="runtime-connect-button" class="secondary-button compact-button" type="button" disabled>이 원국·날짜로 새 대화 시작</button>
+              <button id="runtime-delete-button" class="secondary-button compact-button" type="button">출생 세션 즉시 삭제</button>
+            </div>
+          </section>
+          <p class="runtime-scope-note">선택한 하루의 연주·월주·일주만 계산합니다. 주·월·연, 대운·세운과 미래 사건 예측은 차단됩니다.</p>
+        </article>
+        <article id="manual-panel" class="panel manual-panel hidden">
+          <div class="panel-heading">
+            <div><span class="label">LOCAL · SESSION HISTORY</span><h2>세션별 수동 질문</h2><p id="manual-binding-copy" class="runtime-copy">일반 대화입니다. 계산한 원국과 날짜는 위 연결 버튼을 눌러 새 대화에만 결합합니다.</p></div>
+            <button id="new-session-button" class="secondary-button compact-button" type="button">새 세션</button>
+          </div>
+          <div class="session-toolbar">
+            <label for="session-select">대화 세션</label>
+            <select id="session-select"><option value="">새 대화</option></select>
+            <small id="session-meta">새 세션에서 첫 질문을 입력하세요.</small>
+          </div>
+          <div class="engine-toolbar">
+            <label for="engine-selection-select">추론 엔진</label>
+            <select id="engine-selection-select">
+              <option value="ki20_final">KI20 단독</option>
+              <option value="k0_instruct">K0 원본 단독</option>
+              <option value="k0_vs_ki20">K0 ↔ KI20 동시 비교</option>
+            </select>
+            <small id="engine-selection-copy">새 세션에서 모델 축을 선택할 수 있습니다. 선택 후에는 변경할 수 없습니다.</small>
+          </div>
+          <div class="profile-toolbar">
+            <label for="prompt-profile-select">추론 프로필</label>
+            <select id="prompt-profile-select">
+              <option value="guided_diagnostic_v1">안내 보정 진단</option>
+              <option value="bound_chart_v1">승인 원국 연결</option>
+              <option value="raw_no_system">무지시 원출력</option>
+            </select>
+            <small id="prompt-profile-copy">안내 보정 prompt와 승인 원국 snapshot을 분리해 결합합니다. 새 세션을 만든 뒤에는 프로필을 바꿀 수 없습니다.</small>
+          </div>
+          <p id="diagnostic-engine-note" class="diagnostic-engine-note">원국·날짜 연결 뒤 K0와 KI20 비교를 선택하면 두 모델에 동일한 canonical 사실 snapshot을 전달합니다. 모델 해석은 품질 승격 근거가 아닙니다.</p>
+          <div id="manual-conversation" class="manual-conversation" aria-live="polite">
+            <p class="empty-conversation">아직 저장된 대화가 없습니다.</p>
+          </div>
+          <form id="manual-form">
+            <label id="manual-prompt-label" for="manual-prompt">KI20 final에 보낼 질문</label>
+            <textarea id="manual-prompt" maxlength="4000" rows="5" placeholder="예: 사주 정보가 없을 때 어떤 정보를 먼저 물어봐야 해?"></textarea>
+            <div class="form-actions"><small>질문·답변은 현재 run의 Git 제외 private 폴더에만 저장됩니다.</small><button id="generate-button" type="submit">답변 생성</button></div>
+          </form>
+        </article>
+        <details id="prompt-example-panel" class="panel prompt-example-disclosure hidden">
+          <summary class="prompt-example-summary">
+            <div><span class="label">REAL USER 20 · MANUAL TEST</span><h2>실사용 사주 질문 20선</h2><span class="prompt-example-glance">7개 분야 · 질문 카드 보기</span></div>
+            <span class="cap-label">진단용 · 정식 Gate 아님</span>
+          </summary>
+          <div class="prompt-example-content">
+            <p class="prompt-example-notice" role="note"><strong>아래 카탈로그는 기존 공개 합성 문맥입니다.</strong> 위에서 계산한 원국과는 별개이며, 시기 간지는 승인 runtime 사실이 아닙니다.</p>
+            <div class="prompt-example-toolbar">
+              <label for="prompt-example-category">관심 분야</label>
+              <select id="prompt-example-category"><option value="all">전체 20개</option></select>
+              <small id="prompt-example-count">카탈로그를 불러오는 중입니다.</small>
+            </div>
+            <div id="prompt-example-list" class="prompt-example-list" aria-live="polite"></div>
+            <p id="prompt-example-status" class="prompt-example-status" aria-live="polite">예시를 누르면 위 수동 질문 입력창만 채워집니다. 자동으로 답변을 생성하지 않습니다.</p>
+          </div>
+        </details>
+        <details id="comparison-panel" class="panel diagnostic-disclosure hidden">
+          <summary class="diagnostic-summary">
+            <div><span class="label">FIXED 20 · DIAGNOSTIC ONLY</span><h2>고정 20건 진단 비교</h2><span id="comparison-glance" class="diagnostic-glance">KI10 ↔ KI20 결과 보기</span></div>
+            <span id="comparison-status" class="cap-label">정식 Gate 아님</span>
+          </summary>
+          <div class="diagnostic-content">
+            <div id="comparison-summary" class="comparison-summary"></div>
+            <div id="comparison-list" class="comparison-list"></div>
+          </div>
+        </details>
+      </section>
+
+      <footer>
+        <span>10초 자동 갱신</span>
+        <span>외부 전송 없음</span>
+        <span>학습 제어 없음</span>
+      </footer>
+    </main>
+  </body>
+</html>

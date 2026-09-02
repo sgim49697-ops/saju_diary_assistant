@@ -9,7 +9,7 @@
 - 모델: `kakaocorp/kanana-2-1.3b-instruct@bf4786aa2a1908adce942d53976270132732f720`
 - 결론: 기술 preflight 통과, Phase 6 자동 repair 필요, 학습·production 승격 차단
 
-Skyfield v1.4 chart-only runtime과 conformance v9 `build-9f1784e74a4e`, release `saju-runtime-release-v1.4.0-63dc8d398e90`은 완료됐다. 그러나 이 release는 원국만 승인하고 period를 항상 차단하므로 chart 4,350회·period 900회를 같은 version으로 재생성해야 하는 이 문서의 blocker를 닫지 않는다. `v3.0.1-repaired`를 v3.1 또는 학습 승인본으로 승격하지 않는다.
+Skyfield v1.4 과거 원국과 이를 부모로 한 v1.5 단일 일진 runtime, conformance v10 `build-46185262164f`, release `saju-runtime-release-v1.5.0-8b1d6ea2d46e`까지 완료됐다. 그러나 v1.5가 승인한 period는 같은 process의 exact 원국에 결합된 KST 정오 단일 `day`뿐이다. chart 4,350회·여러 period 유형 900회를 같은 full version으로 재생성해야 하는 이 문서의 blocker는 닫히지 않는다. `v3.0.1-repaired`를 v3.1 또는 학습 승인본으로 승격하지 않는다.
 
 ## 범위와 불변 경계
 

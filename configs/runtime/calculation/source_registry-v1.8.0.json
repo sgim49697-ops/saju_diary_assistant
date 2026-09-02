@@ -1,0 +1,47 @@
+{
+  "_description": "v1.7 과거 원국 권한을 보존하고 2026-09-02~2049-12-31 단일 일진의 공식 전수 대조 권한을 추가한다.",
+  "schema_version": "1.8.0",
+  "registry_version": "saju-runtime-sources-v1.8.0",
+  "reviewed_at": "2026-09-02",
+  "parent": {
+    "path": "configs/runtime/calculation/source_registry-v1.7.0.json",
+    "sha256": "79336137fb9fbef8b8346252e5005d56734befd7dc56ba9c13042ce8e41bb64b"
+  },
+  "runtime_provider": {
+    "provider_id": "skyfield-1.55-jpl-de440s-builtin-ut1",
+    "chart_and_single_day_release_bound": true,
+    "full_production_runtime_bound": false,
+    "strict_runtime_approved": false,
+    "ephemeris": {
+      "filename": "de440s.bsp",
+      "bytes": 32726016,
+      "sha256": "c1c7feeab882263fc493a9d5a5b2ddd71b54826cdf65d8d17a76126b260a49f2",
+      "git_tracked": false
+    },
+    "automatic_download_or_fallback": false,
+    "astronomy_engine_fallback": false
+  },
+  "single_day_official_scope": {
+    "minimum": "2026-09-02",
+    "maximum": "2049-12-31",
+    "civil_dates": 8522,
+    "evaluation_local_time": "12:00",
+    "timezone": "Asia/Seoul",
+    "day_oracle": "kasi_lunisolar_openapi",
+    "year_month_oracle": "kasi_official_solar_terms_download",
+    "official_jie_rows_available": 2172,
+    "official_snapshots_filled_from_provider": false,
+    "provider_date_label_mismatches_expected": 0,
+    "noon_boundary_quarantine_dates_expected": 0
+  },
+  "promotion_effects": {
+    "chart_and_single_day_release_allowed": true,
+    "strict_runtime_provider_gate_passed": false,
+    "full_runtime_gate_passed": false,
+    "runtime_feature_flag_default": false,
+    "production_application_binding": false,
+    "mix20k_v3_1_regeneration_allowed": false,
+    "training_promotion_allowed": false,
+    "sealed_blind_accessed": false
+  }
+}

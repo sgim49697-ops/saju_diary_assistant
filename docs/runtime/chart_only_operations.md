@@ -1,12 +1,12 @@
-<!-- chart_only_operations.md - v1.4 chart-only runtime과 dashboard v1.9 production binding의 운영 경계를 기록한다. -->
+<!-- chart_only_operations.md - v1.4 원국과 v1.5 단일 일진 dashboard binding의 운영 경계를 기록한다. -->
 
 # chart-only 운영 계약
 
-이 문서는 `saju-runtime-release-v1.4.0-63dc8d398e90`을 dashboard `v1.9.0`에 제한 결합하는 절차를 설명한다. 앱은 로그인이나 API key 없이 공개할 수 있지만 runtime HMAC key와 session AEAD key는 공개 자격 증명이 아니다. 두 key의 값·hash·실제 경로는 브라우저, 모델 process, 로그, Git, 공개 보고서에 노출하지 않는다.
+이 문서는 원국 release `saju-runtime-release-v1.4.0-63dc8d398e90`의 dashboard `v1.9.0` 운영 이력과, 이를 부모로 단일 일진 release `saju-runtime-release-v1.5.0-8b1d6ea2d46e`를 연결하는 dashboard `v1.11.0` 절차를 설명한다. 앱은 로그인이나 API key 없이 공개할 수 있지만 runtime HMAC key와 session AEAD key는 공개 자격 증명이 아니다. 두 key의 값·hash·실제 경로는 브라우저, 모델 process, 로그, Git, 공개 보고서에 노출하지 않는다.
 
-production binding 구현 자체는 완료됐지만 runtime feature의 설정 기본값은 계속 off다. 합성 HTTP 100건과 실제 K0·KI20 GPU 1쌍을 모두 통과한 process에서만 `--enable-chart-only-runtime`을 명시해 제한 활성화한다.
+runtime feature의 설정 기본값은 계속 off다. v1.9는 합성 HTTP 100건과 실제 K0·KI20 GPU 1쌍을 통과한 process에서만 `--enable-chart-only-runtime`을 명시해 원국을 제한 활성화했다. v1.11은 별도 HTTP 10축과 실제 KI20 단독·K0↔KI20 원국+날짜 Grounding Gate를 통과했으며, 병합 뒤 동일 구현의 live smoke 전에는 기존 8765/v1.9 process를 바꾸지 않는다.
 
-v1.9 실행 진입점은 `scripts/training/phase5_dashboard_v1_9.py`다. `scripts/training/phase5_dashboard.py`는 과거 후보 Gate가 byte hash로 고정한 v1.8 진입점이므로 수정하거나 v1.9 실행에 재사용하지 않는다.
+v1.9 실행 진입점은 `scripts/training/phase5_dashboard_v1_9.py`, v1.11은 `scripts/training/phase5_dashboard_v1_11.py`다. v1.10은 원국 명시 연결 복구 이력으로 보존한다. `scripts/training/phase5_dashboard.py`는 과거 후보 Gate가 byte hash로 고정한 v1.8 진입점이므로 수정하거나 새 실행에 재사용하지 않는다.
 
 ## 고정 보안·운영 경계
 
@@ -23,7 +23,7 @@ v1.9 실행 진입점은 `scripts/training/phase5_dashboard_v1_9.py`다. `script
 
 ## 공개 API와 모델 binding
 
-dashboard `v1.9.0`의 runtime API는 아래 네 route만 사용한다.
+dashboard `v1.9.0`과 `v1.11.0`의 runtime API는 아래 네 route만 사용한다.
 
 ```text
 GET    /api/runtime/status
@@ -32,7 +32,7 @@ POST   /api/runtime/sessions/{session_id}/events
 DELETE /api/runtime/sessions/{session_id}
 ```
 
-입력은 동의 후 태양력/음력, 날짜, 정확/범위/미상 시각, 대한민국 도시만 구조화 event로 받는다. 자유문 runtime parsing, 좌표·성별 입력과 기간 계산은 허용하지 않는다. 공개 snapshot은 승인된 원국 사실 allowlist와 SHA-256만 포함한다. K0와 KI20에는 이 동일 canonical snapshot을 각각의 분리된 대화 context에 결합하며 원시 runtime capability는 전달하지 않는다.
+입력은 동의 후 태양력/음력, 날짜, 정확/범위/미상 시각, 대한민국 도시만 구조화 event로 받는다. 자유문 runtime parsing과 좌표·성별 입력은 허용하지 않는다. v1.11의 기간 event는 exact 원국 뒤 `period_type=day`, 같은 시작·종료 날짜, `Asia/Seoul`만 받으며 날짜 하한·상한은 상태 API의 서버 KST 값을 따른다. 공개 snapshot은 승인된 원국·단일 일진 사실 allowlist와 SHA-256만 포함한다. K0와 KI20에는 이 동일 canonical snapshot을 각각의 분리된 대화 context에 결합하며 원시 runtime capability는 전달하지 않는다. 사용자가 `이 원국·날짜로 새 대화 시작`을 눌러야 결합되고 날짜를 바꾸면 새 대화를 만든다.
 
 ## 설치·계약 확인
 
@@ -88,9 +88,15 @@ Gate는 feature off 10, 정상 원국 20, 절입 경계 10, 승인 범위 밖 20
 
 같은 구현을 적재한 loopback 운영 process에서는 상태 API 3종, 정상 원국, 절입 경계, 승인 범위 밖, capability 변조, 기간·legacy route와 잘못된 Origin 차단을 재검증했다. 공개 HTTPS smoke와 데스크톱·모바일 렌더링도 통과했고, 로그에는 출생값·도시·runtime 식별자·500이 없으며 smoke 종료 뒤 암호화 session record는 남지 않았다.
 
+### v1.11 원국+단일 일진 후속 canary
+
+v1.11은 conformance v10 `build-46185262164f`와 v1.5 release를 먼저 검증한다. 실제 RTX 5070 Ti에서 합성 exact 원국과 `2026-09-02` 일진을 같은 snapshot으로 묶어 사용자 재현 문장 `내 오늘 사주 봐줄래?`를 실행했다. KI20 단독과 K0↔KI20 순차 비교 모두 출력이 비어 있지 않고 Grounding Gate를 통과했다. KI20은 결정론적 안전 답변으로 한 번 보정됐으며 첫 실패 출력은 저장하지 않았다. tokenizer는 v1.11부터 `fix_mistral_regex=True`로 로드하고, 고정 모델 snapshot의 RoPE 경고는 모델 파일을 바꾸지 않은 채 진단으로 남긴다.
+
+별도 `127.0.0.1:8771` HTTP canary는 versioned UI, runtime status의 서버 KST 날짜, Host·Origin, exact 원국+단일 일진, stale revision, 자유문 날짜, 승인 하한 전 날짜, legacy route와 즉시 삭제 10축을 통과했다. request log는 session ID를 `{opaque_id}`로 치환했고 출생정보·도시·runtime ID를 기록하지 않았다. 이 검증은 원시 모델 출력이나 case별 입력을 Git에 추가하지 않았고 기존 8765/v1.9 process를 중지하거나 재시작하지 않았다.
+
 ## 활성화와 rollback
 
-canary가 실패하면 production process를 시작하지 않는다. 통과 뒤 dashboard를 아래 조건으로 시작한다.
+canary가 실패하면 production process를 시작하지 않는다. v1.9 운영 이력은 아래 조건을 사용했다.
 
 - config는 `configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.9.0.json`을 명시한다.
 - 실행 파일은 `scripts/training/phase5_dashboard_v1_9.py`를 사용한다.
@@ -102,4 +108,6 @@ canary가 실패하면 production process를 시작하지 않는다. 통과 뒤 
 
 rollback은 v1.9 process를 중지하고 보존된 v1.8 config를 runtime flag 없이 다시 시작하는 명시적 전환이다. tunnel은 dashboard loopback port만 가리키므로 정상 rollback에는 tunnel 재발급이 필요하지 않다. v1.9의 암호화 session은 v1.8에 이관하지 않는다.
 
-이 제한 활성화는 strict/full runtime, 기간 계산, Phase 6 결정, MIX20K-v3.1 생성, 추가 학습, 모델 승격 권한을 변경하지 않는다.
+v1.11 전환은 config `phase5-dashboard-v1.11.0.json`과 진입점 `phase5_dashboard_v1_11.py`를 함께 사용한다. `--runtime-ephemeris`는 `$(pwd -P)`로 만든 절대경로여야 하며 기존 두 key·encrypted store·lease 경계를 그대로 요구한다. 전환 직전 별도 port canary, 전환 직후 loopback·공개 HTTPS smoke와 로그 비노출을 다시 확인한다. 실패하면 보존된 v1.9 command로 되돌리고 v1.11 암호화 session을 이관하지 않는다.
+
+이 제한 활성화는 strict/full runtime, 주·월·연 기간, 원국 관계·사건 예측, Phase 6 결정, MIX20K-v3.1 생성, 추가 학습, 모델 승격 권한을 변경하지 않는다.

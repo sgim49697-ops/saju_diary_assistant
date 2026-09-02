@@ -1,0 +1,12 @@
+# requirements-runtime-calculator-v1.5.txt - 원국+단일 일진 runtime·conformance v10 CPU 고정 의존성
+--index-url https://pypi.org/simple
+--only-binary :all:
+
+astronomy-engine @ https://files.pythonhosted.org/packages/67/87/47c093c8ac29ee737de6d6a8957ff9e2dc3a36427b392fdca2d1b05bdab0/astronomy_engine-2.1.19-py3-none-any.whl#sha256=232ba7dd2bbf42225c48be6721b676e8c6c079dbd4588d2781dfa68adcb6f67f
+certifi @ https://files.pythonhosted.org/packages/0b/a7/71ac2cff56fec219ed242bb11b8efb69fcc4bec75db06fb7bfe35de520e6/certifi-2026.7.22-py3-none-any.whl#sha256=62f22742b58a1a33014a2b6b706588a8d7e2a88ae7bd1a6ebe8c992928483775
+jplephem @ https://files.pythonhosted.org/packages/9d/3f/b9d5739352badc11ca637c8f72525d519458622936bc3313ddefdc7dee96/jplephem-2.24-py3-none-any.whl#sha256=2de15608a0f13010a71a0a8af8765646d5884402006dac0dd7639d7db13629ac
+korean-lunar-calendar @ https://files.pythonhosted.org/packages/c1/88/f56033b09fdca5c8c5e5fc2f3513950a05cd62caa9bd8e6d2750a887c86e/korean_lunar_calendar-0.4.0-py3-none-any.whl#sha256=c042e20de0bb702add6bec8d0f6da1ea8d3b170838e63846f70420cf341fe4e7
+numpy @ https://files.pythonhosted.org/packages/b4/63/3de6a34ad7ad6646ac7d2f55ebc6ad439dbbf9c4370017c50cf403fb19b5/numpy-2.2.6-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl#sha256=fc7b73d02efb0e18c000e9ad8b83480dfcd5dfd11065997ed4c6747470ae8915
+sgp4 @ https://files.pythonhosted.org/packages/68/eb/874cbbf049adb6e61d1e156c64002ce82874a370b3bb02e0ad89284f4162/sgp4-2.27-cp310-cp310-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl#sha256=d2fc2f68421b50757b7960199a0a7907b9b9807a1b78b9c70fa3523a8a63b630
+skyfield @ https://files.pythonhosted.org/packages/8d/5a/c4cc09d4421de255ca0504485efceb3646a4e5381bfb665647e39bea5cb1/skyfield-1.55-py3-none-any.whl#sha256=9f98964855067460c94aa81a337194136f4a97a62ba8bbbfac1b8556f2b66ad4
+tzdata @ https://files.pythonhosted.org/packages/e5/6d/b53b99a9f2766d095985947a5782f1702cabb129a34f7a802d7197af832f/tzdata-2026.3-py2.py3-none-any.whl#sha256=dc096730c87af6cab1b171c9d532be840741ff5d459015e7f6947bd7d7e54931
