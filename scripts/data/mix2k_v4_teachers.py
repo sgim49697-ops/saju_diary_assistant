@@ -449,6 +449,111 @@ def _evidence_payload(spec: Mapping[str, Any]) -> list[dict[str, str]]:
     ]
 
 
+def _mandatory_answer_checklist(spec: Mapping[str, Any]) -> list[str]:
+    """질문별 필수 구조 사실을 teacher가 바로 대조할 수 있게 표시한다."""
+
+    facts = dict(
+        zip(
+            spec["allowed_fact_paths"],
+            spec["allowed_fact_values"],
+            strict=True,
+        )
+    )
+
+    def fact(path: str) -> str:
+        value = facts.get(path)
+        if not isinstance(value, str):
+            raise Mix2KV4TeacherError(f"필수 checklist fact가 없습니다: {path}")
+        return value
+
+    def pillar_ganzhi() -> list[str]:
+        labels = {"year": "연주", "month": "월주", "day": "일주", "hour": "시주"}
+        return [
+            f"{labels[pillar]}={fact(f'chart.hard_facts.pillars.{pillar}.ganzhi')}"
+            for pillar in ("year", "month", "day", "hour")
+        ]
+
+    def period_ganzhi() -> list[str]:
+        return [
+            "선택 날짜의 연간지=" + fact("period.hard_facts.period.year_ganzhi"),
+            "선택 날짜의 월간지=" + fact("period.hard_facts.period.month_ganzhi"),
+            "선택 날짜의 일진=" + fact("period.hard_facts.period.day_ganzhi"),
+        ]
+
+    question = str(spec["prompt"][-1]["content"])
+    checklist = [
+        "질문이 직접 요구한 항목만 답하고, 아래 literal 값과 위치 label을 answer에서 모두 명시하세요.",
+        "RAW에 있더라도 질문하지 않은 기간·관계·대운·신강약·용신은 덧붙이지 마세요.",
+    ]
+    if spec["task_axis"] != "structured_fact_schema_literacy":
+        return checklist
+    if "원국 전체 네 기둥과 일주" in question or "연주·월주·일주·시주" in question:
+        checklist.extend(pillar_ganzhi())
+        checklist.append(
+            "원국 전체는 위 네 기둥 전부이며, 일주는 그중 하나라고 구분하세요."
+        )
+    elif "일간과 그 오행·음양" in question:
+        checklist.extend(
+            [
+                "일간=" + fact("chart.hard_facts.day_master.stem"),
+                "일간 오행=" + fact("chart.hard_facts.day_master.element"),
+                "일간 음양=" + fact("chart.hard_facts.day_master.yin_yang"),
+            ]
+        )
+    elif "선택 날짜의 연간지" in question or "year/month/day ganzhi" in question:
+        checklist.extend(period_ganzhi())
+    elif "각 기둥의 천간·지지" in question:
+        labels = {"year": "연주", "month": "월주", "day": "일주", "hour": "시주"}
+        for pillar in ("year", "month", "day", "hour"):
+            prefix = f"chart.hard_facts.pillars.{pillar}"
+            checklist.append(
+                f"{labels[pillar]}: 천간={fact(f'{prefix}.stem')}, "
+                f"천간 오행={fact(f'{prefix}.stem_element')}, "
+                f"천간 음양={fact(f'{prefix}.stem_yin_yang')}, "
+                f"지지={fact(f'{prefix}.branch')}, "
+                f"지지 오행={fact(f'{prefix}.branch_element')}, "
+                f"지지 음양={fact(f'{prefix}.branch_yin_yang')}"
+            )
+    elif "일주의 천간·지지·지장간" in question:
+        prefix = "chart.hard_facts.pillars.day"
+        hidden = [
+            value
+            for path, value in facts.items()
+            if path.startswith(f"{prefix}.hidden_stems[")
+        ]
+        checklist.append(
+            f"일주 천간={fact(f'{prefix}.stem')}, "
+            f"일주 지지={fact(f'{prefix}.branch')}, "
+            f"일주 지장간={','.join(hidden)}"
+        )
+    elif "각 기둥의 stem ten-god" in question:
+        labels = {"year": "연주", "month": "월주", "day": "일주", "hour": "시주"}
+        for pillar in ("year", "month", "day", "hour"):
+            prefix = f"chart.hard_facts.pillars.{pillar}"
+            checklist.append(
+                f"{labels[pillar]}: stem ten-god={fact(f'{prefix}.stem_ten_god')}, "
+                f"branch ten-god={fact(f'{prefix}.branch_ten_god')}"
+            )
+        checklist.append(
+            "특히 일주 stem ten-god는 runtime literal '일간'을 다른 명칭으로 바꾸지 마세요."
+        )
+    elif "표면 오행 개수를 누락 없이" in question:
+        checklist.append(
+            "표면 오행 개수: "
+            + ", ".join(
+                f"{element}={fact(f'chart.hard_facts.surface_five_elements.{element}')}"
+                for element in "목화토금수"
+            )
+        )
+    elif "원국 네 기둥과 선택 날짜 세 간지" in question:
+        checklist.extend(pillar_ganzhi())
+        checklist.extend(period_ganzhi())
+        checklist.append(
+            "원국 네 기둥과 선택 날짜의 세 label을 서로 다른 자료로 설명하세요."
+        )
+    return checklist
+
+
 def draft_prompt(
     specs: Sequence[Mapping[str, Any]], feedback: Mapping[str, str]
 ) -> str:
@@ -487,6 +592,8 @@ def draft_prompt(
                     separators=(",", ":"),
                     sort_keys=True,
                 ),
+                "[MANDATORY ANSWER CHECKLIST]\n- "
+                + "\n- ".join(_mandatory_answer_checklist(spec)),
                 "[FORBIDDEN INFERENCE]\n- " + "\n- ".join(FORBIDDEN_INFERENCE),
                 "[TASK]\n"
                 + json.dumps(
@@ -539,6 +646,8 @@ def review_prompt(
                     separators=(",", ":"),
                     sort_keys=True,
                 ),
+                "[MANDATORY ANSWER CHECKLIST]\n- "
+                + "\n- ".join(_mandatory_answer_checklist(spec)),
                 "[FORBIDDEN INFERENCE]\n- " + "\n- ".join(FORBIDDEN_INFERENCE),
                 "[TASK]\n"
                 + json.dumps(

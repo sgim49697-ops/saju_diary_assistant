@@ -77,3 +77,10 @@ Teacher 절반은 Claude 초안→Codex grounding 검수, 나머지 절반은 Co
 - 중단 원인: Codex 초안 20행은 deterministic validator를 20/20 통과했으나 다음 Claude 검수에서 Pro session limit에 도달해 CLI가 exit 1로 종료됐다. 인증은 유효하며 2026-09-03 02:00 KST reset을 안내했다. 실패한 provider call은 state에 반영되지 않아 같은 명령으로 재개할 수 있다.
 - 보안·범위: API key, AI Hub, 개인정보, sealed blind, dev target과 training은 접근하거나 실행하지 않았다. raw teacher 출력과 private state는 Git에 넣지 않는다.
 - 남은 작업: Claude 사용량 복구 후 동일 target을 재개해 2,000행 전수를 양방향 교차검수해야 한다. 단일 teacher 결과를 Gold로 강등하지 않는다.
+
+### 2026-09-03 - full schema-literacy prompt 교정
+
+- 재개 결과: Claude 검수 대기 20행은 20/20 PASS해 누적 accepted 36행이 됐다. 뒤이은 Claude 재작성에서 기존 2회 실패 9행이 구조 필드 누락을 반복해 permanent failed가 되었고, runner는 provider call 7회에서 자동 중단됐다. 해당 target은 candidate manifest를 만들지 않은 비후보 이력으로 보존한다.
+- 원인: 실패 9행은 schema-literacy의 전 기둥 오행·음양, 전 기둥 stem/branch ten-god, 원국 전체·일주 구분 질문에 집중됐다. teacher가 긴 RAW·ALLOWED 목록에서 질문이 요구한 위치별 값을 일부 생략하거나 일주 `stem_ten_god=일간` literal을 다른 표현으로 바꾼 실제 출력 오류이며 validator 완화 사유가 아니다.
+- 교정: immutable spec과 validator는 변경하지 않고 draft·review prompt에 질문별 `[MANDATORY ANSWER CHECKLIST]`를 추가했다. 원국 네 기둥, 일간, period 세 label, 위치별 천간·지지·오행·음양·십신·지장간·표면 오행을 해당 질문에 맞춰 literal 값으로 제시하고 질문 밖 기간·관계·대운을 덧붙이지 않게 했다.
+- 검증: Ruff, `git diff --check`, checklist 회귀를 포함한 `tests.test_mix2k_v4` 44건을 통과했다. 새 runner hash의 full target에서 초기 schema-literacy batch를 다시 검증한 뒤 전체 생성을 재개한다.

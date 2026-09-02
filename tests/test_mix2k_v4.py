@@ -30,6 +30,7 @@ from scripts.data.mix2k_v4_finalize import select_training_max_length
 from scripts.data.mix2k_v4_teachers import (
     CODEX_DISABLED_FEATURES,
     _draft_schema,
+    _mandatory_answer_checklist,
     _selection,
     draft_prompt,
     review_prompt,
@@ -1233,6 +1234,7 @@ class Mix2KV4ContractTests(unittest.TestCase):
         self.assertEqual(prompt.count("[ALLOWED EVIDENCE]"), 1)
         self.assertEqual(prompt.count("[FORBIDDEN INFERENCE]"), 1)
         self.assertEqual(prompt.count("[TASK]"), 1)
+        self.assertEqual(prompt.count("[MANDATORY ANSWER CHECKLIST]"), 1)
         self.assertNotIn("출생일", prompt)
 
         draft = {
@@ -1248,6 +1250,39 @@ class Mix2KV4ContractTests(unittest.TestCase):
         self.assertEqual(review.count("[DRAFT TO REVIEW]"), 1)
         self.assertIn("최소 조건이며 최대 길이 제한이 아닙니다", review)
         self.assertIn("정확히 3줄로 줄이라고 요구하지 마세요", review)
+        self.assertEqual(review.count("[MANDATORY ANSWER CHECKLIST]"), 1)
+
+    def test_schema_teacher_checklist_expands_every_requested_position(self) -> None:
+        spec = _spec()
+        spec["task_axis"] = "structured_fact_schema_literacy"
+        spec["prompt"][-1]["content"] = (
+            "원국 각 기둥의 천간·지지와 각각의 오행·음양을 항목별로 읽어줘."
+        )
+        checklist = "\n".join(_mandatory_answer_checklist(spec))
+        for expected in (
+            "연주: 천간=戊",
+            "월주: 천간=甲",
+            "일주: 천간=乙",
+            "일주: 천간=乙, 천간 오행=목, 천간 음양=음, 지지=丑",
+            "시주: 천간=壬",
+        ):
+            self.assertIn(expected, checklist)
+
+        spec["prompt"][-1]["content"] = (
+            "각 기둥의 stem ten-god와 branch ten-god를 위치별로 구분해줘."
+        )
+        checklist = "\n".join(_mandatory_answer_checklist(spec))
+        self.assertIn("일주: stem ten-god=일간", checklist)
+        self.assertIn("branch ten-god=편재", checklist)
+        self.assertIn("runtime literal '일간'", checklist)
+
+        spec["prompt"][-1]["content"] = (
+            "선택 날짜의 연간지, 월간지, 일진을 서로 바꾸지 말고 알려줘."
+        )
+        checklist = "\n".join(_mandatory_answer_checklist(spec))
+        self.assertIn("선택 날짜의 연간지=丙午", checklist)
+        self.assertIn("선택 날짜의 월간지=丙申", checklist)
+        self.assertIn("선택 날짜의 일진=己卯", checklist)
 
     def test_draft_schema_is_codex_compatible_and_validator_rejects_duplicates(
         self,
