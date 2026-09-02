@@ -301,6 +301,29 @@ def structural_claim_errors(spec: Mapping[str, Any], answer: str) -> list[str]:
     return list(dict.fromkeys(errors))
 
 
+def required_fact_errors(spec: Mapping[str, Any], answer: str) -> list[str]:
+    """질문 축이 요구하는 최소 natal·period evidence 누락만 검사한다."""
+
+    errors: list[str] = []
+    natal = [
+        _path_value(spec, f"chart.hard_facts.pillars.{field}.ganzhi")
+        for field in ("year", "month", "day", "hour")
+    ]
+    natal = [value for value in natal if value is not None]
+    axis = spec["task_axis"]
+    if axis == "chart_facts_natural_explanation" and not any(
+        value in answer for value in natal
+    ):
+        errors.append("provided_natal_fact_omitted")
+    if axis in {"chart_day_today_flow", "followup_explain_grounding"}:
+        period_day = _path_value(spec, "period.hard_facts.period.day_ganzhi")
+        if period_day is not None and period_day not in answer:
+            errors.append("provided_period_day_fact_omitted")
+        if natal and not any(value in answer for value in natal):
+            errors.append("provided_natal_fact_omitted")
+    return errors
+
+
 def _validate_message(message: Any, *, assistant_allowed: bool) -> None:
     if (
         not isinstance(message, Mapping)
@@ -472,11 +495,25 @@ def validate_draft(spec: Mapping[str, Any], draft: Any) -> dict[str, Any]:
         )
     if INTERNAL_LANGUAGE.search(answer):
         raise Mix2KV4ContractError("teacher 답변이 내부 계약 용어를 노출합니다.")
+    if RESTRICTED_MARKERS.search(answer):
+        raise Mix2KV4ContractError("teacher 답변이 외부 반출 금지 marker를 포함합니다.")
     if FORBIDDEN_PREDICTION.search(answer):
         raise Mix2KV4ContractError("teacher 답변이 확정적 사건 예측을 포함합니다.")
     errors = structural_claim_errors(spec, answer)
+    errors.extend(required_fact_errors(spec, answer))
     if errors:
         raise Mix2KV4ContractError("teacher 구조 사실 claim 오류: " + ",".join(errors))
+    claimed_values = {
+        *GANYI.findall(answer),
+        *ISO_DATE.findall(answer),
+        *(value for value in TEN_GODS if value in answer),
+    }
+    if not claimed_values.issubset(draft["used_fact_values"]):
+        missing = sorted(claimed_values - set(draft["used_fact_values"]))
+        raise Mix2KV4ContractError(
+            "teacher used_fact_values에 명시 claim이 빠졌습니다: "
+            + ",".join(missing)
+        )
     return draft
 
 
@@ -599,6 +636,7 @@ __all__ = [
     "nonempty_lines",
     "normalize_answer",
     "read_jsonl",
+    "required_fact_errors",
     "sentence_count",
     "sha256_bytes",
     "sha256_file",

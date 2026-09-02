@@ -36,7 +36,14 @@ Teacher 절반은 Claude 초안→Codex grounding 검수, 나머지 절반은 Co
 
 - 작업 요약: K0 snapshot을 해시로 고정하고, v1.5 계산 엔진의 공개 synthetic 원국·단일 일진으로 dev 200건과 teacher spec 2,000건을 생성했다. AI Hub 원문·개인정보·sealed blind는 접근하지 않았다.
 - 변경 범위: `mix2k-v4-chart-day-8k-v1.0.0.json`, `mix2k_v4_contracts.py`, `mix2k_v4_build.py`, 표적 회귀 테스트.
-- 산출물: Git 제외 private 경로의 `build-7ee9a56a1f9c`; dev 200행과 training spec 2,000행. training runtime snapshot 600건과 날짜 300건을 확인했다.
+- 산출물: Git 제외 private 경로의 `build-3518debb78c5`; dev 200행과 training spec 2,000행. training runtime snapshot 600건과 날짜 300건을 확인했다. build identity에 generator·validator·Dashboard context·prompt·runtime release·ephemeris·K0 파일 해시를 포함했다.
 - token 결과: full runtime prompt 최대 1,706, p99 1,700, 2,048 초과 0건. audit-only provenance projection의 평균 절감은 458.298 token이지만 training 형식으로는 사용하지 않았다.
-- 검증: `uvx ruff check ...` 통과, `python -m unittest tests.test_mix2k_v4 -v` 4건 통과, 실제 builder 완료, 외부 반출 금지 key·marker scan 통과.
+- 검증: `uvx ruff check ...` 통과, `python -m unittest tests.test_mix2k_v4 -v` 7건 통과, 실제 builder 완료, 외부 반출 금지 key·marker scan 통과.
 - 남은 작업: subscription teacher pilot→전체 생성·교차 검수→완성 target token audit→LoRA 3개 rank 학습→5-arm dev 평가·release blocker 판정.
+
+### 2026-09-02 - subscription teacher 실행기
+
+- 작업 요약: 20행 shard, 초안→deterministic validator→반대 teacher review→최대 2회 재작성, 중복 답변 재작성, 파일 lock·원자적 state·resume를 구현했다. teacher에는 생성된 공개 synthetic runtime fact만 전달하며 dev target 경로는 읽지 않는다.
+- 보안: 자식 프로세스에서 provider API key·cloud credential 환경을 제거하고 Claude는 safe mode·tool 없음, Codex는 ephemeral·read-only·rule 없음으로 실행한다. raw provider envelope와 식별정보는 저장하지 않는다.
+- 검증: Codex ChatGPT subscription structured-output smoke는 통과했다. Claude CLI는 auth 상태가 만료되어 초안 0건에서 fail-closed로 종료했고, 단일 teacher 결과를 Gold로 승격하지 않았다.
+- 후속: `claude` 재로그인 후 같은 pilot state를 재실행하고 4건의 초안·교차 검수를 모두 통과시킨 뒤 full 2,000행을 시작한다.

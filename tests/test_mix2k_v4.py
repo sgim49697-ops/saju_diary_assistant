@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 import unittest
+from collections import Counter
+from copy import deepcopy
+from unittest.mock import patch
 
 from scripts.data.mix2k_v4_contracts import (
     DATASET_VERSION,
@@ -17,6 +20,12 @@ from scripts.data.mix2k_v4_contracts import (
     structural_claim_errors,
     validate_draft,
     validate_spec,
+)
+from scripts.data.mix2k_v4_teachers import (
+    _selection,
+    draft_prompt,
+    review_prompt,
+    subscription_environment,
 )
 from scripts.runtime.calculation.canonical import canonical_json_bytes
 
@@ -156,7 +165,16 @@ class Mix2KV4ContractTests(unittest.TestCase):
             "record_id": spec["id"],
             "answer": answer,
             "used_fact_paths": [],
-            "used_fact_values": ["戊辰", "甲子", "乙丑", "壬午", "丙午", "丙申", "己卯"],
+            "used_fact_values": [
+                "2026-09-02",
+                "戊辰",
+                "甲子",
+                "乙丑",
+                "壬午",
+                "丙午",
+                "丙申",
+                "己卯",
+            ],
             "soft_interpretation_used": False,
             "limitations": ["원국×기간 relation이 제공되지 않음"],
             "self_check": "PASS",
@@ -185,6 +203,26 @@ class Mix2KV4ContractTests(unittest.TestCase):
         )
         self.assertEqual(structural_claim_errors(_spec(), answer), [])
 
+    def test_today_flow_requires_natal_and_period_day_evidence(self) -> None:
+        spec = _spec()
+        draft = {
+            "record_id": spec["id"],
+            "answer": (
+                "원국은 네 기둥으로 구성됩니다.\n"
+                "선택한 날짜는 별도의 정보입니다.\n"
+                "두 자료의 위치를 구분해서 보면 됩니다."
+            ),
+            "used_fact_paths": [],
+            "used_fact_values": [],
+            "soft_interpretation_used": False,
+            "limitations": [],
+            "self_check": "PASS",
+        }
+        with self.assertRaisesRegex(
+            Mix2KV4ContractError, "provided_period_day_fact_omitted"
+        ):
+            validate_draft(spec, draft)
+
     def test_role_order_and_three_line_contract_fail_closed(self) -> None:
         malformed = _spec()
         malformed["prompt"].insert(1, {"role": "assistant", "content": "잘못된 순서"})
@@ -203,6 +241,52 @@ class Mix2KV4ContractTests(unittest.TestCase):
         }
         with self.assertRaisesRegex(Mix2KV4ContractError, "최소 줄·문장"):
             validate_draft(spec, short)
+
+    def test_teacher_prompt_has_four_explicit_evidence_sections(self) -> None:
+        spec = _spec()
+        prompt = draft_prompt([spec], {})
+        self.assertEqual(prompt.count("[RAW RUNTIME FACTS]"), 1)
+        self.assertEqual(prompt.count("[ALLOWED EVIDENCE]"), 1)
+        self.assertEqual(prompt.count("[FORBIDDEN INFERENCE]"), 1)
+        self.assertEqual(prompt.count("[TASK]"), 1)
+        self.assertNotIn("출생일", prompt)
+
+        draft = {
+            "record_id": spec["id"],
+            "answer": "검수 대상 답변",
+            "used_fact_paths": [],
+            "used_fact_values": [],
+            "soft_interpretation_used": False,
+            "limitations": [],
+            "self_check": "PASS",
+        }
+        review = review_prompt([spec], {spec["id"]: draft})
+        self.assertEqual(review.count("[DRAFT TO REVIEW]"), 1)
+
+    def test_pilot_selection_is_balanced_and_api_keys_are_scrubbed(self) -> None:
+        specs = []
+        for index in range(8):
+            spec = deepcopy(_spec())
+            spec["id"] = f"m2v4_{index:024d}"
+            spec["drafter"] = "claude" if index % 2 == 0 else "codex"
+            spec["reviewer"] = "codex" if index % 2 == 0 else "claude"
+            specs.append(spec)
+        selected = _selection(specs, "pilot", 2)
+        self.assertEqual(Counter(row["drafter"] for row in selected), {"claude": 2, "codex": 2})
+
+        with patch.dict(
+            "os.environ",
+            {
+                "EXAMPLE_API_KEY": "secret",
+                "GITHUB_TOKEN": "secret",
+                "SAFE_VALUE": "kept",
+            },
+            clear=True,
+        ):
+            environment = subscription_environment()
+        self.assertNotIn("EXAMPLE_API_KEY", environment)
+        self.assertNotIn("GITHUB_TOKEN", environment)
+        self.assertEqual(environment["SAFE_VALUE"], "kept")
 
 
 if __name__ == "__main__":

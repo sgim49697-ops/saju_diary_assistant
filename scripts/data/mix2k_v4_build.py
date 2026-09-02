@@ -62,6 +62,8 @@ DEFAULT_OUTPUT_ROOT = REPO_ROOT / (
 BOUND_PROMPT = REPO_ROOT / "configs/chat_prompts/saju_bound_chart_v1.txt"
 INTAKE_PROMPT = REPO_ROOT / "configs/chat_prompts/saju_intake_handoff_v1.txt"
 GENERATOR_PATH = Path(__file__).resolve()
+CONTRACTS_PATH = GENERATOR_PATH.with_name("mix2k_v4_contracts.py")
+DASHBOARD_CONTEXT_PATH = REPO_ROOT / "scripts/training/phase5_dashboard_v1_11.py"
 MAX_CONFIG_BYTES = 128 * 1024
 EXPECTED_DEV_AXES = {
     "schema_literacy": 40,
@@ -88,6 +90,18 @@ CITIES = ("서울", "부산", "대구", "인천", "광주", "대전", "울산", 
 
 class Mix2KV4BuildError(RuntimeError):
     """v1.5 runtime spec·dev 동결·private build 계약 위반."""
+
+
+def _absolute(path: Path) -> Path:
+    return Path(os.path.abspath(os.fspath(path)))
+
+
+def _reject_symlink_components(path: Path, label: str) -> None:
+    current = Path(path.anchor)
+    for part in path.parts[1:]:
+        current /= part
+        if current.is_symlink():
+            raise Mix2KV4BuildError(f"{label} 경로에 symlink component가 있습니다.")
 
 
 def _json_bytes(value: Any) -> bytes:
@@ -848,6 +862,10 @@ def build(
     tokenizer_path: Path,
     output_root: Path,
 ) -> dict[str, Any]:
+    _reject_symlink_components(config_path, "config")
+    _reject_symlink_components(ephemeris, "ephemeris")
+    _reject_symlink_components(tokenizer_path, "K0 model snapshot")
+    _reject_symlink_components(output_root, "private output")
     config = _load_config(config_path)
     model_files = _validate_model_snapshot(tokenizer_path, config)
     training_charts, dev_charts, periods, regression_chart = _runtime_material(config, ephemeris)
@@ -865,6 +883,14 @@ def build(
         "dataset_version": DATASET_VERSION,
         "config_sha256": sha256_file(config_path),
         "generator_sha256": sha256_file(GENERATOR_PATH),
+        "contracts_sha256": sha256_file(CONTRACTS_PATH),
+        "dashboard_context_source_sha256": sha256_file(DASHBOARD_CONTEXT_PATH),
+        "bound_prompt_sha256": sha256_file(BOUND_PROMPT),
+        "intake_prompt_sha256": sha256_file(INTAKE_PROMPT),
+        "runtime_release_registry_sha256": sha256_file(
+            REPO_ROOT / config["runtime"]["release_registry"]
+        ),
+        "ephemeris_sha256": sha256_file(ephemeris),
         "runtime_release_id": RUNTIME_RELEASE_ID,
         "base_model_repository": config["base_model"]["repository"],
         "base_model_revision": config["base_model"]["revision"],
@@ -936,10 +962,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     try:
         report = build(
-            config_path=args.config.resolve(),
-            ephemeris=args.ephemeris.resolve(),
-            tokenizer_path=args.tokenizer.resolve(),
-            output_root=args.output_root.resolve(),
+            config_path=_absolute(args.config),
+            ephemeris=_absolute(args.ephemeris),
+            tokenizer_path=_absolute(args.tokenizer),
+            output_root=_absolute(args.output_root),
         )
     except (Mix2KV4BuildError, Mix2KV4ContractError) as exc:
         print(str(exc), file=sys.stderr)
