@@ -167,3 +167,12 @@ Teacher 절반은 Claude 초안→Codex grounding 판정, 나머지 절반은 Co
 - immutable 산출물: 계약 SHA `dfd004bbe48ba84e009070ec30b25a805410dfa1127e5ef06776ab1312714fbb`를 포함한 private `build-45d72dbfca76`, build SHA `45d72dbfca76535d5290e55d478a5fca81f33d269a0fd895e34aea09625eb465`로 재동결했다. training spec·dev·projection·prompt SHA는 직전 build와 동일하다.
 - downstream pin: LoRA config SHA는 `b1a3c67bc17f64854f2df6cd6884e2bb6d8f3a1baeab2e128095e3421c55deec`, 5-arm 평가 config SHA는 `83b6aa65f855cc0e4ab241373e76fff40bdb5056c74769ffac0e117932656b47`로 갱신했다.
 - 다음 단계: `build-8ba27d3b5bb0`의 617개 통과 초안을 새 target으로 이관하고 자기모순 1개만 다시 작성한다. 이후 Codex 담당 1,000행을 채우고 Claude 상대 판정 및 반대 방향 생성을 순차적으로 진행한다.
+
+### 2026-09-03 - runtime 없는 HARD QA 경계 교정
+
+- 실행 진단: `build-45d72dbfca76` target은 Codex 현재 초안 975행까지 저장됐다. HARD QA는 runtime 원국 없이 `schema_rule` 하나만 허용하는데, 기존 공통 검사가 모든 HARD QA에 구체적인 원국 일주를 요구해 18개의 올바른 짧은 답변을 누락으로 오판했고, 원국·일주 두 단어가 모두 있는 다음 batch에서는 `None` 포함 검사 예외로 fail-closed 중단됐다. 미저장 batch 외의 state는 손상되지 않았다.
+- 계약 교정: `원국 전체와 일주는 같은 말이야?` 질문에만 원국 네 기둥과 일주 한 기둥의 구분을 요구하고, 나머지 HARD QA는 각 `schema_rule`과 기존 구조·금지 추론 계약으로 판정한다. runtime이 없는 질문에서 구체적인 natal value를 요구하지 않는다.
+- 안전 승계: current draft가 없고 상대 teacher 판정 이력도 없으며, deterministic 단계에서만 탈락한 최신 attempt에 한해 새 계약으로 재검증 이관한다. 기존 18개 HARD QA 시도를 재생해 18/18 PASS를 확인했으며, 상대 teacher 반려 결과나 과거 rewrite 예산은 재사용하지 않는다.
+- immutable 산출물: 계약 SHA `bdb6acb3c2211cd52a46f3f33b27ff103c07a40d2c9206922fd3eadc85e2761a`를 포함한 private `build-da9014c5f24a`, build SHA `da9014c5f24a6ffc239cd8bf1ec64d2ba50855caff6ec90438d5a41a4fefd980`로 재동결했다. training spec·dev·projection·prompt SHA는 직전 build와 동일하다.
+- downstream pin: LoRA config SHA는 `d7c5db056be927319617ac4b932acb9e37d9f9a2e6478598d20f2b7ce12fa728`, 5-arm 평가 config SHA는 `6e9eef929cd2d579636c3ffec5e8c93505ab2df9f9aa6de4b4da2e5b1f56eb20`으로 갱신했다.
+- 다음 단계: `build-45d72dbfca76` target의 현재 초안 975행과 복구 가능한 HARD QA 18행을 새 target에 재검증 이관한 뒤, 남은 Codex 7행을 작성하고 Claude 방향으로 전환한다.

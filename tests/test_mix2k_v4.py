@@ -302,6 +302,34 @@ class Mix2KV4ContractTests(unittest.TestCase):
             rejected_state["records"][spec["id"]]["status"], "needs_draft"
         )
 
+        recoverable_state = empty_state()
+        recoverable_source = deepcopy(source_record)
+        recoverable_source["status"] = "needs_draft"
+        recoverable_source["current_draft"] = None
+        recoverable_source["draft_attempts"][0]["deterministic_pass"] = False
+        recovered = _import_seed_drafts(
+            state=recoverable_state,
+            seed_state={
+                **seed_state,
+                "records": {spec["id"]: recoverable_source},
+            },
+            seed_state_sha256="c" * 64,
+            specs_by_id={spec["id"]: spec},
+        )
+        self.assertEqual(recovered["imported_current_drafts"], 0)
+        self.assertEqual(recovered["imported_recoverable_attempts"], 1)
+        recovered_attempt = recoverable_state["records"][spec["id"]][
+            "draft_attempts"
+        ][0]
+        self.assertEqual(
+            recovered_attempt["imported_source_kind"],
+            "deterministic_recheck",
+        )
+        self.assertEqual(
+            recoverable_state["records"][spec["id"]]["status"],
+            "needs_review",
+        )
+
     def test_codex_teacher_disables_host_read_tools(self) -> None:
         self.assertTrue(
             {
@@ -1997,6 +2025,39 @@ class Mix2KV4ContractTests(unittest.TestCase):
         hard_checklist = "\n".join(_mandatory_answer_checklist(hard_qa))
         self.assertNotIn("원국 일주=", hard_checklist)
         self.assertNotIn("선택 날짜의 동시 근거", hard_checklist)
+
+    def test_hard_qa_without_runtime_validates_only_requested_schema_rule(self) -> None:
+        spec = deepcopy(_spec())
+        spec["task_axis"] = "hard_fact_short_qa"
+        spec["runtime_binding"] = None
+        spec["allowed_fact_paths"] = ["schema_rule"]
+        spec["allowed_fact_values"] = [
+            "원국 전체는 네 기둥이고 일주는 그중 day 위치의 한 기둥이다."
+        ]
+        spec["prompt"] = [
+            {"role": "system", "content": "schema 규칙만 사용합니다."},
+            {"role": "user", "content": "원국 전체와 일주는 같은 말이야?"},
+        ]
+        self.assertNotIn(
+            "chart_and_day_pillar_distinction_omitted",
+            required_fact_errors(
+                spec,
+                "아니요. 원국 전체는 네 기둥이고 일주는 그중 한 기둥입니다.",
+            ),
+        )
+        self.assertIn(
+            "chart_and_day_pillar_distinction_omitted",
+            required_fact_errors(spec, "네, 같은 말입니다."),
+        )
+
+        spec["prompt"][-1]["content"] = "일간은 원국의 어느 값에서 읽어?"
+        self.assertEqual(
+            required_fact_errors(
+                spec,
+                "일간은 일주의 천간에서 읽고 day_master에서도 확인합니다.",
+            ),
+            [],
+        )
 
     def test_draft_schema_is_codex_compatible_and_validator_rejects_duplicates(
         self,

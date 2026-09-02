@@ -3039,10 +3039,21 @@ def required_fact_errors(spec: Mapping[str, Any], answer: str) -> list[str]:
             errors.append("provided_period_day_fact_omitted")
         if natal and not _explicit_natal_fact_paths(spec, answer):
             errors.append("provided_natal_fact_omitted")
-    if axis == "hard_fact_short_qa":
-        natal_day = _path_value(spec, "chart.hard_facts.pillars.day.ganzhi")
-        if "원국" not in answer or "일주" not in answer or natal_day not in answer:
-            errors.append("chart_and_day_pillar_distinction_omitted")
+    if (
+        axis == "hard_fact_short_qa"
+        and "원국 전체와 일주는 같은 말" in question
+        and (
+            "원국" not in answer
+            or "일주" not in answer
+            or re.search(
+                r"(?:네\s*기둥|그중|그\s*가운데|한\s*기둥|"
+                r"같(?:은\s*말이\s*아니|지\s*않)|서로\s*다른|구분)",
+                answer,
+            )
+            is None
+        )
+    ):
+        errors.append("chart_and_day_pillar_distinction_omitted")
     if axis == "general_korean_empathy" and (
         UNAMBIGUOUS_SAJU_INJECTION.search(answer)
         or re.search(

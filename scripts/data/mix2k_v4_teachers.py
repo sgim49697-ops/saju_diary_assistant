@@ -60,9 +60,9 @@ MAX_JSON_BYTES = 64 * 1024 * 1024
 MAX_PROVIDER_OUTPUT_BYTES = 32 * 1024 * 1024
 STATE_SCHEMA_VERSION = "1.1.0"
 SEED_IMPORT_VERSION = "1.0.0"
-EXPECTED_SPEC_BUILD_ID = "build-45d72dbfca76"
+EXPECTED_SPEC_BUILD_ID = "build-da9014c5f24a"
 EXPECTED_SPEC_BUILD_SHA256 = (
-    "45d72dbfca76535d5290e55d478a5fca81f33d269a0fd895e34aea09625eb465"
+    "da9014c5f24a6ffc239cd8bf1ec64d2ba50855caff6ec90438d5a41a4fefd980"
 )
 SPEC_IDENTITY_FIELDS = {
     "dataset_version",
@@ -1049,6 +1049,29 @@ def _seed_draft_provider(record: Mapping[str, Any]) -> str | None:
     return None
 
 
+def _recoverable_seed_attempt(
+    record: Mapping[str, Any],
+) -> tuple[dict[str, Any], str] | None:
+    """peer 판정 전 deterministic 탈락으로 멈춘 최신 초안만 복구한다."""
+
+    if (
+        record.get("status") not in {"needs_draft", "failed"}
+        or record.get("current_draft") is not None
+        or bool(record.get("review_attempts"))
+        or not isinstance(record.get("draft_attempts"), list)
+    ):
+        return None
+    for attempt in reversed(record["draft_attempts"]):
+        if (
+            isinstance(attempt, Mapping)
+            and attempt.get("deterministic_pass") is False
+            and isinstance(attempt.get("draft"), Mapping)
+            and attempt.get("provider") in PROVIDER_NAMES
+        ):
+            return deepcopy(dict(attempt["draft"])), str(attempt["provider"])
+    return None
+
+
 def _import_seed_drafts(
     *,
     state: dict[str, Any],
@@ -1084,21 +1107,33 @@ def _import_seed_drafts(
 
     imported = 0
     eligible = 0
+    eligible_current = 0
+    imported_current = 0
+    eligible_recoverable = 0
+    imported_recoverable = 0
     rejected = Counter()
     seed_records = seed_state["records"]
     for record_id in state["selection_order"]:
         source = seed_records.get(record_id)
-        if not isinstance(source, Mapping) or source.get("status") not in {
-            "needs_review",
-            "accepted",
-        }:
+        if not isinstance(source, Mapping):
             continue
         draft = source.get("current_draft")
-        if not isinstance(draft, Mapping):
-            rejected["missing_current_draft"] += 1
-            continue
+        provider: str | None
+        source_kind: str
+        if source.get("status") in {"needs_review", "accepted"} and isinstance(
+            draft, Mapping
+        ):
+            provider = _seed_draft_provider(source)
+            source_kind = "current_draft"
+            eligible_current += 1
+        else:
+            recoverable = _recoverable_seed_attempt(source)
+            if recoverable is None:
+                continue
+            draft, provider = recoverable
+            source_kind = "deterministic_recheck"
+            eligible_recoverable += 1
         eligible += 1
-        provider = _seed_draft_provider(source)
         if provider != specs_by_id[record_id]["drafter"]:
             rejected["draft_provider_mismatch"] += 1
             continue
@@ -1135,6 +1170,7 @@ def _import_seed_drafts(
                 "deterministic_pass": True,
                 "deterministic_error": None,
                 "imported_from_seed": True,
+                "imported_source_kind": source_kind,
                 "source_rewrites_used": source.get("rewrites_used"),
             }
         )
@@ -1142,14 +1178,26 @@ def _import_seed_drafts(
         target_record["status"] = "needs_review"
         target_record["feedback"] = ""
         imported += 1
+        if source_kind == "current_draft":
+            imported_current += 1
+        else:
+            imported_recoverable += 1
 
     report = {
         "version": SEED_IMPORT_VERSION,
         "source_state_sha256": seed_state_sha256,
         "source_state_schema_version": seed_state.get("schema_version"),
-        "eligible_current_drafts": eligible,
-        "imported_current_drafts": imported,
-        "rejected_current_drafts": eligible - imported,
+        "eligible_current_drafts": eligible_current,
+        "imported_current_drafts": imported_current,
+        "rejected_current_drafts": eligible_current - imported_current,
+        "eligible_recoverable_attempts": eligible_recoverable,
+        "imported_recoverable_attempts": imported_recoverable,
+        "rejected_recoverable_attempts": (
+            eligible_recoverable - imported_recoverable
+        ),
+        "eligible_drafts_total": eligible,
+        "imported_drafts_total": imported,
+        "rejected_drafts_total": eligible - imported,
         "rejection_counts": dict(sorted(rejected.items())),
         "peer_review_reused": False,
     }
