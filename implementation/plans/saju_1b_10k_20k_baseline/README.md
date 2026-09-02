@@ -4,7 +4,7 @@
 
 | 항목 | 값 |
 |---|---|
-| 문서 버전 | `4.0.4` |
+| 문서 버전 | `4.0.5` |
 | 정본화 기준일 | 2026-09-02 |
 | 주 장비 | NVIDIA GeForce RTX 5070 Ti 16GiB, WSL2 |
 | 주 모델 | `kakaocorp/kanana-2-1.3b-instruct@bf4786aa2a1908adce942d53976270132732f720` |
@@ -44,7 +44,7 @@
 
 Phase 상태 값은 `미시작`, `부분 진행`, `진행 중`, `차단`, `완료`만 사용한다. 앞 Phase가 `완료`가 아니면 뒤 Phase의 공식 산출물을 만들지 않는다.
 
-Phase 6 이후의 비봉인 계산기 연결 대화 진단은 [`grounded_dialogue_eval_plan.md`](../grounded_dialogue_eval_plan.md)를 따른다. 기존 500건 재채점과 2,048↔3,584 token 장문 GPU 진단은 완료됐다. 계산기는 이후 과거 공식 원국 전용 v1.4 chart-only release와 암호화 event adapter의 합성 local canary 130/130을 완료했고, dashboard v1.9 production binding과 합성 HTTP 100건까지 구현했다. feature는 기본 off이며 실제 GPU 1쌍·live canary 전에는 제한 활성화하지 않는다. 이 결과는 Phase 6 결정, v3.1, 추가 학습과 모델 승격 권한을 변경하지 않는다.
+Phase 6 이후의 비봉인 계산기 연결 대화 진단은 [`grounded_dialogue_eval_plan.md`](../grounded_dialogue_eval_plan.md)를 따른다. 기존 500건 재채점과 2,048↔3,584 token 장문 GPU 진단은 완료됐다. 계산기는 이후 과거 공식 원국 전용 v1.4 chart-only release와 암호화 event adapter의 합성 local canary 130/130을 완료했고, dashboard v1.9 production canary `build-ea53c272c1d6`에서 HTTP 100/100과 실제 K0·KI20 1쌍을 통과했다. 설정 기본값은 off이며 같은 구현의 운영 process만 명시 flag로 제한 활성화했다. 이 결과는 Phase 6 결정, v3.1, 추가 학습과 모델 승격 권한을 변경하지 않는다.
 
 ```text
 Phase 0 → Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5 → Phase 6
@@ -249,6 +249,12 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
 - 원본 SHA-256: `11dde66505aa3ca90834488a877a0f4db42512d9cb377880d935f71bc71d3724`
 
 ## 진행 기록
+
+- 2026-09-02
+  - 작업 요약: 학습 Phase와 분리된 chart-only dashboard v1.9 production canary `build-ea53c272c1d6`와 실제 공개 앱 통합 smoke를 완료했다.
+  - 변경 범위: 공개 aggregate·manifest만 새 build로 추적하고 key·원시 응답·출생 입력·runtime 식별자·공개 URL은 제외했다. 설정 기본 off를 유지하면서 검증된 process만 명시 flag로 chart-only 제한 활성화했다.
+  - 검증: 합성 HTTP 100/100, 실제 GPU K0·KI20 1쌍의 비어 있지 않은 출력과 동일 snapshot, live 정상 원국·경계·범위·변조·기간 차단, 공개 HTTPS·Origin/CSRF, 로그 비노출, 데스크톱·모바일 렌더링을 통과했다.
+  - 남은 이슈·후속 작업: baseline은 계속 `AUTOMATED_REPAIR_REQUIRED`이며 Phase 6, 데이터·checkpoint, MIX20K-v3.1, 추가 학습과 모델 승격 상태는 바뀌지 않는다.
 
 - 2026-09-02
   - 작업 요약: chart-only dashboard v1.9의 WSL2 운영 재기동에서 GPU 진단 실행 파일 탐색 실패가 상태 API 500으로 전파되지 않도록 축소 응답 회귀 방어를 추가했다.
