@@ -12,6 +12,7 @@ from unittest.mock import patch
 from scripts.data import mix2k_v4_teacher_recovery as recovery
 from scripts.data import mix2k_v4_teacher_recovery_call148 as recovery_call148
 from scripts.data import mix2k_v4_teacher_recovery_call149 as recovery_call149
+from scripts.data import mix2k_v4_teacher_recovery_call154 as recovery_call154
 from scripts.data.mix2k_v4_contracts import sha256_bytes
 
 
@@ -158,6 +159,66 @@ def _call149_pre_state() -> dict[str, object]:
             recovery_call149.first_recovery_event(),
             recovery_call149.second_recovery_event(),
         ],
+        "records": records,
+    }
+
+
+def _call154_pre_state() -> dict[str, object]:
+    records: dict[str, object] = {}
+    for record_id in recovery_call154.AFFECTED_RECORD_IDS:
+        failed = record_id in recovery_call154.FAILED_RECORD_IDS
+        draft_count = 3 if failed else 2
+        review_count = 1 if failed else 0
+        feedback = (
+            recovery_call154.OLD_FAILED_FEEDBACK
+            if failed
+            else recovery_call154.OLD_PENDING_FEEDBACK
+        )
+        current_draft = {"record_id": record_id, "answer": "기존 초안"} if failed else None
+        drafts = [
+            {
+                "provider": "codex",
+                "provider_call_sequence": 100 + index,
+                "execution_pass": "draft",
+                "attempt": index + 1,
+                "deterministic_pass": True,
+                "draft": {"record_id": record_id, "answer": "과거 초안"},
+            }
+            for index in range(draft_count)
+        ]
+        drafts[-1].update(
+            {
+                "provider_call_sequence": 154,
+                "deterministic_pass": False,
+                "deterministic_error": recovery_call154.OLD_FAILED_FEEDBACK,
+            }
+        )
+        records[record_id] = {
+            "spec_sha256": f"spec-{record_id}",
+            "status": "failed" if failed else "needs_draft",
+            "feedback": feedback,
+            "rewrites_used": 2,
+            "duplicate_rewrites_used": 0,
+            "current_draft": current_draft,
+            "accepted": None,
+            "draft_attempts": drafts,
+            "review_attempts": [
+                {
+                    "provider": "codex",
+                    "provider_call_sequence": 120,
+                    "execution_pass": "review",
+                    "attempt": 1,
+                    "review_mode": "same_provider_separate_pass",
+                    "review": {"decision": "FAIL", "record_id": record_id},
+                }
+            ][:review_count],
+        }
+    return {
+        "schema_version": "1.3.0",
+        "runner_sha256": recovery_call154.EXPECTED_RUNNER_SHA256,
+        "contracts_sha256": recovery_call154.EXPECTED_CONTRACTS_SHA256,
+        "provider_calls": 154,
+        "operator_recoveries": recovery_call154._prior_events(),
         "records": records,
     }
 
@@ -728,6 +789,117 @@ class Mix2KV4TeacherRecoveryTests(unittest.TestCase):
             self.assertTrue(
                 (target / recovery_call149.RECOVERY_MANIFEST_RELATIVE).is_file()
             )
+
+    def test_call154_recovery_preserves_attempts_and_counters(self) -> None:
+        before = _call154_pre_state()
+        before_payload = recovery_call154._json_bytes(before)
+        with patch.object(
+            recovery_call154,
+            "EXPECTED_PRE_STATE_SHA256",
+            sha256_bytes(before_payload),
+        ):
+            after = recovery_call154.build_recovered_state(before, before_payload)
+
+        self.assertEqual(before, _call154_pre_state())
+        self.assertEqual(before["provider_calls"], after["provider_calls"])
+        self.assertEqual(len(after["operator_recoveries"]), 4)
+        for record_id in recovery_call154.AFFECTED_RECORD_IDS:
+            expected_status = (
+                "needs_draft"
+                if record_id in recovery_call154.FAILED_RECORD_IDS
+                else before["records"][record_id]["status"]
+            )
+            self.assertEqual(after["records"][record_id]["status"], expected_status)
+            for field in (
+                "rewrites_used",
+                "duplicate_rewrites_used",
+                "draft_attempts",
+                "review_attempts",
+                "current_draft",
+                "accepted",
+            ):
+                self.assertEqual(
+                    after["records"][record_id][field],
+                    before["records"][record_id][field],
+                )
+
+    def test_call154_bundle_requires_exact_new_attempt_pair(self) -> None:
+        before = _call154_pre_state()
+        before_payload = recovery_call154._json_bytes(before)
+        before_sha = sha256_bytes(before_payload)
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory).resolve() / recovery_call154.TARGET_NAME
+            (target / recovery_call154.RECOVERY_DIR_RELATIVE).mkdir(parents=True)
+            with patch.object(
+                recovery_call154, "EXPECTED_PRE_STATE_SHA256", before_sha
+            ):
+                after = recovery_call154.build_recovered_state(
+                    before, before_payload
+                )
+                after_payload = recovery_call154._json_bytes(after)
+                manifest = recovery_call154._expected_manifest(after_payload)
+                (target / recovery_call154.BEFORE_STATE_RELATIVE).write_bytes(
+                    before_payload
+                )
+                (target / recovery_call154.AFTER_STATE_RELATIVE).write_bytes(
+                    after_payload
+                )
+                (target / recovery_call154.RECOVERY_MANIFEST_RELATIVE).write_bytes(
+                    recovery_call154._json_bytes(manifest)
+                )
+                completed = deepcopy(after)
+                completed["provider_calls"] = 156
+                for record_id in recovery_call154.AFFECTED_RECORD_IDS:
+                    record = completed["records"][record_id]
+                    draft = {"record_id": record_id, "answer": "교정 초안"}
+                    record["draft_attempts"].append(
+                        {
+                            "provider": "codex",
+                            "provider_call_sequence": 155,
+                            "execution_pass": "draft",
+                            "attempt": len(record["draft_attempts"]) + 1,
+                            "deterministic_pass": True,
+                            "draft": draft,
+                        }
+                    )
+                    review = {"decision": "PASS", "record_id": record_id}
+                    record["review_attempts"].append(
+                        {
+                            "provider": "codex",
+                            "provider_call_sequence": 156,
+                            "execution_pass": "review",
+                            "attempt": len(record["review_attempts"]) + 1,
+                            "review_mode": "same_provider_separate_pass",
+                            "review": review,
+                        }
+                    )
+                    record["current_draft"] = draft
+                    record["accepted"] = {
+                        "draft_provider": "codex",
+                        "review_provider": "codex",
+                        "review_mode": "same_provider_separate_pass",
+                        "draft": draft,
+                        "review": review,
+                    }
+                    record["status"] = "accepted"
+                report = recovery_call154.validate_recovery_bundle(
+                    target,
+                    completed,
+                    require_completed_provider_passes=True,
+                )
+                forged = deepcopy(completed)
+                forged["records"][recovery_call154.FAILED_RECORD_IDS[0]][
+                    "draft_attempts"
+                ].append(deepcopy(forged["records"][recovery_call154.FAILED_RECORD_IDS[0]]["draft_attempts"][-1]))
+                with self.assertRaisesRegex(
+                    recovery.Mix2KV4RecoveryError, "추가 attempt 수"
+                ):
+                    recovery_call154.validate_recovery_bundle(
+                        target,
+                        forged,
+                        require_completed_provider_passes=True,
+                    )
+        self.assertTrue(report["provider_draft_and_separate_review_passed"])
 
 
 if __name__ == "__main__":
