@@ -1,0 +1,51 @@
+{
+  "schema_version": "1.0.0",
+  "policy_id": "mix2k-v4-teacher-codex-fallback-v1",
+  "dataset_version": "mix2k-v4-chart-day-8k",
+  "spec_build": {
+    "build_id": "build-da9014c5f24a",
+    "build_sha256": "da9014c5f24a6ffc239cd8bf1ec64d2ba50855caff6ec90438d5a41a4fefd980"
+  },
+  "trigger": {
+    "code": "claude_subscription_session_limit",
+    "unavailable_provider": "claude",
+    "fallback_provider": "codex"
+  },
+  "provider_execution": {
+    "provider": "codex",
+    "configured_model_selector": "configured_subscription_default",
+    "auth_type": "chatgpt_subscription",
+    "cli_version_required": true
+  },
+  "seed_checkpoint": {
+    "target_name": "full-build-da9014c5f24a-a32df727-117d55cb",
+    "pipeline_state_sha256": "1824fb7ddedce9d3d125f42636bbb98a3cf85f59269bfbf0856d8875f1530f63",
+    "valid_current_cross_provider_passes": 195
+  },
+  "scope": {
+    "remaining_drafts": true,
+    "remaining_reviews": true,
+    "fact_rewrites": true,
+    "duplicate_repairs": true,
+    "same_provider_separate_pass_allowed": true,
+    "separate_ephemeral_review_call_required": true,
+    "cross_provider_claim_for_same_provider_allowed": false,
+    "preserve_valid_cross_provider_passes": true
+  },
+  "authorization": {
+    "source": "explicit_user_instruction",
+    "summary_ko": "Claude Code 사용량이 만료되면 남은 작업은 Codex만으로 진행한다.",
+    "authorized_date": "2026-09-03",
+    "training_scope": "lora_experimental_only",
+    "lora_experimental_training_allowed": true,
+    "production_promotion_allowed": false
+  },
+  "governance": {
+    "original_assigned_roles_preserved": true,
+    "actual_provider_provenance_required": true,
+    "same_provider_review_must_not_be_called_peer_review": true,
+    "development_targets_access_allowed": false,
+    "sealed_blind_access_allowed": false,
+    "api_keys_allowed": false
+  }
+}

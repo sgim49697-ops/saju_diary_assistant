@@ -54,12 +54,16 @@ from scripts.runtime.chart_day_model_projection import MODEL_PROJECTION_ID
 DEFAULT_OUTPUT_ROOT = REPO_ROOT / (
     "data/derived/saju_1b_baseline/mix2k-v4-chart-day-8k/teachers/v1.0.1"
 )
+CODEX_FALLBACK_POLICY_PATH = REPO_ROOT / (
+    "configs/data_versions/saju_1b_baseline/"
+    "mix2k-v4-teacher-codex-fallback-v1.0.0.json"
+)
 RUNNER_PATH = Path(__file__).resolve()
 CONTRACTS_PATH = RUNNER_PATH.with_name("mix2k_v4_contracts.py")
 MAX_JSON_BYTES = 64 * 1024 * 1024
 MAX_PROVIDER_OUTPUT_BYTES = 32 * 1024 * 1024
-STATE_SCHEMA_VERSION = "1.2.0"
-SEED_IMPORT_VERSION = "1.0.0"
+STATE_SCHEMA_VERSION = "1.3.0"
+SEED_IMPORT_VERSION = "1.1.0"
 MAXIMUM_DUPLICATE_REWRITE_ROUNDS = 3
 EXPECTED_SPEC_BUILD_ID = "build-da9014c5f24a"
 EXPECTED_SPEC_BUILD_SHA256 = (
@@ -86,6 +90,10 @@ SPEC_IDENTITY_FIELDS = {
     "projection_report_sha256",
 }
 PROVIDER_NAMES = frozenset({"claude", "codex"})
+STRICT_EXECUTION_MODE = "strict_cross_provider"
+CODEX_FALLBACK_EXECUTION_MODE = "authorized_codex_only_fallback"
+CROSS_PROVIDER_REVIEW_MODE = "cross_provider"
+SAME_PROVIDER_REVIEW_MODE = "same_provider_separate_pass"
 LAYOUT_NORMALIZER_VERSION = "sentence-whitespace-v1"
 PARTICLE_NORMALIZER_VERSION = "ganzhi-particle-v1"
 ANSWER_HORIZONTAL_SENTENCE_BOUNDARY = re.compile(
@@ -184,6 +192,145 @@ def _load_json(path: Path, label: str) -> dict[str, Any]:
     return value
 
 
+def _strict_execution_contract() -> dict[str, Any]:
+    return {
+        "mode": STRICT_EXECUTION_MODE,
+        "policy_id": None,
+        "policy_path": None,
+        "policy_sha256": None,
+        "unavailable_provider": None,
+        "fallback_provider": None,
+        "lora_experimental_training_allowed": False,
+        "production_promotion_allowed": False,
+        "configured_model_selector": None,
+        "auth_type": None,
+        "seed_target_name": None,
+        "seed_state_sha256": None,
+        "seed_cross_provider_passes": None,
+    }
+
+
+def _load_execution_policy(
+    path: Path, spec_manifest: Mapping[str, Any]
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """명시적으로 승인된 Codex-only 실행 overlay를 검증한다."""
+
+    _reject_symlink_components(path, "teacher execution policy")
+    if path != CODEX_FALLBACK_POLICY_PATH or path.is_symlink() or not path.is_file():
+        raise Mix2KV4TeacherError("허용되지 않은 teacher execution policy 경로입니다.")
+    policy = _load_json(path, "teacher execution policy")
+    expected = {
+        "schema_version": "1.0.0",
+        "policy_id": "mix2k-v4-teacher-codex-fallback-v1",
+        "dataset_version": DATASET_VERSION,
+        "spec_build": {
+            "build_id": EXPECTED_SPEC_BUILD_ID,
+            "build_sha256": EXPECTED_SPEC_BUILD_SHA256,
+        },
+        "trigger": {
+            "code": "claude_subscription_session_limit",
+            "unavailable_provider": "claude",
+            "fallback_provider": "codex",
+        },
+        "provider_execution": {
+            "provider": "codex",
+            "configured_model_selector": "configured_subscription_default",
+            "auth_type": "chatgpt_subscription",
+            "cli_version_required": True,
+        },
+        "seed_checkpoint": {
+            "target_name": "full-build-da9014c5f24a-a32df727-117d55cb",
+            "pipeline_state_sha256": (
+                "1824fb7ddedce9d3d125f42636bbb98a3cf85f59269bfbf0856d8875f1530f63"
+            ),
+            "valid_current_cross_provider_passes": 195,
+        },
+        "scope": {
+            "remaining_drafts": True,
+            "remaining_reviews": True,
+            "fact_rewrites": True,
+            "duplicate_repairs": True,
+            "same_provider_separate_pass_allowed": True,
+            "separate_ephemeral_review_call_required": True,
+            "cross_provider_claim_for_same_provider_allowed": False,
+            "preserve_valid_cross_provider_passes": True,
+        },
+        "authorization": {
+            "source": "explicit_user_instruction",
+            "summary_ko": (
+                "Claude Code 사용량이 만료되면 남은 작업은 Codex만으로 진행한다."
+            ),
+            "authorized_date": "2026-09-03",
+            "training_scope": "lora_experimental_only",
+            "lora_experimental_training_allowed": True,
+            "production_promotion_allowed": False,
+        },
+        "governance": {
+            "original_assigned_roles_preserved": True,
+            "actual_provider_provenance_required": True,
+            "same_provider_review_must_not_be_called_peer_review": True,
+            "development_targets_access_allowed": False,
+            "sealed_blind_access_allowed": False,
+            "api_keys_allowed": False,
+        },
+    }
+    if policy != expected or policy["spec_build"] != {
+        "build_id": spec_manifest.get("build_id"),
+        "build_sha256": spec_manifest.get("build_sha256"),
+    }:
+        raise Mix2KV4TeacherError("teacher execution policy 계약이 다릅니다.")
+    relative = path.relative_to(REPO_ROOT).as_posix()
+    contract = {
+        "mode": CODEX_FALLBACK_EXECUTION_MODE,
+        "policy_id": policy["policy_id"],
+        "policy_path": relative,
+        "policy_sha256": sha256_file(path),
+        "unavailable_provider": policy["trigger"]["unavailable_provider"],
+        "fallback_provider": policy["trigger"]["fallback_provider"],
+        "lora_experimental_training_allowed": policy["authorization"][
+            "lora_experimental_training_allowed"
+        ],
+        "production_promotion_allowed": policy["authorization"][
+            "production_promotion_allowed"
+        ],
+        "configured_model_selector": policy["provider_execution"][
+            "configured_model_selector"
+        ],
+        "auth_type": policy["provider_execution"]["auth_type"],
+        "seed_target_name": policy["seed_checkpoint"]["target_name"],
+        "seed_state_sha256": policy["seed_checkpoint"]["pipeline_state_sha256"],
+        "seed_cross_provider_passes": policy["seed_checkpoint"][
+            "valid_current_cross_provider_passes"
+        ],
+    }
+    return policy, contract
+
+
+def _actual_provider(assigned_provider: str, execution: Mapping[str, Any]) -> str:
+    if assigned_provider not in PROVIDER_NAMES:
+        raise Mix2KV4TeacherError("알 수 없는 assigned provider입니다.")
+    if execution.get("mode") == STRICT_EXECUTION_MODE:
+        return assigned_provider
+    if execution.get("mode") != CODEX_FALLBACK_EXECUTION_MODE:
+        raise Mix2KV4TeacherError("알 수 없는 teacher execution mode입니다.")
+    if assigned_provider == execution.get("unavailable_provider"):
+        fallback = execution.get("fallback_provider")
+        if fallback not in PROVIDER_NAMES:
+            raise Mix2KV4TeacherError("fallback provider 계약이 다릅니다.")
+        return str(fallback)
+    return assigned_provider
+
+
+def _review_mode(draft_provider: str, review_provider: str) -> str:
+    if draft_provider not in PROVIDER_NAMES or review_provider not in PROVIDER_NAMES:
+        raise Mix2KV4TeacherError("teacher 실제 provider provenance가 다릅니다.")
+    return (
+        CROSS_PROVIDER_REVIEW_MODE
+        if draft_provider != review_provider
+        else SAME_PROVIDER_REVIEW_MODE
+    )
+
+
 def _atomic_write(path: Path, payload: bytes) -> None:
     if not path.is_absolute():
         raise Mix2KV4TeacherError("teacher output file은 절대경로여야 합니다.")
@@ -238,32 +385,47 @@ def subscription_environment() -> dict[str, str]:
     return environment
 
 
-def _auth_check(environment: Mapping[str, str]) -> dict[str, str]:
-    if shutil.which("claude") is None or shutil.which("codex") is None:
-        raise Mix2KV4TeacherError("Claude·Codex subscription CLI가 모두 필요합니다.")
+def _auth_check(
+    environment: Mapping[str, str],
+    required_providers: Sequence[str] = tuple(sorted(PROVIDER_NAMES)),
+) -> dict[str, str]:
+    required = tuple(dict.fromkeys(required_providers))
+    if not required or any(provider not in PROVIDER_NAMES for provider in required):
+        raise Mix2KV4TeacherError("subscription auth 확인 provider가 다릅니다.")
+    missing = [provider for provider in required if shutil.which(provider) is None]
+    if missing:
+        raise Mix2KV4TeacherError(
+            "필요한 subscription CLI가 없습니다: " + ", ".join(missing)
+        )
     try:
-        claude = subprocess.run(
-            ["claude", "auth", "status", "--json"],
-            env=dict(environment),
-            text=True,
-            capture_output=True,
-            timeout=20,
-            check=False,
-        )
-        claude_status = json.loads(claude.stdout) if claude.returncode == 0 else None
-        codex = subprocess.run(
-            ["codex", "login", "status"],
-            env=dict(environment),
-            text=True,
-            capture_output=True,
-            timeout=20,
-            check=False,
-        )
+        claude_status = None
+        codex = None
+        if "claude" in required:
+            claude = subprocess.run(
+                ["claude", "auth", "status", "--json"],
+                env=dict(environment),
+                text=True,
+                capture_output=True,
+                timeout=20,
+                check=False,
+            )
+            claude_status = (
+                json.loads(claude.stdout) if claude.returncode == 0 else None
+            )
+        if "codex" in required:
+            codex = subprocess.run(
+                ["codex", "login", "status"],
+                env=dict(environment),
+                text=True,
+                capture_output=True,
+                timeout=20,
+                check=False,
+            )
     except (OSError, subprocess.SubprocessError, json.JSONDecodeError) as exc:
         raise Mix2KV4TeacherError(
             "subscription CLI auth 상태를 확인하지 못했습니다."
         ) from exc
-    if (
+    if "claude" in required and (
         not isinstance(claude_status, dict)
         or claude_status.get("loggedIn") is not True
         or claude_status.get("authMethod") != "claude.ai"
@@ -272,10 +434,76 @@ def _auth_check(environment: Mapping[str, str]) -> dict[str, str]:
         raise Mix2KV4TeacherError(
             "Claude가 claude.ai subscription auth 상태가 아닙니다."
         )
-    codex_status = (codex.stdout + codex.stderr).casefold()
-    if codex.returncode != 0 or "chatgpt" not in codex_status:
-        raise Mix2KV4TeacherError("Codex가 ChatGPT subscription auth 상태가 아닙니다.")
-    return {"claude": "claude.ai_subscription", "codex": "chatgpt_subscription"}
+    if "codex" in required:
+        if codex is None:
+            raise Mix2KV4TeacherError("Codex auth 확인 결과가 없습니다.")
+        codex_status = (codex.stdout + codex.stderr).casefold()
+        if codex.returncode != 0 or "chatgpt" not in codex_status:
+            raise Mix2KV4TeacherError(
+                "Codex가 ChatGPT subscription auth 상태가 아닙니다."
+            )
+    auth = {}
+    if "claude" in required:
+        auth["claude"] = "claude.ai_subscription"
+    if "codex" in required:
+        auth["codex"] = "chatgpt_subscription"
+    return auth
+
+
+def _codex_cli_version(environment: Mapping[str, str]) -> str:
+    """세션 식별자를 남기지 않고 실행 binary version만 고정한다."""
+
+    if shutil.which("codex") is None:
+        raise Mix2KV4TeacherError("Codex subscription CLI가 없습니다.")
+    try:
+        result = subprocess.run(
+            ["codex", "--version"],
+            env=dict(environment),
+            text=True,
+            capture_output=True,
+            timeout=20,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise Mix2KV4TeacherError("Codex CLI version을 확인하지 못했습니다.") from exc
+    version = result.stdout.strip()
+    if (
+        result.returncode != 0
+        or not version
+        or "\n" in version
+        or len(version.encode("utf-8")) > 256
+    ):
+        raise Mix2KV4TeacherError("Codex CLI version 결과가 안전하지 않습니다.")
+    return version
+
+
+def _execution_runtime_identity(
+    *,
+    config: Mapping[str, Any],
+    execution: Mapping[str, Any],
+    auth: Mapping[str, str],
+    environment: Mapping[str, str],
+) -> dict[str, Any] | None:
+    """Fallback actual provider의 재개 불변 실행 신원을 만든다."""
+
+    if execution.get("mode") == STRICT_EXECUTION_MODE:
+        return None
+    if execution.get("mode") != CODEX_FALLBACK_EXECUTION_MODE:
+        raise Mix2KV4TeacherError("알 수 없는 teacher execution mode입니다.")
+    selector = config.get("teacher", {}).get("codex_model")
+    if (
+        selector != execution.get("configured_model_selector")
+        or auth != {"codex": execution.get("auth_type")}
+        or not isinstance(execution.get("policy_sha256"), str)
+    ):
+        raise Mix2KV4TeacherError("Codex fallback 실행 신원 계약이 다릅니다.")
+    return {
+        "actual_provider": "codex",
+        "cli_version": _codex_cli_version(environment),
+        "configured_model_selector": selector,
+        "auth_type": auth["codex"],
+        "execution_policy_sha256": execution["policy_sha256"],
+    }
 
 
 def _validate_spec_build(
@@ -747,11 +975,24 @@ def draft_prompt(
 
 
 def review_prompt(
-    specs: Sequence[Mapping[str, Any]], drafts: Mapping[str, Mapping[str, Any]]
+    specs: Sequence[Mapping[str, Any]],
+    drafts: Mapping[str, Mapping[str, Any]],
+    review_mode: str = CROSS_PROVIDER_REVIEW_MODE,
 ) -> str:
+    if review_mode == CROSS_PROVIDER_REVIEW_MODE:
+        review_role = "당신은 반대 teacher의 초안을 교차 검수합니다."
+    elif review_mode == SAME_PROVIDER_REVIEW_MODE:
+        review_role = (
+            "당신은 앞선 Codex 초안 호출과 분리된 새 ephemeral 호출에서 독립 2차 "
+            "검수합니다. 이는 교차 provider peer review가 아니며, 초안을 옹호하지 말고 "
+            "동일한 FAIL 기준을 엄격히 적용합니다."
+        )
+    else:
+        raise Mix2KV4TeacherError("알 수 없는 review mode입니다.")
     sections: list[str] = [
         (
-            "당신은 반대 teacher의 초안을 교차 검수합니다. 정확한 field·label grounding, "
+            review_role
+            + " 정확한 field·label grounding, "
             "제공되지 않은 관계·신강약·예측 금지, 후속 evidence 일관성, 일반인이 "
             "이해할 수 있는 자연스러운 한국어, 최소 3줄·최소 3문장 계약, 의미 없는 입력 재진술 "
             "여부를 모두 보세요. 하나라도 문제가 있으면 FAIL이며 구체적 rewrite_instructions를 "
@@ -967,6 +1208,9 @@ def _new_state(
     selected: Sequence[Mapping[str, Any]],
     config_path: Path,
     spec_manifest_path: Path,
+    execution: Mapping[str, Any],
+    runtime_identity: Mapping[str, Any] | None,
+    seed_state_sha256: str | None,
 ) -> dict[str, Any]:
     return {
         "schema_version": STATE_SCHEMA_VERSION,
@@ -980,6 +1224,11 @@ def _new_state(
             canonical_json_bytes([row["id"] for row in selected])
         ),
         "selection_order": [row["id"] for row in selected],
+        "execution": dict(execution),
+        "runtime_identity": (
+            dict(runtime_identity) if runtime_identity is not None else None
+        ),
+        "seed_state_sha256": seed_state_sha256,
         "provider_calls": 0,
         "records": {
             row["id"]: {
@@ -1009,12 +1258,18 @@ def _load_or_create_state(
     selected: Sequence[Mapping[str, Any]],
     config_path: Path,
     spec_manifest_path: Path,
+    execution: Mapping[str, Any],
+    runtime_identity: Mapping[str, Any] | None,
+    seed_state_sha256: str | None,
 ) -> dict[str, Any]:
     expected = _new_state(
         mode=mode,
         selected=selected,
         config_path=config_path,
         spec_manifest_path=spec_manifest_path,
+        execution=execution,
+        runtime_identity=runtime_identity,
+        seed_state_sha256=seed_state_sha256,
     )
     path = _state_path(target)
     if not path.exists():
@@ -1031,6 +1286,9 @@ def _load_or_create_state(
         "spec_manifest_sha256",
         "selection_sha256",
         "selection_order",
+        "execution",
+        "runtime_identity",
+        "seed_state_sha256",
     ):
         if state.get(key) != expected[key]:
             raise Mix2KV4TeacherError(f"teacher pipeline state {key}가 다릅니다.")
@@ -1080,12 +1338,71 @@ def _recoverable_seed_attempt(
     return None
 
 
+def _seed_cross_acceptance(
+    *,
+    source: Mapping[str, Any],
+    spec: Mapping[str, Any],
+    candidate: Mapping[str, Any],
+) -> tuple[dict[str, Any] | None, str | None]:
+    """현재 초안과 byte-equivalent인 유효 교차 PASS만 승계한다."""
+
+    accepted = source.get("accepted")
+    if source.get("status") != "accepted" or not isinstance(accepted, Mapping):
+        return None, "not_accepted"
+    if accepted.get("draft") != source.get("current_draft"):
+        return None, "accepted_draft_not_current"
+    if accepted.get("draft") != candidate:
+        return None, "accepted_draft_normalized"
+    draft_provider = _seed_draft_provider(source)
+    review_provider = accepted.get("review_provider")
+    if (
+        draft_provider not in PROVIDER_NAMES
+        or review_provider not in PROVIDER_NAMES
+        or draft_provider == review_provider
+        or accepted.get("draft_provider") != draft_provider
+        or draft_provider != spec.get("drafter")
+        or review_provider != spec.get("reviewer")
+    ):
+        return None, "cross_provider_identity_mismatch"
+    review = accepted.get("review")
+    attempts = source.get("review_attempts")
+    if not isinstance(review, Mapping) or not isinstance(attempts, list):
+        return None, "review_provenance_missing"
+    latest_review = attempts[-1] if attempts else None
+    if (
+        not isinstance(latest_review, Mapping)
+        or latest_review.get("provider") != review_provider
+        or latest_review.get("review") != review
+    ):
+        return None, "review_attempt_mismatch"
+    try:
+        validate_draft(spec, candidate)
+        validate_review(spec, review)
+    except Mix2KV4ContractError:
+        return None, "current_contract_validation_failed"
+    if review.get("decision") != "PASS":
+        return None, "review_not_pass"
+    return {
+        "assigned_drafter": spec["drafter"],
+        "assigned_reviewer": spec["reviewer"],
+        "draft_provider": draft_provider,
+        "review_provider": review_provider,
+        "review_mode": CROSS_PROVIDER_REVIEW_MODE,
+        "fallback_used": False,
+        "draft": deepcopy(dict(candidate)),
+        "review": deepcopy(dict(review)),
+        "imported_cross_provider_pass": True,
+    }, None
+
+
 def _import_seed_drafts(
     *,
     state: dict[str, Any],
     seed_state: Mapping[str, Any],
     seed_state_sha256: str,
     specs_by_id: Mapping[str, dict[str, Any]],
+    execution: Mapping[str, Any] | None = None,
+    preserve_cross_provider_acceptances: bool = False,
 ) -> dict[str, Any]:
     """이전 불변 target의 초안을 새 계약으로 재검증해 review 대기로 이관한다."""
 
@@ -1110,6 +1427,14 @@ def _import_seed_drafts(
         or seed_state.get("mode") != state.get("mode")
         or seed_state.get("selection_order") != state.get("selection_order")
         or not isinstance(seed_state.get("records"), Mapping)
+        or (
+            preserve_cross_provider_acceptances
+            and (
+                seed_state.get("contracts_sha256") != state.get("contracts_sha256")
+                or seed_state.get("spec_manifest_sha256")
+                != state.get("spec_manifest_sha256")
+            )
+        )
     ):
         raise Mix2KV4TeacherError("teacher seed selection identity가 다릅니다.")
 
@@ -1119,11 +1444,20 @@ def _import_seed_drafts(
     imported_current = 0
     eligible_recoverable = 0
     imported_recoverable = 0
+    inherited_cross_provider_passes = 0
+    rejected_cross_provider_passes = Counter()
     rejected = Counter()
     seed_records = seed_state["records"]
     for record_id in state["selection_order"]:
         source = seed_records.get(record_id)
         if not isinstance(source, Mapping):
+            continue
+        if (
+            preserve_cross_provider_acceptances
+            and source.get("spec_sha256")
+            != state["records"][record_id].get("spec_sha256")
+        ):
+            rejected["spec_sha256_mismatch"] += 1
             continue
         draft = source.get("current_draft")
         provider: str | None
@@ -1142,7 +1476,11 @@ def _import_seed_drafts(
             source_kind = "deterministic_recheck"
             eligible_recoverable += 1
         eligible += 1
-        if provider != specs_by_id[record_id]["drafter"]:
+        assigned_provider = specs_by_id[record_id]["drafter"]
+        allowed_seed_providers = {assigned_provider}
+        if execution is not None:
+            allowed_seed_providers.add(_actual_provider(assigned_provider, execution))
+        if provider not in allowed_seed_providers:
             rejected["draft_provider_mismatch"] += 1
             continue
         provider_draft = deepcopy(dict(draft))
@@ -1165,7 +1503,10 @@ def _import_seed_drafts(
         target_record = state["records"][record_id]
         target_record["draft_attempts"].append(
             {
+                "assigned_provider": assigned_provider,
                 "provider": provider,
+                "fallback_used": provider != assigned_provider,
+                "execution_pass": "draft",
                 "attempt": 1,
                 "provider_draft": provider_draft,
                 "draft": candidate,
@@ -1183,7 +1524,33 @@ def _import_seed_drafts(
             }
         )
         target_record["current_draft"] = candidate
-        target_record["status"] = "needs_review"
+        inherited = None
+        if preserve_cross_provider_acceptances:
+            inherited, reason = _seed_cross_acceptance(
+                source=source,
+                spec=specs_by_id[record_id],
+                candidate=candidate,
+            )
+            if source.get("status") == "accepted" and inherited is None:
+                rejected_cross_provider_passes[reason or "unknown"] += 1
+        if inherited is not None:
+            target_record["review_attempts"].append(
+                {
+                    "assigned_provider": specs_by_id[record_id]["reviewer"],
+                    "provider": inherited["review_provider"],
+                    "review_mode": CROSS_PROVIDER_REVIEW_MODE,
+                    "fallback_used": False,
+                    "execution_pass": "review",
+                    "attempt": 1,
+                    "review": deepcopy(inherited["review"]),
+                    "imported_from_seed": True,
+                }
+            )
+            target_record["accepted"] = inherited
+            target_record["status"] = "accepted"
+            inherited_cross_provider_passes += 1
+        else:
+            target_record["status"] = "needs_review"
         target_record["feedback"] = ""
         imported += 1
         if source_kind == "current_draft":
@@ -1207,15 +1574,21 @@ def _import_seed_drafts(
         "imported_drafts_total": imported,
         "rejected_drafts_total": eligible - imported,
         "rejection_counts": dict(sorted(rejected.items())),
+        "cross_provider_passes_inherited": inherited_cross_provider_passes,
+        "cross_provider_pass_rejection_counts": dict(
+            sorted(rejected_cross_provider_passes.items())
+        ),
+        "same_provider_passes_inherited": 0,
         "peer_review_reused": False,
+        "legacy_peer_review_reused": False,
     }
     state["seed_import"] = report
     return report
 
 
 def _load_seed_state(
-    *, seed_target: Path, output_root: Path, current_target: Path
-) -> tuple[dict[str, Any], str]:
+    *, seed_target: Path, output_root: Path, current_target: Path | None = None
+) -> tuple[dict[str, Any], str, bytes]:
     """동일 private output root의 과거 target state만 seed로 연다."""
 
     _reject_symlink_components(seed_target, "teacher seed target")
@@ -1228,10 +1601,21 @@ def _load_seed_state(
     ):
         raise Mix2KV4TeacherError("teacher seed target 경로가 안전하지 않습니다.")
     state_path = _state_path(seed_target)
-    return (
-        _load_json(state_path, "teacher seed pipeline state"),
-        sha256_file(state_path),
-    )
+    _reject_symlink_components(state_path, "teacher seed pipeline state")
+    if (
+        state_path.is_symlink()
+        or not state_path.is_file()
+        or not 1 <= state_path.stat().st_size <= MAX_JSON_BYTES
+    ):
+        raise Mix2KV4TeacherError("teacher seed pipeline state가 안전하지 않습니다.")
+    try:
+        payload = state_path.read_bytes()
+        state = json.loads(payload)
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        raise Mix2KV4TeacherError("teacher seed pipeline state를 읽지 못했습니다.") from exc
+    if not isinstance(state, dict):
+        raise Mix2KV4TeacherError("teacher seed pipeline state는 object여야 합니다.")
+    return state, sha256_bytes(payload), payload
 
 
 def _status_counts(state: Mapping[str, Any]) -> dict[str, int]:
@@ -1259,8 +1643,14 @@ def _process_draft_batch(
     environment: Mapping[str, str],
     timeout_seconds: int,
     maximum_rewrites: int,
+    execution: Mapping[str, Any] | None = None,
 ) -> float:
+    execution = execution or _strict_execution_contract()
     specs = [specs_by_id[record_id] for record_id in record_ids]
+    if any(
+        provider != _actual_provider(spec["drafter"], execution) for spec in specs
+    ):
+        raise Mix2KV4TeacherError("draft assigned/actual provider 조합이 다릅니다.")
     feedback = {
         record_id: state["records"][record_id]["feedback"] for record_id in record_ids
     }
@@ -1289,7 +1679,11 @@ def _process_draft_batch(
             specs_by_id[record_id], draft
         )
         attempt = {
+            "assigned_provider": specs_by_id[record_id]["drafter"],
             "provider": provider,
+            "fallback_used": provider != specs_by_id[record_id]["drafter"],
+            "execution_pass": "draft",
+            "provider_call_sequence": state["provider_calls"] + 1,
             "attempt": len(record["draft_attempts"]) + 1,
             "provider_draft": provider_draft,
             "draft": draft,
@@ -1349,15 +1743,22 @@ def _process_review_batch(
     environment: Mapping[str, str],
     timeout_seconds: int,
     maximum_rewrites: int,
+    review_mode: str = CROSS_PROVIDER_REVIEW_MODE,
+    execution: Mapping[str, Any] | None = None,
 ) -> float:
+    execution = execution or _strict_execution_contract()
     specs = [specs_by_id[record_id] for record_id in record_ids]
+    if any(
+        provider != _actual_provider(spec["reviewer"], execution) for spec in specs
+    ):
+        raise Mix2KV4TeacherError("review assigned/actual provider 조합이 다릅니다.")
     current = {
         record_id: state["records"][record_id]["current_draft"]
         for record_id in record_ids
     }
     call = _provider_call(
         provider=provider,
-        prompt=review_prompt(specs, current),
+        prompt=review_prompt(specs, current, review_mode=review_mode),
         schema=_review_schema(record_ids),
         environment=environment,
         timeout_seconds=timeout_seconds,
@@ -1372,7 +1773,12 @@ def _process_review_batch(
             raise Mix2KV4TeacherError(str(exc)) from exc
         record["review_attempts"].append(
             {
+                "assigned_provider": specs_by_id[record_id]["reviewer"],
                 "provider": provider,
+                "review_mode": review_mode,
+                "fallback_used": provider != specs_by_id[record_id]["reviewer"],
+                "execution_pass": "review",
+                "provider_call_sequence": state["provider_calls"] + 1,
                 "attempt": len(record["review_attempts"]) + 1,
                 "review": review,
             }
@@ -1382,10 +1788,23 @@ def _process_review_batch(
                 validate_draft(specs_by_id[record_id], record["current_draft"])
             except Mix2KV4ContractError as exc:
                 raise Mix2KV4TeacherError(str(exc)) from exc
+            draft_provider = _seed_draft_provider(record)
+            if draft_provider not in PROVIDER_NAMES:
+                raise Mix2KV4TeacherError("현재 초안의 실제 provider를 확인할 수 없습니다.")
+            actual_review_mode = _review_mode(draft_provider, provider)
+            if actual_review_mode != review_mode:
+                raise Mix2KV4TeacherError("review mode와 실제 provider 조합이 다릅니다.")
             record["status"] = "accepted"
             record["accepted"] = {
-                "draft_provider": specs_by_id[record_id]["drafter"],
+                "assigned_drafter": specs_by_id[record_id]["drafter"],
+                "assigned_reviewer": specs_by_id[record_id]["reviewer"],
+                "draft_provider": draft_provider,
                 "review_provider": provider,
+                "review_mode": actual_review_mode,
+                "fallback_used": (
+                    draft_provider != specs_by_id[record_id]["drafter"]
+                    or provider != specs_by_id[record_id]["reviewer"]
+                ),
                 "draft": record["current_draft"],
                 "review": review,
             }
@@ -1397,7 +1816,12 @@ def _process_review_batch(
         else:
             record["rewrites_used"] += 1
             record["status"] = "needs_draft"
-            record["feedback"] = "Peer review FAIL: " + _review_feedback(review)
+            label = (
+                "Peer review FAIL: "
+                if review_mode == CROSS_PROVIDER_REVIEW_MODE
+                else "Independent same-provider review FAIL: "
+            )
+            record["feedback"] = label + _review_feedback(review)
     state["provider_calls"] += 1
     return float(call["elapsed_seconds"])
 
@@ -1443,8 +1867,11 @@ def _duplicate_repairs(state: dict[str, Any], *, normalized_maximum: int) -> int
 
 
 def _candidate_rows(
-    state: Mapping[str, Any], specs_by_id: Mapping[str, Mapping[str, Any]]
+    state: Mapping[str, Any],
+    specs_by_id: Mapping[str, Mapping[str, Any]],
+    execution: Mapping[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
+    execution = execution or _strict_execution_contract()
     rows: list[dict[str, Any]] = []
     for record_id in state["selection_order"]:
         record = state["records"][record_id]
@@ -1452,9 +1879,43 @@ def _candidate_rows(
             raise Mix2KV4TeacherError("accepted candidate 상태가 완결되지 않았습니다.")
         spec = specs_by_id[record_id]
         accepted = record["accepted"]
+        teacher = {
+            "drafter": accepted["draft_provider"],
+            "reviewer": accepted["review_provider"],
+            "peer_review": "PASS",
+            "deterministic_validation": "PASS",
+            "rewrites_used": record["rewrites_used"],
+            "used_fact_paths": accepted["draft"]["used_fact_paths"],
+            "used_fact_values": accepted["draft"]["used_fact_values"],
+            "soft_interpretation_used": accepted["draft"][
+                "soft_interpretation_used"
+            ],
+            "limitations": accepted["draft"]["limitations"],
+        }
+        schema_version = "1.0.0"
+        if execution["mode"] == CODEX_FALLBACK_EXECUTION_MODE:
+            schema_version = "1.1.0"
+            teacher = {
+                "assigned_drafter": spec["drafter"],
+                "assigned_reviewer": spec["reviewer"],
+                "actual_drafter": accepted["draft_provider"],
+                "actual_reviewer": accepted["review_provider"],
+                "review_mode": accepted["review_mode"],
+                "review_result": "PASS",
+                "deterministic_validation": "PASS",
+                "fallback_policy_id": execution["policy_id"],
+                "fallback_used": accepted["fallback_used"],
+                "rewrites_used": record["rewrites_used"],
+                "used_fact_paths": accepted["draft"]["used_fact_paths"],
+                "used_fact_values": accepted["draft"]["used_fact_values"],
+                "soft_interpretation_used": accepted["draft"][
+                    "soft_interpretation_used"
+                ],
+                "limitations": accepted["draft"]["limitations"],
+            }
         rows.append(
             {
-                "schema_version": "1.0.0",
+                "schema_version": schema_version,
                 "dataset_version": DATASET_VERSION,
                 "id": record_id,
                 "conversation_id": spec["conversation_id"],
@@ -1469,19 +1930,7 @@ def _candidate_rows(
                     if spec["runtime_binding"] is not None
                     else None
                 ),
-                "teacher": {
-                    "drafter": accepted["draft_provider"],
-                    "reviewer": accepted["review_provider"],
-                    "peer_review": "PASS",
-                    "deterministic_validation": "PASS",
-                    "rewrites_used": record["rewrites_used"],
-                    "used_fact_paths": accepted["draft"]["used_fact_paths"],
-                    "used_fact_values": accepted["draft"]["used_fact_values"],
-                    "soft_interpretation_used": accepted["draft"][
-                        "soft_interpretation_used"
-                    ],
-                    "limitations": accepted["draft"]["limitations"],
-                },
+                "teacher": teacher,
                 "restricted_local_only": False,
             }
         )
@@ -1495,8 +1944,10 @@ def _write_candidates(
     state: Mapping[str, Any],
     specs_by_id: Mapping[str, Mapping[str, Any]],
     spec_manifest: Mapping[str, Any],
+    execution: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
-    rows = _candidate_rows(state, specs_by_id)
+    execution = execution or _strict_execution_contract()
+    rows = _candidate_rows(state, specs_by_id, execution)
     payload = jsonl_bytes(rows)
     relative = (
         "accepted/training_candidates_2000.jsonl"
@@ -1518,10 +1969,26 @@ def _write_candidates(
         "candidate_path": relative,
         "candidate_sha256": sha256_bytes(payload),
         "teacher_roles": dict(
-            sorted(Counter(row["teacher"]["drafter"] for row in rows).items())
+            sorted(
+                Counter(
+                    row["teacher"][
+                        "drafter" if "drafter" in row["teacher"] else "actual_drafter"
+                    ]
+                    for row in rows
+                ).items()
+            )
         ),
         "review_roles": dict(
-            sorted(Counter(row["teacher"]["reviewer"] for row in rows).items())
+            sorted(
+                Counter(
+                    row["teacher"][
+                        "reviewer"
+                        if "reviewer" in row["teacher"]
+                        else "actual_reviewer"
+                    ]
+                    for row in rows
+                ).items()
+            )
         ),
         "peer_review_passed": True,
         "deterministic_validation_passed": True,
@@ -1549,6 +2016,44 @@ def _write_candidates(
         "training_execution_allowed": False,
         "training_performed": False,
     }
+    if execution["mode"] == CODEX_FALLBACK_EXECUTION_MODE:
+        assigned_drafters = Counter(
+            row["teacher"]["assigned_drafter"] for row in rows
+        )
+        assigned_reviewers = Counter(
+            row["teacher"]["assigned_reviewer"] for row in rows
+        )
+        actual_drafters = Counter(row["teacher"]["actual_drafter"] for row in rows)
+        actual_reviewers = Counter(
+            row["teacher"]["actual_reviewer"] for row in rows
+        )
+        review_modes = Counter(row["teacher"]["review_mode"] for row in rows)
+        manifest.update(
+            {
+                "schema_version": "1.1.0",
+                "teacher_contract_mode": CODEX_FALLBACK_EXECUTION_MODE,
+                "assigned_teacher_roles": dict(sorted(assigned_drafters.items())),
+                "assigned_review_roles": dict(sorted(assigned_reviewers.items())),
+                "actual_teacher_roles": dict(sorted(actual_drafters.items())),
+                "actual_review_roles": dict(sorted(actual_reviewers.items())),
+                "review_modes": dict(sorted(review_modes.items())),
+                "peer_review_passed": False,
+                "all_second_pass_reviews_passed": True,
+                "all_rows_cross_provider_reviewed": review_modes == {
+                    CROSS_PROVIDER_REVIEW_MODE: len(rows)
+                },
+                "execution_policy_id": execution["policy_id"],
+                "execution_policy_path": execution["policy_path"],
+                "execution_policy_sha256": execution["policy_sha256"],
+                "runtime_identity": state["runtime_identity"],
+                "seed_state_sha256": state["seed_state_sha256"],
+                "seed_state_snapshot_path": "provenance/seed_pipeline_state.json",
+                "seed_import": state.get("seed_import"),
+                "pipeline_state_sha256": sha256_file(_state_path(target)),
+                "lora_experimental_training_allowed": True,
+                "production_promotion_allowed": False,
+            }
+        )
     _atomic_write(target / "teacher_manifest.json", _json_bytes(manifest))
     return manifest
 
@@ -1565,22 +2070,57 @@ def run_pipeline(
     max_provider_calls: int,
     provider_only: str | None = None,
     seed_target: Path | None = None,
+    execution_policy: Path | None = None,
 ) -> dict[str, Any]:
     _reject_symlink_components(config_path, "config")
     _reject_symlink_components(spec_build, "spec build")
     _reject_symlink_components(output_root, "private output")
     config, spec_manifest, specs = _validate_spec_build(spec_build, config_path)
+    if execution_policy is None:
+        execution = _strict_execution_contract()
+    else:
+        _, execution = _load_execution_policy(execution_policy, spec_manifest)
+    fallback = execution["mode"] == CODEX_FALLBACK_EXECUTION_MODE
+    if fallback and (seed_target is None or provider_only != "codex"):
+        raise Mix2KV4TeacherError(
+            "Codex-only fallback은 --seed-target과 --provider-only codex가 필요합니다."
+        )
     selected = _selection(specs, mode, rows_per_provider)
     if mode == "full" and len(selected) != EXPECTED_ROWS:
         raise Mix2KV4TeacherError("full teacher selection이 2,000행이 아닙니다.")
     if not selected:
         raise Mix2KV4TeacherError("teacher selection이 비었습니다.")
+    seed_state = None
+    seed_state_sha256 = None
+    seed_payload = None
+    if seed_target is not None:
+        seed_state, seed_state_sha256, seed_payload = _load_seed_state(
+            seed_target=seed_target,
+            output_root=output_root,
+        )
+        if fallback and (
+            seed_target.name != execution["seed_target_name"]
+            or seed_state_sha256 != execution["seed_state_sha256"]
+        ):
+            raise Mix2KV4TeacherError("Codex fallback seed checkpoint가 다릅니다.")
+    environment = subscription_environment()
+    required_providers = ("codex",) if fallback else tuple(sorted(PROVIDER_NAMES))
+    auth = _auth_check(environment, required_providers)
+    runtime_identity = _execution_runtime_identity(
+        config=config,
+        execution=execution,
+        auth=auth,
+        environment=environment,
+    )
     runner_sha = sha256_file(RUNNER_PATH)
     code_sha = sha256_bytes(
         canonical_json_bytes(
             {
                 "runner_sha256": runner_sha,
                 "contracts_sha256": sha256_file(CONTRACTS_PATH),
+                "execution": execution,
+                "runtime_identity": runtime_identity,
+                "seed_state_sha256": seed_state_sha256,
             }
         )
     )
@@ -1596,29 +2136,38 @@ def run_pipeline(
             fcntl.flock(lock_descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError as exc:
             raise Mix2KV4TeacherError("teacher pipeline이 이미 실행 중입니다.") from exc
-        environment = subscription_environment()
-        auth = _auth_check(environment)
+        if seed_payload is not None:
+            seed_snapshot = target / "provenance/seed_pipeline_state.json"
+            if seed_snapshot.exists():
+                if seed_snapshot.is_symlink() or seed_snapshot.read_bytes() != seed_payload:
+                    raise Mix2KV4TeacherError("teacher seed snapshot identity가 다릅니다.")
+            else:
+                _atomic_write(seed_snapshot, seed_payload)
         state = _load_or_create_state(
             target=target,
             mode=mode,
             selected=selected,
             config_path=config_path,
             spec_manifest_path=spec_build / "build_manifest.json",
+            execution=execution,
+            runtime_identity=runtime_identity,
+            seed_state_sha256=seed_state_sha256,
         )
         specs_by_id = {row["id"]: row for row in selected}
         seed_import = state.get("seed_import")
-        if seed_target is not None:
-            seed_state, seed_state_sha256 = _load_seed_state(
-                seed_target=seed_target,
-                output_root=output_root,
-                current_target=target,
-            )
+        if seed_state is not None and seed_state_sha256 is not None:
             seed_import = _import_seed_drafts(
                 state=state,
                 seed_state=seed_state,
                 seed_state_sha256=seed_state_sha256,
                 specs_by_id=specs_by_id,
+                execution=execution,
+                preserve_cross_provider_acceptances=fallback,
             )
+            if fallback and seed_import.get("cross_provider_passes_inherited") != execution[
+                "seed_cross_provider_passes"
+            ]:
+                raise Mix2KV4TeacherError("Codex fallback 교차 PASS 승계 수가 다릅니다.")
             _atomic_write(_state_path(target), _json_bytes(state))
             print(
                 "seed_import="
@@ -1644,12 +2193,18 @@ def run_pipeline(
                 review_ids = [
                     record_id
                     for record_id in review_ids
-                    if specs_by_id[record_id]["reviewer"] == provider_only
+                    if _actual_provider(
+                        specs_by_id[record_id]["reviewer"], execution
+                    )
+                    == provider_only
                 ]
                 draft_ids = [
                     record_id
                     for record_id in draft_ids
-                    if specs_by_id[record_id]["drafter"] == provider_only
+                    if _actual_provider(
+                        specs_by_id[record_id]["drafter"], execution
+                    )
+                    == provider_only
                 ]
             if not review_ids and not draft_ids:
                 if provider_only is not None and (
@@ -1671,11 +2226,25 @@ def run_pipeline(
                 break
             if review_ids:
                 first = review_ids[0]
-                provider = specs_by_id[first]["reviewer"]
+                provider = _actual_provider(specs_by_id[first]["reviewer"], execution)
+                draft_provider = _seed_draft_provider(state["records"][first])
+                if draft_provider not in PROVIDER_NAMES:
+                    raise Mix2KV4TeacherError(
+                        "review 대상 현재 초안의 실제 provider가 없습니다."
+                    )
+                batch_review_mode = _review_mode(draft_provider, provider)
                 batch = [
                     record_id
                     for record_id in review_ids
-                    if specs_by_id[record_id]["reviewer"] == provider
+                    if _actual_provider(
+                        specs_by_id[record_id]["reviewer"], execution
+                    )
+                    == provider
+                    and _review_mode(
+                        str(_seed_draft_provider(state["records"][record_id])),
+                        provider,
+                    )
+                    == batch_review_mode
                 ][:shard_rows]
                 elapsed = _process_review_batch(
                     record_ids=batch,
@@ -1685,15 +2254,20 @@ def run_pipeline(
                     environment=environment,
                     timeout_seconds=timeout_seconds,
                     maximum_rewrites=maximum_rewrites,
+                    review_mode=batch_review_mode,
+                    execution=execution,
                 )
                 phase = "review"
             else:
                 first = draft_ids[0]
-                provider = specs_by_id[first]["drafter"]
+                provider = _actual_provider(specs_by_id[first]["drafter"], execution)
                 batch = [
                     record_id
                     for record_id in draft_ids
-                    if specs_by_id[record_id]["drafter"] == provider
+                    if _actual_provider(
+                        specs_by_id[record_id]["drafter"], execution
+                    )
+                    == provider
                 ][:shard_rows]
                 elapsed = _process_draft_batch(
                     record_ids=batch,
@@ -1703,6 +2277,7 @@ def run_pipeline(
                     environment=environment,
                     timeout_seconds=timeout_seconds,
                     maximum_rewrites=maximum_rewrites,
+                    execution=execution,
                 )
                 phase = "draft"
             calls_this_run += 1
@@ -1722,6 +2297,7 @@ def run_pipeline(
                 state=state,
                 specs_by_id=specs_by_id,
                 spec_manifest=spec_manifest,
+                execution=execution,
             )
         return {
             "schema_version": "1.0.0",
@@ -1736,6 +2312,8 @@ def run_pipeline(
             "provider_only": provider_only,
             "seed_import": seed_import,
             "auth": auth,
+            "execution": execution,
+            "runtime_identity": runtime_identity,
             "manifest": manifest,
         }
     finally:
@@ -1759,7 +2337,8 @@ def _parser() -> argparse.ArgumentParser:
         choices=tuple(sorted(PROVIDER_NAMES)),
         help=(
             "지정 provider가 담당하는 pending draft/review만 처리합니다. "
-            "다른 provider의 교차 PASS 요건은 유지됩니다."
+            "기본 경로의 교차 PASS 요건은 유지되며, 승인 fallback은 actual provider를 "
+            "별도 기록합니다."
         ),
     )
     parser.add_argument(
@@ -1767,7 +2346,16 @@ def _parser() -> argparse.ArgumentParser:
         type=Path,
         help=(
             "동일 private output root의 과거 teacher target에서 현재 초안만 "
-            "새 spec으로 재검증해 이관합니다. 과거 peer PASS는 재사용하지 않습니다."
+            "새 spec으로 재검증해 이관합니다. 기본 경로는 review를 재사용하지 않고, "
+            "승인 fallback은 현재 초안과 일치하는 유효 교차-provider PASS만 승계합니다."
+        ),
+    )
+    parser.add_argument(
+        "--execution-policy",
+        type=Path,
+        help=(
+            "명시 승인된 hash-bound provider fallback overlay입니다. 미지정 시 기존 "
+            "교차-provider 계약을 유지합니다."
         ),
     )
     return parser
@@ -1796,6 +2384,11 @@ def main(argv: Sequence[str] | None = None) -> int:
             provider_only=args.provider_only,
             seed_target=(
                 _absolute(args.seed_target) if args.seed_target is not None else None
+            ),
+            execution_policy=(
+                _absolute(args.execution_policy)
+                if args.execution_policy is not None
+                else None
             ),
         )
     except (Mix2KV4TeacherError, Mix2KV4ContractError) as exc:

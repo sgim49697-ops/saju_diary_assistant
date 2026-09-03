@@ -22,17 +22,38 @@ from scripts.data.mix2k_v4_contracts import (
     flatten_runtime_facts,
     required_fact_errors,
     sentence_count,
+    sha256_bytes,
+    sha256_file,
     structural_claim_errors,
     validate_draft,
     validate_spec,
 )
-from scripts.data.mix2k_v4_finalize import select_training_max_length
+from scripts.data.mix2k_v4_finalize import (
+    MAX_JSON_BYTES as FINALIZER_MAX_JSON_BYTES,
+)
+from scripts.data.mix2k_v4_finalize import (
+    Mix2KV4FinalizeError,
+    _load_json_snapshot,
+    _teacher_inputs,
+    _validate_candidates,
+    select_training_max_length,
+)
 from scripts.data.mix2k_v4_teachers import (
     CODEX_DISABLED_FEATURES,
+    CODEX_FALLBACK_EXECUTION_MODE,
+    CODEX_FALLBACK_POLICY_PATH,
+    CROSS_PROVIDER_REVIEW_MODE,
     MAXIMUM_DUPLICATE_REWRITE_ROUNDS,
+    SAME_PROVIDER_REVIEW_MODE,
+    STRICT_EXECUTION_MODE,
+    Mix2KV4TeacherError,
+    _actual_provider,
+    _candidate_rows,
     _draft_schema,
     _duplicate_repairs,
+    _execution_runtime_identity,
     _import_seed_drafts,
+    _load_execution_policy,
     _mandatory_answer_checklist,
     _normalize_draft_answer_layout,
     _normalize_draft_answer_particles,
@@ -41,15 +62,26 @@ from scripts.data.mix2k_v4_teachers import (
     review_prompt,
     subscription_environment,
 )
+from scripts.data.mix2k_v4_teachers import (
+    RUNNER_PATH as TEACHER_RUNNER_PATH,
+)
 from scripts.data.mix2k_v4_teachers import _parser as teacher_parser
+from scripts.runtime.calculation.canonical import canonical_json_bytes
 from scripts.runtime.chart_day_model_projection import (
     model_projection_digest,
     normalize_model_period_projection,
 )
 from scripts.training.mix2k_v4_lora import DEFAULT_CONFIG as LORA_CONFIG
 from scripts.training.mix2k_v4_lora import (
+    MAX_JSON_BYTES as LORA_MAX_JSON_BYTES,
+)
+from scripts.training.mix2k_v4_lora import (
     Mix2KV4LoRAError,
+    _validate_teacher_governance,
     acquire_mix2k_v4_gpu_lock,
+)
+from scripts.training.mix2k_v4_lora import (
+    _load_jsonl_snapshot as load_lora_jsonl_snapshot,
 )
 from scripts.training.mix2k_v4_lora import (
     _validate_config as validate_lora_config,
@@ -204,10 +236,196 @@ class Mix2KV4ContractTests(unittest.TestCase):
                 "codex",
                 "--seed-target",
                 "/tmp/old-teacher-target",
+                "--execution-policy",
+                str(CODEX_FALLBACK_POLICY_PATH),
             ]
         )
         self.assertEqual(arguments.provider_only, "codex")
         self.assertEqual(arguments.seed_target, Path("/tmp/old-teacher-target"))
+        self.assertEqual(arguments.execution_policy, CODEX_FALLBACK_POLICY_PATH)
+
+    def test_codex_fallback_policy_is_explicit_and_hash_bound(self) -> None:
+        manifest = {
+            "build_id": "build-da9014c5f24a",
+            "build_sha256": (
+                "da9014c5f24a6ffc239cd8bf1ec64d2ba50855caff6ec90438d5a41a4fefd980"
+            ),
+        }
+        policy, execution = _load_execution_policy(
+            CODEX_FALLBACK_POLICY_PATH, manifest
+        )
+        self.assertEqual(execution["mode"], CODEX_FALLBACK_EXECUTION_MODE)
+        self.assertTrue(execution["lora_experimental_training_allowed"])
+        self.assertFalse(execution["production_promotion_allowed"])
+        self.assertEqual(
+            policy["authorization"]["summary_ko"],
+            "Claude Code 사용량이 만료되면 남은 작업은 Codex만으로 진행한다.",
+        )
+        self.assertEqual(
+            _actual_provider("claude", execution),
+            "codex",
+        )
+        self.assertEqual(_actual_provider("codex", execution), "codex")
+        self.assertEqual(
+            _actual_provider(
+                "claude",
+                {
+                    "mode": STRICT_EXECUTION_MODE,
+                },
+            ),
+            "claude",
+        )
+
+        tampered = deepcopy(policy)
+        tampered["authorization"]["production_promotion_allowed"] = True
+        with (
+            patch(
+                "scripts.data.mix2k_v4_teachers._load_json",
+                return_value=tampered,
+            ),
+            self.assertRaisesRegex(Mix2KV4TeacherError, "계약"),
+        ):
+            _load_execution_policy(CODEX_FALLBACK_POLICY_PATH, manifest)
+
+    def test_codex_fallback_runtime_identity_records_no_session_envelope(self) -> None:
+        _, execution = _load_execution_policy(
+            CODEX_FALLBACK_POLICY_PATH,
+            {
+                "build_id": "build-da9014c5f24a",
+                "build_sha256": (
+                    "da9014c5f24a6ffc239cd8bf1ec64d2ba50855caff6ec90438d5a41a4fefd980"
+                ),
+            },
+        )
+        config = {"teacher": {"codex_model": "configured_subscription_default"}}
+        with patch(
+            "scripts.data.mix2k_v4_teachers._codex_cli_version",
+            return_value="codex-cli 1.2.3",
+        ):
+            identity = _execution_runtime_identity(
+                config=config,
+                execution=execution,
+                auth={"codex": "chatgpt_subscription"},
+                environment={},
+            )
+        self.assertEqual(
+            identity,
+            {
+                "actual_provider": "codex",
+                "cli_version": "codex-cli 1.2.3",
+                "configured_model_selector": "configured_subscription_default",
+                "auth_type": "chatgpt_subscription",
+                "execution_policy_sha256": execution["policy_sha256"],
+            },
+        )
+        self.assertNotIn("session", json.dumps(identity).casefold())
+        self.assertNotIn("envelope", json.dumps(identity).casefold())
+
+    def test_lora_loader_enforces_hash_bound_teacher_governance(self) -> None:
+        common = {
+            "training_scope": "lora_experimental_only",
+            "lora_experimental_training_allowed": True,
+            "production_promotion_allowed": False,
+        }
+        strict = {
+            "teacher_contract_mode": STRICT_EXECUTION_MODE,
+            "teacher_quality_tier": "cross_provider_verified",
+            "cross_provider_teacher_contract_met": True,
+            **common,
+            "execution_policy_sha256": None,
+            "teacher_pipeline_state_sha256": None,
+        }
+        strict_manifest = {"schema_version": "1.0.0", **strict}
+        self.assertEqual(
+            _validate_teacher_governance(
+                strict_manifest, {"teacher_governance": strict}
+            ),
+            STRICT_EXECUTION_MODE,
+        )
+
+        fallback = {
+            "teacher_contract_mode": CODEX_FALLBACK_EXECUTION_MODE,
+            "teacher_quality_tier": CODEX_FALLBACK_EXECUTION_MODE,
+            "cross_provider_teacher_contract_met": False,
+            **common,
+            "execution_policy_sha256": sha256_file(CODEX_FALLBACK_POLICY_PATH),
+            "teacher_pipeline_state_sha256": "a" * 64,
+        }
+        fallback_manifest = {"schema_version": "1.1.0", **fallback}
+        self.assertEqual(
+            _validate_teacher_governance(
+                fallback_manifest, {"teacher_governance": fallback}
+            ),
+            CODEX_FALLBACK_EXECUTION_MODE,
+        )
+
+        top_level_tampered = deepcopy(fallback_manifest)
+        top_level_tampered["production_promotion_allowed"] = True
+        with self.assertRaisesRegex(Mix2KV4LoRAError, "governance"):
+            _validate_teacher_governance(
+                top_level_tampered, {"teacher_governance": fallback}
+            )
+
+        identity_tampered = deepcopy(fallback)
+        identity_tampered["production_promotion_allowed"] = True
+        with self.assertRaisesRegex(Mix2KV4LoRAError, "governance"):
+            _validate_teacher_governance(
+                {"schema_version": "1.1.0", **identity_tampered},
+                {"teacher_governance": identity_tampered},
+            )
+
+        missing_boundary = deepcopy(fallback)
+        del missing_boundary["cross_provider_teacher_contract_met"]
+        with self.assertRaisesRegex(Mix2KV4LoRAError, "governance"):
+            _validate_teacher_governance(
+                {"schema_version": "1.1.0", **missing_boundary},
+                {"teacher_governance": missing_boundary},
+            )
+
+    def test_lora_artifact_snapshot_hashes_the_consumed_bytes(self) -> None:
+        payload = b'{"id":"row-1","assistant":"checked"}\n'
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory).resolve() / "training.jsonl"
+            path.write_bytes(payload)
+            rows, observed_sha256 = load_lora_jsonl_snapshot(
+                path, "training snapshot"
+            )
+            self.assertEqual(
+                rows, [{"id": "row-1", "assistant": "checked"}]
+            )
+            self.assertEqual(observed_sha256, sha256_bytes(payload))
+
+            oversized = Path(directory).resolve() / "oversized.jsonl"
+            oversized.touch()
+            os.truncate(oversized, LORA_MAX_JSON_BYTES + 1)
+            with (
+                patch(
+                    "scripts.training.mix2k_v4_lora.os.read",
+                    side_effect=AssertionError("oversized file must not be read"),
+                ),
+                self.assertRaisesRegex(Mix2KV4LoRAError, "크기"),
+            ):
+                load_lora_jsonl_snapshot(oversized, "oversized training")
+
+    def test_same_provider_review_prompt_is_not_called_peer_review(self) -> None:
+        spec = _spec()
+        draft = {
+            "record_id": spec["id"],
+            "answer": "검수 대상 답변",
+            "used_fact_paths": [],
+            "used_fact_values": [],
+            "soft_interpretation_used": False,
+            "limitations": [],
+            "self_check": "PASS",
+        }
+        prompt = review_prompt(
+            [spec],
+            {spec["id"]: draft},
+            review_mode=SAME_PROVIDER_REVIEW_MODE,
+        )
+        self.assertIn("분리된 새 ephemeral 호출", prompt)
+        self.assertIn("교차 provider peer review가 아니며", prompt)
+        self.assertNotIn("반대 teacher의 초안", prompt)
 
     def test_seed_import_revalidates_drafts_without_reusing_peer_pass(self) -> None:
         spec = _spec()
@@ -331,6 +549,539 @@ class Mix2KV4ContractTests(unittest.TestCase):
             recoverable_state["records"][spec["id"]]["status"],
             "needs_review",
         )
+
+    def test_fallback_inherits_only_current_valid_cross_provider_pass(self) -> None:
+        spec = _spec()
+        spec_sha256 = sha256_bytes(canonical_json_bytes(spec))
+        draft = {
+            "record_id": spec["id"],
+            "answer": (
+                "원국 전체는 연주 戊辰, 월주 甲子, 일주 乙丑, 시주 壬午입니다.\n"
+                "2026-09-02의 연간지는 丙午, 월간지는 丙申, 일진은 己卯입니다.\n"
+                "乙丑은 원국의 일주이고, 원국과 선택 날짜는 서로 구분합니다."
+            ),
+            "used_fact_paths": [],
+            "used_fact_values": [
+                "戊辰",
+                "甲子",
+                "乙丑",
+                "壬午",
+                "2026-09-02",
+                "丙午",
+                "丙申",
+                "己卯",
+            ],
+            "soft_interpretation_used": False,
+            "limitations": [],
+            "self_check": "PASS",
+        }
+        review = {
+            "record_id": spec["id"],
+            "decision": "PASS",
+            "failure_codes": [],
+            "fact_errors": [],
+            "style_notes": [],
+            "rewrite_instructions": "",
+        }
+        source_record = {
+            "spec_sha256": spec_sha256,
+            "status": "accepted",
+            "rewrites_used": 1,
+            "current_draft": draft,
+            "draft_attempts": [
+                {
+                    "provider": "claude",
+                    "deterministic_pass": True,
+                    "draft": draft,
+                }
+            ],
+            "review_attempts": [{"provider": "codex", "review": review}],
+            "accepted": {
+                "draft_provider": "claude",
+                "review_provider": "codex",
+                "draft": draft,
+                "review": review,
+            },
+        }
+
+        def target_state() -> dict[str, object]:
+            return {
+                "dataset_version": DATASET_VERSION,
+                "mode": "full",
+                "contracts_sha256": "2" * 64,
+                "spec_manifest_sha256": "3" * 64,
+                "provider_calls": 0,
+                "selection_order": [spec["id"]],
+                "records": {
+                    spec["id"]: {
+                        "spec_sha256": spec_sha256,
+                        "status": "needs_draft",
+                        "rewrites_used": 0,
+                        "duplicate_rewrites_used": 0,
+                        "feedback": "",
+                        "draft_attempts": [],
+                        "review_attempts": [],
+                        "current_draft": None,
+                        "accepted": None,
+                    }
+                },
+            }
+
+        seed = {
+            "schema_version": "1.2.0",
+            "dataset_version": DATASET_VERSION,
+            "mode": "full",
+            "contracts_sha256": "2" * 64,
+            "spec_manifest_sha256": "3" * 64,
+            "selection_order": [spec["id"]],
+            "records": {spec["id"]: source_record},
+        }
+        _, execution = _load_execution_policy(
+            CODEX_FALLBACK_POLICY_PATH,
+            {
+                "build_id": "build-da9014c5f24a",
+                "build_sha256": (
+                    "da9014c5f24a6ffc239cd8bf1ec64d2ba50855caff6ec90438d5a41a4fefd980"
+                ),
+            },
+        )
+        state = target_state()
+        report = _import_seed_drafts(
+            state=state,
+            seed_state=seed,
+            seed_state_sha256="4" * 64,
+            specs_by_id={spec["id"]: spec},
+            execution=execution,
+            preserve_cross_provider_acceptances=True,
+        )
+        self.assertEqual(report["cross_provider_passes_inherited"], 1)
+        self.assertEqual(state["records"][spec["id"]]["status"], "accepted")
+        accepted = state["records"][spec["id"]]["accepted"]
+        self.assertEqual(accepted["review_mode"], CROSS_PROVIDER_REVIEW_MODE)
+        self.assertFalse(accepted["fallback_used"])
+
+        superseded = deepcopy(seed)
+        replacement = deepcopy(draft)
+        replacement["answer"] += " 확인된 사실만 사용합니다."
+        superseded_record = superseded["records"][spec["id"]]
+        superseded_record["current_draft"] = replacement
+        superseded_record["draft_attempts"].append(
+            {
+                "provider": "claude",
+                "deterministic_pass": True,
+                "draft": replacement,
+            }
+        )
+        superseded_state = target_state()
+        superseded_report = _import_seed_drafts(
+            state=superseded_state,
+            seed_state=superseded,
+            seed_state_sha256="5" * 64,
+            specs_by_id={spec["id"]: spec},
+            execution=execution,
+            preserve_cross_provider_acceptances=True,
+        )
+        self.assertEqual(
+            superseded_report["cross_provider_passes_inherited"], 0
+        )
+        self.assertEqual(
+            superseded_report["cross_provider_pass_rejection_counts"],
+            {"accepted_draft_not_current": 1},
+        )
+        self.assertEqual(
+            superseded_state["records"][spec["id"]]["status"],
+            "needs_review",
+        )
+
+        candidates = _candidate_rows(
+            state,
+            {spec["id"]: spec},
+            execution,
+        )
+        teacher_manifest = {
+            "teacher_contract_mode": CODEX_FALLBACK_EXECUTION_MODE,
+            "execution_policy_id": execution["policy_id"],
+            "selection_sha256": sha256_bytes(
+                canonical_json_bytes([spec["id"]])
+            ),
+            "teacher_roles": {"claude": 1},
+            "review_roles": {"codex": 1},
+            "assigned_teacher_roles": {"claude": 1},
+            "assigned_review_roles": {"codex": 1},
+            "actual_teacher_roles": {"claude": 1},
+            "actual_review_roles": {"codex": 1},
+            "review_modes": {CROSS_PROVIDER_REVIEW_MODE: 1},
+            "all_rows_cross_provider_reviewed": True,
+            "seed_import": report,
+            "layout_normalized_rows": 0,
+            "particle_normalized_rows": 0,
+            "duplicate_rewrite_rows": 0,
+            "duplicate_rewrite_attempts": 0,
+            "maximum_duplicate_rewrite_rounds": (
+                MAXIMUM_DUPLICATE_REWRITE_ROUNDS
+            ),
+        }
+        config = {
+            "diversity": {
+                "exact_duplicate_answers_maximum": 0,
+                "normalized_answer_multiplicity_maximum": 2,
+            }
+        }
+        with (
+            patch("scripts.data.mix2k_v4_finalize.EXPECTED_ROWS", 1),
+            patch(
+                "scripts.data.mix2k_v4_finalize.EXPECTED_AXES",
+                {spec["task_axis"]: 1},
+            ),
+        ):
+            validation = _validate_candidates(
+                candidates,
+                [spec],
+                config,
+                teacher_manifest=teacher_manifest,
+                state=state,
+                seed_state=seed,
+            )
+            self.assertEqual(
+                validation["review_modes"],
+                {CROSS_PROVIDER_REVIEW_MODE: 1},
+            )
+            forged = deepcopy(candidates)
+            forged[0]["teacher"]["review_mode"] = SAME_PROVIDER_REVIEW_MODE
+            with self.assertRaisesRegex(Mix2KV4FinalizeError, "provenance"):
+                _validate_candidates(
+                    forged,
+                    [spec],
+                    config,
+                    teacher_manifest=teacher_manifest,
+                    state=state,
+                    seed_state=seed,
+                )
+
+            forged_seed = deepcopy(seed)
+            forged_seed["records"][spec["id"]]["current_draft"] = {
+                **draft,
+                "answer": draft["answer"] + " 변경",
+            }
+            with self.assertRaisesRegex(Mix2KV4FinalizeError, "호출 순서"):
+                _validate_candidates(
+                    candidates,
+                    [spec],
+                    config,
+                    teacher_manifest=teacher_manifest,
+                    state=state,
+                    seed_state=forged_seed,
+                )
+
+    def test_fallback_requires_latest_review_after_current_draft(self) -> None:
+        spec = _spec()
+        spec_sha256 = sha256_bytes(canonical_json_bytes(spec))
+        draft = {
+            "record_id": spec["id"],
+            "answer": (
+                "원국 전체는 연주 戊辰, 월주 甲子, 일주 乙丑, 시주 壬午입니다.\n"
+                "2026-09-02의 연간지는 丙午, 월간지는 丙申, 일진은 己卯입니다.\n"
+                "乙丑은 원국의 일주이며, 확인된 구조 사실만 서로 구분해 읽습니다."
+            ),
+            "used_fact_paths": [],
+            "used_fact_values": [
+                "戊辰",
+                "甲子",
+                "乙丑",
+                "壬午",
+                "2026-09-02",
+                "丙午",
+                "丙申",
+                "己卯",
+            ],
+            "soft_interpretation_used": False,
+            "limitations": [],
+            "self_check": "PASS",
+        }
+        review = {
+            "record_id": spec["id"],
+            "decision": "PASS",
+            "failure_codes": [],
+            "fact_errors": [],
+            "style_notes": [],
+            "rewrite_instructions": "",
+        }
+        accepted = {
+            "assigned_drafter": "claude",
+            "assigned_reviewer": "codex",
+            "draft_provider": "codex",
+            "review_provider": "codex",
+            "review_mode": SAME_PROVIDER_REVIEW_MODE,
+            "fallback_used": True,
+            "draft": draft,
+            "review": review,
+        }
+        state = {
+            "provider_calls": 2,
+            "selection_order": [spec["id"]],
+            "records": {
+                spec["id"]: {
+                    "spec_sha256": spec_sha256,
+                    "status": "accepted",
+                    "rewrites_used": 0,
+                    "duplicate_rewrites_used": 0,
+                    "current_draft": draft,
+                    "draft_attempts": [
+                        {
+                            "assigned_provider": "claude",
+                            "provider": "codex",
+                            "fallback_used": True,
+                            "execution_pass": "draft",
+                            "provider_call_sequence": 1,
+                            "attempt": 1,
+                            "provider_draft": draft,
+                            "draft": draft,
+                            "deterministic_pass": True,
+                        }
+                    ],
+                    "review_attempts": [
+                        {
+                            "assigned_provider": "codex",
+                            "provider": "codex",
+                            "fallback_used": False,
+                            "execution_pass": "review",
+                            "provider_call_sequence": 2,
+                            "attempt": 1,
+                            "review_mode": SAME_PROVIDER_REVIEW_MODE,
+                            "review": review,
+                        }
+                    ],
+                    "accepted": accepted,
+                }
+            },
+        }
+        seed = {
+            "records": {spec["id"]: {"spec_sha256": spec_sha256}}
+        }
+        _, execution = _load_execution_policy(
+            CODEX_FALLBACK_POLICY_PATH,
+            {
+                "build_id": "build-da9014c5f24a",
+                "build_sha256": (
+                    "da9014c5f24a6ffc239cd8bf1ec64d2ba50855caff6ec90438d5a41a4fefd980"
+                ),
+            },
+        )
+        candidates = _candidate_rows(state, {spec["id"]: spec}, execution)
+        teacher_manifest = {
+            "teacher_contract_mode": CODEX_FALLBACK_EXECUTION_MODE,
+            "execution_policy_id": execution["policy_id"],
+            "selection_sha256": sha256_bytes(
+                canonical_json_bytes([spec["id"]])
+            ),
+            "teacher_roles": {"codex": 1},
+            "review_roles": {"codex": 1},
+            "assigned_teacher_roles": {"claude": 1},
+            "assigned_review_roles": {"codex": 1},
+            "actual_teacher_roles": {"codex": 1},
+            "actual_review_roles": {"codex": 1},
+            "review_modes": {SAME_PROVIDER_REVIEW_MODE: 1},
+            "all_rows_cross_provider_reviewed": False,
+            "seed_import": {"cross_provider_passes_inherited": 0},
+            "layout_normalized_rows": 0,
+            "particle_normalized_rows": 0,
+            "duplicate_rewrite_rows": 0,
+            "duplicate_rewrite_attempts": 0,
+            "maximum_duplicate_rewrite_rounds": (
+                MAXIMUM_DUPLICATE_REWRITE_ROUNDS
+            ),
+        }
+        config = {
+            "diversity": {
+                "exact_duplicate_answers_maximum": 0,
+                "normalized_answer_multiplicity_maximum": 2,
+            }
+        }
+
+        def validate(
+            candidate_state: dict[str, object],
+            candidate_manifest: dict[str, object] | None = None,
+        ) -> None:
+            with (
+                patch("scripts.data.mix2k_v4_finalize.EXPECTED_ROWS", 1),
+                patch(
+                    "scripts.data.mix2k_v4_finalize.EXPECTED_AXES",
+                    {spec["task_axis"]: 1},
+                ),
+            ):
+                _validate_candidates(
+                    candidates,
+                    [spec],
+                    config,
+                    teacher_manifest=candidate_manifest or teacher_manifest,
+                    state=candidate_state,
+                    seed_state=seed,
+                )
+
+        validate(state)
+
+        review_before_draft = deepcopy(state)
+        review_before_draft["records"][spec["id"]]["review_attempts"][-1][
+            "provider_call_sequence"
+        ] = 1
+        with self.assertRaisesRegex(Mix2KV4FinalizeError, "호출 순서"):
+            validate(review_before_draft)
+
+        different_current = deepcopy(state)
+        different_current["records"][spec["id"]]["current_draft"] = {
+            **draft,
+            "answer": draft["answer"] + " 다른 초안",
+        }
+        with self.assertRaisesRegex(Mix2KV4FinalizeError, "provenance"):
+            validate(different_current)
+
+        invalid_review = deepcopy(state)
+        invalid_review["records"][spec["id"]]["accepted"]["review"] = {
+            "decision": "PASS"
+        }
+        invalid_review["records"][spec["id"]]["review_attempts"][-1]["review"] = {
+            "decision": "PASS"
+        }
+        with self.assertRaisesRegex(Mix2KV4FinalizeError, "provenance"):
+            validate(invalid_review)
+
+        inflated_calls = deepcopy(state)
+        inflated_calls["provider_calls"] = 10**12
+        with self.assertRaisesRegex(Mix2KV4FinalizeError, "provider 집계"):
+            validate(inflated_calls)
+
+        for field, forged_value in (
+            ("teacher_roles", {"claude": 1}),
+            ("layout_normalized_rows", 1),
+            ("duplicate_rewrite_attempts", 1),
+            ("selection_sha256", "0" * 64),
+        ):
+            forged_manifest = deepcopy(teacher_manifest)
+            forged_manifest[field] = forged_value
+            with self.subTest(field=field), self.assertRaisesRegex(
+                Mix2KV4FinalizeError, "provider 집계"
+            ):
+                validate(state, forged_manifest)
+
+    def test_finalizer_fallback_inputs_verify_policy_state_and_seed_hashes(
+        self,
+    ) -> None:
+        policy_sha = sha256_file(CODEX_FALLBACK_POLICY_PATH)
+        runtime_identity = {
+            "actual_provider": "codex",
+            "cli_version": "codex-cli 0.150.1",
+            "configured_model_selector": "configured_subscription_default",
+            "auth_type": "chatgpt_subscription",
+            "execution_policy_sha256": policy_sha,
+        }
+        seed_payload = b'{"seed":"immutable"}\n'
+        seed_sha = sha256_bytes(seed_payload)
+        seed_import = {
+            "version": "1.1.0",
+            "source_state_sha256": seed_sha,
+        }
+        state = {
+            "runner_sha256": sha256_file(TEACHER_RUNNER_PATH),
+            "execution": {
+                "mode": CODEX_FALLBACK_EXECUTION_MODE,
+                "policy_sha256": policy_sha,
+            },
+            "runtime_identity": runtime_identity,
+            "seed_state_sha256": seed_sha,
+            "seed_import": seed_import,
+        }
+        state_payload = (
+            json.dumps(state, ensure_ascii=False, sort_keys=True).encode("utf-8")
+            + b"\n"
+        )
+        candidate_payload = b"{}\n"
+        manifest = {
+            "schema_version": "1.1.0",
+            "dataset_version": DATASET_VERSION,
+            "mode": "full",
+            "rows": 1,
+            "candidate_path": "accepted/training_candidates_2000.jsonl",
+            "candidate_sha256": sha256_bytes(candidate_payload),
+            "runner_sha256": sha256_file(TEACHER_RUNNER_PATH),
+            "deterministic_validation_passed": True,
+            "contracts_sha256": sha256_file(
+                Path("scripts/data/mix2k_v4_contracts.py").resolve()
+            ),
+            "development_targets_accessed": False,
+            "api_keys_used": False,
+            "sealed_blind_accessed": False,
+            "training_execution_allowed": False,
+            "teacher_contract_mode": CODEX_FALLBACK_EXECUTION_MODE,
+            "peer_review_passed": False,
+            "all_second_pass_reviews_passed": True,
+            "execution_policy_path": CODEX_FALLBACK_POLICY_PATH.relative_to(
+                Path.cwd()
+            ).as_posix(),
+            "execution_policy_sha256": policy_sha,
+            "lora_experimental_training_allowed": True,
+            "production_promotion_allowed": False,
+            "runtime_identity": runtime_identity,
+            "pipeline_state_sha256": sha256_bytes(state_payload),
+            "seed_state_sha256": seed_sha,
+            "seed_import": seed_import,
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory).resolve()
+            (target / "accepted").mkdir()
+            (target / "provenance").mkdir()
+            (target / "accepted/training_candidates_2000.jsonl").write_bytes(
+                candidate_payload
+            )
+            (target / "pipeline_state.json").write_bytes(state_payload)
+            (target / "provenance/seed_pipeline_state.json").write_bytes(
+                seed_payload
+            )
+            manifest_path = target / "teacher_manifest.json"
+            manifest_path.write_text(
+                json.dumps(manifest, ensure_ascii=False), encoding="utf-8"
+            )
+            with patch("scripts.data.mix2k_v4_finalize.EXPECTED_ROWS", 1):
+                loaded, _, rows, loaded_state, loaded_seed, hashes = _teacher_inputs(
+                    target
+                )
+                self.assertEqual(loaded["runtime_identity"], runtime_identity)
+                self.assertEqual(rows, [{}])
+                self.assertEqual(loaded_state, state)
+                self.assertEqual(loaded_seed, {"seed": "immutable"})
+                self.assertEqual(
+                    hashes["teacher_candidate_sha256"],
+                    manifest["candidate_sha256"],
+                )
+
+                forged = deepcopy(manifest)
+                forged["pipeline_state_sha256"] = "0" * 64
+                manifest_path.write_text(
+                    json.dumps(forged, ensure_ascii=False), encoding="utf-8"
+                )
+                with self.assertRaisesRegex(Mix2KV4FinalizeError, "fallback"):
+                    _teacher_inputs(target)
+
+                forged_runner = deepcopy(manifest)
+                forged_runner["runner_sha256"] = "0" * 64
+                manifest_path.write_text(
+                    json.dumps(forged_runner, ensure_ascii=False), encoding="utf-8"
+                )
+                with self.assertRaisesRegex(Mix2KV4FinalizeError, "manifest"):
+                    _teacher_inputs(target)
+
+    def test_finalizer_rejects_oversized_snapshot_before_read(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory).resolve() / "oversized.json"
+            path.touch()
+            os.truncate(path, FINALIZER_MAX_JSON_BYTES + 1)
+            with (
+                patch(
+                    "scripts.data.mix2k_v4_finalize.os.read",
+                    side_effect=AssertionError("oversized file must not be read"),
+                ),
+                self.assertRaisesRegex(Mix2KV4FinalizeError, "크기"),
+            ):
+                _load_json_snapshot(path, "oversized snapshot")
 
     def test_codex_teacher_disables_host_read_tools(self) -> None:
         self.assertTrue(
