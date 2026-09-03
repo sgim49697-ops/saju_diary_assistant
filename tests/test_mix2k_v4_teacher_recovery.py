@@ -10,6 +10,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from scripts.data import mix2k_v4_teacher_recovery as recovery
+from scripts.data import mix2k_v4_teacher_recovery_call148 as recovery_call148
 from scripts.data.mix2k_v4_contracts import sha256_bytes
 
 
@@ -57,6 +58,52 @@ def _pre_state() -> dict[str, object]:
             },
             "unrelated": {"status": "accepted", "sentinel": [1, 2, 3]},
         },
+    }
+
+
+def _call148_pre_state() -> dict[str, object]:
+    records: dict[str, object] = {
+        recovery_call148.FIRST_RECOVERY_OVERFLOW_ID: {
+            "status": "accepted",
+            "draft_attempts": [
+                _attempt(sequence, deterministic_pass=sequence == 61)
+                for sequence in (56, 58, 60, 61)
+            ],
+            "rewrites_used": 2,
+            "duplicate_rewrites_used": 0,
+        }
+    }
+    for record_id, expected in recovery_call148._expected_before_contract().items():
+        draft_attempts = [
+            _attempt(140 + index, deterministic_pass=False)
+            for index in range(expected["draft_attempts"])
+        ]
+        draft_attempts[-1]["provider_call_sequence"] = 148
+        review_attempts = [
+            {
+                "provider": "codex",
+                "provider_call_sequence": 38 + index,
+                "review": {"decision": "FAIL"},
+            }
+            for index in range(expected["review_attempts"])
+        ]
+        records[record_id] = {
+            "status": expected["status"],
+            "feedback": expected["feedback"],
+            "rewrites_used": 2,
+            "duplicate_rewrites_used": 0,
+            "current_draft": {"answer": "기존 초안"},
+            "accepted": None,
+            "draft_attempts": draft_attempts,
+            "review_attempts": review_attempts,
+        }
+    return {
+        "schema_version": "1.3.0",
+        "runner_sha256": recovery_call148.EXPECTED_RUNNER_SHA256,
+        "contracts_sha256": recovery_call148.EXPECTED_CONTRACTS_SHA256,
+        "provider_calls": 148,
+        "operator_recoveries": [recovery_call148.first_recovery_event()],
+        "records": records,
     }
 
 
@@ -192,6 +239,145 @@ class Mix2KV4TeacherRecoveryTests(unittest.TestCase):
                 )
             self.assertTrue(
                 report["provider_draft_and_separate_review_passed"]
+            )
+
+    def test_call148_recovery_preserves_attempts_and_rewrite_counters(self) -> None:
+        before = _call148_pre_state()
+        before_payload = recovery_call148._json_bytes(before)
+        with patch.object(
+            recovery_call148,
+            "EXPECTED_PRE_STATE_SHA256",
+            sha256_bytes(before_payload),
+        ):
+            after = recovery_call148.build_recovered_state(before, before_payload)
+
+        self.assertEqual(before["provider_calls"], after["provider_calls"])
+        self.assertEqual(len(after["operator_recoveries"]), 2)
+        for record_id in recovery_call148.AFFECTED_RECORD_IDS:
+            self.assertEqual(
+                after["records"][record_id]["draft_attempts"],
+                before["records"][record_id]["draft_attempts"],
+            )
+            self.assertEqual(
+                after["records"][record_id]["review_attempts"],
+                before["records"][record_id]["review_attempts"],
+            )
+            self.assertEqual(after["records"][record_id]["rewrites_used"], 2)
+        for record_id in recovery_call148.FAILED_RECORD_IDS:
+            self.assertEqual(after["records"][record_id]["status"], "needs_draft")
+
+    def test_call148_recover_resumes_prepared_bundle_after_crash(self) -> None:
+        before = _call148_pre_state()
+        before_payload = recovery_call148._json_bytes(before)
+        before_sha = sha256_bytes(before_payload)
+        with tempfile.TemporaryDirectory() as directory:
+            output_root = Path(directory).resolve()
+            target = output_root / recovery_call148.TARGET_NAME
+            target.mkdir(mode=0o700)
+            (target / ".pipeline.lock").write_bytes(b"lock\n")
+            (target / "pipeline_state.json").write_bytes(before_payload)
+            (target / recovery_call148.RECOVERY_DIR_RELATIVE).mkdir(parents=True)
+            with patch.object(
+                recovery_call148, "EXPECTED_PRE_STATE_SHA256", before_sha
+            ):
+                after = recovery_call148.build_recovered_state(
+                    before, before_payload
+                )
+                after_payload = recovery_call148._json_bytes(after)
+                manifest = recovery_call148._expected_manifest(after_payload)
+                (target / recovery_call148.BEFORE_STATE_RELATIVE).write_bytes(
+                    before_payload
+                )
+                (target / recovery_call148.AFTER_STATE_RELATIVE).write_bytes(
+                    after_payload
+                )
+                (target / recovery_call148.RECOVERY_MANIFEST_RELATIVE).write_bytes(
+                    recovery_call148._json_bytes(manifest)
+                )
+                with (
+                    patch.object(
+                        recovery_call148, "DEFAULT_OUTPUT_ROOT", output_root
+                    ),
+                    patch.object(
+                        recovery_call148,
+                        "validate_first_recovery_bundle",
+                        return_value={"recovery_id": recovery.RECOVERY_ID},
+                    ),
+                ):
+                    report = recovery_call148.recover(target)
+
+            self.assertTrue(report["resumed_prepared_bundle"])
+            self.assertFalse(report["already_applied"])
+            self.assertEqual(
+                (target / "pipeline_state.json").read_bytes(), after_payload
+            )
+
+    def test_recovery_chain_requires_exact_known_attempt_overflows(self) -> None:
+        first = recovery_call148.first_recovery_event()
+        second = recovery_call148._recovery_event()
+        records = {
+            record_id: {
+                "draft_attempts": [object()] * (4 if record_id != recovery_call148.STRENGTH_PENDING_ID else 3),
+                "rewrites_used": 2,
+                "duplicate_rewrites_used": 0,
+            }
+            for record_id in (
+                recovery_call148.FIRST_RECOVERY_OVERFLOW_ID,
+                *recovery_call148.AFFECTED_RECORD_IDS,
+            )
+        }
+        state = {"operator_recoveries": [first, second], "records": records}
+        with (
+            patch.object(
+                recovery_call148,
+                "validate_first_recovery_bundle",
+                return_value={"recovery_id": recovery.RECOVERY_ID},
+            ),
+            patch.object(
+                recovery_call148,
+                "validate_recovery_bundle",
+                return_value={"recovery_id": recovery_call148.RECOVERY_ID},
+            ),
+            patch.object(
+                recovery_call148.os.path, "lexists", return_value=True
+            ),
+        ):
+            report = recovery_call148.validate_recovery_chain(
+                Path("/tmp") / recovery_call148.TARGET_NAME,
+                state,
+                require_completed_provider_passes=True,
+            )
+        self.assertEqual(
+            [item["recovery_id"] for item in report["recoveries"]],
+            [recovery.RECOVERY_ID, recovery_call148.RECOVERY_ID],
+        )
+
+        forged = deepcopy(state)
+        forged["records"][recovery_call148.STRENGTH_PENDING_ID][
+            "draft_attempts"
+        ].append(object())
+        with (
+            patch.object(
+                recovery_call148,
+                "validate_first_recovery_bundle",
+                return_value={"recovery_id": recovery.RECOVERY_ID},
+            ),
+            patch.object(
+                recovery_call148,
+                "validate_recovery_bundle",
+                return_value={"recovery_id": recovery_call148.RECOVERY_ID},
+            ),
+            patch.object(
+                recovery_call148.os.path, "lexists", return_value=True
+            ),
+            self.assertRaisesRegex(
+                recovery.Mix2KV4RecoveryError, "예외 집합"
+            ),
+        ):
+            recovery_call148.validate_recovery_chain(
+                Path("/tmp") / recovery_call148.TARGET_NAME,
+                forged,
+                require_completed_provider_passes=True,
             )
 
 
