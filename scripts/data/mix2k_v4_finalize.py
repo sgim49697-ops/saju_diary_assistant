@@ -41,6 +41,11 @@ from scripts.data.mix2k_v4_contracts import (
     validate_draft,
     validate_review,
 )
+from scripts.data.mix2k_v4_teacher_recovery import (
+    RECOVERY_MANIFEST_RELATIVE,
+    Mix2KV4RecoveryError,
+    validate_recovery_bundle,
+)
 from scripts.data.mix2k_v4_teachers import (
     CODEX_FALLBACK_EXECUTION_MODE,
     CODEX_FALLBACK_POLICY_PATH,
@@ -310,6 +315,7 @@ def _teacher_inputs(
         or manifest.get("sealed_blind_accessed") is not False
         or manifest.get("training_execution_allowed") is not False
     )
+    operator_recovery_audit = None
     if fallback:
         runtime_identity = manifest.get("runtime_identity")
         state_path = teacher_build / "pipeline_state.json"
@@ -372,6 +378,39 @@ def _teacher_inputs(
             or state.get("seed_import") != manifest.get("seed_import")
         ):
             raise Mix2KV4FinalizeError("teacher fallback state provenance가 다릅니다.")
+        records = state.get("records")
+        recovery_attempt_overflow = False
+        if isinstance(records, Mapping):
+            for record in records.values():
+                if not isinstance(record, Mapping):
+                    continue
+                draft_attempts = record.get("draft_attempts")
+                rewrites = record.get("rewrites_used")
+                duplicate_rewrites = record.get("duplicate_rewrites_used")
+                if (
+                    isinstance(draft_attempts, list)
+                    and isinstance(rewrites, int)
+                    and not isinstance(rewrites, bool)
+                    and isinstance(duplicate_rewrites, int)
+                    and not isinstance(duplicate_rewrites, bool)
+                    and len(draft_attempts) > 1 + rewrites + duplicate_rewrites
+                ):
+                    recovery_attempt_overflow = True
+                    break
+        recovery_signaled = bool(
+            state.get("operator_recoveries") is not None
+            or recovery_attempt_overflow
+            or os.path.lexists(teacher_build / RECOVERY_MANIFEST_RELATIVE)
+        )
+        if recovery_signaled:
+            try:
+                operator_recovery_audit = validate_recovery_bundle(
+                    teacher_build,
+                    state,
+                    require_completed_provider_passes=True,
+                )
+            except Mix2KV4RecoveryError as exc:
+                raise Mix2KV4FinalizeError(str(exc)) from exc
     elif (
         common_invalid
         or manifest.get("peer_review_passed") is not True
@@ -394,6 +433,7 @@ def _teacher_inputs(
         {
             "teacher_manifest_sha256": manifest_sha256,
             "teacher_candidate_sha256": candidate_sha256,
+            "operator_recovery_audit": operator_recovery_audit,
         },
     )
 
@@ -1167,6 +1207,9 @@ def finalize(
             **audit_summary,
             "candidate_validation": candidate_validation,
             "full_runtime_vs_audit_projection": projection,
+            "operator_recovery_audit": teacher_input_hashes[
+                "operator_recovery_audit"
+            ],
         }
     )
     teacher_governance = {
