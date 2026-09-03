@@ -14,6 +14,7 @@ from scripts.data import mix2k_v4_teacher_recovery_call148 as recovery_call148
 from scripts.data import mix2k_v4_teacher_recovery_call149 as recovery_call149
 from scripts.data import mix2k_v4_teacher_recovery_call154 as recovery_call154
 from scripts.data import mix2k_v4_teacher_recovery_call174 as recovery_call174
+from scripts.data import mix2k_v4_teacher_recovery_call177 as recovery_call177
 from scripts.data.mix2k_v4_contracts import sha256_bytes
 
 
@@ -465,6 +466,115 @@ def _call174_payload_contract_fixture() -> tuple[
     )
     current["records"][recovery_call174.STRENGTH_RECORD_ID] = strength
     return current, checkpoint, specs
+
+
+def _call177_draft_attempt(
+    record_id: str, *, attempt: int, sequence: int, sentence_total: int
+) -> dict[str, object]:
+    draft_attempt = _call174_draft_attempt(
+        record_id,
+        attempt=attempt,
+        sequence=sequence,
+    )
+    answer = "\n".join(
+        f"복구 답변 {index}번째 문장입니다."
+        for index in range(1, sentence_total + 1)
+    )
+    draft_attempt["provider_draft"]["answer"] = answer
+    draft_attempt["draft"]["answer"] = answer
+    return draft_attempt
+
+
+def _call177_review_attempt(
+    record_id: str, *, attempt: int, sequence: int, decision: str
+) -> dict[str, object]:
+    review = (
+        recovery_call177._expected_failed_review(record_id)
+        if decision == "FAIL"
+        else {
+            "record_id": record_id,
+            "decision": "PASS",
+            "failure_codes": [],
+            "fact_errors": [],
+            "style_notes": [],
+            "rewrite_instructions": "",
+        }
+    )
+    return {
+        "assigned_provider": "claude",
+        "provider": "codex",
+        "fallback_used": True,
+        "execution_pass": "review",
+        "provider_call_sequence": sequence,
+        "attempt": attempt,
+        "review_mode": "same_provider_separate_pass",
+        "review": review,
+    }
+
+
+def _call177_pre_state() -> dict[str, object]:
+    call174_before = _call174_pre_state()
+    call174_payload = recovery_call174.teachers._json_bytes(call174_before)
+    with patch.object(
+        recovery_call174,
+        "EXPECTED_PRE_STATE_SHA256",
+        sha256_bytes(call174_payload),
+    ):
+        state = recovery_call174.build_recovered_state(
+            call174_before, call174_payload
+        )
+    state["operator_recoveries"] = deepcopy(recovery_call177._prior_events())
+    state["provider_calls"] = recovery_call177.EXPECTED_PROVIDER_CALLS
+    for record_id in recovery_call177.AFFECTED_RECORD_IDS:
+        record = state["records"][record_id]
+        draft = _call177_draft_attempt(
+            record_id,
+            attempt=len(record["draft_attempts"]) + 1,
+            sequence=176,
+            sentence_total=4,
+        )
+        review = _call177_review_attempt(
+            record_id,
+            attempt=len(record["review_attempts"]) + 1,
+            sequence=177,
+            decision="FAIL",
+        )
+        record["draft_attempts"].append(draft)
+        record["review_attempts"].append(review)
+        record["status"] = "failed"
+        record["feedback"] = recovery_call177.OLD_FEEDBACK_BY_ID[record_id]
+        record["current_draft"] = deepcopy(draft["draft"])
+        record["accepted"] = None
+    return state
+
+
+def _call177_completed_retry(
+    checkpoint: dict[str, object],
+    *,
+    record_id: str,
+    draft_sequence: int = 178,
+    review_sequence: int = 179,
+) -> dict[str, object]:
+    completed = deepcopy(checkpoint)
+    draft = _call177_draft_attempt(
+        record_id,
+        attempt=len(completed["draft_attempts"]) + 1,
+        sequence=draft_sequence,
+        sentence_total=3,
+    )
+    review = _call177_review_attempt(
+        record_id,
+        attempt=len(completed["review_attempts"]) + 1,
+        sequence=review_sequence,
+        decision="PASS",
+    )
+    completed["draft_attempts"].append(draft)
+    completed["review_attempts"].append(review)
+    completed["status"] = "accepted"
+    completed["feedback"] = ""
+    completed["current_draft"] = deepcopy(draft["draft"])
+    completed["accepted"] = _call174_accepted(draft, review)
+    return completed
 
 
 class Mix2KV4TeacherRecoveryTests(unittest.TestCase):
@@ -1620,6 +1730,428 @@ class Mix2KV4TeacherRecoveryTests(unittest.TestCase):
             ):
                 recovery_call174.recover(target)
 
+            self.assertEqual(state_path.read_bytes(), before_payload)
+
+    def test_call177_recovery_preserves_fixed_d5_r3(self) -> None:
+        before = _call177_pre_state()
+        original = deepcopy(before)
+        before_payload = recovery_call177.teachers._json_bytes(before)
+        with patch.object(
+            recovery_call177,
+            "EXPECTED_PRE_STATE_SHA256",
+            sha256_bytes(before_payload),
+        ):
+            after = recovery_call177.build_recovered_state(before, before_payload)
+            expected_event = recovery_call177._recovery_event()
+
+        expected = deepcopy(before)
+        expected["operator_recoveries"] = [
+            *recovery_call177._prior_events(),
+            expected_event,
+        ]
+        for record_id in recovery_call177.AFFECTED_RECORD_IDS:
+            expected["records"][record_id]["status"] = "needs_draft"
+            expected["records"][record_id]["feedback"] = (
+                recovery_call177.NEW_FEEDBACK_BY_ID[record_id]
+            )
+            failed_review = before["records"][record_id]["review_attempts"][-1][
+                "review"
+            ]
+            self.assertEqual(
+                recovery_call177._canonical_review_feedback(failed_review),
+                recovery_call177.OLD_FEEDBACK_BY_ID[record_id],
+            )
+            self.assertEqual(
+                after["records"][record_id]["feedback"],
+                recovery_call177.RECOVERY_GUIDANCE
+                + recovery_call177.OLD_FEEDBACK_BY_ID[record_id],
+            )
+            for field in (
+                "rewrites_used",
+                "duplicate_rewrites_used",
+                "draft_attempts",
+                "review_attempts",
+                "current_draft",
+                "accepted",
+            ):
+                self.assertEqual(
+                    after["records"][record_id][field],
+                    before["records"][record_id][field],
+                )
+
+        self.assertEqual(before, original)
+        self.assertEqual(after, expected)
+
+    def test_call177_projection_removes_only_fixed_r3_fail(self) -> None:
+        before = _call177_pre_state()
+        before_payload = recovery_call177.teachers._json_bytes(before)
+        target = Path("/tmp") / recovery_call177.TARGET_NAME
+        with (
+            patch.object(
+                recovery_call177,
+                "EXPECTED_PRE_STATE_SHA256",
+                sha256_bytes(before_payload),
+            ),
+            patch.object(
+                recovery_call177.prior_recovery,
+                "validate_recovery_chain",
+                return_value={"recoveries": []},
+            ) as prior_check,
+        ):
+            report = recovery_call177._validate_prior_projection(
+                target, before, before_payload
+            )
+
+        expected = deepcopy(before)
+        for record_id in recovery_call177.AFFECTED_RECORD_IDS:
+            record = expected["records"][record_id]
+            record["review_attempts"] = record["review_attempts"][:2]
+            record["status"] = "needs_review"
+            record["feedback"] = ""
+            record["accepted"] = None
+        prior_check.assert_called_once_with(
+            target,
+            expected,
+            require_completed_provider_passes=False,
+        )
+        self.assertEqual(report["audit_status"], "partial_superseded")
+        self.assertEqual(
+            report["projection_provider_calls"],
+            recovery_call177.EXPECTED_PROVIDER_CALLS,
+        )
+
+    def test_call177_requires_three_line_d6_and_fresh_r4(self) -> None:
+        before = _call177_pre_state()
+        before_payload = recovery_call177.teachers._json_bytes(before)
+        with patch.object(
+            recovery_call177,
+            "EXPECTED_PRE_STATE_SHA256",
+            sha256_bytes(before_payload),
+        ):
+            recovered = recovery_call177.build_recovered_state(
+                before, before_payload
+            )
+
+        for record_id in recovery_call177.AFFECTED_RECORD_IDS:
+            with self.subTest(record_id=record_id):
+                checkpoint = recovered["records"][record_id]
+                completed = _call177_completed_retry(
+                    checkpoint,
+                    record_id=record_id,
+                )
+                needs_review = deepcopy(completed)
+                needs_review["review_attempts"].pop()
+                needs_review["status"] = "needs_review"
+                needs_review["accepted"] = None
+                recovery_call177._validate_retry_progress(
+                    needs_review,
+                    checkpoint,
+                    record_id=record_id,
+                    provider_calls=178,
+                    require_completed=False,
+                )
+                with self.assertRaisesRegex(
+                    recovery.Mix2KV4RecoveryError, "R4가 완료되지"
+                ):
+                    recovery_call177._validate_retry_progress(
+                        needs_review,
+                        checkpoint,
+                        record_id=record_id,
+                        provider_calls=178,
+                        require_completed=True,
+                    )
+
+                recovery_call177._validate_retry_progress(
+                    completed,
+                    checkpoint,
+                    record_id=record_id,
+                    provider_calls=179,
+                    require_completed=True,
+                )
+
+                stale_review = deepcopy(completed)
+                stale_review["review_attempts"][-1][
+                    "provider_call_sequence"
+                ] = 177
+                with self.assertRaisesRegex(
+                    recovery.Mix2KV4RecoveryError, "attempt provenance"
+                ):
+                    recovery_call177._validate_retry_progress(
+                        stale_review,
+                        checkpoint,
+                        record_id=record_id,
+                        provider_calls=179,
+                        require_completed=True,
+                    )
+
+                one_line = deepcopy(needs_review)
+                answer = "첫 문장입니다. 둘째 문장입니다. 셋째 문장입니다."
+                one_line["draft_attempts"][-1]["provider_draft"]["answer"] = answer
+                one_line["draft_attempts"][-1]["draft"]["answer"] = answer
+                one_line["current_draft"] = deepcopy(
+                    one_line["draft_attempts"][-1]["draft"]
+                )
+                with self.assertRaisesRegex(
+                    recovery.Mix2KV4RecoveryError, "후속 draft 길이가 다릅니다"
+                ):
+                    recovery_call177._validate_retry_progress(
+                        one_line,
+                        checkpoint,
+                        record_id=record_id,
+                        provider_calls=178,
+                        require_completed=False,
+                    )
+
+    def test_call177_bundle_delegates_descendant_payload_validation(self) -> None:
+        before = _call177_pre_state()
+        before_payload = recovery_call177.teachers._json_bytes(before)
+        with patch.object(
+            recovery_call177,
+            "EXPECTED_PRE_STATE_SHA256",
+            sha256_bytes(before_payload),
+        ):
+            recovered = recovery_call177.build_recovered_state(
+                before, before_payload
+            )
+            after_payload = recovery_call177.teachers._json_bytes(recovered)
+            manifest_payload = recovery_call177.teachers._json_bytes(
+                recovery_call177._expected_manifest(after_payload)
+            )
+
+            with tempfile.TemporaryDirectory() as directory:
+                target = Path(directory) / recovery_call177.TARGET_NAME
+                (target / recovery_call177.RECOVERY_DIR_RELATIVE).mkdir(
+                    parents=True
+                )
+                (target / recovery_call177.BEFORE_STATE_RELATIVE).write_bytes(
+                    before_payload
+                )
+                (target / recovery_call177.AFTER_STATE_RELATIVE).write_bytes(
+                    after_payload
+                )
+                (target / recovery_call177.RECOVERY_MANIFEST_RELATIVE).write_bytes(
+                    manifest_payload
+                )
+                with patch.object(
+                    recovery_call177.prior_recovery,
+                    "_validate_descendant_payload_contracts",
+                ) as payload_check:
+                    report = recovery_call177.validate_recovery_bundle(
+                        target,
+                        recovered,
+                        require_completed_provider_passes=False,
+                    )
+
+        payload_check.assert_called_once_with(recovered, recovered)
+        self.assertEqual(report["recovery_id"], recovery_call177.RECOVERY_ID)
+
+    def test_call177_revalidates_unaffected_prior_pending_on_completion(
+        self,
+    ) -> None:
+        call174_before = _call174_pre_state()
+        call174_payload = recovery_call174.teachers._json_bytes(call174_before)
+        with patch.object(
+            recovery_call174,
+            "EXPECTED_PRE_STATE_SHA256",
+            sha256_bytes(call174_payload),
+        ):
+            checkpoint = recovery_call174.build_recovered_state(
+                call174_before, call174_payload
+            )
+        current = deepcopy(checkpoint)
+        current["provider_calls"] = 175
+
+        duplicate_review = current["records"][
+            recovery_call174.DUPLICATE_REVIEW_RECORD_ID
+        ]
+        review = _call174_review_attempt(
+            recovery_call174.DUPLICATE_REVIEW_RECORD_ID,
+            attempt=len(duplicate_review["review_attempts"]) + 1,
+            sequence=175,
+        )
+        duplicate_review["review_attempts"].append(review)
+        duplicate_review["status"] = "accepted"
+        duplicate_review["accepted"] = _call174_accepted(
+            duplicate_review["draft_attempts"][-1], review
+        )
+
+        pending_id = recovery_call174.STATIC_PRIOR_RECORD_IDS[0]
+        pending = current["records"][pending_id]
+        pending["duplicate_rewrites_used"] = 1
+        pending["status"] = "needs_draft"
+        pending["feedback"] = min(
+            recovery_call174._duplicate_feedback_options(
+                str(pending["current_draft"]["answer"])
+            )
+        )
+        pending["accepted"] = None
+        target = Path("/tmp") / recovery_call177.TARGET_NAME
+
+        with (
+            patch.object(
+                recovery_call177.base_recovery,
+                "_read_regular_file",
+                return_value=b"checkpoint",
+            ),
+            patch.object(
+                recovery_call177.base_recovery,
+                "_decode_object",
+                return_value=checkpoint,
+            ),
+            patch.object(
+                recovery_call177.prior_recovery,
+                "_validate_current_descendant",
+            ) as descendant_check,
+        ):
+            recovery_call177._validate_unaffected_prior_descendants(
+                target, current, require_completed=False
+            )
+            recovery_call177._validate_unaffected_prior_descendants(
+                target, current, require_completed=True
+            )
+        self.assertEqual(
+            [item.kwargs["require_completed"] for item in descendant_check.call_args_list],
+            [False, True],
+        )
+        self.assertTrue(
+            all(item.args == (current, checkpoint) for item in descendant_check.call_args_list)
+        )
+
+        with (
+            patch.object(
+                recovery_call177.base_recovery,
+                "_read_regular_file",
+                return_value=b"checkpoint",
+            ),
+            patch.object(
+                recovery_call177.base_recovery,
+                "_decode_object",
+                return_value=checkpoint,
+            ),
+        ):
+            recovery_call177._validate_unaffected_prior_descendants(
+                target, current, require_completed=False
+            )
+            with self.assertRaisesRegex(
+                recovery.Mix2KV4RecoveryError, "duplicate round가 완료되지"
+            ):
+                recovery_call177._validate_unaffected_prior_descendants(
+                    target, current, require_completed=True
+                )
+
+    def test_call177_duplicate_round_two_and_three_states(self) -> None:
+        before = _call177_pre_state()
+        before_payload = recovery_call177.teachers._json_bytes(before)
+        with patch.object(
+            recovery_call177,
+            "EXPECTED_PRE_STATE_SHA256",
+            sha256_bytes(before_payload),
+        ):
+            recovered = recovery_call177.build_recovered_state(
+                before, before_payload
+            )
+        record_id = recovery_call177.AFFECTED_RECORD_IDS[0]
+        checkpoint = recovered["records"][record_id]
+        previous = _call177_completed_retry(checkpoint, record_id=record_id)
+        next_sequence = 180
+
+        for duplicate_round in (2, 3):
+            with self.subTest(duplicate_round=duplicate_round):
+                needs_draft = deepcopy(previous)
+                needs_draft["duplicate_rewrites_used"] = duplicate_round
+                needs_draft["status"] = "needs_draft"
+                needs_draft["feedback"] = min(
+                    recovery_call174._duplicate_feedback_options(
+                        str(needs_draft["current_draft"]["answer"])
+                    )
+                )
+                needs_draft["accepted"] = None
+                recovery_call177._validate_retry_progress(
+                    needs_draft,
+                    checkpoint,
+                    record_id=record_id,
+                    provider_calls=next_sequence - 1,
+                    require_completed=False,
+                )
+
+                needs_review = deepcopy(needs_draft)
+                draft = _call177_draft_attempt(
+                    record_id,
+                    attempt=len(needs_review["draft_attempts"]) + 1,
+                    sequence=next_sequence,
+                    sentence_total=3,
+                )
+                needs_review["draft_attempts"].append(draft)
+                needs_review["status"] = "needs_review"
+                needs_review["feedback"] = ""
+                needs_review["current_draft"] = deepcopy(draft["draft"])
+                recovery_call177._validate_retry_progress(
+                    needs_review,
+                    checkpoint,
+                    record_id=record_id,
+                    provider_calls=next_sequence,
+                    require_completed=False,
+                )
+
+                completed = deepcopy(needs_review)
+                review = _call177_review_attempt(
+                    record_id,
+                    attempt=len(completed["review_attempts"]) + 1,
+                    sequence=next_sequence + 1,
+                    decision="PASS",
+                )
+                completed["review_attempts"].append(review)
+                completed["status"] = "accepted"
+                completed["accepted"] = _call174_accepted(draft, review)
+                recovery_call177._validate_retry_progress(
+                    completed,
+                    checkpoint,
+                    record_id=record_id,
+                    provider_calls=next_sequence + 1,
+                    require_completed=True,
+                )
+                previous = completed
+                next_sequence += 2
+
+    def test_call177_validation_failure_preserves_live_state(self) -> None:
+        before = _call177_pre_state()
+        before_payload = recovery_call177.teachers._json_bytes(before)
+        with tempfile.TemporaryDirectory() as directory:
+            output_root = Path(directory).resolve()
+            target = output_root / recovery_call177.TARGET_NAME
+            target.mkdir(mode=0o700)
+            (target / ".pipeline.lock").write_bytes(b"lock\n")
+            state_path = target / "pipeline_state.json"
+            state_path.write_bytes(before_payload)
+            with (
+                patch.object(
+                    recovery_call177.teachers,
+                    "DEFAULT_OUTPUT_ROOT",
+                    output_root,
+                ),
+                patch.object(
+                    recovery_call177,
+                    "EXPECTED_PRE_STATE_SHA256",
+                    sha256_bytes(before_payload),
+                ),
+                patch.object(recovery_call177, "_validate_incident_pre_state"),
+                patch.object(
+                    recovery_call177,
+                    "_validate_full_chain_before_live_write",
+                    side_effect=recovery.Mix2KV4RecoveryError(
+                        "synthetic full-chain failure"
+                    ),
+                ),
+                self.assertRaisesRegex(
+                    recovery.Mix2KV4RecoveryError,
+                    "synthetic full-chain failure",
+                ),
+            ):
+                recovery_call177.recover(target)
+
+            self.assertTrue(
+                (target / recovery_call177.RECOVERY_MANIFEST_RELATIVE).is_file()
+            )
             self.assertEqual(state_path.read_bytes(), before_payload)
 
 

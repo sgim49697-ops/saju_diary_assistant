@@ -41,7 +41,7 @@ from scripts.data.mix2k_v4_contracts import (
     validate_draft,
     validate_review,
 )
-from scripts.data.mix2k_v4_teacher_recovery_call174 import (
+from scripts.data.mix2k_v4_teacher_recovery_call177 import (
     Mix2KV4RecoveryError,
     validate_recovery_chain,
 )
