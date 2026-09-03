@@ -22,27 +22,67 @@ from scripts.data.mix2k_v4_contracts import (
     flatten_runtime_facts,
     required_fact_errors,
     sentence_count,
+    sha256_bytes,
+    sha256_file,
     structural_claim_errors,
     validate_draft,
     validate_spec,
 )
-from scripts.data.mix2k_v4_finalize import select_training_max_length
+from scripts.data.mix2k_v4_finalize import (
+    MAX_JSON_BYTES as FINALIZER_MAX_JSON_BYTES,
+)
+from scripts.data.mix2k_v4_finalize import (
+    Mix2KV4FinalizeError,
+    _load_json_snapshot,
+    _teacher_inputs,
+    _validate_candidates,
+    select_training_max_length,
+)
 from scripts.data.mix2k_v4_teachers import (
     CODEX_DISABLED_FEATURES,
+    CODEX_FALLBACK_EXECUTION_MODE,
+    CODEX_FALLBACK_POLICY_PATH,
+    CROSS_PROVIDER_REVIEW_MODE,
+    MAXIMUM_DUPLICATE_REWRITE_ROUNDS,
+    SAME_PROVIDER_REVIEW_MODE,
+    STRICT_EXECUTION_MODE,
+    Mix2KV4TeacherError,
+    _actual_provider,
+    _candidate_rows,
     _draft_schema,
+    _duplicate_repairs,
+    _execution_runtime_identity,
+    _import_seed_drafts,
+    _load_execution_policy,
+    _mandatory_answer_checklist,
+    _normalize_draft_answer_layout,
+    _normalize_draft_answer_particles,
     _selection,
+    _validate_review_length_claim,
     draft_prompt,
     review_prompt,
     subscription_environment,
 )
+from scripts.data.mix2k_v4_teachers import (
+    RUNNER_PATH as TEACHER_RUNNER_PATH,
+)
+from scripts.data.mix2k_v4_teachers import _parser as teacher_parser
+from scripts.runtime.calculation.canonical import canonical_json_bytes
 from scripts.runtime.chart_day_model_projection import (
     model_projection_digest,
     normalize_model_period_projection,
 )
 from scripts.training.mix2k_v4_lora import DEFAULT_CONFIG as LORA_CONFIG
 from scripts.training.mix2k_v4_lora import (
+    MAX_JSON_BYTES as LORA_MAX_JSON_BYTES,
+)
+from scripts.training.mix2k_v4_lora import (
     Mix2KV4LoRAError,
+    _validate_teacher_governance,
     acquire_mix2k_v4_gpu_lock,
+)
+from scripts.training.mix2k_v4_lora import (
+    _load_jsonl_snapshot as load_lora_jsonl_snapshot,
 )
 from scripts.training.mix2k_v4_lora import (
     _validate_config as validate_lora_config,
@@ -187,6 +227,1097 @@ def _spec() -> dict[str, object]:
 
 
 class Mix2KV4ContractTests(unittest.TestCase):
+    def test_teacher_provider_only_preserves_explicit_provider_choice(self) -> None:
+        arguments = teacher_parser().parse_args(
+            [
+                "full",
+                "--spec-build",
+                "/tmp/spec-build",
+                "--provider-only",
+                "codex",
+                "--seed-target",
+                "/tmp/old-teacher-target",
+                "--execution-policy",
+                str(CODEX_FALLBACK_POLICY_PATH),
+            ]
+        )
+        self.assertEqual(arguments.provider_only, "codex")
+        self.assertEqual(arguments.seed_target, Path("/tmp/old-teacher-target"))
+        self.assertEqual(arguments.execution_policy, CODEX_FALLBACK_POLICY_PATH)
+
+    def test_codex_fallback_policy_is_explicit_and_hash_bound(self) -> None:
+        manifest = {
+            "build_id": "build-da9014c5f24a",
+            "build_sha256": (
+                "da9014c5f24a6ffc239cd8bf1ec64d2ba50855caff6ec90438d5a41a4fefd980"
+            ),
+        }
+        policy, execution = _load_execution_policy(
+            CODEX_FALLBACK_POLICY_PATH, manifest
+        )
+        self.assertEqual(execution["mode"], CODEX_FALLBACK_EXECUTION_MODE)
+        self.assertTrue(execution["lora_experimental_training_allowed"])
+        self.assertFalse(execution["production_promotion_allowed"])
+        self.assertEqual(
+            policy["authorization"]["summary_ko"],
+            "Claude Code 사용량이 만료되면 남은 작업은 Codex만으로 진행한다.",
+        )
+        self.assertEqual(
+            _actual_provider("claude", execution),
+            "codex",
+        )
+        self.assertEqual(_actual_provider("codex", execution), "codex")
+        self.assertEqual(
+            _actual_provider(
+                "claude",
+                {
+                    "mode": STRICT_EXECUTION_MODE,
+                },
+            ),
+            "claude",
+        )
+
+        tampered = deepcopy(policy)
+        tampered["authorization"]["production_promotion_allowed"] = True
+        with (
+            patch(
+                "scripts.data.mix2k_v4_teachers._load_json",
+                return_value=tampered,
+            ),
+            self.assertRaisesRegex(Mix2KV4TeacherError, "계약"),
+        ):
+            _load_execution_policy(CODEX_FALLBACK_POLICY_PATH, manifest)
+
+    def test_codex_fallback_runtime_identity_records_no_session_envelope(self) -> None:
+        _, execution = _load_execution_policy(
+            CODEX_FALLBACK_POLICY_PATH,
+            {
+                "build_id": "build-da9014c5f24a",
+                "build_sha256": (
+                    "da9014c5f24a6ffc239cd8bf1ec64d2ba50855caff6ec90438d5a41a4fefd980"
+                ),
+            },
+        )
+        config = {"teacher": {"codex_model": "configured_subscription_default"}}
+        with patch(
+            "scripts.data.mix2k_v4_teachers._codex_cli_version",
+            return_value="codex-cli 1.2.3",
+        ):
+            identity = _execution_runtime_identity(
+                config=config,
+                execution=execution,
+                auth={"codex": "chatgpt_subscription"},
+                environment={},
+            )
+        self.assertEqual(
+            identity,
+            {
+                "actual_provider": "codex",
+                "cli_version": "codex-cli 1.2.3",
+                "configured_model_selector": "configured_subscription_default",
+                "auth_type": "chatgpt_subscription",
+                "execution_policy_sha256": execution["policy_sha256"],
+            },
+        )
+        self.assertNotIn("session", json.dumps(identity).casefold())
+        self.assertNotIn("envelope", json.dumps(identity).casefold())
+
+    def test_lora_loader_enforces_hash_bound_teacher_governance(self) -> None:
+        common = {
+            "training_scope": "lora_experimental_only",
+            "lora_experimental_training_allowed": True,
+            "production_promotion_allowed": False,
+        }
+        strict = {
+            "teacher_contract_mode": STRICT_EXECUTION_MODE,
+            "teacher_quality_tier": "cross_provider_verified",
+            "cross_provider_teacher_contract_met": True,
+            **common,
+            "execution_policy_sha256": None,
+            "teacher_pipeline_state_sha256": None,
+        }
+        strict_manifest = {"schema_version": "1.0.0", **strict}
+        self.assertEqual(
+            _validate_teacher_governance(
+                strict_manifest, {"teacher_governance": strict}
+            ),
+            STRICT_EXECUTION_MODE,
+        )
+
+        fallback = {
+            "teacher_contract_mode": CODEX_FALLBACK_EXECUTION_MODE,
+            "teacher_quality_tier": CODEX_FALLBACK_EXECUTION_MODE,
+            "cross_provider_teacher_contract_met": False,
+            **common,
+            "execution_policy_sha256": sha256_file(CODEX_FALLBACK_POLICY_PATH),
+            "teacher_pipeline_state_sha256": "a" * 64,
+        }
+        fallback_manifest = {"schema_version": "1.1.0", **fallback}
+        self.assertEqual(
+            _validate_teacher_governance(
+                fallback_manifest, {"teacher_governance": fallback}
+            ),
+            CODEX_FALLBACK_EXECUTION_MODE,
+        )
+
+        top_level_tampered = deepcopy(fallback_manifest)
+        top_level_tampered["production_promotion_allowed"] = True
+        with self.assertRaisesRegex(Mix2KV4LoRAError, "governance"):
+            _validate_teacher_governance(
+                top_level_tampered, {"teacher_governance": fallback}
+            )
+
+        identity_tampered = deepcopy(fallback)
+        identity_tampered["production_promotion_allowed"] = True
+        with self.assertRaisesRegex(Mix2KV4LoRAError, "governance"):
+            _validate_teacher_governance(
+                {"schema_version": "1.1.0", **identity_tampered},
+                {"teacher_governance": identity_tampered},
+            )
+
+        missing_boundary = deepcopy(fallback)
+        del missing_boundary["cross_provider_teacher_contract_met"]
+        with self.assertRaisesRegex(Mix2KV4LoRAError, "governance"):
+            _validate_teacher_governance(
+                {"schema_version": "1.1.0", **missing_boundary},
+                {"teacher_governance": missing_boundary},
+            )
+
+    def test_lora_artifact_snapshot_hashes_the_consumed_bytes(self) -> None:
+        payload = b'{"id":"row-1","assistant":"checked"}\n'
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory).resolve() / "training.jsonl"
+            path.write_bytes(payload)
+            rows, observed_sha256 = load_lora_jsonl_snapshot(
+                path, "training snapshot"
+            )
+            self.assertEqual(
+                rows, [{"id": "row-1", "assistant": "checked"}]
+            )
+            self.assertEqual(observed_sha256, sha256_bytes(payload))
+
+            oversized = Path(directory).resolve() / "oversized.jsonl"
+            oversized.touch()
+            os.truncate(oversized, LORA_MAX_JSON_BYTES + 1)
+            with (
+                patch(
+                    "scripts.training.mix2k_v4_lora.os.read",
+                    side_effect=AssertionError("oversized file must not be read"),
+                ),
+                self.assertRaisesRegex(Mix2KV4LoRAError, "크기"),
+            ):
+                load_lora_jsonl_snapshot(oversized, "oversized training")
+
+    def test_same_provider_review_prompt_is_not_called_peer_review(self) -> None:
+        spec = _spec()
+        draft = {
+            "record_id": spec["id"],
+            "answer": "검수 대상 답변",
+            "used_fact_paths": [],
+            "used_fact_values": [],
+            "soft_interpretation_used": False,
+            "limitations": [],
+            "self_check": "PASS",
+        }
+        prompt = review_prompt(
+            [spec],
+            {spec["id"]: draft},
+            review_mode=SAME_PROVIDER_REVIEW_MODE,
+        )
+        self.assertIn("분리된 새 ephemeral 호출", prompt)
+        self.assertIn("교차 provider peer review가 아니며", prompt)
+        self.assertIn("값이 1인 intake·HARD QA", prompt)
+        self.assertNotIn("반대 teacher의 초안", prompt)
+
+    def test_review_cannot_invent_minimum_length_violation(self) -> None:
+        spec = _spec()
+        spec["task_axis"] = "intake_state_correction"
+        spec["substantive"] = False
+        spec["response_contract"]["minimum_nonempty_lines"] = 1
+        spec["response_contract"]["minimum_sentences"] = 1
+        draft = {
+            "answer": "새 날짜를 알려 주시면 가장 최근 정정값을 기준으로 이어갈게요."
+        }
+        review = {
+            "record_id": spec["id"],
+            "decision": "FAIL",
+            "failure_codes": ["MINIMUM_LENGTH_VIOLATION"],
+            "fact_errors": [],
+            "style_notes": [],
+            "rewrite_instructions": "3줄로 늘리세요.",
+        }
+        with self.assertRaisesRegex(Mix2KV4TeacherError, "잘못 판정"):
+            _validate_review_length_claim(spec, draft, review)
+
+        review["failure_codes"] = ["UNNATURAL_KOREAN"]
+        _validate_review_length_claim(spec, draft, review)
+
+    def test_seed_import_revalidates_drafts_without_reusing_peer_pass(self) -> None:
+        spec = _spec()
+        answer = (
+            "원국 전체는 연주 戊辰, 월주 甲子, 일주 乙丑, 시주 壬午입니다.\n"
+            "2026-09-02의 연간지는 丙午, 월간지는 丙申, 일진은 己卯입니다.\n"
+            "乙丑는 원국의 일주이고, 원국과 선택 날짜는 서로 다른 사실로 구분하면 됩니다."
+        )
+        draft = {
+            "record_id": spec["id"],
+            "answer": answer,
+            "used_fact_paths": [],
+            "used_fact_values": [
+                "戊辰",
+                "甲子",
+                "乙丑",
+                "壬午",
+                "2026-09-02",
+                "丙午",
+                "丙申",
+                "己卯",
+            ],
+            "soft_interpretation_used": False,
+            "limitations": [],
+            "self_check": "PASS",
+        }
+        source_record = {
+            "status": "accepted",
+            "rewrites_used": 1,
+            "current_draft": draft,
+            "draft_attempts": [
+                {
+                    "provider": "claude",
+                    "deterministic_pass": True,
+                    "draft": draft,
+                }
+            ],
+        }
+
+        def empty_state() -> dict[str, object]:
+            return {
+                "mode": "full",
+                "provider_calls": 0,
+                "selection_order": [spec["id"]],
+                "records": {
+                    spec["id"]: {
+                        "status": "needs_draft",
+                        "rewrites_used": 0,
+                        "feedback": "",
+                        "draft_attempts": [],
+                        "review_attempts": [],
+                        "current_draft": None,
+                        "accepted": None,
+                    }
+                },
+            }
+
+        seed_state = {
+            "schema_version": "1.0.0",
+            "dataset_version": DATASET_VERSION,
+            "mode": "full",
+            "selection_order": [spec["id"]],
+            "records": {spec["id"]: source_record},
+        }
+        state = empty_state()
+        report = _import_seed_drafts(
+            state=state,
+            seed_state=seed_state,
+            seed_state_sha256="a" * 64,
+            specs_by_id={spec["id"]: spec},
+        )
+        self.assertEqual(report["imported_current_drafts"], 1)
+        self.assertFalse(report["peer_review_reused"])
+        imported = state["records"][spec["id"]]
+        self.assertEqual(imported["status"], "needs_review")
+        self.assertIsNone(imported["accepted"])
+        self.assertTrue(imported["draft_attempts"][0]["imported_from_seed"])
+        self.assertTrue(imported["draft_attempts"][0]["particle_normalized"])
+        self.assertIn("乙丑은 원국의 일주", imported["current_draft"]["answer"])
+
+        chart_spec = deepcopy(spec)
+        chart_spec["task_axis"] = "chart_facts_natural_explanation"
+        rejected_state = empty_state()
+        rejected = _import_seed_drafts(
+            state=rejected_state,
+            seed_state=seed_state,
+            seed_state_sha256="b" * 64,
+            specs_by_id={chart_spec["id"]: chart_spec},
+        )
+        self.assertEqual(rejected["imported_current_drafts"], 0)
+        self.assertEqual(rejected["rejected_current_drafts"], 1)
+        self.assertEqual(rejected["rejection_counts"]["unrequested_period_fact"], 1)
+        self.assertEqual(
+            rejected_state["records"][spec["id"]]["status"], "needs_draft"
+        )
+
+        recoverable_state = empty_state()
+        recoverable_source = deepcopy(source_record)
+        recoverable_source["status"] = "needs_draft"
+        recoverable_source["current_draft"] = None
+        recoverable_source["draft_attempts"][0]["deterministic_pass"] = False
+        recovered = _import_seed_drafts(
+            state=recoverable_state,
+            seed_state={
+                **seed_state,
+                "records": {spec["id"]: recoverable_source},
+            },
+            seed_state_sha256="c" * 64,
+            specs_by_id={spec["id"]: spec},
+        )
+        self.assertEqual(recovered["imported_current_drafts"], 0)
+        self.assertEqual(recovered["imported_recoverable_attempts"], 1)
+        recovered_attempt = recoverable_state["records"][spec["id"]][
+            "draft_attempts"
+        ][0]
+        self.assertEqual(
+            recovered_attempt["imported_source_kind"],
+            "deterministic_recheck",
+        )
+        self.assertEqual(
+            recoverable_state["records"][spec["id"]]["status"],
+            "needs_review",
+        )
+
+    def test_fallback_inherits_only_current_valid_cross_provider_pass(self) -> None:
+        spec = _spec()
+        spec_sha256 = sha256_bytes(canonical_json_bytes(spec))
+        draft = {
+            "record_id": spec["id"],
+            "answer": (
+                "원국 전체는 연주 戊辰, 월주 甲子, 일주 乙丑, 시주 壬午입니다.\n"
+                "2026-09-02의 연간지는 丙午, 월간지는 丙申, 일진은 己卯입니다.\n"
+                "乙丑은 원국의 일주이고, 원국과 선택 날짜는 서로 구분합니다."
+            ),
+            "used_fact_paths": [],
+            "used_fact_values": [
+                "戊辰",
+                "甲子",
+                "乙丑",
+                "壬午",
+                "2026-09-02",
+                "丙午",
+                "丙申",
+                "己卯",
+            ],
+            "soft_interpretation_used": False,
+            "limitations": [],
+            "self_check": "PASS",
+        }
+        review = {
+            "record_id": spec["id"],
+            "decision": "PASS",
+            "failure_codes": [],
+            "fact_errors": [],
+            "style_notes": [],
+            "rewrite_instructions": "",
+        }
+        source_record = {
+            "spec_sha256": spec_sha256,
+            "status": "accepted",
+            "rewrites_used": 1,
+            "current_draft": draft,
+            "draft_attempts": [
+                {
+                    "provider": "claude",
+                    "deterministic_pass": True,
+                    "draft": draft,
+                }
+            ],
+            "review_attempts": [{"provider": "codex", "review": review}],
+            "accepted": {
+                "draft_provider": "claude",
+                "review_provider": "codex",
+                "draft": draft,
+                "review": review,
+            },
+        }
+
+        def target_state() -> dict[str, object]:
+            return {
+                "dataset_version": DATASET_VERSION,
+                "mode": "full",
+                "contracts_sha256": "2" * 64,
+                "spec_manifest_sha256": "3" * 64,
+                "provider_calls": 0,
+                "selection_order": [spec["id"]],
+                "records": {
+                    spec["id"]: {
+                        "spec_sha256": spec_sha256,
+                        "status": "needs_draft",
+                        "rewrites_used": 0,
+                        "duplicate_rewrites_used": 0,
+                        "feedback": "",
+                        "draft_attempts": [],
+                        "review_attempts": [],
+                        "current_draft": None,
+                        "accepted": None,
+                    }
+                },
+            }
+
+        seed = {
+            "schema_version": "1.2.0",
+            "dataset_version": DATASET_VERSION,
+            "mode": "full",
+            "contracts_sha256": "2" * 64,
+            "spec_manifest_sha256": "3" * 64,
+            "selection_order": [spec["id"]],
+            "records": {spec["id"]: source_record},
+        }
+        _, execution = _load_execution_policy(
+            CODEX_FALLBACK_POLICY_PATH,
+            {
+                "build_id": "build-da9014c5f24a",
+                "build_sha256": (
+                    "da9014c5f24a6ffc239cd8bf1ec64d2ba50855caff6ec90438d5a41a4fefd980"
+                ),
+            },
+        )
+        state = target_state()
+        state["execution"] = execution
+        state["seed_state_sha256"] = "4" * 64
+        report = _import_seed_drafts(
+            state=state,
+            seed_state=seed,
+            seed_state_sha256="4" * 64,
+            specs_by_id={spec["id"]: spec},
+            execution=execution,
+            preserve_cross_provider_acceptances=True,
+        )
+        self.assertEqual(report["cross_provider_passes_inherited"], 1)
+        self.assertEqual(state["records"][spec["id"]]["status"], "accepted")
+        accepted = state["records"][spec["id"]]["accepted"]
+        self.assertEqual(accepted["review_mode"], CROSS_PROVIDER_REVIEW_MODE)
+        self.assertFalse(accepted["fallback_used"])
+
+        superseded = deepcopy(seed)
+        replacement = deepcopy(draft)
+        replacement["answer"] += " 확인된 사실만 사용합니다."
+        superseded_record = superseded["records"][spec["id"]]
+        superseded_record["current_draft"] = replacement
+        superseded_record["draft_attempts"].append(
+            {
+                "provider": "claude",
+                "deterministic_pass": True,
+                "draft": replacement,
+            }
+        )
+        superseded_state = target_state()
+        superseded_report = _import_seed_drafts(
+            state=superseded_state,
+            seed_state=superseded,
+            seed_state_sha256="5" * 64,
+            specs_by_id={spec["id"]: spec},
+            execution=execution,
+            preserve_cross_provider_acceptances=True,
+        )
+        self.assertEqual(
+            superseded_report["cross_provider_passes_inherited"], 0
+        )
+        self.assertEqual(
+            superseded_report["cross_provider_pass_rejection_counts"],
+            {"accepted_draft_not_current": 1},
+        )
+        self.assertEqual(
+            superseded_state["records"][spec["id"]]["status"],
+            "needs_review",
+        )
+
+        candidates = _candidate_rows(
+            state,
+            {spec["id"]: spec},
+            execution,
+        )
+        teacher_manifest = {
+            "teacher_contract_mode": CODEX_FALLBACK_EXECUTION_MODE,
+            "execution_policy_id": execution["policy_id"],
+            "selection_sha256": sha256_bytes(
+                canonical_json_bytes([spec["id"]])
+            ),
+            "teacher_roles": {"claude": 1},
+            "review_roles": {"codex": 1},
+            "assigned_teacher_roles": {"claude": 1},
+            "assigned_review_roles": {"codex": 1},
+            "actual_teacher_roles": {"claude": 1},
+            "actual_review_roles": {"codex": 1},
+            "review_modes": {CROSS_PROVIDER_REVIEW_MODE: 1},
+            "all_rows_cross_provider_reviewed": True,
+            "seed_import": report,
+            "layout_normalized_rows": 0,
+            "particle_normalized_rows": 0,
+            "duplicate_rewrite_rows": 0,
+            "duplicate_rewrite_attempts": 0,
+            "maximum_duplicate_rewrite_rounds": (
+                MAXIMUM_DUPLICATE_REWRITE_ROUNDS
+            ),
+        }
+        config = {
+            "diversity": {
+                "exact_duplicate_answers_maximum": 0,
+                "normalized_answer_multiplicity_maximum": 2,
+            }
+        }
+        with (
+            patch("scripts.data.mix2k_v4_finalize.EXPECTED_ROWS", 1),
+            patch(
+                "scripts.data.mix2k_v4_finalize.EXPECTED_AXES",
+                {spec["task_axis"]: 1},
+            ),
+        ):
+            validation = _validate_candidates(
+                candidates,
+                [spec],
+                config,
+                teacher_manifest=teacher_manifest,
+                state=state,
+                seed_state=seed,
+            )
+            self.assertEqual(
+                validation["review_modes"],
+                {CROSS_PROVIDER_REVIEW_MODE: 1},
+            )
+            forged_later_import = deepcopy(state)
+            forged_later_record = forged_later_import["records"][spec["id"]]
+            duplicate_draft_import = deepcopy(
+                forged_later_record["draft_attempts"][0]
+            )
+            duplicate_draft_import["attempt"] = 2
+            forged_later_record["draft_attempts"].append(duplicate_draft_import)
+            duplicate_review_import = deepcopy(
+                forged_later_record["review_attempts"][0]
+            )
+            duplicate_review_import["attempt"] = 2
+            forged_later_record["review_attempts"].append(
+                duplicate_review_import
+            )
+            with self.assertRaisesRegex(
+                Mix2KV4FinalizeError, "seed 교차 PASS 이관 이력"
+            ):
+                _validate_candidates(
+                    candidates,
+                    [spec],
+                    config,
+                    teacher_manifest=teacher_manifest,
+                    state=forged_later_import,
+                    seed_state=seed,
+                )
+
+            imported_with_null_sequence = deepcopy(state)
+            imported_with_null_sequence["records"][spec["id"]][
+                "draft_attempts"
+            ][0]["provider_call_sequence"] = None
+            with self.assertRaisesRegex(
+                Mix2KV4FinalizeError, "seed 교차 PASS 이관 이력"
+            ):
+                _validate_candidates(
+                    candidates,
+                    [spec],
+                    config,
+                    teacher_manifest=teacher_manifest,
+                    state=imported_with_null_sequence,
+                    seed_state=seed,
+                )
+
+            forged = deepcopy(candidates)
+            forged[0]["teacher"]["review_mode"] = SAME_PROVIDER_REVIEW_MODE
+            with self.assertRaisesRegex(Mix2KV4FinalizeError, "provenance"):
+                _validate_candidates(
+                    forged,
+                    [spec],
+                    config,
+                    teacher_manifest=teacher_manifest,
+                    state=state,
+                    seed_state=seed,
+                )
+
+            forged_seed = deepcopy(seed)
+            forged_seed["records"][spec["id"]]["current_draft"] = {
+                **draft,
+                "answer": draft["answer"] + " 변경",
+            }
+            with self.assertRaisesRegex(Mix2KV4FinalizeError, "호출 순서"):
+                _validate_candidates(
+                    candidates,
+                    [spec],
+                    config,
+                    teacher_manifest=teacher_manifest,
+                    state=state,
+                    seed_state=forged_seed,
+                )
+
+            rewritten_state = deepcopy(state)
+            rewritten_state["provider_calls"] = 2
+            rewritten_record = rewritten_state["records"][spec["id"]]
+            replacement = deepcopy(draft)
+            replacement["answer"] += "\n확인된 사실만 구분해 답했습니다."
+            rewritten_record["current_draft"] = replacement
+            rewritten_record["duplicate_rewrites_used"] = 1
+            rewritten_record["draft_attempts"].append(
+                {
+                    "assigned_provider": "claude",
+                    "provider": "codex",
+                    "fallback_used": True,
+                    "execution_pass": "draft",
+                    "provider_call_sequence": 1,
+                    "attempt": 2,
+                    "provider_draft": replacement,
+                    "draft": replacement,
+                    "particle_normalized": False,
+                    "particle_normalizer_version": None,
+                    "layout_normalized": False,
+                    "layout_normalizer_version": None,
+                    "deterministic_pass": True,
+                    "deterministic_error": None,
+                }
+            )
+            rewritten_record["review_attempts"].append(
+                {
+                    "assigned_provider": "codex",
+                    "provider": "codex",
+                    "fallback_used": False,
+                    "execution_pass": "review",
+                    "provider_call_sequence": 2,
+                    "attempt": 2,
+                    "review_mode": SAME_PROVIDER_REVIEW_MODE,
+                    "review": review,
+                }
+            )
+            rewritten_record["accepted"] = {
+                "assigned_drafter": "claude",
+                "assigned_reviewer": "codex",
+                "draft_provider": "codex",
+                "review_provider": "codex",
+                "review_mode": SAME_PROVIDER_REVIEW_MODE,
+                "fallback_used": True,
+                "draft": replacement,
+                "review": review,
+            }
+            rewritten_candidates = _candidate_rows(
+                rewritten_state,
+                {spec["id"]: spec},
+                execution,
+            )
+            rewritten_manifest = deepcopy(teacher_manifest)
+            rewritten_manifest.update(
+                {
+                    "teacher_roles": {"codex": 1},
+                    "review_roles": {"codex": 1},
+                    "actual_teacher_roles": {"codex": 1},
+                    "actual_review_roles": {"codex": 1},
+                    "review_modes": {SAME_PROVIDER_REVIEW_MODE: 1},
+                    "all_rows_cross_provider_reviewed": False,
+                    "duplicate_rewrite_rows": 1,
+                    "duplicate_rewrite_attempts": 1,
+                }
+            )
+            rewritten_validation = _validate_candidates(
+                rewritten_candidates,
+                [spec],
+                config,
+                teacher_manifest=rewritten_manifest,
+                state=rewritten_state,
+                seed_state=seed,
+            )
+            self.assertEqual(
+                rewritten_validation["historical_seed_cross_provider_passes"],
+                1,
+            )
+            self.assertEqual(
+                rewritten_validation["surviving_seed_cross_provider_passes"],
+                0,
+            )
+
+            missing_import_prefix = deepcopy(rewritten_state)
+            missing_import_prefix["records"][spec["id"]]["review_attempts"][0][
+                "imported_from_seed"
+            ] = False
+            with self.assertRaisesRegex(
+                Mix2KV4FinalizeError, "seed 교차 PASS 이관 이력"
+            ):
+                _validate_candidates(
+                    rewritten_candidates,
+                    [spec],
+                    config,
+                    teacher_manifest=rewritten_manifest,
+                    state=missing_import_prefix,
+                    seed_state=seed,
+                )
+
+    def test_fallback_requires_latest_review_after_current_draft(self) -> None:
+        spec = _spec()
+        spec_sha256 = sha256_bytes(canonical_json_bytes(spec))
+        draft = {
+            "record_id": spec["id"],
+            "answer": (
+                "원국 전체는 연주 戊辰, 월주 甲子, 일주 乙丑, 시주 壬午입니다.\n"
+                "2026-09-02의 연간지는 丙午, 월간지는 丙申, 일진은 己卯입니다.\n"
+                "乙丑은 원국의 일주이며, 확인된 구조 사실만 서로 구분해 읽습니다."
+            ),
+            "used_fact_paths": [],
+            "used_fact_values": [
+                "戊辰",
+                "甲子",
+                "乙丑",
+                "壬午",
+                "2026-09-02",
+                "丙午",
+                "丙申",
+                "己卯",
+            ],
+            "soft_interpretation_used": False,
+            "limitations": [],
+            "self_check": "PASS",
+        }
+        review = {
+            "record_id": spec["id"],
+            "decision": "PASS",
+            "failure_codes": [],
+            "fact_errors": [],
+            "style_notes": [],
+            "rewrite_instructions": "",
+        }
+        accepted = {
+            "assigned_drafter": "claude",
+            "assigned_reviewer": "codex",
+            "draft_provider": "codex",
+            "review_provider": "codex",
+            "review_mode": SAME_PROVIDER_REVIEW_MODE,
+            "fallback_used": True,
+            "draft": draft,
+            "review": review,
+        }
+        state = {
+            "provider_calls": 2,
+            "selection_order": [spec["id"]],
+            "records": {
+                spec["id"]: {
+                    "spec_sha256": spec_sha256,
+                    "status": "accepted",
+                    "rewrites_used": 0,
+                    "duplicate_rewrites_used": 0,
+                    "current_draft": draft,
+                    "draft_attempts": [
+                        {
+                            "assigned_provider": "claude",
+                            "provider": "codex",
+                            "fallback_used": True,
+                            "execution_pass": "draft",
+                            "provider_call_sequence": 1,
+                            "attempt": 1,
+                            "provider_draft": draft,
+                            "draft": draft,
+                            "deterministic_pass": True,
+                        }
+                    ],
+                    "review_attempts": [
+                        {
+                            "assigned_provider": "codex",
+                            "provider": "codex",
+                            "fallback_used": False,
+                            "execution_pass": "review",
+                            "provider_call_sequence": 2,
+                            "attempt": 1,
+                            "review_mode": SAME_PROVIDER_REVIEW_MODE,
+                            "review": review,
+                        }
+                    ],
+                    "accepted": accepted,
+                }
+            },
+        }
+        seed = {
+            "schema_version": "1.2.0",
+            "dataset_version": DATASET_VERSION,
+            "mode": "full",
+            "contracts_sha256": "2" * 64,
+            "spec_manifest_sha256": "3" * 64,
+            "selection_order": [spec["id"]],
+            "records": {spec["id"]: {"spec_sha256": spec_sha256}},
+        }
+        _, execution = _load_execution_policy(
+            CODEX_FALLBACK_POLICY_PATH,
+            {
+                "build_id": "build-da9014c5f24a",
+                "build_sha256": (
+                    "da9014c5f24a6ffc239cd8bf1ec64d2ba50855caff6ec90438d5a41a4fefd980"
+                ),
+            },
+        )
+        seed_state_sha256 = "4" * 64
+        seed_projection = {
+            "dataset_version": DATASET_VERSION,
+            "mode": "full",
+            "contracts_sha256": "2" * 64,
+            "spec_manifest_sha256": "3" * 64,
+            "provider_calls": 0,
+            "selection_order": [spec["id"]],
+            "records": {
+                spec["id"]: {
+                    "spec_sha256": spec_sha256,
+                    "status": "needs_draft",
+                    "rewrites_used": 0,
+                    "duplicate_rewrites_used": 0,
+                    "feedback": "",
+                    "draft_attempts": [],
+                    "review_attempts": [],
+                    "current_draft": None,
+                    "accepted": None,
+                }
+            },
+        }
+        seed_import = _import_seed_drafts(
+            state=seed_projection,
+            seed_state=seed,
+            seed_state_sha256=seed_state_sha256,
+            specs_by_id={spec["id"]: spec},
+            execution=execution,
+            preserve_cross_provider_acceptances=True,
+        )
+        state.update(
+            {
+                "dataset_version": DATASET_VERSION,
+                "mode": "full",
+                "contracts_sha256": "2" * 64,
+                "spec_manifest_sha256": "3" * 64,
+                "execution": execution,
+                "seed_state_sha256": seed_state_sha256,
+                "seed_import": seed_import,
+            }
+        )
+        candidates = _candidate_rows(state, {spec["id"]: spec}, execution)
+        teacher_manifest = {
+            "teacher_contract_mode": CODEX_FALLBACK_EXECUTION_MODE,
+            "execution_policy_id": execution["policy_id"],
+            "selection_sha256": sha256_bytes(
+                canonical_json_bytes([spec["id"]])
+            ),
+            "teacher_roles": {"codex": 1},
+            "review_roles": {"codex": 1},
+            "assigned_teacher_roles": {"claude": 1},
+            "assigned_review_roles": {"codex": 1},
+            "actual_teacher_roles": {"codex": 1},
+            "actual_review_roles": {"codex": 1},
+            "review_modes": {SAME_PROVIDER_REVIEW_MODE: 1},
+            "all_rows_cross_provider_reviewed": False,
+            "seed_import": seed_import,
+            "layout_normalized_rows": 0,
+            "particle_normalized_rows": 0,
+            "duplicate_rewrite_rows": 0,
+            "duplicate_rewrite_attempts": 0,
+            "maximum_duplicate_rewrite_rounds": (
+                MAXIMUM_DUPLICATE_REWRITE_ROUNDS
+            ),
+        }
+        config = {
+            "diversity": {
+                "exact_duplicate_answers_maximum": 0,
+                "normalized_answer_multiplicity_maximum": 2,
+            }
+        }
+
+        def validate(
+            candidate_state: dict[str, object],
+            candidate_manifest: dict[str, object] | None = None,
+        ) -> None:
+            with (
+                patch("scripts.data.mix2k_v4_finalize.EXPECTED_ROWS", 1),
+                patch(
+                    "scripts.data.mix2k_v4_finalize.EXPECTED_AXES",
+                    {spec["task_axis"]: 1},
+                ),
+            ):
+                _validate_candidates(
+                    candidates,
+                    [spec],
+                    config,
+                    teacher_manifest=candidate_manifest or teacher_manifest,
+                    state=candidate_state,
+                    seed_state=seed,
+                )
+
+        validate(state)
+
+        unexpected_imported_review = deepcopy(state)
+        unexpected_record = unexpected_imported_review["records"][spec["id"]]
+        unexpected_record["review_attempts"].insert(
+            0,
+            {
+                "assigned_provider": "codex",
+                "provider": "codex",
+                "fallback_used": False,
+                "execution_pass": "review",
+                "attempt": 1,
+                "review_mode": SAME_PROVIDER_REVIEW_MODE,
+                "review": review,
+                "imported_from_seed": True,
+            },
+        )
+        unexpected_record["review_attempts"][-1]["attempt"] = 2
+        with self.assertRaisesRegex(
+            Mix2KV4FinalizeError, "seed 교차 PASS 이관 이력"
+        ):
+            validate(unexpected_imported_review)
+
+        review_before_draft = deepcopy(state)
+        review_before_draft["records"][spec["id"]]["review_attempts"][-1][
+            "provider_call_sequence"
+        ] = 1
+        with self.assertRaisesRegex(Mix2KV4FinalizeError, "호출 순서"):
+            validate(review_before_draft)
+
+        different_current = deepcopy(state)
+        different_current["records"][spec["id"]]["current_draft"] = {
+            **draft,
+            "answer": draft["answer"] + " 다른 초안",
+        }
+        with self.assertRaisesRegex(Mix2KV4FinalizeError, "provenance"):
+            validate(different_current)
+
+        invalid_review = deepcopy(state)
+        invalid_review["records"][spec["id"]]["accepted"]["review"] = {
+            "decision": "PASS"
+        }
+        invalid_review["records"][spec["id"]]["review_attempts"][-1]["review"] = {
+            "decision": "PASS"
+        }
+        with self.assertRaisesRegex(Mix2KV4FinalizeError, "provenance"):
+            validate(invalid_review)
+
+        inflated_calls = deepcopy(state)
+        inflated_calls["provider_calls"] = 10**12
+        with self.assertRaisesRegex(Mix2KV4FinalizeError, "provider 집계"):
+            validate(inflated_calls)
+
+        for field, forged_value in (
+            ("teacher_roles", {"claude": 1}),
+            ("layout_normalized_rows", 1),
+            ("duplicate_rewrite_attempts", 1),
+            ("selection_sha256", "0" * 64),
+        ):
+            forged_manifest = deepcopy(teacher_manifest)
+            forged_manifest[field] = forged_value
+            with self.subTest(field=field), self.assertRaisesRegex(
+                Mix2KV4FinalizeError, "provider 집계"
+            ):
+                validate(state, forged_manifest)
+
+    def test_finalizer_fallback_inputs_verify_policy_state_and_seed_hashes(
+        self,
+    ) -> None:
+        policy_sha = sha256_file(CODEX_FALLBACK_POLICY_PATH)
+        runtime_identity = {
+            "actual_provider": "codex",
+            "cli_version": "codex-cli 0.150.1",
+            "configured_model_selector": "configured_subscription_default",
+            "auth_type": "chatgpt_subscription",
+            "execution_policy_sha256": policy_sha,
+        }
+        seed_payload = b'{"seed":"immutable"}\n'
+        seed_sha = sha256_bytes(seed_payload)
+        seed_import = {
+            "version": "1.1.0",
+            "source_state_sha256": seed_sha,
+        }
+        state = {
+            "runner_sha256": sha256_file(TEACHER_RUNNER_PATH),
+            "execution": {
+                "mode": CODEX_FALLBACK_EXECUTION_MODE,
+                "policy_sha256": policy_sha,
+            },
+            "runtime_identity": runtime_identity,
+            "seed_state_sha256": seed_sha,
+            "seed_import": seed_import,
+        }
+        state_payload = (
+            json.dumps(state, ensure_ascii=False, sort_keys=True).encode("utf-8")
+            + b"\n"
+        )
+        candidate_payload = b"{}\n"
+        manifest = {
+            "schema_version": "1.1.0",
+            "dataset_version": DATASET_VERSION,
+            "mode": "full",
+            "rows": 1,
+            "candidate_path": "accepted/training_candidates_2000.jsonl",
+            "candidate_sha256": sha256_bytes(candidate_payload),
+            "runner_sha256": sha256_file(TEACHER_RUNNER_PATH),
+            "deterministic_validation_passed": True,
+            "contracts_sha256": sha256_file(
+                Path("scripts/data/mix2k_v4_contracts.py").resolve()
+            ),
+            "development_targets_accessed": False,
+            "api_keys_used": False,
+            "sealed_blind_accessed": False,
+            "training_execution_allowed": False,
+            "teacher_contract_mode": CODEX_FALLBACK_EXECUTION_MODE,
+            "peer_review_passed": False,
+            "all_second_pass_reviews_passed": True,
+            "execution_policy_path": CODEX_FALLBACK_POLICY_PATH.relative_to(
+                Path.cwd()
+            ).as_posix(),
+            "execution_policy_sha256": policy_sha,
+            "lora_experimental_training_allowed": True,
+            "production_promotion_allowed": False,
+            "runtime_identity": runtime_identity,
+            "pipeline_state_sha256": sha256_bytes(state_payload),
+            "seed_state_sha256": seed_sha,
+            "seed_import": seed_import,
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory).resolve()
+            (target / "accepted").mkdir()
+            (target / "provenance").mkdir()
+            (target / "accepted/training_candidates_2000.jsonl").write_bytes(
+                candidate_payload
+            )
+            (target / "pipeline_state.json").write_bytes(state_payload)
+            (target / "provenance/seed_pipeline_state.json").write_bytes(
+                seed_payload
+            )
+            manifest_path = target / "teacher_manifest.json"
+            manifest_path.write_text(
+                json.dumps(manifest, ensure_ascii=False), encoding="utf-8"
+            )
+            with patch("scripts.data.mix2k_v4_finalize.EXPECTED_ROWS", 1):
+                loaded, _, rows, loaded_state, loaded_seed, hashes = _teacher_inputs(
+                    target
+                )
+                self.assertEqual(loaded["runtime_identity"], runtime_identity)
+                self.assertEqual(rows, [{}])
+                self.assertEqual(loaded_state, state)
+                self.assertEqual(loaded_seed, {"seed": "immutable"})
+                self.assertEqual(
+                    hashes["teacher_candidate_sha256"],
+                    manifest["candidate_sha256"],
+                )
+
+                forged = deepcopy(manifest)
+                forged["pipeline_state_sha256"] = "0" * 64
+                manifest_path.write_text(
+                    json.dumps(forged, ensure_ascii=False), encoding="utf-8"
+                )
+                with self.assertRaisesRegex(Mix2KV4FinalizeError, "fallback"):
+                    _teacher_inputs(target)
+
+                forged_runner = deepcopy(manifest)
+                forged_runner["runner_sha256"] = "0" * 64
+                manifest_path.write_text(
+                    json.dumps(forged_runner, ensure_ascii=False), encoding="utf-8"
+                )
+                with self.assertRaisesRegex(Mix2KV4FinalizeError, "manifest"):
+                    _teacher_inputs(target)
+
+    def test_finalizer_rejects_oversized_snapshot_before_read(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory).resolve() / "oversized.json"
+            path.touch()
+            os.truncate(path, FINALIZER_MAX_JSON_BYTES + 1)
+            with (
+                patch(
+                    "scripts.data.mix2k_v4_finalize.os.read",
+                    side_effect=AssertionError("oversized file must not be read"),
+                ),
+                self.assertRaisesRegex(Mix2KV4FinalizeError, "크기"),
+            ):
+                _load_json_snapshot(path, "oversized snapshot")
+
     def test_codex_teacher_disables_host_read_tools(self) -> None:
         self.assertTrue(
             {
@@ -199,6 +1330,35 @@ class Mix2KV4ContractTests(unittest.TestCase):
                 "view_image",
             }.issubset(CODEX_DISABLED_FEATURES)
         )
+
+    def test_duplicate_repair_has_separate_budget_and_specific_feedback(self) -> None:
+        answer = "같은 첫 문장입니다.\n같은 둘째 문장입니다.\n같은 셋째 문장입니다."
+        state = {
+            "selection_order": ["r1", "r2", "r3"],
+            "records": {
+                record_id: {
+                    "status": "accepted",
+                    "rewrites_used": 2,
+                    "duplicate_rewrites_used": 0,
+                    "feedback": "",
+                    "accepted": {"draft": {"answer": answer}},
+                }
+                for record_id in ("r1", "r2", "r3")
+            },
+        }
+        self.assertEqual(
+            _duplicate_repairs(state, normalized_maximum=2),
+            2,
+        )
+        self.assertEqual(state["records"]["r1"]["status"], "accepted")
+        for record_id in ("r2", "r3"):
+            record = state["records"][record_id]
+            self.assertEqual(record["status"], "needs_draft")
+            self.assertEqual(record["rewrites_used"], 2)
+            self.assertEqual(record["duplicate_rewrites_used"], 1)
+            self.assertIn("PREVIOUS ANSWER TO AVOID", record["feedback"])
+            self.assertIn(answer, record["feedback"])
+        self.assertEqual(MAXIMUM_DUPLICATE_REWRITE_ROUNDS, 3)
 
     def test_training_and_evaluation_share_one_gpu_lock(self) -> None:
         with tempfile.TemporaryDirectory(prefix="mix2k-v4-lock-") as directory:
@@ -254,6 +1414,31 @@ class Mix2KV4ContractTests(unittest.TestCase):
         }
         self.assertEqual(validate_draft(spec, draft), draft)
 
+        negated_prediction = deepcopy(draft)
+        negated_prediction["answer"] += (
+            "\n어떤 일이 반드시 생긴다고 단정하지 않는 편이 좋습니다."
+        )
+        self.assertEqual(
+            validate_draft(spec, negated_prediction),
+            negated_prediction,
+        )
+        asserted_prediction = deepcopy(draft)
+        asserted_prediction["answer"] += "\n어떤 일이 반드시 생긴다고 말합니다."
+        with self.assertRaisesRegex(Mix2KV4ContractError, "확정적 사건 예측"):
+            validate_draft(spec, asserted_prediction)
+
+        contradictory = deepcopy(draft)
+        contradictory["answer"] = contradictory["answer"].replace(
+            "일주 乙丑",
+            "乙丑은 원국의 일주가 아니라, 원국의 일주는 乙丑",
+            1,
+        )
+        with self.assertRaisesRegex(
+            Mix2KV4ContractError,
+            "natal_day_expected_fact_negated",
+        ):
+            validate_draft(spec, contradictory)
+
     def test_training_period_projection_preserves_dashboard_v1_11_content(self) -> None:
         source = deepcopy(_binding()["value"]["period"])
         projected = normalize_model_period_projection(source)
@@ -298,6 +1483,9 @@ class Mix2KV4ContractTests(unittest.TestCase):
             "연결된 승인 원국 사실 乙丑입니다.": "natal_day_called_full_chart",
             "원국은 乙丑을 뜻합니다.": "natal_day_called_full_chart",
             "乙丑이 바로 원국입니다.": "natal_day_called_full_chart",
+            "乙丑은 원국 전체다.": "natal_day_called_full_chart",
+            "乙丑이 원국 전체예요.": "natal_day_called_full_chart",
+            "乙丑은 원국이야.": "natal_day_called_full_chart",
             "원국 전체가 乙丑으로 이루어집니다.": "natal_day_called_full_chart",
             "원국의 간지는 乙丑입니다.": "natal_day_called_full_chart",
             "원국 간지는 乙丑입니다.": "natal_day_called_full_chart",
@@ -594,6 +1782,10 @@ class Mix2KV4ContractTests(unittest.TestCase):
         self.assertEqual(structural_claim_errors(spec, complete), [])
         self.assertEqual(required_fact_errors(spec, complete), [])
 
+        natural_parallel = complete.replace("각각 ", "")
+        self.assertEqual(structural_claim_errors(spec, natural_parallel), [])
+        self.assertEqual(required_fact_errors(spec, natural_parallel), [])
+
         swapped = complete.replace(
             "월주의 천간 甲과 지지 子는 오행이 각각 목과 수",
             "월주의 천간 甲과 지지 子는 오행이 각각 수와 목",
@@ -601,6 +1793,14 @@ class Mix2KV4ContractTests(unittest.TestCase):
         self.assertIn(
             "natal_month_stem_element_confusion:수",
             structural_claim_errors(spec, swapped),
+        )
+        natural_swapped = natural_parallel.replace(
+            "월주의 천간 甲과 지지 子는 오행이 목과 수",
+            "월주의 천간 甲과 지지 子는 오행이 수와 목",
+        )
+        self.assertIn(
+            "natal_month_stem_element_confusion:수",
+            structural_claim_errors(spec, natural_swapped),
         )
         cross_swapped = (
             "연주와 월주의 천간은 각각 戊와 甲이고, "
@@ -610,6 +1810,15 @@ class Mix2KV4ContractTests(unittest.TestCase):
             "natal_year_stem_element_confusion:목",
             structural_claim_errors(spec, cross_swapped),
         )
+        carried_swapped = (
+            "연주와 월주의 천간은 각각 戊와 甲이고, "
+            "오행은 같은 순서로 목과 수이며, "
+            "음양은 같은 순서로 음과 양입니다."
+        )
+        carried_errors = structural_claim_errors(spec, carried_swapped)
+        self.assertIn("natal_year_stem_element_confusion:목", carried_errors)
+        self.assertIn("natal_month_stem_element_confusion:수", carried_errors)
+        self.assertIn("natal_year_stem_yin_yang_confusion:음", carried_errors)
 
         natural = (
             "연주의 천간 戊는 토 오행이며 양의 성질이고, "
@@ -711,6 +1920,21 @@ class Mix2KV4ContractTests(unittest.TestCase):
             with self.subTest(answer=answer):
                 self.assertIn(expected, structural_claim_errors(_spec(), answer))
 
+        for answer in (
+            "일간 丁을 중심으로 함께 볼 수 있는 원국의 겉구성입니다.",
+            "일간 丁을 중심으로 함께 살펴볼 수 있는 원국의 겉구성입니다.",
+        ):
+            with self.subTest(answer=answer):
+                spec = deepcopy(_spec())
+                stem_path = "chart.hard_facts.day_master.stem"
+                spec["allowed_fact_values"][
+                    spec["allowed_fact_paths"].index(stem_path)
+                ] = "丁"
+                self.assertNotIn(
+                    "day_master_element_confusion:수",
+                    structural_claim_errors(spec, answer),
+                )
+
         for valid in (
             "연주의 천간 戊(토·양), 지지 辰(토·양)입니다.",
             "연주의 천간 戊(양·토), 지지 辰(양·토)입니다.",
@@ -740,6 +1964,11 @@ class Mix2KV4ContractTests(unittest.TestCase):
                 "지지 辰의 오행은 토이고 음양도 양입니다."
             ),
             "연주는 천간 戊(양·토), 지지 辰(토·양)입니다.",
+            "연주는 천간 戊(오행 토, 음양 양)과 지지 辰(오행 토, 음양 양)입니다.",
+            (
+                "연주는 천간 戊로 오행은 토, 음양은 양이고, "
+                "지지 辰으로 오행은 토, 음양은 양입니다."
+            ),
             (
                 "연주는 천간은 양의 토 기운을 가진 戊이고, "
                 "지지는 양의 토 기운을 가진 辰입니다."
@@ -747,6 +1976,54 @@ class Mix2KV4ContractTests(unittest.TestCase):
         ):
             with self.subTest(answer=answer):
                 self.assertTrue(expected <= _pillar_field_claim_coverage(answer))
+
+        wrong_labeled_compact = (
+            "연주는 천간 戊(오행 토, 음양 음)과 "
+            "지지 辰(오행 토, 음양 양)입니다."
+        )
+        self.assertIn(
+            "natal_year_stem_yin_yang_confusion:음",
+            structural_claim_errors(_spec(), wrong_labeled_compact),
+        )
+        wrong_labeled_sequence = (
+            "연주는 천간 戊로 오행은 토, 음양은 음이고, "
+            "지지 辰으로 오행은 토, 음양은 양입니다."
+        )
+        self.assertIn(
+            "natal_year_stem_yin_yang_confusion:음",
+            structural_claim_errors(_spec(), wrong_labeled_sequence),
+        )
+        corrected_sequence = (
+            "연주는 천간 戊로 오행은 금이 아니라 토, "
+            "음양은 음이 아니라 양이고, 지지 辰입니다."
+        )
+        coverage = _pillar_field_claim_coverage(corrected_sequence)
+        self.assertIn(("year", "stem_element", "토"), coverage)
+        self.assertIn(("year", "stem_yin_yang", "양"), coverage)
+        corrected_element_wrong_yin_yang = (
+            "연주는 천간 戊로 오행은 금이 아니라 토, 음양은 음입니다."
+        )
+        mixed_coverage = _pillar_field_claim_coverage(
+            corrected_element_wrong_yin_yang
+        )
+        self.assertIn(("year", "stem_element", "토"), mixed_coverage)
+        self.assertIn(("year", "stem_yin_yang", "음"), mixed_coverage)
+        self.assertIn(
+            "natal_year_stem_yin_yang_confusion:음",
+            structural_claim_errors(_spec(), corrected_element_wrong_yin_yang),
+        )
+        for wrong, expected_error in (
+            (
+                "연주는 천간 戊로 오행은 토가 아니라 금, 음양은 양입니다.",
+                "natal_year_stem_element_confusion:금",
+            ),
+            (
+                "연주는 천간 戊로 오행은 토, 음양은 양이 아니고 음입니다.",
+                "natal_year_stem_yin_yang_confusion:음",
+            ),
+        ):
+            with self.subTest(wrong=wrong):
+                self.assertIn(expected_error, structural_claim_errors(_spec(), wrong))
 
     def test_natural_pillar_corrections_use_the_final_value(self) -> None:
         valid = (
@@ -919,6 +2196,8 @@ class Mix2KV4ContractTests(unittest.TestCase):
             "연간지와 일진은 서로 다르며, 앞의 丙午는 연간지이고 뒤의 己卯는 일진입니다.",
             "일진과 연간지의 차이는 丙午가 올해 값이고 己卯가 오늘 값이라는 점입니다.",
             "합충은 계산되지 않았습니다.",
+            "통근이나 신강약 판정은 포함하지 않습니다.",
+            "통근이나 신강약 같은 추가 판정은 포함되어 있지 않습니다.",
             "일진은 丙午가 아니라, 丙申은 월간지이고 己卯가 일진입니다.",
             "연간지는 己卯가 아니라, 己卯는 일진이고 丙午가 연간지입니다.",
             "연주는 乙丑이 아니라, 乙丑은 일주이고 戊辰이 연주입니다.",
@@ -927,6 +2206,10 @@ class Mix2KV4ContractTests(unittest.TestCase):
             (
                 "원국 전체는 戊辰·甲子·乙丑·壬午이며, "
                 "乙丑 하나만 원국 전체라는 뜻은 아닙니다."
+            ),
+            (
+                "일주 乙丑은 원국을 구성하는 네 기둥 중 하나이며, "
+                "戊辰·甲子·壬午와 함께 원국 전체를 이룹니다."
             ),
             "연주는 戊辰입니다. 이 원국의 일간 천간은 乙입니다.",
             "연주는 戊辰입니다. 일간의 천간은 乙이고 오행은 목입니다.",
@@ -1019,6 +2302,19 @@ class Mix2KV4ContractTests(unittest.TestCase):
             with self.subTest(answer=answer):
                 self.assertIn(expected, structural_claim_errors(_spec(), answer))
 
+    def test_unrelated_later_negation_does_not_mask_unsupported_claim(self) -> None:
+        cases = {
+            "일간 乙은 丑에 통근하며, 신강약 해석은 포함하지 않습니다.": (
+                "unsupported_structural_claim:rooting"
+            ),
+            "용신은 화라고 판단하며, 통근 판정은 포함하지 않습니다.": (
+                "unsupported_structural_claim:strength_pattern_yongshin"
+            ),
+        }
+        for answer, expected in cases.items():
+            with self.subTest(answer=answer):
+                self.assertIn(expected, structural_claim_errors(_spec(), answer))
+
     def test_unsupported_term_absence_wording_is_not_a_claim(self) -> None:
         answer = "기둥 사이 합충과 대운·세운은 계산 범위에 들어 있지 않습니다."
         self.assertEqual(structural_claim_errors(_spec(), answer), [])
@@ -1057,6 +2353,24 @@ class Mix2KV4ContractTests(unittest.TestCase):
                     "surface_five_elements_목_confusion:3",
                     structural_claim_errors(_spec(), answer),
                 )
+        correct_with_additive_particle = (
+            "표면 오행 가운데 목은 2개이고 화는 1개입니다.\n"
+            "토는 3개이고 금도 0개입니다.\n"
+            "수는 2개이며, 이상이 다섯 오행의 표면 개수 전부입니다."
+        )
+        spec = deepcopy(_spec())
+        spec["task_axis"] = "structured_fact_schema_literacy"
+        spec["prompt"][-1]["content"] = (
+            "표면 오행 개수를 누락 없이 읽고, 계산되지 않은 판단은 덧붙이지 마."
+        )
+        self.assertEqual(required_fact_errors(spec, correct_with_additive_particle), [])
+        self.assertIn(
+            "surface_five_elements_금_confusion:1",
+            structural_claim_errors(
+                spec,
+                correct_with_additive_particle.replace("금도 0개", "금도 1개"),
+            ),
+        )
 
     def test_nested_json_schema_claims_are_position_checked(self) -> None:
         cases = {
@@ -1101,7 +2415,8 @@ class Mix2KV4ContractTests(unittest.TestCase):
                 "일간은 乙이고 오행은 목이며 음양은 음입니다."
             ),
             "선택 날짜의 연간지, 월간지, 일진을 서로 바꾸지 말고 알려줘.": (
-                "연간지는 丙午, 월간지는 丙申, 일진은 己卯입니다."
+                "연간지는 丙午, 월간지는 丙申, 일진은 己卯입니다. "
+                "함께 연결된 원국의 일주는 乙丑입니다."
             ),
             "원국 각 기둥의 천간·지지와 각각의 오행·음양을 항목별로 읽어줘.": (
                 "연주는 천간 戊(토·양), 지지 辰(토·양), "
@@ -1125,7 +2440,8 @@ class Mix2KV4ContractTests(unittest.TestCase):
                 "원국은 戊辰·甲子·乙丑·壬午이고, 날짜는 丙午·丙申·己卯입니다."
             ),
             "날짜 JSON의 year/month/day ganzhi를 일반인이 혼동하지 않게 풀어줘.": (
-                "연간지는 丙午, 월간지는 丙申, 일진은 己卯입니다."
+                "연간지는 丙午, 월간지는 丙申, 일진은 己卯입니다. "
+                "함께 연결된 원국의 일주는 乙丑입니다."
             ),
         }
         for question, complete_answer in cases.items():
@@ -1143,6 +2459,190 @@ class Mix2KV4ContractTests(unittest.TestCase):
                 )
             with self.subTest(question=question, state="complete"):
                 self.assertEqual(required_fact_errors(spec, complete_answer), [])
+
+        natal_schema = deepcopy(_spec())
+        natal_schema["task_axis"] = "structured_fact_schema_literacy"
+        natal_schema["prompt"][-1]["content"] = (
+            "원국 전체 네 기둥과 일주를 서로 구분해서 설명해줘."
+        )
+        natal_answer = "연주 戊辰, 월주 甲子, 일주 乙丑, 시주 壬午입니다."
+        self.assertEqual(required_fact_errors(natal_schema, natal_answer), [])
+        self.assertIn(
+            "unrequested_period_fact",
+            required_fact_errors(
+                natal_schema,
+                natal_answer
+                + " 선택 날짜의 연간지는 丙午, 월간지는 丙申, 일진은 己卯입니다.",
+            ),
+        )
+
+        period_spec = deepcopy(_spec())
+        period_spec["task_axis"] = "structured_fact_schema_literacy"
+        period_spec["prompt"][-1]["content"] = (
+            "선택 날짜의 연간지, 월간지, 일진을 서로 바꾸지 말고 알려줘."
+        )
+        period_only = (
+            "선택 날짜의 연간지는 丙午입니다. "
+            "월간지는 丙申이고 일진은 己卯입니다."
+        )
+        self.assertIn(
+            "explicit_natal_fact_omitted",
+            required_fact_errors(period_spec, period_only),
+        )
+        unlabeled_period = (
+            "첫 값은 丙午입니다. 둘째 값은 丙申입니다. "
+            "마지막 값은 己卯이고 원국 일주는 乙丑입니다."
+        )
+        self.assertEqual(
+            sum(
+                error.startswith("required_schema_fact_omitted:period.")
+                for error in required_fact_errors(period_spec, unlabeled_period)
+            ),
+            3,
+        )
+        for parallel_period in (
+            "연간지·월간지·일진은 각각 丙午·丙申·己卯입니다.",
+            "연간지, 월간지, 일진은 순서대로 丙午, 丙申, 己卯입니다.",
+            "연간지/월간지/일진: 丙午/丙申/己卯입니다.",
+        ):
+            with self.subTest(parallel_period=parallel_period):
+                self.assertEqual(
+                    required_fact_errors(
+                        period_spec,
+                        parallel_period + " 원국 일주는 乙丑입니다.",
+                    ),
+                    [],
+                )
+        wrong_parallel = (
+            "연간지·월간지·일진은 각각 丙午·己卯·丙申입니다. "
+            "원국 일주는 乙丑입니다."
+        )
+        self.assertEqual(
+            sum(
+                error.startswith("required_schema_fact_omitted:period.")
+                for error in required_fact_errors(period_spec, wrong_parallel)
+            ),
+            2,
+        )
+        negated_period = (
+            "연간지가 丙午라는 근거는 없습니다. "
+            "월간지는 丙申이고 일진은 己卯입니다. "
+            "원국 일주는 乙丑입니다."
+        )
+        self.assertIn(
+            "required_schema_fact_omitted:period.hard_facts.period.year_ganzhi",
+            required_fact_errors(period_spec, negated_period),
+        )
+        appositive_period = (
+            "연간지는 그 날짜가 속한 해의 간지인 丙午입니다.\n"
+            "월간지는 그 날짜가 속한 달의 간지인 丙申입니다.\n"
+            "그날 자체의 일진은 己卯이고 원국 일주는 乙丑입니다."
+        )
+        self.assertEqual(required_fact_errors(period_spec, appositive_period), [])
+        wrong_appositive_owner = appositive_period.replace(
+            "연간지는 그 날짜가 속한 해의 간지인 丙午",
+            "연간지는 그 날짜가 속한 달의 간지인 丙午",
+        )
+        self.assertIn(
+            "required_schema_fact_omitted:period.hard_facts.period.year_ganzhi",
+            required_fact_errors(period_spec, wrong_appositive_owner),
+        )
+        equal_day_spec = deepcopy(_spec())
+        equal_day_spec["task_axis"] = "structured_fact_schema_literacy"
+        equal_day_spec["prompt"][-1]["content"] = (
+            "날짜 JSON의 year/month/day ganzhi를 일반인이 혼동하지 않게 풀어줘."
+        )
+        period_day_path = "period.hard_facts.period.day_ganzhi"
+        equal_day_spec["allowed_fact_values"][
+            equal_day_spec["allowed_fact_paths"].index(period_day_path)
+        ] = "乙丑"
+        equal_period_and_natal_day = (
+            "선택 날짜의 연간지는 丙午입니다.\n"
+            "월간지는 丙申이며, 그날 자체의 일진은 乙丑입니다.\n"
+            "원국의 일주도 乙丑이지만 날짜의 일진과는 구분해야 합니다."
+        )
+        self.assertEqual(
+            required_fact_errors(equal_day_spec, equal_period_and_natal_day), []
+        )
+        year_path = "period.hard_facts.period.year_ganzhi"
+        natal_day = "乙丑"
+        period_spec["allowed_fact_values"][
+            period_spec["allowed_fact_paths"].index(year_path)
+        ] = natal_day
+        same_literal_period_only = period_only.replace("丙午", natal_day)
+        self.assertIn(
+            "explicit_natal_fact_omitted",
+            required_fact_errors(period_spec, same_literal_period_only),
+        )
+
+        for negated_anchor in (
+            "원국의 일주는 乙丑일 수 없습니다.",
+            "원국의 일주가 乙丑인지는 알 수 없습니다.",
+            "원국의 일주는 乙丑과 무관합니다.",
+            "원국의 일주가 乙丑이라는 근거는 없습니다.",
+            "원국의 일주가 乙丑인지 불확실합니다.",
+            "원국의 일주는 乙丑으로 보이지 않습니다.",
+            "원국의 일주가 乙丑일 가능성이 없습니다.",
+            "戊辰은 일주가 아니라 연주가 아닙니다.",
+        ):
+            with self.subTest(negated_anchor=negated_anchor):
+                self.assertIn(
+                    "explicit_natal_fact_omitted",
+                    required_fact_errors(
+                        period_spec,
+                        same_literal_period_only + " " + negated_anchor,
+                    ),
+                )
+        for valid_anchor in (
+            "乙丑은 연주가 아니라 일주입니다.",
+            "원국의 일간은 乙입니다.",
+            "원국 네 기둥은 戊辰·甲子·乙丑·壬午입니다.",
+            "원국 전체는 戊辰·甲子·乙丑·壬午입니다.",
+        ):
+            with self.subTest(valid_anchor=valid_anchor):
+                self.assertNotIn(
+                    "explicit_natal_fact_omitted",
+                    required_fact_errors(
+                        period_spec,
+                        same_literal_period_only + " " + valid_anchor,
+                    ),
+                )
+
+    def test_period_schema_natal_anchor_requires_matching_provenance_path(self) -> None:
+        spec = deepcopy(_spec())
+        spec["task_axis"] = "structured_fact_schema_literacy"
+        spec["prompt"][-1]["content"] = (
+            "선택 날짜의 연간지, 월간지, 일진을 서로 바꾸지 말고 알려줘."
+        )
+        period_paths = [
+            f"period.hard_facts.period.{field}"
+            for field in ("year_ganzhi", "month_ganzhi", "day_ganzhi")
+        ]
+        natal_path = "chart.hard_facts.pillars.day.ganzhi"
+        draft = {
+            "record_id": spec["id"],
+            "answer": (
+                "선택 날짜의 연간지는 丙午입니다.\n"
+                "월간지는 丙申이고 일진은 己卯입니다.\n"
+                "이 날짜 정보는 원국의 일주 乙丑과 별개입니다."
+            ),
+            "used_fact_paths": period_paths,
+            "used_fact_values": ["丙午", "丙申", "己卯", "乙丑"],
+            "soft_interpretation_used": False,
+            "limitations": [],
+            "self_check": "PASS",
+        }
+        with self.assertRaisesRegex(
+            Mix2KV4ContractError, "명시 근거가 빠졌습니다"
+        ):
+            validate_draft(spec, draft)
+        draft["used_fact_paths"].append(natal_path)
+        self.assertEqual(validate_draft(spec, draft), draft)
+        draft["used_fact_paths"] = [natal_path]
+        with self.assertRaisesRegex(
+            Mix2KV4ContractError, "명시 근거가 빠졌습니다"
+        ):
+            validate_draft(spec, draft)
 
     def test_general_replay_blocks_saju_injection_without_word_false_positives(
         self,
@@ -1187,6 +2687,86 @@ class Mix2KV4ContractTests(unittest.TestCase):
             required_fact_errors(spec, answer),
         )
 
+        positioned_literal = (
+            "연주는 천간 십신이 정재, 지지 십신이 편재입니다.\n"
+            "월주는 천간 십신이 겁재, 지지 십신이 편인입니다.\n"
+            "일주는 천간 자리가 십신이 아니라 기준이 되는 '일간'으로 표기되어 있고, "
+            "지지 십신은 편재입니다.\n"
+            "시주는 천간 십신이 정인, 지지 십신이 식신입니다."
+        )
+        self.assertEqual(required_fact_errors(spec, positioned_literal), [])
+
+        role_literal = positioned_literal.replace(
+            "천간 자리가 십신이 아니라 기준이 되는 '일간'으로 표기되어 있고",
+            "천간이 일간 자리 그 자체이고",
+        )
+        self.assertEqual(required_fact_errors(spec, role_literal), [])
+        self.assertIn(
+            "natal_year_stem_ten_god_confusion:일간",
+            structural_claim_errors(_spec(), "연주는 천간이 일간 자리 그 자체입니다."),
+        )
+        corrected_role = role_literal.replace(
+            "일간 자리 그 자체이고",
+            "정재 자리가 아니라 일간 자리이고",
+        )
+        self.assertEqual(required_fact_errors(spec, corrected_role), [])
+
+        for natural_role in (
+            "천간이 일간 자체라 '일간'으로 표기되고",
+            "천간이 일간 그 자체이므로 십신 자리에 '일간'으로 표기되고",
+        ):
+            answer = positioned_literal.replace(
+                "천간 자리가 십신이 아니라 기준이 되는 '일간'으로 표기되어 있고",
+                natural_role,
+            )
+            with self.subTest(natural_role=natural_role):
+                self.assertEqual(required_fact_errors(spec, answer), [])
+
+        for negated_role in (
+            "일주는 천간이 일간 자리 그 자체와 다릅니다.",
+            "일주는 천간이 일간 자리 그 자체와 같지 않습니다.",
+            "일주는 천간이 일간 자리 그 자체와 무관합니다.",
+            "일주는 천간이 일간 자리 그 자체라고 하기 어렵습니다.",
+            "일주는 천간이 일간 자리 그 자체일 리 없습니다.",
+            "일주는 천간이 일간 자리 그 자체, 라고 보면 안 됩니다.",
+            "일주는 천간이 일간 자리 그 자체, 라는 해석은 맞지 않습니다.",
+            "일주는 천간이 일간 자리 그 자체, 라는 표현은 틀립니다.",
+            "일주는 천간이 일간 자리 그 자체, 라고 단정하기 어렵습니다.",
+            "일주는 천간이 일간 자리 그 자체, 라고 할 수 없습니다.",
+        ):
+            with self.subTest(negated_role=negated_role):
+                self.assertNotIn(
+                    ("day", "stem_ten_god", "일간"),
+                    _pillar_field_claim_coverage(negated_role),
+                )
+
+        for negated in (
+            positioned_literal.replace("표기되어", "표기되지 않고"),
+            positioned_literal.replace("표기되어", "표기하면 안 되고"),
+            positioned_literal.replace(
+                "표기되어 있고", "표기되는 것은 아닙니다. 또한"
+            ),
+            positioned_literal.replace(
+                "표기되어 있고", "표기된다는 뜻은 아닙니다. 또한"
+            ),
+            positioned_literal.replace(
+                "표기되어 있고", "표기되는 게 아니라 다른 기준이며,"
+            ),
+            positioned_literal.replace("표기되어", "표기되어서는 안 되고"),
+            positioned_literal.replace("십신이 아니라 ", "").replace(
+                "표기되어 있고", "표기되어서는 안 됩니다. 또한"
+            ),
+            positioned_literal.replace("십신이 아니라 ", "").replace(
+                "표기되어 있고", "표기되지 않고,"
+            ),
+        ):
+            with self.subTest(negated=negated):
+                self.assertIn(
+                    "required_schema_fact_omitted:"
+                    "chart.hard_facts.pillars.day.stem_ten_god",
+                    required_fact_errors(spec, negated),
+                )
+
     def test_today_flow_requires_natal_and_period_day_evidence(self) -> None:
         spec = _spec()
         draft = {
@@ -1207,6 +2787,81 @@ class Mix2KV4ContractTests(unittest.TestCase):
         ):
             validate_draft(spec, draft)
 
+        separated = (
+            "선택 날짜의 연간지는 丙午, 월간지는 丙申, 일진은 己卯입니다. "
+            "한편 원국의 일주는 乙丑이므로, 위 날짜 표시는 원국 기둥이 아니라 "
+            "선택 날짜에 붙는 정보입니다. 두 자료를 구분해서 보면 됩니다."
+        )
+        self.assertNotIn(
+            "provided_natal_fact_omitted",
+            required_fact_errors(spec, separated),
+        )
+
+    def test_chart_explanation_rejects_unrequested_period_facts(self) -> None:
+        spec = deepcopy(_spec())
+        spec["task_axis"] = "chart_facts_natural_explanation"
+        chart_only = (
+            "원국은 연주 戊辰, 월주 甲子, 일주 乙丑, 시주 壬午입니다. "
+            "일간은 乙입니다. 네 기둥과 일간을 구분해서 보면 됩니다."
+        )
+        self.assertEqual(required_fact_errors(spec, chart_only), [])
+
+        with_period = (
+            chart_only
+            + " 선택 날짜 2026-09-02의 연간지는 丙午, 월간지는 丙申, 일진은 己卯입니다."
+        )
+        self.assertIn(
+            "unrequested_period_fact",
+            required_fact_errors(spec, with_period),
+        )
+
+        day_master_only = (
+            "원국의 일간은 乙입니다.\n"
+            "일간은 일주 천간에서 읽는 중심값입니다.\n"
+            "질문한 원국 범위 안에서 이 값을 먼저 구분하면 됩니다."
+        )
+        self.assertEqual(required_fact_errors(spec, day_master_only), [])
+
+        spec["prompt"][-1]["content"] = (
+            "일간을 중심으로 원국의 표면 구성을 설명해줘."
+        )
+        self.assertTrue(
+            any(
+                error.startswith("required_chart_fact_omitted:")
+                for error in required_fact_errors(spec, day_master_only)
+            )
+        )
+        with_surface = (
+            day_master_only
+            + "\n표면 오행은 목 2, 화 1, 토 3, 금 0, 수 2입니다."
+        )
+        self.assertEqual(required_fact_errors(spec, with_surface), [])
+
+    def test_equal_period_year_and_day_ganzhi_are_not_label_confusion(self) -> None:
+        spec = deepcopy(_spec())
+        year_path = "period.hard_facts.period.year_ganzhi"
+        day_path = "period.hard_facts.period.day_ganzhi"
+        year_value = spec["allowed_fact_values"][
+            spec["allowed_fact_paths"].index(year_path)
+        ]
+        day_index = spec["allowed_fact_paths"].index(day_path)
+        spec["allowed_fact_values"][day_index] = year_value
+        answer = (
+            f"선택 날짜의 연간지는 {year_value}입니다. "
+            f"같은 날짜의 일진도 우연히 {year_value}입니다."
+        )
+        self.assertNotIn(
+            "period_year_called_day_ganzhi",
+            structural_claim_errors(spec, answer),
+        )
+
+        unequal_errors = structural_claim_errors(_spec(), answer)
+        self.assertIn(
+            f"period_day_ganzhi_label_confusion:{year_value}",
+            unequal_errors,
+        )
+        self.assertIn("period_year_called_day_ganzhi", unequal_errors)
+
     def test_role_order_and_three_line_contract_fail_closed(self) -> None:
         malformed = _spec()
         malformed["prompt"].insert(1, {"role": "assistant", "content": "잘못된 순서"})
@@ -1226,6 +2881,79 @@ class Mix2KV4ContractTests(unittest.TestCase):
         with self.assertRaisesRegex(Mix2KV4ContractError, "최소 줄·문장"):
             validate_draft(spec, short)
 
+    def test_teacher_layout_normalizer_only_splits_complete_sentences(self) -> None:
+        spec = _spec()
+        one_line = {
+            "record_id": spec["id"],
+            "answer": (
+                "2026. 9. 2. 날짜를 먼저 확인합니다. "
+                "원국과 날짜 정보는 서로 구분합니다. "
+                "확인된 범위에서 차근차근 설명합니다."
+            ),
+            "used_fact_paths": [],
+            "used_fact_values": [],
+            "soft_interpretation_used": False,
+            "limitations": [],
+            "self_check": "PASS",
+        }
+        normalized, changed = _normalize_draft_answer_layout(spec, one_line)
+        self.assertTrue(changed)
+        self.assertEqual(len(normalized["answer"].splitlines()), 3)
+        self.assertIn("2026. 9. 2. 날짜", normalized["answer"])
+
+        too_short = deepcopy(one_line)
+        too_short["answer"] = "첫 문장입니다. 둘째 문장입니다."
+        unchanged, changed = _normalize_draft_answer_layout(spec, too_short)
+        self.assertFalse(changed)
+        self.assertEqual(unchanged["answer"], too_short["answer"])
+
+        already_multiline = deepcopy(one_line)
+        already_multiline["answer"] = "첫 문장입니다.\n둘째 문장입니다.\n셋째 문장입니다."
+        unchanged, changed = _normalize_draft_answer_layout(spec, already_multiline)
+        self.assertFalse(changed)
+        self.assertEqual(unchanged["answer"], already_multiline["answer"])
+
+        for protected in (
+            '`foo. bar. baz.`를 코드로 표시합니다.',
+            "[참고. 예시. 항목.](https://example.com) 한 문장으로 안내합니다.",
+            "- 첫 문장입니다. 둘째 문장입니다. 셋째 문장입니다.",
+            "> 첫 문장입니다. 둘째 문장입니다. 셋째 문장입니다.",
+            "설명은 두 문장입니다. . . 마지막 문장입니다.",
+            "e.g. i.e. 실제 설명은 하나입니다.",
+            "Dr. Kim. 실제 설명입니다.",
+            "핵심: 감정. 상황. 차근차근 설명합니다.",
+        ):
+            with self.subTest(protected=protected):
+                markup = deepcopy(one_line)
+                markup["answer"] = protected
+                unchanged, changed = _normalize_draft_answer_layout(spec, markup)
+                self.assertFalse(changed)
+                self.assertEqual(unchanged["answer"], protected)
+
+    def test_teacher_particle_normalizer_uses_ganzhi_pronunciation(self) -> None:
+        draft = {
+            "answer": (
+                "辛丑는 乙丑로 이어지고 癸丑와 구분합니다. "
+                "丁未은 乙未을 뜻하며 丁未이라는 표현을 씁니다. "
+                "壬戌으로 향하고 辛亥이더라도 그대로 둡니다."
+            )
+        }
+        normalized, changed = _normalize_draft_answer_particles(draft)
+        self.assertTrue(changed)
+        self.assertEqual(
+            normalized["answer"],
+            (
+                "辛丑은 乙丑으로 이어지고 癸丑과 구분합니다. "
+                "丁未는 乙未를 뜻하며 丁未라는 표현을 씁니다. "
+                "壬戌로 향하고 辛亥이더라도 그대로 둡니다."
+            ),
+        )
+        self.assertEqual(draft["answer"], (
+            "辛丑는 乙丑로 이어지고 癸丑와 구분합니다. "
+            "丁未은 乙未을 뜻하며 丁未이라는 표현을 씁니다. "
+            "壬戌으로 향하고 辛亥이더라도 그대로 둡니다."
+        ))
+
     def test_teacher_prompt_has_four_explicit_evidence_sections(self) -> None:
         spec = _spec()
         prompt = draft_prompt([spec], {})
@@ -1233,7 +2961,14 @@ class Mix2KV4ContractTests(unittest.TestCase):
         self.assertEqual(prompt.count("[ALLOWED EVIDENCE]"), 1)
         self.assertEqual(prompt.count("[FORBIDDEN INFERENCE]"), 1)
         self.assertEqual(prompt.count("[TASK]"), 1)
+        self.assertEqual(prompt.count("[MANDATORY ANSWER CHECKLIST]"), 1)
         self.assertNotIn("출생일", prompt)
+        self.assertIn("FORBIDDEN 목록은 금지 기준", prompt)
+        self.assertIn("deterministic 또는 POLICY_BOUND 계산 결과", prompt)
+        self.assertIn("limitations는 내부 audit metadata", prompt)
+        self.assertIn("날짜 사실과 원국 사실을 각각 최소 하나", prompt)
+        self.assertIn("`甲寅로`, `己丑는`처럼", prompt)
+        self.assertIn("`甲寅으로`, `己丑은`", prompt)
 
         draft = {
             "record_id": spec["id"],
@@ -1248,6 +2983,100 @@ class Mix2KV4ContractTests(unittest.TestCase):
         self.assertEqual(review.count("[DRAFT TO REVIEW]"), 1)
         self.assertIn("최소 조건이며 최대 길이 제한이 아닙니다", review)
         self.assertIn("정확히 3줄로 줄이라고 요구하지 마세요", review)
+        self.assertIn("audit metadata입니다", review)
+        self.assertIn("answer의 내용과 metadata의 정확성을 구분", review)
+        self.assertIn("날짜 사실과 원국 사실을 각각 최소 하나", review)
+        self.assertIn("자연성 오류로 FAIL", review)
+        self.assertIn("`甲寅으로`, `己丑은`", review)
+        self.assertIn("deterministic 또는 POLICY_BOUND 결과", review)
+        self.assertEqual(review.count("[MANDATORY ANSWER CHECKLIST]"), 1)
+
+    def test_bound_chart_v2_dual_grounding_is_date_question_only(self) -> None:
+        prompt = Path("configs/chat_prompts/saju_bound_chart_v2.txt").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("사용자가 선택 날짜나 오늘의 흐름을 묻는다면", prompt)
+        self.assertIn(
+            "원국만 묻는 질문에는 `period`가 연결됐다는 이유만으로 날짜 사실을 덧붙이지 마세요",
+            prompt,
+        )
+        self.assertNotIn(
+            "현재 snapshot에 승인된 단일 날짜 `period`가 있다면 해당 날짜 사실과 원국 사실을 각각",
+            prompt,
+        )
+
+    def test_schema_teacher_checklist_expands_every_requested_position(self) -> None:
+        spec = _spec()
+        spec["task_axis"] = "structured_fact_schema_literacy"
+        spec["prompt"][-1]["content"] = (
+            "원국 각 기둥의 천간·지지와 각각의 오행·음양을 항목별로 읽어줘."
+        )
+        checklist = "\n".join(_mandatory_answer_checklist(spec))
+        for expected in (
+            "연주: 천간=戊",
+            "월주: 천간=甲",
+            "일주: 천간=乙",
+            "일주: 천간=乙, 천간 오행=목, 천간 음양=음, 지지=丑",
+            "시주: 천간=壬",
+        ):
+            self.assertIn(expected, checklist)
+
+        spec["prompt"][-1]["content"] = (
+            "각 기둥의 stem ten-god와 branch ten-god를 위치별로 구분해줘."
+        )
+        checklist = "\n".join(_mandatory_answer_checklist(spec))
+        self.assertIn("일주: stem ten-god=일간", checklist)
+        self.assertIn("branch ten-god=편재", checklist)
+        self.assertIn("runtime literal '일간'", checklist)
+
+        spec["prompt"][-1]["content"] = (
+            "선택 날짜의 연간지, 월간지, 일진을 서로 바꾸지 말고 알려줘."
+        )
+        checklist = "\n".join(_mandatory_answer_checklist(spec))
+        self.assertIn("선택 날짜의 연간지=丙午", checklist)
+        self.assertIn("선택 날짜의 월간지=丙申", checklist)
+        self.assertIn("선택 날짜의 일진=己卯", checklist)
+        self.assertIn("원국 일주=乙丑", checklist)
+
+        hard_qa = deepcopy(_spec())
+        hard_qa["task_axis"] = "hard_fact_short_qa"
+        hard_qa["prompt"][-1]["content"] = "날짜의 year_ganzhi가 오늘 일진이야?"
+        hard_checklist = "\n".join(_mandatory_answer_checklist(hard_qa))
+        self.assertNotIn("원국 일주=", hard_checklist)
+        self.assertNotIn("선택 날짜의 동시 근거", hard_checklist)
+
+    def test_hard_qa_without_runtime_validates_only_requested_schema_rule(self) -> None:
+        spec = deepcopy(_spec())
+        spec["task_axis"] = "hard_fact_short_qa"
+        spec["runtime_binding"] = None
+        spec["allowed_fact_paths"] = ["schema_rule"]
+        spec["allowed_fact_values"] = [
+            "원국 전체는 네 기둥이고 일주는 그중 day 위치의 한 기둥이다."
+        ]
+        spec["prompt"] = [
+            {"role": "system", "content": "schema 규칙만 사용합니다."},
+            {"role": "user", "content": "원국 전체와 일주는 같은 말이야?"},
+        ]
+        self.assertNotIn(
+            "chart_and_day_pillar_distinction_omitted",
+            required_fact_errors(
+                spec,
+                "아니요. 원국 전체는 네 기둥이고 일주는 그중 한 기둥입니다.",
+            ),
+        )
+        self.assertIn(
+            "chart_and_day_pillar_distinction_omitted",
+            required_fact_errors(spec, "네, 같은 말입니다."),
+        )
+
+        spec["prompt"][-1]["content"] = "일간은 원국의 어느 값에서 읽어?"
+        self.assertEqual(
+            required_fact_errors(
+                spec,
+                "일간은 일주의 천간에서 읽고 day_master에서도 확인합니다.",
+            ),
+            [],
+        )
 
     def test_draft_schema_is_codex_compatible_and_validator_rejects_duplicates(
         self,

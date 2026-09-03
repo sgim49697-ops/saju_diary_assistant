@@ -69,7 +69,8 @@ KOREAN_DATE = re.compile(
 SENTENCE_END = re.compile(r"(?:[.!?]|[。！？])(?:[\"'”’)]*)?(?=\s|$)")
 NEGATED_STRUCTURAL_CLAIM = re.compile(
     r"(?:제공되지|주어지지|확인되지|계산하지|계산되지|판단하지|"
-    r"단정하지|포함되지|다루지|알\s*수\s*없|근거가\s*없|범위가\s*아니|"
+    r"단정하지|포함하지|포함되지|포함(?:되어)?\s*있지\s*않|다루지|"
+    r"알\s*수\s*없|근거가\s*없|범위가\s*아니|"
     r"범위(?:에|에는)\s*(?:(?:들어\s*)?있지\s*않|없)|범위가\s*아닙)"
 )
 UNSUPPORTED_ACTION_NEGATION = re.compile(
@@ -122,7 +123,7 @@ TEN_GOD_ENTITY = (
 )
 SURFACE_ELEMENT_COUNT = re.compile(
     r"(?<![가-힣])([목화토금수])(?:\s*(?:수치|개수))?"
-    r"(?:은|는|이|가|:|=|\s)*([0-9]+)(?:\s*개)?"
+    r"(?:은|는|이|가|도|:|=|\s)*([0-9]+)(?:\s*개)?"
 )
 UNSUPPORTED_STRUCTURAL_PATTERNS = (
     (
@@ -369,12 +370,76 @@ def _claim_clause(answer: str, start: int, end: int) -> str:
     return answer[left:right]
 
 
+def _expected_labeled_fact_negation_errors(
+    spec: Mapping[str, Any], answer: str
+) -> list[str]:
+    """제공된 정답 label·값 자체를 부정하는 자기모순 claim을 찾는다."""
+
+    errors: list[str] = []
+    groups = (
+        ("natal", PILLAR_LABELS, "chart.hard_facts.pillars.{}.ganzhi"),
+        ("period", PERIOD_LABELS, "period.hard_facts.period.{}"),
+    )
+    for prefix, labels, path_template in groups:
+        for label, field in labels.items():
+            expected = _path_value(spec, path_template.format(field))
+            if expected is None:
+                continue
+            escaped_label = re.escape(label)
+            escaped_value = re.escape(expected)
+            direct = re.compile(
+                rf"(?:(?:원국|사주|오늘|날짜|선택된\s*날짜)(?:의)?\s*)?"
+                rf"(?P<label>{escaped_label})\s*"
+                rf"(?:은|는|이|가|인|:|=)?\s*{escaped_value}"
+            )
+            reverse = re.compile(
+                rf"{escaped_value}\s*(?:은|는|이|가)?\s*"
+                rf"(?:(?:원국|사주|오늘|날짜|선택된\s*날짜)(?:의)?\s*)?"
+                rf"{escaped_label}"
+            )
+            direct_matches = (
+                match
+                for match in direct.finditer(answer)
+                if not _label_completes_reverse_claim(
+                    answer, match.start("label")
+                )
+            )
+            if any(
+                LOCAL_CLAIM_NEGATION.match(
+                    answer[match.end() : min(len(answer), match.end() + 24)]
+                )
+                is not None
+                for match in (*direct_matches, *reverse.finditer(answer))
+            ):
+                errors.append(f"{prefix}_{field}_expected_fact_negated")
+    return list(dict.fromkeys(errors))
+
+
 def _explicit_claim_is_negated(answer: str, start: int, end: int) -> bool:
     """잘못된 label 바로 뒤의 `아니다/아니라`만 해당 claim의 부정으로 본다."""
 
     local_tail = answer[start : min(len(answer), end + 32)]
+    boundary = re.search(
+        r"[\n.!?。！？;；]",
+        local_tail[max(0, end - start) :],
+    )
+    if boundary is not None:
+        boundary_start = max(0, end - start) + boundary.start()
+        local_tail = local_tail[:boundary_start]
+    comma = re.search(r"[,，]", local_tail[max(0, end - start) :])
+    if comma is not None:
+        comma_start = max(0, end - start) + comma.start()
+        continuation = local_tail[comma_start + 1 :]
+        if re.match(r"\s*(?:라고|라는|이라고|이라는)", continuation) is None:
+            local_tail = local_tail[:comma_start]
     return (
         LOCAL_CLAIM_NEGATION.search(local_tail) is not None
+        or re.search(
+            r"(?:되지|하지)(?:\s*않|는|고|만|도|라|$)|"
+            r"(?:되어서는|해서는|되면|하면)\s*안",
+            local_tail,
+        )
+        is not None
         or re.search(
             r"(?:이라고|라고)?\s*(?:볼|말할|부를)\s*수(?:는|가)?\s*없",
             local_tail,
@@ -384,6 +449,20 @@ def _explicit_claim_is_negated(answer: str, start: int, end: int) -> bool:
             r"(?:라는|이라는|이라고\s*하는)\s*(?:뜻|말|의미)(?:은|는|이|가)?\s*"
             r"(?:아닙|아니(?:다|라고|며|고|었|입))",
             local_tail,
+        )
+        is not None
+        or re.match(
+            r"\s*(?:(?:일|인)(?:지는?)?\s*)?"
+            r"(?:알\s*수\s*없|수\s*없|리\s*없|"
+            r"(?:과|와)\s*무관|확인(?:되지|할\s*수\s*없))",
+            answer[end : min(len(answer), end + 48)],
+        )
+        is not None
+        or re.match(
+            r"\s*(?:이?라는?\s*)?(?:근거(?:는|가)?\s*없|"
+            r"(?:인지(?:는)?\s*)?불확실|(?:으)?로\s*보이지\s*않|"
+            r"일\s*가능성(?:은|이)?\s*없)",
+            answer[end : min(len(answer), end + 56)],
         )
         is not None
         or re.match(
@@ -397,7 +476,16 @@ def _explicit_claim_is_negated(answer: str, start: int, end: int) -> bool:
 def _unsupported_claim_is_negated(answer: str, start: int, end: int) -> bool:
     """unsupported 용어와 직접 맞닿은 근거 부재 표현만 면제한다."""
 
-    clause = _claim_clause(answer, start, end)
+    local_end_match = re.search(
+        r"[,，\n.!?。！？;；]",
+        answer[end:],
+    )
+    local_end = (
+        end + local_end_match.start()
+        if local_end_match is not None
+        else len(answer)
+    )
+    clause = answer[start:local_end]
     return (
         NEGATED_STRUCTURAL_CLAIM.search(clause) is not None
         or UNSUPPORTED_ACTION_NEGATION.search(clause) is not None
@@ -478,8 +566,8 @@ def _labeled_entity_claims(
         r"(?:(?:(?:의\s*)?(?:기둥|항목)|(?:라는|이란)\s*(?:기둥|값|간지|항목))\s*)?"
         r"(?::|：|=)?\s*(?:의\s*)?"
         r"(?:(?:간지(?:\s*두\s*글자)?|값|사실)\s*)?"
-        r"(?:은|는|이|가|인|에|에는|을|를|으로|로|으로는|로는|:|：|=|,|，)?"
-        r"\s*[\(\[\{]?|"
+        r"(?:은|는|이|가|인|에|에는|을|를|으로|로|으로는|로는|도|:|：|=|,|，)?"
+        r"\s*(?:우연히\s*)?[\(\[\{]?|"
         r"값으로\s*등록된\s*것(?:은|는|이|가)?\s*|"
         r"에\s*해당하는\s*(?:간지|값|글자)(?:은|는|이|가|:|：|=)?\s*|"
         r"(?:의\s*)?자리(?:에|에는)\s*|"
@@ -604,6 +692,9 @@ def _corrected_owner_claims(
         (match.group("label"), match.group("value"))
         for match in pattern.finditer(answer)
         if match.group("label") != match.group("negated")
+        and not _explicit_claim_is_negated(
+            answer, match.start("label"), match.end("label")
+        )
     ]
 
 
@@ -832,8 +923,108 @@ def parallel_pillar_field_claims(answer: str) -> list[tuple[str, str, str]]:
         values = entity_pattern.findall(suffix)
         for (pillar, field), value in zip(active_positions, values, strict=False):
             claims.append((pillar, field, value))
+
+        base_fields = {
+            re.sub(r"_(?:element|yin_yang)$", "", field)
+            for _, field in last_positions
+        }
+        if len(base_fields) == 1 and base_fields <= {"stem", "branch"}:
+            base_field = next(iter(base_fields))
+            same_order_detail = re.compile(
+                r"(?P<detail>오행|음양)(?:은|는|이|가|:|：)?\s*"
+                r"같은\s*순서(?:로)?\s*(?:각각\s*)?"
+                r"(?P<values>(?:[목화토금수]|음|양)"
+                r"(?:\s*(?:와|과|,|，|·|/)\s*(?:[목화토금수]|음|양))+)",
+            )
+            for detail_match in same_order_detail.finditer(suffix):
+                detail = detail_match.group("detail")
+                value_source = r"[목화토금수]" if detail == "오행" else r"(?:음|양)"
+                detail_values = re.findall(
+                    value_source,
+                    detail_match.group("values"),
+                )
+                if len(detail_values) < len(last_positions):
+                    continue
+                suffix_name = "element" if detail == "오행" else "yin_yang"
+                for (pillar, _), value in zip(
+                    last_positions,
+                    detail_values,
+                    strict=False,
+                ):
+                    claims.append((pillar, f"{base_field}_{suffix_name}", value))
         previous_end = marker.end()
-    return claims
+    return list(dict.fromkeys(claims))
+
+
+def _paired_position_detail_claims(
+    text: str,
+) -> tuple[list[tuple[str, str, str, str]], list[tuple[int, int]]]:
+    """`천간 A와 지지 B ... X와 Y`의 ordered field claim을 추출한다."""
+
+    pair_anchor = re.compile(
+        rf"(?:천간|stem){PILLAR_CLAIM_SEPARATORS}(?P<stem>{STEM_ENTITY})\s*"
+        rf"(?:와|과|,|，)\s*(?:지지|branch){PILLAR_CLAIM_SEPARATORS}"
+        rf"(?P<branch>{BRANCH_ENTITY})\s*(?:은|는|이|가|:|：)?",
+        re.IGNORECASE,
+    )
+    anchors = list(pair_anchor.finditer(text))
+    claims: list[tuple[str, str, str, str]] = []
+    detail_spans: list[tuple[int, int]] = []
+    for index, anchor_match in enumerate(anchors):
+        body_end = anchors[index + 1].start() if index + 1 < len(anchors) else len(text)
+        boundary = re.search(
+            r"[\n.!?。！？;；]",
+            text[anchor_match.end() : body_end],
+        )
+        if boundary is not None:
+            body_end = anchor_match.end() + boundary.start()
+        body = text[anchor_match.end() : body_end]
+        for detail, value_source in (
+            ("element", r"[목화토금수]"),
+            ("yin_yang", r"(?:음|양)"),
+        ):
+            korean_detail = "오행" if detail == "element" else "음양"
+            detail_pattern = re.compile(
+                rf"(?P<label>{korean_detail})(?:은|는|이|가|:|：)?\s*"
+                rf"(?:같은\s*순서(?:로)?\s*)?(?:각각\s*)?"
+                rf"(?P<stem_value>{value_source})\s*(?:와|과|,|，|·|/)\s*"
+                rf"(?P<branch_value>{value_source})",
+            )
+            for detail_match in detail_pattern.finditer(body):
+                detail_start = anchor_match.end() + detail_match.start()
+                detail_end = anchor_match.end() + detail_match.end()
+                local_end = min(body_end, detail_end + 32)
+                next_field = re.search(
+                    r"[,，]?\s*(?:오행|음양)",
+                    text[detail_end:local_end],
+                )
+                if next_field is not None:
+                    local_end = detail_end + next_field.start()
+                local_claim = text[detail_start:local_end]
+                if _explicit_claim_is_negated(
+                    local_claim,
+                    0,
+                    detail_end - detail_start,
+                ):
+                    continue
+                claims.extend(
+                    (
+                        (
+                            "stem",
+                            anchor_match.group("stem"),
+                            detail,
+                            detail_match.group("stem_value"),
+                        ),
+                        (
+                            "branch",
+                            anchor_match.group("branch"),
+                            detail,
+                            detail_match.group("branch_value"),
+                        ),
+                    )
+                )
+                detail_spans.append((detail_start, detail_end))
+    return list(dict.fromkeys(claims)), list(dict.fromkeys(detail_spans))
 
 
 def pillar_position_detail_claims(
@@ -849,26 +1040,76 @@ def pillar_position_detail_claims(
         rf"(?:{korean_position}|{position}){PILLAR_CLAIM_SEPARATORS}"
         rf"(?P<entity>{entity_source})"
     )
+    paired_claims, paired_detail_spans = _paired_position_detail_claims(text)
+
+    def detail_claim_is_negated(match: re.Match[str]) -> bool:
+        """다음 구조 field의 부정 표현이 현재 field로 번지지 않게 제한한다."""
+
+        detail_start = match.start("detail_label")
+        value_end = match.end("value")
+        local_end = min(len(text), value_end + 48)
+        next_field = re.search(
+            r"[,，]?\s*(?:오행|음양|천간|지지|stem\b|branch\b)",
+            text[value_end:local_end],
+            re.IGNORECASE,
+        )
+        if next_field is not None:
+            local_end = value_end + next_field.start()
+        local_claim = text[detail_start:local_end]
+        return _explicit_claim_is_negated(
+            local_claim,
+            0,
+            value_end - detail_start,
+        )
+
     claims: list[tuple[str, str, str]] = []
     for detail, korean_detail, value_source in (
         ("element", "오행", r"[목화토금수]"),
         ("yin_yang", "음양", r"(?:음|양)"),
     ):
-        pattern = re.compile(
+        detail_prefix = (
             anchor
             + rf"(?:(?!(?:천간|지지|\bstem\b|\bbranch\b))"
-            rf"[^\n.!?,，;；]){{0,40}}?"
-            rf"(?:{korean_detail}(?:상)?|{position}[_ -]?{detail})"
+            rf"[^\n.!?;；]){{0,40}}?"
+            rf"(?P<detail_label>{korean_detail}(?:상)?|"
+            rf"{position}[_ -]?{detail})"
             rf"{PILLAR_CLAIM_SEPARATORS}"
             rf"(?:(?:보면|읽으면|분류하면|구분하면)\s*)?"
-            rf"(?P<value>{value_source})",
+        )
+        pattern = re.compile(
+            detail_prefix + rf"(?P<value>{value_source})",
             re.IGNORECASE,
         )
         claims.extend(
             (match.group("entity"), detail, match.group("value"))
             for match in pattern.finditer(text)
-            if not _explicit_claim_is_negated(text, match.start(), match.end())
+            if not any(
+                start <= match.start("detail_label") < end
+                for start, end in paired_detail_spans
+            )
+            and not detail_claim_is_negated(match)
         )
+        correction = re.compile(
+            detail_prefix
+            + rf"(?P<negated>{value_source})\s*(?:은|는|이|가)?\s*"
+            rf"{CORRECTION_CONNECTOR}[^\n.!?。！？;；]{{0,24}}?"
+            rf"(?P<corrected>{value_source})",
+            re.IGNORECASE,
+        )
+        claims.extend(
+            (match.group("entity"), detail, match.group("corrected"))
+            for match in correction.finditer(text)
+            if not any(
+                start <= match.start("detail_label") < end
+                for start, end in paired_detail_spans
+            )
+        )
+
+    claims.extend(
+        (entity, detail, value)
+        for claim_position, entity, detail, value in paired_claims
+        if claim_position == position
+    )
 
     natural_pair = re.compile(
         anchor
@@ -887,6 +1128,18 @@ def pillar_position_detail_claims(
             anchor
             + r"\s*[\(\[]\s*(?P<yin_yang>음|양)\s*[·,/\s]+\s*"
             r"(?P<element>[목화토금수])\s*[\)\]]",
+            re.IGNORECASE,
+        ),
+        re.compile(
+            anchor
+            + r"\s*[\(\[]\s*오행\s*(?P<element>[목화토금수])\s*[,，·/]\s*"
+            r"음양\s*(?P<yin_yang>음|양)\s*[\)\]]",
+            re.IGNORECASE,
+        ),
+        re.compile(
+            anchor
+            + r"\s*[\(\[]\s*음양\s*(?P<yin_yang>음|양)\s*[,，·/]\s*"
+            r"오행\s*(?P<element>[목화토금수])\s*[\)\]]",
             re.IGNORECASE,
         ),
     )
@@ -943,6 +1196,36 @@ def pillar_position_detail_claims(
                 claims.append(
                     (match.group("entity"), "yin_yang", match.group("yin_yang"))
                 )
+    return list(dict.fromkeys(claims))
+
+
+def pillar_stem_role_claims(text: str) -> list[str]:
+    """`천간이 일간 자리 그 자체` 형태의 최종 십신 literal을 추출한다."""
+
+    prefix = r"(?:천간|stem)\s*(?:은|는|이|가|:|=)?\s*"
+    role = rf"(?P<value>{TEN_GOD_ENTITY})\s*자리(?:\s*그\s*자체)?"
+    affirmative = (
+        r"(?=\s*(?:입니다|이다|이고|이며|이어서|이라고|인\s*셈|"
+        r"(?:으)?로\s*(?:표기|표시|쓰이|사용)|[.!?。！？]|$))"
+    )
+    normal = re.compile(prefix + role + affirmative, re.IGNORECASE)
+    claims = [
+        match.group("value")
+        for match in normal.finditer(text)
+        if not _explicit_claim_is_negated(
+            text, match.start("value"), match.end()
+        )
+    ]
+    correction = re.compile(
+        prefix
+        + rf"(?P<negated>{TEN_GOD_ENTITY})\s*자리(?:\s*그\s*자체)?\s*"
+        + rf"(?:은|는|이|가)?\s*{CORRECTION_CONNECTOR}"
+        + rf"[^\n.!?。！？;；]{{0,24}}?(?P<corrected>{TEN_GOD_ENTITY})"
+        + r"\s*자리(?:\s*그\s*자체)?"
+        + affirmative,
+        re.IGNORECASE,
+    )
+    claims.extend(match.group("corrected") for match in correction.finditer(text))
     return list(dict.fromkeys(claims))
 
 
@@ -1078,6 +1361,43 @@ def _pillar_blocks(answer: str) -> list[tuple[str, str]]:
                 re.IGNORECASE,
             ):
                 continue
+            if owner_boundary.group(0) == "일간" and (
+                re.search(
+                    r"(?:천간|stem)[^\n.!?。！？;；]{0,40}$",
+                    block[: owner_boundary.start()],
+                    re.IGNORECASE,
+                )
+                and re.match(
+                    r"[\"'“”‘’]*\s*(?:으로\s*)?"
+                    r"(?:표기|표시|쓰이|사용)",
+                    block[owner_boundary.end() :],
+                )
+            ):
+                continue
+            if owner_boundary.group(0) == "일간" and (
+                re.search(
+                    r"(?:천간|stem)[^\n.!?。！？;；]{0,48}$",
+                    block[: owner_boundary.start()],
+                    re.IGNORECASE,
+                )
+                and re.match(
+                    r"\s*자리(?:\s*그\s*자체)?",
+                    block[owner_boundary.end() :],
+                )
+            ):
+                continue
+            if owner_boundary.group(0) == "일간" and (
+                re.search(
+                    r"(?:천간|stem)[^\n.!?。！？;；]{0,24}$",
+                    block[: owner_boundary.start()],
+                    re.IGNORECASE,
+                )
+                and re.match(
+                    r"\s*(?:그\s*)?자체(?:라|이므로|이고|이며)",
+                    block[owner_boundary.end() :],
+                )
+            ):
+                continue
             block = block[: owner_boundary.start()]
             break
         # 다음 소유자명이 없더라도 장문의 해석까지 구조 claim으로 오인하지 않는다.
@@ -1157,6 +1477,7 @@ def _positioned_pillar_claim_errors(spec: Mapping[str, Any], answer: str) -> lis
         ),
     }
     for pillar, block in _pillar_blocks(answer):
+        _, paired_detail_spans = _paired_position_detail_claims(block)
         for error_label, (pattern, suffix, entity_source) in field_patterns.items():
             expected = _path_value(spec, f"chart.hard_facts.pillars.{pillar}.{suffix}")
             if expected is None:
@@ -1181,6 +1502,12 @@ def _positioned_pillar_claim_errors(spec: Mapping[str, Any], answer: str) -> lis
                         f"natal_{pillar}_{error_label}_confusion:"
                         f"{match.group('corrected')}"
                     )
+        expected_stem_role = _path_value(
+            spec, f"chart.hard_facts.pillars.{pillar}.stem_ten_god"
+        )
+        for value in pillar_stem_role_claims(block):
+            if expected_stem_role is not None and value != expected_stem_role:
+                errors.append(f"natal_{pillar}_stem_ten_god_confusion:{value}")
         for error_label, entity_source, suffix, field_source in (
             ("stem", STEM_ENTITY, "stem", r"(?:천간|stem)"),
             ("branch", BRANCH_ENTITY, "branch", r"(?:지지|branch)"),
@@ -1469,11 +1796,17 @@ def _positioned_pillar_claim_errors(spec: Mapping[str, Any], answer: str) -> lis
                 detail_pattern = re.compile(
                     rf"(?:{korean_position}|{position}){separators}"
                     rf"(?P<entity>{entity_source})[^\n.!?,，;；]{{0,16}}?"
-                    rf"(?:{korean_detail}|{position}[_ -]?{detail}){separators}"
+                    rf"(?P<detail_label>{korean_detail}|"
+                    rf"{position}[_ -]?{detail}){separators}"
                     rf"(?P<value>{detail_source})",
                     re.IGNORECASE,
                 )
                 for match in detail_pattern.finditer(block):
+                    if any(
+                        start <= match.start("detail_label") < end
+                        for start, end in paired_detail_spans
+                    ):
+                        continue
                     if _explicit_claim_is_negated(block, match.start(), match.end()):
                         continue
                     if (
@@ -1668,7 +2001,10 @@ def _day_master_detail_errors(spec: Mapping[str, Any], answer: str) -> list[str]
         for match in pattern.finditer(answer):
             tail = stop.split(match.group("tail"), maxsplit=1)[0]
             element_match = re.search(
-                r"([목화토금수])(?:의\s*기운|이고|이며|입니다|이다|으로|,|·|/|\s|$)",
+                r"(?:(?:은|는|이|가)\s*(?:음|양)?\s*|"
+                r"(?:음|양)(?:의|\s*)|오행(?:은|는|이|가|:|=|\s)*)"
+                r"([목화토금수])"
+                r"(?:의\s*기운|이고|이며|입니다|이다|으로|,|·|/|\s|$)",
                 tail,
             )
             yin_yang_match = re.search(
@@ -2079,6 +2415,7 @@ def structural_claim_errors(spec: Mapping[str, Any], answer: str) -> list[str]:
     errors.extend(_dated_period_claim_errors(spec, answer))
     errors.extend(_relative_period_claim_errors(spec, answer))
     errors.extend(_schema_path_claim_errors(spec, answer))
+    errors.extend(_expected_labeled_fact_negation_errors(spec, answer))
     for label, value, _, _ in _labeled_entity_claims(
         answer, PILLAR_LABELS, GANYI.pattern
     ):
@@ -2132,7 +2469,8 @@ def structural_claim_errors(spec: Mapping[str, Any], answer: str) -> list[str]:
         re.compile(
             rf"(?P<value>{GANYI.pattern})\s*(?:하나만|한\s*기둥만)?\s*"
             r"(?:은|는|이|가)?\s*(?:바로\s*)?원국(?:\s*전체)?"
-            r"(?:\s*(?:이다|입니다|이라고))?"
+            r"(?:\s*(?:이다|입니다|이라고|다|예요|이에요|이야|야)|"
+            r"(?=\s*(?:[.!?。！？;；]|$)))"
         ),
         re.compile(
             r"(?:사주\s*)?원국을\s*(?:한마디로\s*(?:하면|말하면)|"
@@ -2156,13 +2494,14 @@ def structural_claim_errors(spec: Mapping[str, Any], answer: str) -> list[str]:
         else:
             errors.append(f"natal_single_pillar_called_full_chart:{value}")
     period_year = _path_value(spec, "period.hard_facts.period.year_ganzhi")
-    if period_year and any(
+    period_day = _path_value(spec, "period.hard_facts.period.day_ganzhi")
+    if period_year and period_year != period_day and any(
         PERIOD_LABELS[label] == "day_ganzhi" and value == period_year
         for label, value, _, _ in period_claims
     ):
         errors.append("period_year_called_day_ganzhi")
     target_date = _path_value(spec, "period.hard_facts.period.target_date")
-    if period_year:
+    if period_year and period_year != period_day:
         generic_day_patterns = [
             rf"(?:승인된\s*)?날짜\s*사실\s*(?:은|는|이|가|:|=)?\s*{period_year}",
             rf"(?:오늘|해당\s*날짜)(?:의)?\s*간지\s*(?:은|는|이|가|:|=)?\s*{period_year}",
@@ -2179,7 +2518,6 @@ def structural_claim_errors(spec: Mapping[str, Any], answer: str) -> list[str]:
             for match in re.finditer(pattern, answer)
         ):
             errors.append("period_year_called_day_ganzhi")
-    period_day = _path_value(spec, "period.hard_facts.period.day_ganzhi")
     if period_day and any(
         not _explicit_claim_is_negated(answer, match.start(), match.end())
         for match in re.finditer(
@@ -2298,6 +2636,40 @@ def _pillar_field_claim_coverage(answer: str) -> set[tuple[str, str, str]]:
                 for match in pattern.finditer(block)
                 if not _explicit_claim_is_negated(block, match.start(), match.end())
             )
+        literal_stem_ten_god = re.compile(
+            r"(?:천간|stem)[^\n.!?。！？;；]{0,40}?"
+            rf"[\"'“”‘’]?(?P<value>{TEN_GOD_ENTITY})[\"'“”‘’]?\s*"
+            r"(?:으로\s*)?(?:표기|표시|쓰이|사용)",
+            re.IGNORECASE,
+        )
+        coverage.update(
+            (pillar, "stem_ten_god", match.group("value"))
+            for match in literal_stem_ten_god.finditer(block)
+            if not _explicit_claim_is_negated(block, match.start(), match.end())
+        )
+        reference_literal_stem_ten_god = re.compile(
+            r"(?:천간|stem)[^\n.!?。！？;；]{0,40}?기준(?:이|으로)\s*되는\s*"
+            rf"[\"'“”‘’]?(?P<value>{TEN_GOD_ENTITY})[\"'“”‘’]?\s*"
+            r"(?:으로\s*)?(?:표기|표시|쓰이|사용)",
+            re.IGNORECASE,
+        )
+        coverage.update(
+            (pillar, "stem_ten_god", match.group("value"))
+            for match in reference_literal_stem_ten_god.finditer(block)
+            if not _explicit_claim_is_negated(
+                block, match.start("value"), match.end()
+            )
+            and re.match(
+                r"\s*(?:되지|하지|하면\s*안|해서는\s*안|되어서는\s*안|"
+                r"할\s*수\s*없)",
+                block[match.end() : match.end() + 24],
+            )
+            is None
+        )
+        coverage.update(
+            (pillar, "stem_ten_god", value)
+            for value in pillar_stem_role_claims(block)
+        )
         for position, entity_source in (
             ("stem", STEM_ENTITY),
             ("branch", BRANCH_ENTITY),
@@ -2379,6 +2751,129 @@ def _pillar_field_claim_coverage(answer: str) -> set[tuple[str, str, str]]:
                 and isinstance(value, str)
             )
     return coverage
+
+
+def _requires_explicit_natal_period_anchor(spec: Mapping[str, Any]) -> bool:
+    if spec.get("task_axis") != "structured_fact_schema_literacy":
+        return False
+    prompt = spec.get("prompt")
+    if not isinstance(prompt, list) or not prompt:
+        return False
+    question = str(prompt[-1].get("content", ""))
+    return "선택 날짜의 연간지" in question or "year/month/day ganzhi" in question
+
+
+def _explicit_period_ganzhi_paths(spec: Mapping[str, Any], answer: str) -> set[str]:
+    """올바른 period label과 함께 긍정적으로 명시한 세 간지 path를 반환한다."""
+
+    paths: set[str] = set()
+    claims = [
+        (label, value)
+        for label, value, _, _ in _labeled_entity_claims(
+            answer, PERIOD_LABELS, GANYI.pattern
+        )
+    ]
+    claims.extend(_corrected_owner_claims(answer, PERIOD_LABELS, GANYI.pattern))
+    for label, value in claims:
+        path = f"period.hard_facts.period.{PERIOD_LABELS[label]}"
+        if value == _path_value(spec, path):
+            paths.add(path)
+    for label, field in PERIOD_LABELS.items():
+        path = f"period.hard_facts.period.{field}"
+        expected = _path_value(spec, path)
+        direct = re.compile(
+            rf"{re.escape(label)}{PILLAR_CLAIM_SEPARATORS}"
+            rf"(?P<value>{GANYI.pattern})"
+        )
+        if expected is not None and any(
+            match.group("value") == expected
+            and not _explicit_claim_is_negated(answer, match.start(), match.end())
+            for match in direct.finditer(answer)
+        ):
+            paths.add(path)
+        aliases = "|".join(
+            re.escape(alias)
+            for alias, alias_field in PERIOD_LABELS.items()
+            if alias_field == field
+        )
+        appositive = re.compile(
+            rf"{re.escape(label)}\s*(?:은|는|이|가|:|=)?\s*"
+            r"(?:(?:그|해당|선택한)\s*날짜가\s*속한\s*)?"
+            rf"(?:{aliases})\s*(?:인|은|는|이|가|:|=)?\s*"
+            rf"(?P<value>{GANYI.pattern})"
+        )
+        if expected is not None and any(
+            match.group("value") == expected
+            and not _explicit_claim_is_negated(answer, match.start(), match.end())
+            for match in appositive.finditer(answer)
+        ):
+            paths.add(path)
+    label_pattern = re.compile(_label_pattern(PERIOD_LABELS))
+    for clause in re.split(r"[\n.!?。！？;；]+", answer):
+        label_matches = list(label_pattern.finditer(clause))
+        value_matches = list(GANYI.finditer(clause))
+        if (
+            len(label_matches) != 3
+            or len(value_matches) != 3
+            or label_matches[-1].end() > value_matches[0].start()
+        ):
+            continue
+        bridge = clause[label_matches[-1].end() : value_matches[0].start()]
+        if re.search(r"(?:각각|순서(?:대로|로)?|순으로|[:：])", bridge) is None:
+            continue
+        for label_match, value_match in zip(
+            label_matches, value_matches, strict=True
+        ):
+            label = label_match.group(0)
+            path = f"period.hard_facts.period.{PERIOD_LABELS[label]}"
+            if value_match.group(0) == _path_value(spec, path):
+                paths.add(path)
+    return paths
+
+
+def _explicit_natal_fact_paths(spec: Mapping[str, Any], answer: str) -> set[str]:
+    """label 또는 원국 owner와 함께 긍정적으로 명시한 원국 fact path를 반환한다."""
+
+    paths: set[str] = set()
+    claims = [
+        (label, value)
+        for label, value, _, _ in _labeled_entity_claims(
+            answer, PILLAR_LABELS, GANYI.pattern
+        )
+    ]
+    claims.extend(_corrected_owner_claims(answer, PILLAR_LABELS, GANYI.pattern))
+    for label, value in claims:
+        path = f"chart.hard_facts.pillars.{PILLAR_LABELS[label]}.ganzhi"
+        if value == _path_value(spec, path):
+            paths.add(path)
+
+    day_master_path = "chart.hard_facts.day_master.stem"
+    day_master = _path_value(spec, day_master_path)
+    if day_master is not None and any(
+        value == day_master
+        for _, value, _, _ in _labeled_entity_claims(
+            answer, {"일간": "stem"}, STEM_ENTITY, maximum_gap=16
+        )
+    ):
+        paths.add(day_master_path)
+
+    full_chart = re.compile(
+        rf"원국(?:의)?\s*(?:전체\s*)?(?:(?:네|4)\s*기둥)?\s*"
+        rf"(?:은|는|이|가|:|=)?\s*(?P<values>{GANYI.pattern}"
+        rf"(?:\s*[,，·/]\s*{GANYI.pattern}){{3}})"
+    )
+    expected_paths = [
+        f"chart.hard_facts.pillars.{pillar}.ganzhi"
+        for pillar in ("year", "month", "day", "hour")
+    ]
+    expected_values = [_path_value(spec, path) for path in expected_paths]
+    for match in full_chart.finditer(answer):
+        if (
+            not _explicit_claim_is_negated(answer, match.start(), match.end())
+            and GANYI.findall(match.group("values")) == expected_values
+        ):
+            paths.update(expected_paths)
+    return paths
 
 
 def required_fact_errors(spec: Mapping[str, Any], answer: str) -> list[str]:
@@ -2463,7 +2958,12 @@ def required_fact_errors(spec: Mapping[str, Any], answer: str) -> list[str]:
                     "required_schema_fact_omitted:chart.hard_facts.day_master.yin_yang"
                 )
         elif "선택 날짜의 연간지" in question or "year/month/day ganzhi" in question:
-            require_suffixes(period_ganzhi)
+            explicit_period_paths = _explicit_period_ganzhi_paths(spec, answer)
+            for path in period_ganzhi:
+                if path not in explicit_period_paths:
+                    errors.append(f"required_schema_fact_omitted:{path}")
+            if not _explicit_natal_fact_paths(spec, answer):
+                errors.append("explicit_natal_fact_omitted")
         elif "각 기둥의 천간·지지" in question:
             require_positioned_pillar_fields(
                 (
@@ -2502,20 +3002,58 @@ def required_fact_errors(spec: Mapping[str, Any], answer: str) -> list[str]:
         elif "원국 네 기둥과 선택 날짜 세 간지" in question:
             require_suffixes([*pillar_ganzhi, *period_ganzhi])
 
-    if axis == "chart_facts_natural_explanation" and not any(
-        value in answer for value in natal
-    ):
-        errors.append("provided_natal_fact_omitted")
+        schema_period_requested = (
+            "선택 날짜의 연간지" in question
+            or "year/month/day ganzhi" in question
+            or "원국 네 기둥과 선택 날짜 세 간지" in question
+        )
+        if not schema_period_requested:
+            period_date = _path_value(spec, "period.hard_facts.period.target_date")
+            if _explicit_period_ganzhi_paths(spec, answer) or (
+                period_date is not None and period_date in normalized_dates(answer)
+            ):
+                errors.append("unrequested_period_fact")
+
+    if axis == "chart_facts_natural_explanation":
+        if not _explicit_natal_fact_paths(spec, answer):
+            errors.append("provided_natal_fact_omitted")
+        period_date = _path_value(spec, "period.hard_facts.period.target_date")
+        if _explicit_period_ganzhi_paths(spec, answer) or (
+            period_date is not None and period_date in normalized_dates(answer)
+        ):
+            errors.append("unrequested_period_fact")
+        if "표면 구성" in question or "오행 분포" in question:
+            observed = dict(surface_element_claims(answer))
+            for element in "목화토금수":
+                expected = _path_value(
+                    spec, f"chart.hard_facts.surface_five_elements.{element}"
+                )
+                if expected is not None and observed.get(element) != int(expected):
+                    errors.append(
+                        "required_chart_fact_omitted:"
+                        f"chart.hard_facts.surface_five_elements.{element}"
+                    )
     if axis in {"chart_day_today_flow", "followup_explain_grounding"}:
         period_day = _path_value(spec, "period.hard_facts.period.day_ganzhi")
         if period_day is not None and period_day not in answer:
             errors.append("provided_period_day_fact_omitted")
-        if natal and not any(value in answer for value in natal):
+        if natal and not _explicit_natal_fact_paths(spec, answer):
             errors.append("provided_natal_fact_omitted")
-    if axis == "hard_fact_short_qa":
-        natal_day = _path_value(spec, "chart.hard_facts.pillars.day.ganzhi")
-        if "원국" not in answer or "일주" not in answer or natal_day not in answer:
-            errors.append("chart_and_day_pillar_distinction_omitted")
+    if (
+        axis == "hard_fact_short_qa"
+        and "원국 전체와 일주는 같은 말" in question
+        and (
+            "원국" not in answer
+            or "일주" not in answer
+            or re.search(
+                r"(?:네\s*기둥|그중|그\s*가운데|한\s*기둥|"
+                r"같(?:은\s*말이\s*아니|지\s*않)|서로\s*다른|구분)",
+                answer,
+            )
+            is None
+        )
+    ):
+        errors.append("chart_and_day_pillar_distinction_omitted")
     if axis == "general_korean_empathy" and (
         UNAMBIGUOUS_SAJU_INJECTION.search(answer)
         or re.search(
@@ -2724,12 +3262,25 @@ def validate_draft(spec: Mapping[str, Any], draft: Any) -> dict[str, Any]:
         raise Mix2KV4ContractError("teacher 답변이 내부 계약 용어를 노출합니다.")
     if RESTRICTED_MARKERS.search(answer):
         raise Mix2KV4ContractError("teacher 답변이 외부 반출 금지 marker를 포함합니다.")
-    if FORBIDDEN_PREDICTION.search(answer):
+    if any(
+        not _explicit_claim_is_negated(answer, match.start(), match.end())
+        for match in FORBIDDEN_PREDICTION.finditer(answer)
+    ):
         raise Mix2KV4ContractError("teacher 답변이 확정적 사건 예측을 포함합니다.")
     errors = structural_claim_errors(spec, answer)
     errors.extend(required_fact_errors(spec, answer))
     if errors:
         raise Mix2KV4ContractError("teacher 구조 사실 claim 오류: " + ",".join(errors))
+    if _requires_explicit_natal_period_anchor(spec):
+        answer_fact_paths = _explicit_period_ganzhi_paths(
+            spec, answer
+        ) | _explicit_natal_fact_paths(spec, answer)
+        missing_paths = answer_fact_paths - set(draft["used_fact_paths"])
+        if missing_paths:
+            raise Mix2KV4ContractError(
+                "teacher used_fact_paths에 날짜 QA의 명시 근거가 빠졌습니다: "
+                + ",".join(sorted(missing_paths))
+            )
     claimed_values = {
         *GANYI.findall(answer),
         *normalized_dates(answer),

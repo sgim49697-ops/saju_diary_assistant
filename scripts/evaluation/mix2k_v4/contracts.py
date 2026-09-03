@@ -26,7 +26,7 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_CONFIG = REPO_ROOT / "configs/evaluation/mix2k-v4-lora-eval-v1.0.0.json"
 DEFAULT_SPEC_BUILD = Path(
     "data/derived/saju_1b_baseline/mix2k-v4-chart-day-8k/specs/"
-    "v1.0.1/build-59d68bc841a0"
+    "v1.0.1/build-da9014c5f24a"
 )
 EXPECTED_DEV_AXES = {
     "schema_literacy": 40,
@@ -62,11 +62,11 @@ EXPECTED_DEPENDENCY_CONTRACTS = {
     },
     "lora_config": {
         "path": "configs/model_versions/saju_1b_baseline/mix2k-v4-lora-v1.0.1.json",
-        "sha256": "cb156569841002495b2e6d87107cd30e6e7766342eee3a185fadc1d31805f9a1",
+        "sha256": "d7c5db056be927319617ac4b932acb9e37d9f9a2e6478598d20f2b7ce12fa728",
     },
     "bound_prompt": {
         "path": "configs/chat_prompts/saju_bound_chart_v2.txt",
-        "sha256": "d93a8f03a45697dbf5df2d78eaa4dde480f5bef70f30a148a0c146576406e917",
+        "sha256": "55bdcec6bdf7fa6a91fb68b03cd4a296c705ab9bac0e77abb067190519cc8f90",
     },
     "model_projection": {
         "path": "scripts/runtime/chart_day_model_projection.py",
@@ -160,7 +160,7 @@ EXPECTED_GENERATION = {
     "same_generation_config": True,
     "system_prompt_profile": "bound_chart_v2",
     "system_prompt_sha256": (
-        "d93a8f03a45697dbf5df2d78eaa4dde480f5bef70f30a148a0c146576406e917"
+        "55bdcec6bdf7fa6a91fb68b03cd4a296c705ab9bac0e77abb067190519cc8f90"
     ),
     "model_projection_id": "saju-chart-day-model-projection-v1.0.0",
     "ignore_model_directory_generation_config": True,
@@ -177,7 +177,7 @@ EXPECTED_QUALITY_REVIEW = {
     "provider_contracts": {
         "claude": {
             "cli": "claude",
-            "cli_version": "2.1.258 (Claude Code)",
+            "cli_version": "2.1.259 (Claude Code)",
             "model": "claude-sonnet-5",
             "auth": "claude.ai_subscription",
         },
@@ -403,11 +403,11 @@ def validate_config(config_path: Path) -> dict[str, Any]:
         or config.get("evaluation_version") != "v1.0.0"
         or config.get("dataset_version") != DATASET_VERSION
         or not isinstance(source, Mapping)
-        or source.get("build_id") != "build-59d68bc841a0"
+        or source.get("build_id") != "build-da9014c5f24a"
         or source.get("build_sha256")
-        != "59d68bc841a02e366711045383ebea0f37be138244e0e213fe7eb15bfa109826"
+        != "da9014c5f24a6ffc239cd8bf1ec64d2ba50855caff6ec90438d5a41a4fefd980"
         or source.get("sha256")
-        != "2614d5e3578340969e03b2779b26c365bf774729bbc3838ff35998ec22faaf86"
+        != "7ff700be25c3eaa27401be89afb7eeda6bba4a9c27ef3451d7853a9fd8d8a629"
         or source.get("rows") != 200
         or source.get("axes") != EXPECTED_DEV_AXES
         or source.get("required_regression_id") != REGRESSION_ID

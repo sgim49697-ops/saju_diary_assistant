@@ -10,6 +10,7 @@ import json
 import math
 import os
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -31,13 +32,18 @@ from scripts.data.mix2k_v4_contracts import (
     PRIVATE_DIR_MODE,
     PRIVATE_FILE_MODE,
     RUNTIME_AXES,
-    read_jsonl,
     sha256_bytes,
     sha256_file,
 )
 from scripts.data.mix2k_v4_teachers import (
+    CODEX_FALLBACK_EXECUTION_MODE,
+    CODEX_FALLBACK_POLICY_PATH,
+    STRICT_EXECUTION_MODE,
     Mix2KV4TeacherError,
     _validate_spec_build,
+)
+from scripts.data.mix2k_v4_teachers import (
+    RUNNER_PATH as TEACHER_RUNNER_PATH,
 )
 from scripts.runtime.calculation.canonical import canonical_json_bytes
 
@@ -261,21 +267,77 @@ def _reject_symlink_components(path: Path, label: str) -> None:
 
 
 def _load_json(path: Path, label: str) -> dict[str, Any]:
+    value, _ = _load_json_snapshot(path, label)
+    return value
+
+
+def _read_snapshot_bytes(path: Path, label: str) -> tuple[bytes, str]:
+    """regular file을 no-follow fd로 열어 제한된 동일 bytes만 hash·소비한다."""
+
     _reject_symlink_components(path, label)
-    if (
-        not path.is_absolute()
-        or path.is_symlink()
-        or not path.is_file()
-        or not 1 <= path.stat().st_size <= MAX_JSON_BYTES
-    ):
+    if not path.is_absolute() or path.is_symlink() or not path.is_file():
         raise Mix2KV4LoRAError(f"{label}이 없거나 안전하지 않습니다.")
+    flags = os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0)
     try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        descriptor = os.open(path, flags)
+    except OSError as exc:
+        raise Mix2KV4LoRAError(f"{label}을 열지 못했습니다.") from exc
+    try:
+        before = os.fstat(descriptor)
+        if not stat.S_ISREG(before.st_mode) or not 1 <= before.st_size <= MAX_JSON_BYTES:
+            raise Mix2KV4LoRAError(f"{label} 크기·형식이 허용 범위 밖입니다.")
+        chunks: list[bytes] = []
+        remaining = MAX_JSON_BYTES + 1
+        while remaining:
+            chunk = os.read(descriptor, min(1024 * 1024, remaining))
+            if not chunk:
+                break
+            chunks.append(chunk)
+            remaining -= len(chunk)
+        payload = b"".join(chunks)
+        after = os.fstat(descriptor)
+        if (
+            not 1 <= len(payload) <= MAX_JSON_BYTES
+            or before.st_dev != after.st_dev
+            or before.st_ino != after.st_ino
+            or after.st_size != len(payload)
+        ):
+            raise Mix2KV4LoRAError(f"{label}이 읽는 동안 변경됐습니다.")
+    except OSError as exc:
+        raise Mix2KV4LoRAError(f"{label}을 읽지 못했습니다.") from exc
+    finally:
+        os.close(descriptor)
+    return payload, sha256_bytes(payload)
+
+
+def _load_json_snapshot(path: Path, label: str) -> tuple[dict[str, Any], str]:
+    payload, payload_sha256 = _read_snapshot_bytes(path, label)
+    try:
+        value = json.loads(payload)
+    except (UnicodeError, json.JSONDecodeError) as exc:
         raise Mix2KV4LoRAError(f"{label}을 읽지 못했습니다.") from exc
     if not isinstance(value, dict):
         raise Mix2KV4LoRAError(f"{label} 최상위는 object여야 합니다.")
-    return value
+    return value, payload_sha256
+
+
+def _load_jsonl_snapshot(
+    path: Path, label: str
+) -> tuple[list[dict[str, Any]], str]:
+    payload, payload_sha256 = _read_snapshot_bytes(path, label)
+    try:
+        text = payload.decode("utf-8")
+        rows: list[dict[str, Any]] = []
+        for number, line in enumerate(text.splitlines(), 1):
+            if not line.strip():
+                raise Mix2KV4LoRAError(f"{label} 빈 행: {number}")
+            value = json.loads(line)
+            if not isinstance(value, dict):
+                raise Mix2KV4LoRAError(f"{label} object 오류: {number}")
+            rows.append(value)
+    except (UnicodeError, json.JSONDecodeError) as exc:
+        raise Mix2KV4LoRAError(f"{label}을 읽지 못했습니다.") from exc
+    return rows, payload_sha256
 
 
 def _json_bytes(value: Any) -> bytes:
@@ -480,9 +542,9 @@ def _validate_config(path: Path) -> dict[str, Any]:
     }
     expected_data = {
         "rows": 2000,
-        "spec_build_id": "build-59d68bc841a0",
+        "spec_build_id": "build-da9014c5f24a",
         "spec_build_sha256": (
-            "59d68bc841a02e366711045383ebea0f37be138244e0e213fe7eb15bfa109826"
+            "da9014c5f24a6ffc239cd8bf1ec64d2ba50855caff6ec90438d5a41a4fefd980"
         ),
         "manifest_name": "build_manifest.json",
         "training_path": "training/train_2000.jsonl",
@@ -566,7 +628,7 @@ def _validate_config(path: Path) -> dict[str, Any]:
             "required_prompt_profile": "bound_chart_v2",
             "required_prompt_path": "configs/chat_prompts/saju_bound_chart_v2.txt",
             "required_prompt_sha256": (
-                "d93a8f03a45697dbf5df2d78eaa4dde480f5bef70f30a148a0c146576406e917"
+                "55bdcec6bdf7fa6a91fb68b03cd4a296c705ab9bac0e77abb067190519cc8f90"
             ),
             "current_dashboard_version": "v1.11",
             "current_dashboard_prompt_profile": "bound_chart_v1",
@@ -721,6 +783,59 @@ def _runtime_versions(config: Mapping[str, Any]) -> dict[str, str]:
     return observed
 
 
+def _validate_teacher_governance(
+    manifest: Mapping[str, Any], identity: Mapping[str, Any]
+) -> str:
+    """final build의 teacher 품질 등급과 실험 전용 경계를 hash 안팎에서 대조한다."""
+
+    governance = identity.get("teacher_governance")
+    if not isinstance(governance, Mapping):
+        raise Mix2KV4LoRAError("final data teacher governance가 없습니다.")
+    mode = governance.get("teacher_contract_mode")
+    common = {
+        "training_scope": "lora_experimental_only",
+        "lora_experimental_training_allowed": True,
+        "production_promotion_allowed": False,
+    }
+    if mode == STRICT_EXECUTION_MODE:
+        expected = {
+            "teacher_contract_mode": STRICT_EXECUTION_MODE,
+            "teacher_quality_tier": "cross_provider_verified",
+            "cross_provider_teacher_contract_met": True,
+            **common,
+            "execution_policy_sha256": None,
+            "teacher_pipeline_state_sha256": None,
+        }
+        expected_schema_version = "1.0.0"
+    elif mode == CODEX_FALLBACK_EXECUTION_MODE:
+        execution_policy_sha256 = governance.get("execution_policy_sha256")
+        pipeline_state_sha256 = governance.get("teacher_pipeline_state_sha256")
+        if (
+            not _is_sha256(execution_policy_sha256)
+            or execution_policy_sha256 != sha256_file(CODEX_FALLBACK_POLICY_PATH)
+            or not _is_sha256(pipeline_state_sha256)
+        ):
+            raise Mix2KV4LoRAError("fallback teacher provenance hash가 다릅니다.")
+        expected = {
+            "teacher_contract_mode": CODEX_FALLBACK_EXECUTION_MODE,
+            "teacher_quality_tier": CODEX_FALLBACK_EXECUTION_MODE,
+            "cross_provider_teacher_contract_met": False,
+            **common,
+            "execution_policy_sha256": execution_policy_sha256,
+            "teacher_pipeline_state_sha256": pipeline_state_sha256,
+        }
+        expected_schema_version = "1.1.0"
+    else:
+        raise Mix2KV4LoRAError("알 수 없는 teacher contract mode입니다.")
+    if (
+        dict(governance) != expected
+        or manifest.get("schema_version") != expected_schema_version
+        or any(manifest.get(key) != value for key, value in expected.items())
+    ):
+        raise Mix2KV4LoRAError("final data teacher governance 계약이 다릅니다.")
+    return str(mode)
+
+
 def _validate_data_build(
     data_build: Path, config: Mapping[str, Any]
 ) -> tuple[dict[str, Any], list[dict[str, Any]], list[dict[str, Any]]]:
@@ -754,12 +869,14 @@ def _validate_data_build(
         "spec_build_sha256",
         "teacher_candidate_sha256",
         "teacher_manifest_sha256",
+        "teacher_runner_sha256",
         "finalizer_sha256",
         "contracts_sha256",
         "base_model_files",
         "training_rows_sha256",
         "token_audit_rows_sha256",
         "token_audit_summary_sha256",
+        "teacher_governance",
     }
     if (
         not isinstance(identity, Mapping)
@@ -772,6 +889,8 @@ def _validate_data_build(
         or not isinstance(data_base_files, Mapping)
         or identity.get("finalizer_sha256") != sha256_file(FINALIZER_PATH)
         or identity.get("contracts_sha256") != sha256_file(DATA_CONTRACTS_PATH)
+        or identity.get("teacher_runner_sha256")
+        != sha256_file(TEACHER_RUNNER_PATH)
         or identity.get("base_model_files") != data_base_files
         or any(
             not isinstance(identity.get(key), str)
@@ -781,6 +900,7 @@ def _validate_data_build(
                 "spec_build_sha256",
                 "teacher_candidate_sha256",
                 "teacher_manifest_sha256",
+                "teacher_runner_sha256",
                 "training_rows_sha256",
                 "token_audit_rows_sha256",
                 "token_audit_summary_sha256",
@@ -788,6 +908,7 @@ def _validate_data_build(
         )
     ):
         raise Mix2KV4LoRAError("final data identity hash chain이 다릅니다.")
+    _validate_teacher_governance(manifest, identity)
     calculated_build_sha = sha256_bytes(canonical_json_bytes(identity))
     max_length = manifest.get("selected_max_length")
     if (
@@ -817,27 +938,26 @@ def _validate_data_build(
     }
     if not isinstance(artifact_sha, Mapping) or set(artifact_sha) != expected_artifact_paths:
         raise Mix2KV4LoRAError("final data artifact hash map이 다릅니다.")
-    for path, relative in (
-        (training_path, required["training_path"]),
-        (audit_path, required["token_audit_path"]),
-        (audit_rows_path, "reports/token_audit_2000.jsonl"),
+    rows, training_sha256 = _load_jsonl_snapshot(training_path, "final training data")
+    audit, audit_sha256 = _load_json_snapshot(audit_path, "token audit summary")
+    token_rows, audit_rows_sha256 = _load_jsonl_snapshot(
+        audit_rows_path, "token audit rows"
+    )
+    observed_artifact_hashes = {
+        required["training_path"]: training_sha256,
+        required["token_audit_path"]: audit_sha256,
+        "reports/token_audit_2000.jsonl": audit_rows_sha256,
+    }
+    identity_artifact_hashes = {
+        required["training_path"]: identity["training_rows_sha256"],
+        required["token_audit_path"]: identity["token_audit_summary_sha256"],
+        "reports/token_audit_2000.jsonl": identity["token_audit_rows_sha256"],
+    }
+    if (
+        observed_artifact_hashes != dict(artifact_sha)
+        or observed_artifact_hashes != identity_artifact_hashes
     ):
-        _reject_symlink_components(path, f"final data artifact {relative}")
-        if (
-            path.is_symlink()
-            or not path.is_file()
-            or sha256_file(path) != artifact_sha.get(relative)
-            or sha256_file(path)
-            != identity[
-                {
-                    required["training_path"]: "training_rows_sha256",
-                    required["token_audit_path"]: "token_audit_summary_sha256",
-                    "reports/token_audit_2000.jsonl": "token_audit_rows_sha256",
-                }[relative]
-            ]
-        ):
-            raise Mix2KV4LoRAError(f"final data artifact hash가 다릅니다: {relative}")
-    audit = _load_json(audit_path, "token audit summary")
+        raise Mix2KV4LoRAError("final data artifact hash가 다릅니다.")
     if (
         audit.get("rows") != EXPECTED_ROWS
         or audit.get("selected_max_length") != max_length
@@ -848,8 +968,6 @@ def _validate_data_build(
         or audit.get("training_blocked_pending_projection_review") is not False
     ):
         raise Mix2KV4LoRAError("token audit summary가 학습 가능 상태가 아닙니다.")
-    rows = read_jsonl(training_path)
-    token_rows = read_jsonl(audit_rows_path)
     if len(rows) != EXPECTED_ROWS or len(token_rows) != EXPECTED_ROWS:
         raise Mix2KV4LoRAError("final training·token audit가 2,000행이 아닙니다.")
     token_by_id: dict[str, dict[str, Any]] = {}
