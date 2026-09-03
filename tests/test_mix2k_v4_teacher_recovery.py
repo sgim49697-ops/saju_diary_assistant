@@ -13,6 +13,7 @@ from scripts.data import mix2k_v4_teacher_recovery as recovery
 from scripts.data import mix2k_v4_teacher_recovery_call148 as recovery_call148
 from scripts.data import mix2k_v4_teacher_recovery_call149 as recovery_call149
 from scripts.data import mix2k_v4_teacher_recovery_call154 as recovery_call154
+from scripts.data import mix2k_v4_teacher_recovery_call174 as recovery_call174
 from scripts.data.mix2k_v4_contracts import sha256_bytes
 
 
@@ -221,6 +222,249 @@ def _call154_pre_state() -> dict[str, object]:
         "operator_recoveries": recovery_call154._prior_events(),
         "records": records,
     }
+
+
+def _call174_draft_attempt(
+    record_id: str,
+    *,
+    attempt: int,
+    sequence: int,
+    deterministic_pass: bool = True,
+    deterministic_error: str | None = None,
+) -> dict[str, object]:
+    draft = {
+        "record_id": record_id,
+        "answer": f"synthetic draft {record_id} #{attempt}",
+        "used_fact_paths": [],
+        "used_fact_values": [],
+        "soft_interpretation_used": False,
+        "limitations": [],
+        "self_check": "PASS",
+    }
+    return {
+        "assigned_provider": "codex",
+        "provider": "codex",
+        "fallback_used": False,
+        "execution_pass": "draft",
+        "provider_call_sequence": sequence,
+        "attempt": attempt,
+        "provider_draft": deepcopy(draft),
+        "draft": draft,
+        "particle_normalized": False,
+        "particle_normalizer_version": None,
+        "layout_normalized": False,
+        "layout_normalizer_version": None,
+        "deterministic_pass": deterministic_pass,
+        "deterministic_error": deterministic_error,
+    }
+
+
+def _call174_review_attempt(
+    record_id: str,
+    *,
+    attempt: int,
+    sequence: int,
+    decision: str = "PASS",
+) -> dict[str, object]:
+    review = {
+        "record_id": record_id,
+        "decision": decision,
+        "failure_codes": [],
+        "fact_errors": [],
+        "style_notes": [],
+        "rewrite_instructions": "",
+    }
+    return {
+        "assigned_provider": "codex",
+        "provider": "codex",
+        "fallback_used": False,
+        "execution_pass": "review",
+        "provider_call_sequence": sequence,
+        "attempt": attempt,
+        "review_mode": "same_provider_separate_pass",
+        "review": review,
+    }
+
+
+def _call174_accepted(
+    draft_attempt: dict[str, object], review_attempt: dict[str, object]
+) -> dict[str, object]:
+    return {
+        "assigned_drafter": draft_attempt["assigned_provider"],
+        "assigned_reviewer": review_attempt["assigned_provider"],
+        "draft_provider": draft_attempt["provider"],
+        "review_provider": review_attempt["provider"],
+        "review_mode": review_attempt["review_mode"],
+        "fallback_used": bool(
+            draft_attempt["fallback_used"] or review_attempt["fallback_used"]
+        ),
+        "draft": deepcopy(draft_attempt["draft"]),
+        "review": deepcopy(review_attempt["review"]),
+    }
+
+
+def _call174_pre_state() -> dict[str, object]:
+    records: dict[str, object] = {}
+    for record_id, contract in recovery_call174.RECOVERY_PAIR_CONTRACTS.items():
+        draft_count, draft_sequence, review_count, review_sequence = contract
+        drafts = [
+            _call174_draft_attempt(
+                record_id,
+                attempt=index,
+                sequence=(
+                    draft_sequence
+                    if index == draft_count
+                    else draft_sequence - (draft_count - index) * 2
+                ),
+            )
+            for index in range(1, draft_count + 1)
+        ]
+        reviews = [
+            _call174_review_attempt(
+                record_id,
+                attempt=index,
+                sequence=(
+                    review_sequence
+                    if index == review_count
+                    else review_sequence - (review_count - index) * 2
+                ),
+                decision="PASS" if index == review_count else "FAIL",
+            )
+            for index in range(1, review_count + 1)
+        ]
+        records[record_id] = {
+            "spec_sha256": f"spec-{record_id}",
+            "status": "accepted",
+            "feedback": "",
+            "rewrites_used": 2,
+            "duplicate_rewrites_used": 0,
+            "draft_attempts": drafts,
+            "review_attempts": reviews,
+            "current_draft": deepcopy(drafts[-1]["draft"]),
+            "accepted": _call174_accepted(drafts[-1], reviews[-1]),
+        }
+
+    duplicate_review = records[recovery_call174.DUPLICATE_REVIEW_RECORD_ID]
+    duplicate_review_draft = _call174_draft_attempt(
+        recovery_call174.DUPLICATE_REVIEW_RECORD_ID,
+        attempt=len(duplicate_review["draft_attempts"]) + 1,
+        sequence=recovery_call174.EXPECTED_PROVIDER_CALLS,
+    )
+    duplicate_review["duplicate_rewrites_used"] = 1
+    duplicate_review["draft_attempts"].append(duplicate_review_draft)
+    duplicate_review["status"] = "needs_review"
+    duplicate_review["current_draft"] = deepcopy(duplicate_review_draft["draft"])
+    duplicate_review["accepted"] = None
+
+    strength = records[recovery_call174.STRENGTH_RECORD_ID]
+    failed_duplicate = _call174_draft_attempt(
+        recovery_call174.STRENGTH_RECORD_ID,
+        attempt=len(strength["draft_attempts"]) + 1,
+        sequence=recovery_call174.EXPECTED_PROVIDER_CALLS,
+        deterministic_pass=False,
+        deterministic_error=recovery_call174.OLD_STRENGTH_FEEDBACK,
+    )
+    strength["duplicate_rewrites_used"] = 1
+    strength["draft_attempts"].append(failed_duplicate)
+    strength["status"] = "failed"
+    strength["feedback"] = recovery_call174.OLD_STRENGTH_FEEDBACK
+    strength["accepted"] = None
+
+    for record_id in recovery_call174.RELATION_RECORD_IDS:
+        relation = records[record_id]
+        relation["duplicate_rewrites_used"] = 1
+        relation["status"] = "needs_draft"
+        relation["feedback"] = recovery_call174.OLD_RELATION_FEEDBACK_BY_ID[
+            record_id
+        ]
+        relation["accepted"] = None
+
+    return {
+        "schema_version": "1.3.0",
+        "runner_sha256": recovery_call174.EXPECTED_RUNNER_SHA256,
+        "contracts_sha256": recovery_call174.EXPECTED_CONTRACTS_SHA256,
+        "provider_calls": recovery_call174.EXPECTED_PROVIDER_CALLS,
+        "operator_recoveries": recovery_call174._prior_events(),
+        "records": records,
+    }
+
+
+def _call174_completed_record(
+    checkpoint: dict[str, object],
+    *,
+    record_id: str,
+    draft_sequence: int,
+    review_sequence: int,
+) -> dict[str, object]:
+    completed = deepcopy(checkpoint)
+    draft = _call174_draft_attempt(
+        record_id,
+        attempt=len(completed["draft_attempts"]) + 1,
+        sequence=draft_sequence,
+    )
+    review = _call174_review_attempt(
+        record_id,
+        attempt=len(completed["review_attempts"]) + 1,
+        sequence=review_sequence,
+    )
+    completed["draft_attempts"].append(draft)
+    completed["review_attempts"].append(review)
+    completed["status"] = "accepted"
+    completed["feedback"] = ""
+    completed["current_draft"] = deepcopy(draft["draft"])
+    completed["accepted"] = _call174_accepted(draft, review)
+    return completed
+
+
+def _call174_add_duplicate_pass(
+    record: dict[str, object], *, draft_sequence: int, review_sequence: int
+) -> None:
+    record_id = str(record["current_draft"]["record_id"])
+    record["duplicate_rewrites_used"] += 1
+    draft = _call174_draft_attempt(
+        record_id,
+        attempt=len(record["draft_attempts"]) + 1,
+        sequence=draft_sequence,
+    )
+    review = _call174_review_attempt(
+        record_id,
+        attempt=len(record["review_attempts"]) + 1,
+        sequence=review_sequence,
+    )
+    record["draft_attempts"].append(draft)
+    record["review_attempts"].append(review)
+    record["status"] = "accepted"
+    record["feedback"] = ""
+    record["current_draft"] = deepcopy(draft["draft"])
+    record["accepted"] = _call174_accepted(draft, review)
+
+
+def _call174_payload_contract_fixture() -> tuple[
+    dict[str, object], dict[str, object], dict[str, dict[str, object]]
+]:
+    checkpoint = _call174_pre_state()
+    specs: dict[str, dict[str, object]] = {}
+    for record_id, record in checkpoint["records"].items():
+        spec = {"id": record_id, "drafter": "codex", "reviewer": "codex"}
+        specs[record_id] = spec
+        record["spec_sha256"] = sha256_bytes(
+            recovery_call174.canonical_json_bytes(spec)
+        )
+
+    current = deepcopy(checkpoint)
+    strength = _call174_completed_record(
+        current["records"][recovery_call174.STRENGTH_RECORD_ID],
+        record_id=recovery_call174.STRENGTH_RECORD_ID,
+        draft_sequence=175,
+        review_sequence=176,
+    )
+    _call174_add_duplicate_pass(
+        strength,
+        draft_sequence=177,
+        review_sequence=178,
+    )
+    current["records"][recovery_call174.STRENGTH_RECORD_ID] = strength
+    return current, checkpoint, specs
 
 
 class Mix2KV4TeacherRecoveryTests(unittest.TestCase):
@@ -900,6 +1144,483 @@ class Mix2KV4TeacherRecoveryTests(unittest.TestCase):
                         require_completed_provider_passes=True,
                     )
         self.assertTrue(report["provider_draft_and_separate_review_passed"])
+
+    def test_call174_recovery_preserves_attempts_counters_and_answers(self) -> None:
+        before = _call174_pre_state()
+        before_payload = recovery_call174.teachers._json_bytes(before)
+        with patch.object(
+            recovery_call174,
+            "EXPECTED_PRE_STATE_SHA256",
+            sha256_bytes(before_payload),
+        ):
+            after = recovery_call174.build_recovered_state(before, before_payload)
+            expected_event = recovery_call174._recovery_event()
+
+        expected = deepcopy(before)
+        expected["operator_recoveries"] = [
+            *recovery_call174._prior_events(),
+            expected_event,
+        ]
+        strength = expected["records"][recovery_call174.STRENGTH_RECORD_ID]
+        strength["status"] = "needs_draft"
+        strength["feedback"] = recovery_call174.NEW_STRENGTH_FEEDBACK
+        for record_id in recovery_call174.RELATION_RECORD_IDS:
+            expected["records"][record_id]["feedback"] = (
+                recovery_call174.NEW_RELATION_FEEDBACK_BY_ID[record_id]
+            )
+
+        self.assertEqual(before, _call174_pre_state())
+        self.assertEqual(after, expected)
+        for record_id in recovery_call174.AFFECTED_RECORD_IDS:
+            for field in (
+                "rewrites_used",
+                "duplicate_rewrites_used",
+                "draft_attempts",
+                "review_attempts",
+                "current_draft",
+                "accepted",
+            ):
+                self.assertEqual(
+                    after["records"][record_id][field],
+                    before["records"][record_id][field],
+                )
+
+    def test_call174_strength_requires_new_d5_r3_and_rejects_stale_or_extra(
+        self,
+    ) -> None:
+        before = _call174_pre_state()
+        before_payload = recovery_call174.teachers._json_bytes(before)
+        with patch.object(
+            recovery_call174,
+            "EXPECTED_PRE_STATE_SHA256",
+            sha256_bytes(before_payload),
+        ):
+            checkpoint_state = recovery_call174.build_recovered_state(
+                before, before_payload
+            )
+        checkpoint = checkpoint_state["records"][
+            recovery_call174.STRENGTH_RECORD_ID
+        ]
+        completed = _call174_completed_record(
+            checkpoint,
+            record_id=recovery_call174.STRENGTH_RECORD_ID,
+            draft_sequence=175,
+            review_sequence=176,
+        )
+        recovery_call174._validate_fifth_progress(
+            completed,
+            checkpoint,
+            record_id=recovery_call174.STRENGTH_RECORD_ID,
+            provider_calls=176,
+            require_completed=True,
+        )
+
+        stale_review = deepcopy(completed)
+        stale_review["review_attempts"][-1]["provider_call_sequence"] = 151
+        stale_review["accepted"]["review"] = deepcopy(
+            stale_review["review_attempts"][-1]["review"]
+        )
+        with self.assertRaisesRegex(
+            recovery.Mix2KV4RecoveryError, "attempt provenance"
+        ):
+            recovery_call174._validate_fifth_progress(
+                stale_review,
+                checkpoint,
+                record_id=recovery_call174.STRENGTH_RECORD_ID,
+                provider_calls=176,
+                require_completed=True,
+            )
+
+        extra_attempt = deepcopy(completed)
+        extra_attempt["draft_attempts"].append(
+            _call174_draft_attempt(
+                recovery_call174.STRENGTH_RECORD_ID,
+                attempt=6,
+                sequence=177,
+            )
+        )
+        with self.assertRaisesRegex(
+            recovery.Mix2KV4RecoveryError, "duplicate round 없이"
+        ):
+            recovery_call174._validate_fifth_progress(
+                extra_attempt,
+                checkpoint,
+                record_id=recovery_call174.STRENGTH_RECORD_ID,
+                provider_calls=177,
+                require_completed=True,
+            )
+
+    def test_call174_duplicate_round_two_and_three_descendants_are_allowed(
+        self,
+    ) -> None:
+        before = _call174_pre_state()
+        before_payload = recovery_call174.teachers._json_bytes(before)
+        with patch.object(
+            recovery_call174,
+            "EXPECTED_PRE_STATE_SHA256",
+            sha256_bytes(before_payload),
+        ):
+            checkpoint_state = recovery_call174.build_recovered_state(
+                before, before_payload
+            )
+        checkpoint = checkpoint_state["records"][
+            recovery_call174.STRENGTH_RECORD_ID
+        ]
+
+        for duplicate_round in (2, 3):
+            with self.subTest(
+                duplicate_round=duplicate_round,
+                invalid="counter_without_attempt_pair",
+            ):
+                counter_only = _call174_completed_record(
+                    checkpoint,
+                    record_id=recovery_call174.STRENGTH_RECORD_ID,
+                    draft_sequence=175,
+                    review_sequence=176,
+                )
+                counter_only["duplicate_rewrites_used"] = duplicate_round
+                with self.assertRaisesRegex(
+                    recovery.Mix2KV4RecoveryError,
+                    "duplicate 재작성 feedback|duplicate round 상태 전이",
+                ):
+                    recovery_call174._validate_fifth_progress(
+                        counter_only,
+                        checkpoint,
+                        record_id=recovery_call174.STRENGTH_RECORD_ID,
+                        provider_calls=176,
+                        require_completed=True,
+                    )
+
+        for duplicate_round in (2, 3):
+            with self.subTest(duplicate_round=duplicate_round):
+                descendant = _call174_completed_record(
+                    checkpoint,
+                    record_id=recovery_call174.STRENGTH_RECORD_ID,
+                    draft_sequence=175,
+                    review_sequence=176,
+                )
+                next_sequence = 177
+                for _ in range(2, duplicate_round + 1):
+                    _call174_add_duplicate_pass(
+                        descendant,
+                        draft_sequence=next_sequence,
+                        review_sequence=next_sequence + 1,
+                    )
+                    next_sequence += 2
+                recovery_call174._validate_fifth_progress(
+                    descendant,
+                    checkpoint,
+                    record_id=recovery_call174.STRENGTH_RECORD_ID,
+                    provider_calls=next_sequence - 1,
+                    require_completed=True,
+                )
+
+                stale_review = deepcopy(descendant)
+                stale_review["review_attempts"][-1][
+                    "provider_call_sequence"
+                ] = next_sequence - 3
+                with self.assertRaisesRegex(
+                    recovery.Mix2KV4RecoveryError, "attempt provenance"
+                ):
+                    recovery_call174._validate_fifth_progress(
+                        stale_review,
+                        checkpoint,
+                        record_id=recovery_call174.STRENGTH_RECORD_ID,
+                        provider_calls=next_sequence - 1,
+                        require_completed=True,
+                    )
+
+    def test_call174_duplicate_review_allows_in_progress_round_two_states(
+        self,
+    ) -> None:
+        before = _call174_pre_state()
+        checkpoint = before["records"][
+            recovery_call174.DUPLICATE_REVIEW_RECORD_ID
+        ]
+        completed = deepcopy(checkpoint)
+        review = _call174_review_attempt(
+            recovery_call174.DUPLICATE_REVIEW_RECORD_ID,
+            attempt=len(completed["review_attempts"]) + 1,
+            sequence=175,
+        )
+        completed["review_attempts"].append(review)
+        completed["status"] = "accepted"
+        completed["accepted"] = _call174_accepted(
+            completed["draft_attempts"][-1], review
+        )
+
+        needs_draft = deepcopy(completed)
+        needs_draft["duplicate_rewrites_used"] = 2
+        needs_draft["status"] = "needs_draft"
+        needs_draft["feedback"] = min(
+            recovery_call174._duplicate_feedback_options(
+                str(needs_draft["current_draft"]["answer"])
+            )
+        )
+        needs_draft["accepted"] = None
+        recovery_call174._validate_duplicate_review_progress(
+            needs_draft,
+            checkpoint,
+            provider_calls=175,
+            require_completed=False,
+        )
+
+        needs_review = deepcopy(needs_draft)
+        draft = _call174_draft_attempt(
+            recovery_call174.DUPLICATE_REVIEW_RECORD_ID,
+            attempt=len(needs_review["draft_attempts"]) + 1,
+            sequence=176,
+        )
+        needs_review["draft_attempts"].append(draft)
+        needs_review["status"] = "needs_review"
+        needs_review["feedback"] = ""
+        needs_review["current_draft"] = deepcopy(draft["draft"])
+        recovery_call174._validate_duplicate_review_progress(
+            needs_review,
+            checkpoint,
+            provider_calls=176,
+            require_completed=False,
+        )
+
+    def test_call174_overflow_is_subset_in_progress_and_exact_when_complete(
+        self,
+    ) -> None:
+        target = Path("/tmp") / recovery_call174.TARGET_NAME
+        state = {
+            "operator_recoveries": [
+                *recovery_call174._prior_events(),
+                recovery_call174._recovery_event(),
+            ]
+        }
+
+        def validate(
+            overflow_ids: set[str], *, require_completed: bool
+        ) -> dict[str, object]:
+            with (
+                patch.object(
+                    recovery_call174.os.path, "lexists", return_value=True
+                ),
+                patch.object(
+                    recovery_call174,
+                    "validate_recovery_bundle",
+                    return_value={"recovery_id": recovery_call174.RECOVERY_ID},
+                ),
+                patch.object(
+                    recovery_call174.base_recovery,
+                    "_read_regular_file",
+                    return_value=b"{}",
+                ),
+                patch.object(
+                    recovery_call174.base_recovery,
+                    "_decode_object",
+                    return_value={},
+                ),
+                patch.object(
+                    recovery_call174,
+                    "_validate_descendant_payload_contracts",
+                ),
+                patch.object(recovery_call174, "_validate_current_descendant"),
+                patch.object(
+                    recovery_call174,
+                    "_validate_prior_projection",
+                    return_value={"recoveries": []},
+                ),
+                patch.object(
+                    recovery_call174.recovery_call148,
+                    "_attempt_overflow_ids",
+                    return_value=overflow_ids,
+                ),
+            ):
+                report = recovery_call174.validate_recovery_chain(
+                    target,
+                    state,
+                    require_completed_provider_passes=require_completed,
+                )
+            self.assertIsNotNone(report)
+            return report
+
+        in_progress = validate(
+            {recovery_call174.DUPLICATE_REVIEW_RECORD_ID},
+            require_completed=False,
+        )
+        self.assertFalse(in_progress["all_recoveries_completed"])
+
+        with self.assertRaisesRegex(
+            recovery.Mix2KV4RecoveryError, "진행 중.*예외 집합"
+        ):
+            validate(
+                {*recovery_call174.FINAL_OVERFLOW_IDS, "unknown-overflow"},
+                require_completed=False,
+            )
+
+        completed = validate(
+            set(recovery_call174.FINAL_OVERFLOW_IDS),
+            require_completed=True,
+        )
+        self.assertTrue(completed["all_recoveries_completed"])
+
+        with self.assertRaisesRegex(
+            recovery.Mix2KV4RecoveryError, "완료된.*예외 집합"
+        ):
+            validate(
+                set(recovery_call174.FINAL_OVERFLOW_IDS)
+                - {recovery_call174.STRENGTH_RECORD_ID},
+                require_completed=True,
+            )
+
+    def test_call174_descendant_payload_contracts_reject_mutations(self) -> None:
+        current, checkpoint, specs = _call174_payload_contract_fixture()
+
+        def validate(state: dict[str, object]) -> tuple[int, int]:
+            with (
+                patch.object(
+                    recovery_call174,
+                    "_load_fixed_specs",
+                    return_value=specs,
+                ),
+                patch.object(recovery_call174, "validate_draft") as draft_check,
+                patch.object(recovery_call174, "validate_review") as review_check,
+            ):
+                recovery_call174._validate_descendant_payload_contracts(
+                    state, checkpoint
+                )
+            return draft_check.call_count, review_check.call_count
+
+        self.assertEqual(validate(current), (2, 2))
+
+        record_id = recovery_call174.STRENGTH_RECORD_ID
+        missing_payload_field = deepcopy(current)
+        missing_payload_field["records"][record_id]["draft_attempts"][-1][
+            "provider_draft"
+        ].pop("limitations")
+        with self.assertRaisesRegex(
+            recovery.Mix2KV4RecoveryError, "descendant draft provenance"
+        ):
+            validate(missing_payload_field)
+
+        wrong_assignment = deepcopy(current)
+        wrong_assignment["records"][record_id]["review_attempts"][-1][
+            "assigned_provider"
+        ] = "claude"
+        with self.assertRaisesRegex(
+            recovery.Mix2KV4RecoveryError, "descendant review provenance"
+        ):
+            validate(wrong_assignment)
+
+        wrong_fallback = deepcopy(current)
+        wrong_fallback["records"][record_id]["draft_attempts"][-1][
+            "fallback_used"
+        ] = True
+        with self.assertRaisesRegex(
+            recovery.Mix2KV4RecoveryError, "descendant draft provenance"
+        ):
+            validate(wrong_fallback)
+
+        wrong_normalization = deepcopy(current)
+        wrong_normalization["records"][record_id]["draft_attempts"][-1][
+            "draft"
+        ]["answer"] += " normalization mismatch"
+        with self.assertRaisesRegex(
+            recovery.Mix2KV4RecoveryError, "descendant draft normalization"
+        ):
+            validate(wrong_normalization)
+
+    def test_call174_04a_accepts_only_review_after_call174_d5(self) -> None:
+        before = _call174_pre_state()
+        checkpoint = before["records"][
+            recovery_call174.DUPLICATE_REVIEW_RECORD_ID
+        ]
+        completed = deepcopy(checkpoint)
+        review = _call174_review_attempt(
+            recovery_call174.DUPLICATE_REVIEW_RECORD_ID,
+            attempt=3,
+            sequence=175,
+        )
+        completed["review_attempts"].append(review)
+        completed["status"] = "accepted"
+        completed["accepted"] = _call174_accepted(
+            completed["draft_attempts"][-1], review
+        )
+        recovery_call174._validate_duplicate_review_progress(
+            completed,
+            checkpoint,
+            provider_calls=175,
+            require_completed=True,
+        )
+
+        stale = deepcopy(completed)
+        stale["review_attempts"][-1]["provider_call_sequence"] = 151
+        with self.assertRaisesRegex(
+            recovery.Mix2KV4RecoveryError, "attempt provenance"
+        ):
+            recovery_call174._validate_duplicate_review_progress(
+                stale,
+                checkpoint,
+                provider_calls=175,
+                require_completed=True,
+            )
+
+        extra = deepcopy(completed)
+        extra["review_attempts"].append(
+            _call174_review_attempt(
+                recovery_call174.DUPLICATE_REVIEW_RECORD_ID,
+                attempt=4,
+                sequence=176,
+            )
+        )
+        with self.assertRaisesRegex(
+            recovery.Mix2KV4RecoveryError, "duplicate round 없이"
+        ):
+            recovery_call174._validate_duplicate_review_progress(
+                extra,
+                checkpoint,
+                provider_calls=176,
+                require_completed=True,
+            )
+
+    def test_call174_recover_does_not_write_live_state_when_validation_fails(
+        self,
+    ) -> None:
+        before = _call174_pre_state()
+        before_payload = recovery_call174.teachers._json_bytes(before)
+        before_sha256 = sha256_bytes(before_payload)
+        with tempfile.TemporaryDirectory() as directory:
+            output_root = Path(directory).resolve()
+            target = output_root / recovery_call174.TARGET_NAME
+            target.mkdir(mode=0o700)
+            (target / ".pipeline.lock").write_bytes(b"lock\n")
+            state_path = target / "pipeline_state.json"
+            state_path.write_bytes(before_payload)
+            with (
+                patch.object(
+                    recovery_call174.teachers,
+                    "DEFAULT_OUTPUT_ROOT",
+                    output_root,
+                ),
+                patch.object(
+                    recovery_call174,
+                    "EXPECTED_PRE_STATE_SHA256",
+                    before_sha256,
+                ),
+                patch.object(
+                    recovery_call174,
+                    "_validate_incident_pre_state",
+                ),
+                patch.object(
+                    recovery_call174,
+                    "validate_recovery_chain",
+                    side_effect=recovery.Mix2KV4RecoveryError(
+                        "synthetic validation failure"
+                    ),
+                ),
+                self.assertRaisesRegex(
+                    recovery.Mix2KV4RecoveryError,
+                    "synthetic validation failure",
+                ),
+            ):
+                recovery_call174.recover(target)
+
+            self.assertEqual(state_path.read_bytes(), before_payload)
 
 
 if __name__ == "__main__":
