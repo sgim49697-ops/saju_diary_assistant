@@ -15,6 +15,7 @@ from scripts.data import mix2k_v4_teacher_recovery_call149 as recovery_call149
 from scripts.data import mix2k_v4_teacher_recovery_call154 as recovery_call154
 from scripts.data import mix2k_v4_teacher_recovery_call174 as recovery_call174
 from scripts.data import mix2k_v4_teacher_recovery_call177 as recovery_call177
+from scripts.data import mix2k_v4_teacher_recovery_call178 as recovery_call178
 from scripts.data.mix2k_v4_contracts import sha256_bytes
 
 
@@ -575,6 +576,69 @@ def _call177_completed_retry(
     completed["current_draft"] = deepcopy(draft["draft"])
     completed["accepted"] = _call174_accepted(draft, review)
     return completed
+
+
+def _call178_pre_state() -> dict[str, object]:
+    before = _call177_pre_state()
+    before_payload = recovery_call177.teachers._json_bytes(before)
+    with patch.object(
+        recovery_call177,
+        "EXPECTED_PRE_STATE_SHA256",
+        sha256_bytes(before_payload),
+    ):
+        state = recovery_call177.build_recovered_state(before, before_payload)
+    state["operator_recoveries"] = deepcopy(recovery_call178._prior_events())
+    state["provider_calls"] = recovery_call178.EXPECTED_PROVIDER_CALLS
+    for record_id in recovery_call177.AFFECTED_RECORD_IDS:
+        record = state["records"][record_id]
+        draft = _call177_draft_attempt(
+            record_id,
+            attempt=len(record["draft_attempts"]) + 1,
+            sequence=recovery_call178.EXPECTED_PROVIDER_CALLS,
+            sentence_total=3,
+        )
+        record["draft_attempts"].append(draft)
+        if record_id == recovery_call178.STRENGTH_RECORD_ID:
+            draft["deterministic_pass"] = False
+            draft["deterministic_error"] = recovery_call178.OLD_ERROR
+            record["status"] = "failed"
+            record["feedback"] = recovery_call178.OLD_FEEDBACK_BY_ID[record_id]
+        else:
+            record["status"] = "needs_review"
+            record["feedback"] = ""
+            record["current_draft"] = deepcopy(draft["draft"])
+
+    guard_draft = _call174_draft_attempt(
+        recovery_call178.GUARD_RECORD_ID,
+        attempt=1,
+        sequence=156,
+    )
+    guard_review = _call174_review_attempt(
+        recovery_call178.GUARD_RECORD_ID,
+        attempt=1,
+        sequence=157,
+    )
+    guard_failed = _call174_draft_attempt(
+        recovery_call178.GUARD_RECORD_ID,
+        attempt=2,
+        sequence=recovery_call178.EXPECTED_PROVIDER_CALLS,
+        deterministic_pass=False,
+        deterministic_error=recovery_call178.OLD_ERROR,
+    )
+    state["records"][recovery_call178.GUARD_RECORD_ID] = {
+        "spec_sha256": "guard-spec",
+        "status": "needs_draft",
+        "feedback": recovery_call178.OLD_FEEDBACK_BY_ID[
+            recovery_call178.GUARD_RECORD_ID
+        ],
+        "rewrites_used": 1,
+        "duplicate_rewrites_used": 1,
+        "draft_attempts": [guard_draft, guard_failed],
+        "review_attempts": [guard_review],
+        "current_draft": deepcopy(guard_draft["draft"]),
+        "accepted": None,
+    }
+    return state
 
 
 class Mix2KV4TeacherRecoveryTests(unittest.TestCase):
@@ -2153,6 +2217,211 @@ class Mix2KV4TeacherRecoveryTests(unittest.TestCase):
                 (target / recovery_call177.RECOVERY_MANIFEST_RELATIVE).is_file()
             )
             self.assertEqual(state_path.read_bytes(), before_payload)
+
+    def test_call178_recovery_preserves_failed_attempts_and_counters(self) -> None:
+        before = _call178_pre_state()
+        original = deepcopy(before)
+        payload = recovery_call178.teachers._json_bytes(before)
+        with patch.object(recovery_call178, "_validate_pre_state"):
+            after = recovery_call178.build_recovered_state(before, payload)
+
+        self.assertEqual(before, original)
+        self.assertEqual(
+            after["operator_recoveries"],
+            [*recovery_call178._prior_events(), recovery_call178._recovery_event()],
+        )
+        for record_id in recovery_call178.AFFECTED_RECORD_IDS:
+            before_record = before["records"][record_id]
+            after_record = after["records"][record_id]
+            self.assertEqual(
+                after_record["feedback"],
+                recovery_call178.NEW_FEEDBACK_BY_ID[record_id],
+            )
+            for field in (
+                "rewrites_used",
+                "duplicate_rewrites_used",
+                "draft_attempts",
+                "review_attempts",
+                "current_draft",
+                "accepted",
+            ):
+                self.assertEqual(after_record[field], before_record[field])
+        self.assertEqual(
+            after["records"][recovery_call178.STRENGTH_RECORD_ID]["status"],
+            "needs_draft",
+        )
+        self.assertEqual(
+            after["records"][recovery_call178.GUARD_RECORD_ID]["status"],
+            "needs_draft",
+        )
+
+    def test_call178_projection_removes_only_strength_d6_failure(self) -> None:
+        current = _call178_pre_state()
+        current["operator_recoveries"] = [
+            *recovery_call178._prior_events(),
+            recovery_call178._recovery_event(),
+        ]
+        checkpoint = deepcopy(current)
+        saved = checkpoint["records"][recovery_call178.STRENGTH_RECORD_ID]
+        saved["draft_attempts"].pop()
+        saved["status"] = "needs_draft"
+        saved["feedback"] = recovery_call177.NEW_FEEDBACK_BY_ID[
+            recovery_call178.STRENGTH_RECORD_ID
+        ]
+
+        target = Path("/tmp") / recovery_call178.TARGET_NAME
+        with patch.object(
+            recovery_call178,
+            "_call177_checkpoint",
+            return_value=checkpoint,
+        ):
+            projected = recovery_call178._project_prior_recovery_state(
+                target, current
+            )
+
+        self.assertEqual(
+            projected["provider_calls"], recovery_call178.EXPECTED_PROVIDER_CALLS
+        )
+        self.assertEqual(projected["operator_recoveries"], recovery_call178._prior_events())
+        self.assertEqual(
+            projected["records"][recovery_call178.STRENGTH_RECORD_ID], saved
+        )
+        for record_id, record in current["records"].items():
+            if record_id != recovery_call178.STRENGTH_RECORD_ID:
+                self.assertEqual(projected["records"][record_id], record)
+
+    def test_call178_requires_new_pass_pair_for_both_rows(self) -> None:
+        before = _call178_pre_state()
+        with patch.object(recovery_call178, "_validate_pre_state"):
+            recovered = recovery_call178.build_recovered_state(before, b"state")
+
+        cases = (
+            (recovery_call178.STRENGTH_RECORD_ID, True),
+            (recovery_call178.GUARD_RECORD_ID, False),
+        )
+        for record_id, three_lines in cases:
+            with self.subTest(record_id=record_id):
+                checkpoint = recovered["records"][record_id]
+                current = deepcopy(checkpoint)
+                draft = _call177_draft_attempt(
+                    record_id,
+                    attempt=len(current["draft_attempts"]) + 1,
+                    sequence=179,
+                    sentence_total=3 if three_lines else 1,
+                )
+                current["draft_attempts"].append(draft)
+                current["status"] = "needs_review"
+                current["feedback"] = ""
+                current["current_draft"] = deepcopy(draft["draft"])
+                with patch.object(
+                    recovery_call178, "_validate_descendant_payloads"
+                ):
+                    recovery_call178._validate_retry_progress(
+                        current,
+                        checkpoint,
+                        record_id=record_id,
+                        spec={},
+                        provider_calls=179,
+                        require_completed=False,
+                    )
+                    with self.assertRaisesRegex(
+                        recovery.Mix2KV4RecoveryError, "review가 완료되지"
+                    ):
+                        recovery_call178._validate_retry_progress(
+                            current,
+                            checkpoint,
+                            record_id=record_id,
+                            spec={},
+                            provider_calls=179,
+                            require_completed=True,
+                        )
+
+                    review = _call177_review_attempt(
+                        record_id,
+                        attempt=len(current["review_attempts"]) + 1,
+                        sequence=180,
+                        decision="PASS",
+                    )
+                    current["review_attempts"].append(review)
+                    current["status"] = "accepted"
+                    current["accepted"] = _call174_accepted(draft, review)
+                    recovery_call178._validate_retry_progress(
+                        current,
+                        checkpoint,
+                        record_id=record_id,
+                        spec={},
+                        provider_calls=180,
+                        require_completed=True,
+                    )
+
+    def test_call178_strength_followup_requires_three_sentences_and_lines(self) -> None:
+        before = _call178_pre_state()
+        with patch.object(recovery_call178, "_validate_pre_state"):
+            recovered = recovery_call178.build_recovered_state(before, b"state")
+        record_id = recovery_call178.STRENGTH_RECORD_ID
+        checkpoint = recovered["records"][record_id]
+        current = deepcopy(checkpoint)
+        draft = _call177_draft_attempt(
+            record_id,
+            attempt=len(current["draft_attempts"]) + 1,
+            sequence=179,
+            sentence_total=3,
+        )
+        answer = "첫 문장입니다. 둘째 문장입니다. 셋째 문장입니다."
+        draft["provider_draft"]["answer"] = answer
+        draft["draft"]["answer"] = answer
+        current["draft_attempts"].append(draft)
+        with (
+            patch.object(
+                recovery_call178.recovery_call174,
+                "_validate_draft_attempt_payload",
+            ),
+            self.assertRaisesRegex(
+                recovery.Mix2KV4RecoveryError, "후속 draft 길이가 다릅니다"
+            ),
+        ):
+            recovery_call178._validate_descendant_payloads(
+                current,
+                checkpoint,
+                record_id=record_id,
+                spec={},
+            )
+
+    def test_call178_completion_revalidates_prior_descendants(self) -> None:
+        current = _call178_pre_state()
+        checkpoint = deepcopy(current)
+        target = Path("/tmp") / recovery_call178.TARGET_NAME
+        with (
+            patch.object(
+                recovery_call178,
+                "_call177_checkpoint",
+                return_value=checkpoint,
+            ),
+            patch.object(
+                recovery_call178.prior_recovery,
+                "_validate_retry_progress",
+            ) as retry_check,
+            patch.object(
+                recovery_call178.prior_recovery,
+                "_validate_unaffected_prior_descendants",
+            ) as unaffected_check,
+        ):
+            recovery_call178._validate_prior_descendants(
+                target, current, require_completed=False
+            )
+            recovery_call178._validate_prior_descendants(
+                target, current, require_completed=True
+            )
+
+        self.assertEqual(retry_check.call_count, 4)
+        self.assertEqual(
+            [call.kwargs["require_completed"] for call in retry_check.call_args_list],
+            [False, False, True, True],
+        )
+        self.assertEqual(
+            [call.kwargs["require_completed"] for call in unaffected_check.call_args_list],
+            [False, True],
+        )
 
 
 if __name__ == "__main__":
