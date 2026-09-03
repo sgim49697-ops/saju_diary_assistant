@@ -994,11 +994,13 @@ def review_prompt(
             review_role
             + " 정확한 field·label grounding, "
             "제공되지 않은 관계·신강약·예측 금지, 후속 evidence 일관성, 일반인이 "
-            "이해할 수 있는 자연스러운 한국어, 최소 3줄·최소 3문장 계약, 의미 없는 입력 재진술 "
+            "이해할 수 있는 자연스러운 한국어, 각 record의 response_contract, 의미 없는 입력 재진술 "
             "여부를 모두 보세요. 하나라도 문제가 있으면 FAIL이며 구체적 rewrite_instructions를 "
             "적습니다. PASS일 때 failure_codes, fact_errors, rewrite_instructions는 비우세요. "
-            "3줄·3문장은 최소 조건이며 최대 길이 제한이 아닙니다. 4줄 이상이라는 이유만으로 "
-            "FAIL하거나 정확히 3줄로 줄이라고 요구하지 마세요. "
+            "각 [TASK]의 minimum_nonempty_lines와 minimum_sentences를 그대로 적용하세요. 값이 "
+            "3인 실질 답변의 3줄·3문장은 최소 조건이며 최대 길이 제한이 아닙니다. 값이 1인 "
+            "intake·HARD QA 답변은 1줄 또는 1문장이라는 이유만으로 FAIL하지 마세요. 4줄 "
+            "이상이라는 이유만으로 FAIL하거나 정확히 3줄로 줄이라고 요구하지 마세요. "
             "used_fact_paths·used_fact_values·limitations는 사용자에게 보이는 answer가 아니라 "
             "audit metadata입니다. 정확한 비어 있지 않은 limitations 자체를 범위 이탈이나 "
             "재진술로 판정하지 말고, answer의 내용과 metadata의 정확성을 구분해서 보세요. "
@@ -1734,6 +1736,34 @@ def _review_feedback(review: Mapping[str, Any]) -> str:
     )
 
 
+def _validate_review_length_claim(
+    spec: Mapping[str, Any], draft: Mapping[str, Any], review: Mapping[str, Any]
+) -> None:
+    """실제 response contract를 만족한 draft에 붙은 길이 FAIL을 거부한다."""
+
+    if (
+        review.get("decision") != "FAIL"
+        or "MINIMUM_LENGTH_VIOLATION" not in review.get("failure_codes", [])
+    ):
+        return
+    contract = spec.get("response_contract")
+    answer = draft.get("answer")
+    if not isinstance(contract, Mapping) or not isinstance(answer, str):
+        raise Mix2KV4TeacherError("review 길이 판정 입력 계약이 다릅니다.")
+    minimum_lines = contract.get("minimum_nonempty_lines")
+    minimum_sentences = contract.get("minimum_sentences")
+    if (
+        isinstance(minimum_lines, int)
+        and isinstance(minimum_sentences, int)
+        and len(nonempty_lines(answer)) >= minimum_lines
+        and sentence_count(answer) >= minimum_sentences
+    ):
+        raise Mix2KV4TeacherError(
+            "review가 충족된 response contract에 길이 위반을 잘못 판정했습니다: "
+            + str(spec.get("id"))
+        )
+
+
 def _process_review_batch(
     *,
     record_ids: Sequence[str],
@@ -1765,12 +1795,17 @@ def _process_review_batch(
     )
     reviews = _result_map(call["structured"], key="reviews", record_ids=record_ids)
     for record_id in record_ids:
-        record = state["records"][record_id]
         review = reviews[record_id]
         try:
             validate_review(specs_by_id[record_id], review)
         except Mix2KV4ContractError as exc:
             raise Mix2KV4TeacherError(str(exc)) from exc
+        _validate_review_length_claim(
+            specs_by_id[record_id], current[record_id], review
+        )
+    for record_id in record_ids:
+        record = state["records"][record_id]
+        review = reviews[record_id]
         record["review_attempts"].append(
             {
                 "assigned_provider": specs_by_id[record_id]["reviewer"],

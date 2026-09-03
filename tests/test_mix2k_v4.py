@@ -58,6 +58,7 @@ from scripts.data.mix2k_v4_teachers import (
     _normalize_draft_answer_layout,
     _normalize_draft_answer_particles,
     _selection,
+    _validate_review_length_claim,
     draft_prompt,
     review_prompt,
     subscription_environment,
@@ -425,7 +426,31 @@ class Mix2KV4ContractTests(unittest.TestCase):
         )
         self.assertIn("분리된 새 ephemeral 호출", prompt)
         self.assertIn("교차 provider peer review가 아니며", prompt)
+        self.assertIn("값이 1인 intake·HARD QA", prompt)
         self.assertNotIn("반대 teacher의 초안", prompt)
+
+    def test_review_cannot_invent_minimum_length_violation(self) -> None:
+        spec = _spec()
+        spec["task_axis"] = "intake_state_correction"
+        spec["substantive"] = False
+        spec["response_contract"]["minimum_nonempty_lines"] = 1
+        spec["response_contract"]["minimum_sentences"] = 1
+        draft = {
+            "answer": "새 날짜를 알려 주시면 가장 최근 정정값을 기준으로 이어갈게요."
+        }
+        review = {
+            "record_id": spec["id"],
+            "decision": "FAIL",
+            "failure_codes": ["MINIMUM_LENGTH_VIOLATION"],
+            "fact_errors": [],
+            "style_notes": [],
+            "rewrite_instructions": "3줄로 늘리세요.",
+        }
+        with self.assertRaisesRegex(Mix2KV4TeacherError, "잘못 판정"):
+            _validate_review_length_claim(spec, draft, review)
+
+        review["failure_codes"] = ["UNNATURAL_KOREAN"]
+        _validate_review_length_claim(spec, draft, review)
 
     def test_seed_import_revalidates_drafts_without_reusing_peer_pass(self) -> None:
         spec = _spec()
