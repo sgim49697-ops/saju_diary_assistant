@@ -16,6 +16,7 @@ from scripts.data import mix2k_v4_teacher_recovery_call154 as recovery_call154
 from scripts.data import mix2k_v4_teacher_recovery_call174 as recovery_call174
 from scripts.data import mix2k_v4_teacher_recovery_call177 as recovery_call177
 from scripts.data import mix2k_v4_teacher_recovery_call178 as recovery_call178
+from scripts.data import mix2k_v4_teacher_recovery_call181 as recovery_call181
 from scripts.data.mix2k_v4_contracts import sha256_bytes
 
 
@@ -638,6 +639,80 @@ def _call178_pre_state() -> dict[str, object]:
         "current_draft": deepcopy(guard_draft["draft"]),
         "accepted": None,
     }
+    return state
+
+
+def _call181_pre_state() -> dict[str, object]:
+    before = _call178_pre_state()
+    with patch.object(recovery_call178, "_validate_pre_state"):
+        state = recovery_call178.build_recovered_state(before, b"state")
+    state["operator_recoveries"] = deepcopy(recovery_call181._prior_events())
+    state["provider_calls"] = recovery_call181.EXPECTED_PROVIDER_CALLS
+
+    for record_id in (
+        recovery_call181.STRENGTH_RECORD_ID,
+        recovery_call181.GUARD_RECORD_ID,
+    ):
+        record = state["records"][record_id]
+        draft = _call177_draft_attempt(
+            record_id,
+            attempt=len(record["draft_attempts"]) + 1,
+            sequence=180,
+            sentence_total=(
+                3 if record_id == recovery_call181.STRENGTH_RECORD_ID else 1
+            ),
+        )
+        review = _call177_review_attempt(
+            record_id,
+            attempt=len(record["review_attempts"]) + 1,
+            sequence=recovery_call181.EXPECTED_PROVIDER_CALLS,
+            decision="PASS",
+        )
+        review["review"]["decision"] = "FAIL"
+        review["review"]["failure_codes"] = [
+            recovery_call181.EXPECTED_FAILURE_CODE_BY_ID[record_id]
+        ]
+        record["draft_attempts"].append(draft)
+        record["review_attempts"].append(review)
+        record["status"] = (
+            "failed"
+            if record_id == recovery_call181.STRENGTH_RECORD_ID
+            else "needs_draft"
+        )
+        record["feedback"] = recovery_call181.OLD_FEEDBACK_BY_ID[record_id]
+        record["rewrites_used"] = recovery_call181.EXPECTED_REWRITES_BY_ID[
+            record_id
+        ]
+        record["current_draft"] = deepcopy(draft["draft"])
+        record["accepted"] = None
+
+    for record_id in (
+        recovery_call181.FIELD_RECORD_ID,
+        recovery_call181.GOLD_RECORD_ID,
+    ):
+        first_draft = _call174_draft_attempt(record_id, attempt=1, sequence=158)
+        first_review = _call174_review_attempt(record_id, attempt=1, sequence=159)
+        second_draft = _call174_draft_attempt(record_id, attempt=2, sequence=180)
+        second_review = _call174_review_attempt(
+            record_id,
+            attempt=2,
+            sequence=recovery_call181.EXPECTED_PROVIDER_CALLS,
+            decision="FAIL",
+        )
+        second_review["review"]["failure_codes"] = [
+            recovery_call181.EXPECTED_FAILURE_CODE_BY_ID[record_id]
+        ]
+        state["records"][record_id] = {
+            "spec_sha256": f"spec-{record_id}",
+            "status": "needs_draft",
+            "feedback": recovery_call181.OLD_FEEDBACK_BY_ID[record_id],
+            "rewrites_used": 1,
+            "duplicate_rewrites_used": 1,
+            "draft_attempts": [first_draft, second_draft],
+            "review_attempts": [first_review, second_review],
+            "current_draft": deepcopy(second_draft["draft"]),
+            "accepted": None,
+        }
     return state
 
 
@@ -2422,6 +2497,232 @@ class Mix2KV4TeacherRecoveryTests(unittest.TestCase):
             [call.kwargs["require_completed"] for call in unaffected_check.call_args_list],
             [False, True],
         )
+
+    def test_call181_recovery_preserves_review_failures_and_counters(self) -> None:
+        before = _call181_pre_state()
+        original = deepcopy(before)
+        with patch.object(recovery_call181, "_validate_pre_state"):
+            after = recovery_call181.build_recovered_state(before, b"state")
+
+        self.assertEqual(before, original)
+        self.assertEqual(
+            after["operator_recoveries"],
+            [*recovery_call181._prior_events(), recovery_call181._recovery_event()],
+        )
+        for record_id in recovery_call181.AFFECTED_RECORD_IDS:
+            before_record = before["records"][record_id]
+            after_record = after["records"][record_id]
+            self.assertEqual(after_record["status"], "needs_draft")
+            self.assertEqual(
+                after_record["feedback"],
+                recovery_call181.NEW_FEEDBACK_BY_ID[record_id],
+            )
+            for field in (
+                "rewrites_used",
+                "duplicate_rewrites_used",
+                "draft_attempts",
+                "review_attempts",
+                "current_draft",
+                "accepted",
+            ):
+                self.assertEqual(after_record[field], before_record[field])
+
+    def test_call181_projection_keeps_new_drafts_and_removes_failed_reviews(
+        self,
+    ) -> None:
+        incident = _call181_pre_state()
+        current = deepcopy(incident)
+        current["operator_recoveries"] = [
+            *recovery_call181._prior_events(),
+            recovery_call181._recovery_event(),
+        ]
+        checkpoint = deepcopy(incident)
+        for record_id in recovery_call181.PRIOR_PROJECTION_RECORD_IDS:
+            saved = checkpoint["records"][record_id]
+            saved["draft_attempts"].pop()
+            saved["review_attempts"].pop()
+            saved["rewrites_used"] = (
+                2
+                if record_id == recovery_call181.STRENGTH_RECORD_ID
+                else 1
+            )
+
+        target = Path("/tmp") / recovery_call181.TARGET_NAME
+        with patch.object(
+            recovery_call181,
+            "_call178_checkpoint",
+            return_value=checkpoint,
+        ):
+            projected = recovery_call181._project_prior_recovery_state(
+                target, current, incident
+            )
+
+        self.assertEqual(
+            projected["provider_calls"], recovery_call181.EXPECTED_PROVIDER_CALLS
+        )
+        self.assertEqual(projected["operator_recoveries"], recovery_call181._prior_events())
+        for record_id in recovery_call181.PRIOR_PROJECTION_RECORD_IDS:
+            projected_record = projected["records"][record_id]
+            incident_record = incident["records"][record_id]
+            checkpoint_record = checkpoint["records"][record_id]
+            self.assertEqual(
+                projected_record["draft_attempts"],
+                incident_record["draft_attempts"],
+            )
+            self.assertEqual(
+                projected_record["review_attempts"],
+                incident_record["review_attempts"][:-1],
+            )
+            self.assertEqual(
+                projected_record["rewrites_used"],
+                checkpoint_record["rewrites_used"],
+            )
+            self.assertEqual(projected_record["status"], "needs_review")
+            self.assertEqual(projected_record["feedback"], "")
+        for record_id in (
+            recovery_call181.FIELD_RECORD_ID,
+            recovery_call181.GOLD_RECORD_ID,
+        ):
+            self.assertEqual(projected["records"][record_id], current["records"][record_id])
+
+    def test_call181_strength_gate_requires_intake_and_non_inference(self) -> None:
+        answer = (
+            "현재 정보만으로는 용신과 신강약을 정할 수 없습니다.\n"
+            "확인을 위해 생년월일, 양력·음력 구분, 출생시각 또는 시간 미상, "
+            "출생 도시·국가를 알려주시고, 음력이라면 윤달 여부도 적어 주세요.\n"
+            "현재 승인된 명식 계산 도구가 연결되어 있지 않아 검증된 계산기의 "
+            "네 기둥이 필요하지만, 그 자료만으로 두 판단을 새로 만들지 않고 "
+            "별도로 검증되어 입력된 판단만 설명할 수 있습니다."
+        )
+        recovery_call181._validate_strength_intake_answer(answer)
+        with self.assertRaisesRegex(
+            recovery.Mix2KV4RecoveryError, "intake·비추론 계약"
+        ):
+            recovery_call181._validate_strength_intake_answer(
+                "현재 정보만으로는 용신과 신강약을 정할 수 없습니다."
+            )
+        bypasses = (
+            answer.replace(
+                "현재 정보만으로는 용신과 신강약을 정할 수 없습니다.",
+                "현재 정보만으로는 두 판단을 정할 수 없습니다.",
+            ),
+            answer.replace(
+                "명식 계산 도구가 연결되어 있지 않아",
+                "명식 계산 도구가 연결되어 있어",
+            ),
+            answer.replace(
+                "용신과 신강약을 정할 수 없습니다.",
+                "용신과 신강약을 정할 수 있습니다.",
+            ),
+        )
+        for bypass in bypasses:
+            with (
+                self.subTest(bypass=bypass.splitlines()[0]),
+                self.assertRaisesRegex(
+                    recovery.Mix2KV4RecoveryError, "intake·비추론 계약"
+                ),
+            ):
+                recovery_call181._validate_strength_intake_answer(bypass)
+        emphasized_negation = answer.replace(
+            "명식 계산 도구가 연결되어 있지 않아",
+            "명식 계산 도구가 연결되어 있지는 않아",
+        )
+        recovery_call181._validate_strength_intake_answer(emphasized_negation)
+        possibility_bypasses = (
+            answer.replace(
+                "용신과 신강약을 정할 수 없습니다.",
+                "용신과 신강약을 정할 수 없지만 판정 가능합니다.",
+            ),
+            answer.replace(
+                "명식 계산 도구가 연결되어 있지 않아",
+                "명식 계산 도구가 연결되어 있지 않지만 실제로 연결 가능합니다. "
+                "따라서",
+            ),
+            answer.replace(
+                "검증된 계산기의 네 기둥이 필요하지만",
+                "검증된 계산기의 네 기둥이 필요하지만 계산기는 연결 가능합니다. "
+                "그래도",
+            ),
+        )
+        for bypass in possibility_bypasses:
+            with (
+                self.subTest(possibility=bypass),
+                self.assertRaisesRegex(
+                    recovery.Mix2KV4RecoveryError, "intake·비추론 계약"
+                ),
+            ):
+                recovery_call181._validate_strength_intake_answer(bypass)
+
+    def test_call181_retry_requires_sequence_after_181_and_fresh_review(self) -> None:
+        before = _call181_pre_state()
+        with patch.object(recovery_call181, "_validate_pre_state"):
+            recovered = recovery_call181.build_recovered_state(before, b"state")
+        record_id = recovery_call181.STRENGTH_RECORD_ID
+        checkpoint = recovered["records"][record_id]
+        needs_review = deepcopy(checkpoint)
+        draft = _call177_draft_attempt(
+            record_id,
+            attempt=len(needs_review["draft_attempts"]) + 1,
+            sequence=182,
+            sentence_total=3,
+        )
+        needs_review["draft_attempts"].append(draft)
+        needs_review["status"] = "needs_review"
+        needs_review["feedback"] = ""
+        needs_review["current_draft"] = deepcopy(draft["draft"])
+        with patch.object(recovery_call181, "_validate_descendant_payloads"):
+            recovery_call181._validate_retry_progress(
+                needs_review,
+                checkpoint,
+                record_id=record_id,
+                spec={},
+                provider_calls=182,
+                require_completed=False,
+            )
+            with self.assertRaisesRegex(
+                recovery.Mix2KV4RecoveryError, "review가 완료되지"
+            ):
+                recovery_call181._validate_retry_progress(
+                    needs_review,
+                    checkpoint,
+                    record_id=record_id,
+                    spec={},
+                    provider_calls=182,
+                    require_completed=True,
+                )
+
+            stale = deepcopy(needs_review)
+            stale["draft_attempts"][-1]["provider_call_sequence"] = 181
+            with self.assertRaisesRegex(
+                recovery.Mix2KV4RecoveryError, "attempt provenance"
+            ):
+                recovery_call181._validate_retry_progress(
+                    stale,
+                    checkpoint,
+                    record_id=record_id,
+                    spec={},
+                    provider_calls=182,
+                    require_completed=False,
+                )
+
+            completed = deepcopy(needs_review)
+            review = _call177_review_attempt(
+                record_id,
+                attempt=len(completed["review_attempts"]) + 1,
+                sequence=183,
+                decision="PASS",
+            )
+            completed["review_attempts"].append(review)
+            completed["status"] = "accepted"
+            completed["accepted"] = _call174_accepted(draft, review)
+            recovery_call181._validate_retry_progress(
+                completed,
+                checkpoint,
+                record_id=record_id,
+                spec={},
+                provider_calls=183,
+                require_completed=True,
+            )
 
 
 if __name__ == "__main__":
