@@ -53,6 +53,7 @@ from scripts.data.mix2k_v4_teachers import (
     SAME_PROVIDER_REVIEW_MODE,
     STRICT_EXECUTION_MODE,
     Mix2KV4TeacherError,
+    _import_seed_drafts,
     _load_execution_policy,
     _normalize_draft_answer_particles,
     _recoverable_seed_attempt,
@@ -458,6 +459,112 @@ def _seed_imported_draft_matches(
     )
 
 
+def _validate_seed_cross_provider_import_history(
+    *,
+    specs: Sequence[Mapping[str, Any]],
+    state: Mapping[str, Any],
+    seed_state: Mapping[str, Any],
+) -> int:
+    """canonical seed import를 재생해 live imported attempt 전체를 고정한다."""
+
+    state_records = state.get("records")
+    seed_records = seed_state.get("records")
+    execution = state.get("execution")
+    seed_state_sha256 = state.get("seed_state_sha256")
+    if (
+        not isinstance(state_records, Mapping)
+        or not isinstance(seed_records, Mapping)
+        or not isinstance(execution, Mapping)
+        or not isinstance(seed_state_sha256, str)
+    ):
+        raise Mix2KV4FinalizeError("teacher fallback state·seed record 집합이 없습니다.")
+
+    projected_records = {
+        spec["id"]: {
+            "spec_sha256": sha256_bytes(canonical_json_bytes(spec)),
+            "status": "needs_draft",
+            "rewrites_used": 0,
+            "duplicate_rewrites_used": 0,
+            "feedback": "",
+            "draft_attempts": [],
+            "review_attempts": [],
+            "current_draft": None,
+            "accepted": None,
+        }
+        for spec in specs
+    }
+    projection: dict[str, Any] = {
+        "dataset_version": state.get("dataset_version"),
+        "mode": state.get("mode"),
+        "contracts_sha256": state.get("contracts_sha256"),
+        "spec_manifest_sha256": state.get("spec_manifest_sha256"),
+        "provider_calls": 0,
+        "selection_order": [spec["id"] for spec in specs],
+        "records": projected_records,
+    }
+    try:
+        replayed_import = _import_seed_drafts(
+            state=projection,
+            seed_state=seed_state,
+            seed_state_sha256=seed_state_sha256,
+            specs_by_id={spec["id"]: dict(spec) for spec in specs},
+            execution=execution,
+            preserve_cross_provider_acceptances=True,
+        )
+    except Mix2KV4TeacherError as exc:
+        raise Mix2KV4FinalizeError(
+            "teacher fallback seed import를 재생하지 못했습니다."
+        ) from exc
+    if replayed_import != state.get("seed_import"):
+        raise Mix2KV4FinalizeError("teacher fallback seed import 집계가 다릅니다.")
+
+    for spec in specs:
+        record_id = spec["id"]
+        state_record = state_records.get(record_id)
+        projected_record = projected_records[record_id]
+        if not isinstance(state_record, Mapping) or not isinstance(
+            seed_records.get(record_id), Mapping
+        ):
+            raise Mix2KV4FinalizeError(
+                f"teacher fallback state·seed record가 없습니다: {record_id}"
+            )
+        draft_attempts = state_record.get("draft_attempts")
+        review_attempts = state_record.get("review_attempts")
+        if (
+            not isinstance(draft_attempts, list)
+            or not isinstance(review_attempts, list)
+        ):
+            raise Mix2KV4FinalizeError(
+                f"teacher seed 교차 PASS 이관 이력이 없습니다: {record_id}"
+            )
+        actual_imported_drafts = [
+            attempt
+            for attempt in draft_attempts
+            if isinstance(attempt, Mapping)
+            and attempt.get("imported_from_seed") is True
+        ]
+        actual_imported_reviews = [
+            attempt
+            for attempt in review_attempts
+            if isinstance(attempt, Mapping)
+            and attempt.get("imported_from_seed") is True
+        ]
+        expected_imported_drafts = projected_record["draft_attempts"]
+        expected_imported_reviews = projected_record["review_attempts"]
+        if (
+            actual_imported_drafts != expected_imported_drafts
+            or draft_attempts[: len(expected_imported_drafts)]
+            != expected_imported_drafts
+            or actual_imported_reviews != expected_imported_reviews
+            or review_attempts[: len(expected_imported_reviews)]
+            != expected_imported_reviews
+        ):
+            raise Mix2KV4FinalizeError(
+                f"teacher seed 교차 PASS 이관 이력이 다릅니다: {record_id}"
+            )
+    return int(replayed_import["cross_provider_passes_inherited"])
+
+
 def _validate_fallback_row_provenance(
     *,
     row: Mapping[str, Any],
@@ -788,6 +895,15 @@ def _validate_candidates(
         if fallback
         else Counter({CROSS_PROVIDER_REVIEW_MODE: len(candidates)})
     )
+    historical_seed_cross_provider_passes = 0
+    if fallback:
+        historical_seed_cross_provider_passes = (
+            _validate_seed_cross_provider_import_history(
+                specs=specs,
+                state=state,  # type: ignore[arg-type]
+                seed_state=seed_state,  # type: ignore[arg-type]
+            )
+        )
     fallback_state_counts_valid = True
     if fallback:
         state_records = state.get("records")  # type: ignore[union-attr]
@@ -891,8 +1007,9 @@ def _validate_candidates(
         or teacher_manifest.get("all_rows_cross_provider_reviewed")
         is not (review_modes == {CROSS_PROVIDER_REVIEW_MODE: len(candidates)})
         or not isinstance(teacher_manifest.get("seed_import"), Mapping)
-        or inherited_seed_passes
+        or historical_seed_cross_provider_passes
         != teacher_manifest["seed_import"].get("cross_provider_passes_inherited")
+        or inherited_seed_passes > historical_seed_cross_provider_passes
         or not fallback_state_counts_valid
     ):
         raise Mix2KV4FinalizeError("teacher fallback provider 집계가 다릅니다.")
@@ -904,6 +1021,12 @@ def _validate_candidates(
         "actual_drafters": dict(sorted(actual_drafters.items())),
         "actual_reviewers": dict(sorted(actual_reviewers.items())),
         "review_modes": dict(sorted(review_modes.items())),
+        "historical_seed_cross_provider_passes": (
+            historical_seed_cross_provider_passes if fallback else None
+        ),
+        "surviving_seed_cross_provider_passes": (
+            inherited_seed_passes if fallback else None
+        ),
         "exact_duplicate_answers": exact_duplicates,
         "normalized_answer_multiplicity_maximum": normalized_maximum,
     }

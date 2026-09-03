@@ -671,6 +671,8 @@ class Mix2KV4ContractTests(unittest.TestCase):
             },
         )
         state = target_state()
+        state["execution"] = execution
+        state["seed_state_sha256"] = "4" * 64
         report = _import_seed_drafts(
             state=state,
             seed_state=seed,
@@ -771,6 +773,48 @@ class Mix2KV4ContractTests(unittest.TestCase):
                 validation["review_modes"],
                 {CROSS_PROVIDER_REVIEW_MODE: 1},
             )
+            forged_later_import = deepcopy(state)
+            forged_later_record = forged_later_import["records"][spec["id"]]
+            duplicate_draft_import = deepcopy(
+                forged_later_record["draft_attempts"][0]
+            )
+            duplicate_draft_import["attempt"] = 2
+            forged_later_record["draft_attempts"].append(duplicate_draft_import)
+            duplicate_review_import = deepcopy(
+                forged_later_record["review_attempts"][0]
+            )
+            duplicate_review_import["attempt"] = 2
+            forged_later_record["review_attempts"].append(
+                duplicate_review_import
+            )
+            with self.assertRaisesRegex(
+                Mix2KV4FinalizeError, "seed 교차 PASS 이관 이력"
+            ):
+                _validate_candidates(
+                    candidates,
+                    [spec],
+                    config,
+                    teacher_manifest=teacher_manifest,
+                    state=forged_later_import,
+                    seed_state=seed,
+                )
+
+            imported_with_null_sequence = deepcopy(state)
+            imported_with_null_sequence["records"][spec["id"]][
+                "draft_attempts"
+            ][0]["provider_call_sequence"] = None
+            with self.assertRaisesRegex(
+                Mix2KV4FinalizeError, "seed 교차 PASS 이관 이력"
+            ):
+                _validate_candidates(
+                    candidates,
+                    [spec],
+                    config,
+                    teacher_manifest=teacher_manifest,
+                    state=imported_with_null_sequence,
+                    seed_state=seed,
+                )
+
             forged = deepcopy(candidates)
             forged[0]["teacher"]["review_mode"] = SAME_PROVIDER_REVIEW_MODE
             with self.assertRaisesRegex(Mix2KV4FinalizeError, "provenance"):
@@ -796,6 +840,104 @@ class Mix2KV4ContractTests(unittest.TestCase):
                     teacher_manifest=teacher_manifest,
                     state=state,
                     seed_state=forged_seed,
+                )
+
+            rewritten_state = deepcopy(state)
+            rewritten_state["provider_calls"] = 2
+            rewritten_record = rewritten_state["records"][spec["id"]]
+            replacement = deepcopy(draft)
+            replacement["answer"] += "\n확인된 사실만 구분해 답했습니다."
+            rewritten_record["current_draft"] = replacement
+            rewritten_record["duplicate_rewrites_used"] = 1
+            rewritten_record["draft_attempts"].append(
+                {
+                    "assigned_provider": "claude",
+                    "provider": "codex",
+                    "fallback_used": True,
+                    "execution_pass": "draft",
+                    "provider_call_sequence": 1,
+                    "attempt": 2,
+                    "provider_draft": replacement,
+                    "draft": replacement,
+                    "particle_normalized": False,
+                    "particle_normalizer_version": None,
+                    "layout_normalized": False,
+                    "layout_normalizer_version": None,
+                    "deterministic_pass": True,
+                    "deterministic_error": None,
+                }
+            )
+            rewritten_record["review_attempts"].append(
+                {
+                    "assigned_provider": "codex",
+                    "provider": "codex",
+                    "fallback_used": False,
+                    "execution_pass": "review",
+                    "provider_call_sequence": 2,
+                    "attempt": 2,
+                    "review_mode": SAME_PROVIDER_REVIEW_MODE,
+                    "review": review,
+                }
+            )
+            rewritten_record["accepted"] = {
+                "assigned_drafter": "claude",
+                "assigned_reviewer": "codex",
+                "draft_provider": "codex",
+                "review_provider": "codex",
+                "review_mode": SAME_PROVIDER_REVIEW_MODE,
+                "fallback_used": True,
+                "draft": replacement,
+                "review": review,
+            }
+            rewritten_candidates = _candidate_rows(
+                rewritten_state,
+                {spec["id"]: spec},
+                execution,
+            )
+            rewritten_manifest = deepcopy(teacher_manifest)
+            rewritten_manifest.update(
+                {
+                    "teacher_roles": {"codex": 1},
+                    "review_roles": {"codex": 1},
+                    "actual_teacher_roles": {"codex": 1},
+                    "actual_review_roles": {"codex": 1},
+                    "review_modes": {SAME_PROVIDER_REVIEW_MODE: 1},
+                    "all_rows_cross_provider_reviewed": False,
+                    "duplicate_rewrite_rows": 1,
+                    "duplicate_rewrite_attempts": 1,
+                }
+            )
+            rewritten_validation = _validate_candidates(
+                rewritten_candidates,
+                [spec],
+                config,
+                teacher_manifest=rewritten_manifest,
+                state=rewritten_state,
+                seed_state=seed,
+            )
+            self.assertEqual(
+                rewritten_validation["historical_seed_cross_provider_passes"],
+                1,
+            )
+            self.assertEqual(
+                rewritten_validation["surviving_seed_cross_provider_passes"],
+                0,
+            )
+
+            missing_import_prefix = deepcopy(rewritten_state)
+            missing_import_prefix["records"][spec["id"]]["review_attempts"][0][
+                "imported_from_seed"
+            ] = False
+            with self.assertRaisesRegex(
+                Mix2KV4FinalizeError, "seed 교차 PASS 이관 이력"
+            ):
+                _validate_candidates(
+                    rewritten_candidates,
+                    [spec],
+                    config,
+                    teacher_manifest=rewritten_manifest,
+                    state=missing_import_prefix,
+                    seed_state=seed,
                 )
 
     def test_fallback_requires_latest_review_after_current_draft(self) -> None:
@@ -881,7 +1023,13 @@ class Mix2KV4ContractTests(unittest.TestCase):
             },
         }
         seed = {
-            "records": {spec["id"]: {"spec_sha256": spec_sha256}}
+            "schema_version": "1.2.0",
+            "dataset_version": DATASET_VERSION,
+            "mode": "full",
+            "contracts_sha256": "2" * 64,
+            "spec_manifest_sha256": "3" * 64,
+            "selection_order": [spec["id"]],
+            "records": {spec["id"]: {"spec_sha256": spec_sha256}},
         }
         _, execution = _load_execution_policy(
             CODEX_FALLBACK_POLICY_PATH,
@@ -891,6 +1039,47 @@ class Mix2KV4ContractTests(unittest.TestCase):
                     "da9014c5f24a6ffc239cd8bf1ec64d2ba50855caff6ec90438d5a41a4fefd980"
                 ),
             },
+        )
+        seed_state_sha256 = "4" * 64
+        seed_projection = {
+            "dataset_version": DATASET_VERSION,
+            "mode": "full",
+            "contracts_sha256": "2" * 64,
+            "spec_manifest_sha256": "3" * 64,
+            "provider_calls": 0,
+            "selection_order": [spec["id"]],
+            "records": {
+                spec["id"]: {
+                    "spec_sha256": spec_sha256,
+                    "status": "needs_draft",
+                    "rewrites_used": 0,
+                    "duplicate_rewrites_used": 0,
+                    "feedback": "",
+                    "draft_attempts": [],
+                    "review_attempts": [],
+                    "current_draft": None,
+                    "accepted": None,
+                }
+            },
+        }
+        seed_import = _import_seed_drafts(
+            state=seed_projection,
+            seed_state=seed,
+            seed_state_sha256=seed_state_sha256,
+            specs_by_id={spec["id"]: spec},
+            execution=execution,
+            preserve_cross_provider_acceptances=True,
+        )
+        state.update(
+            {
+                "dataset_version": DATASET_VERSION,
+                "mode": "full",
+                "contracts_sha256": "2" * 64,
+                "spec_manifest_sha256": "3" * 64,
+                "execution": execution,
+                "seed_state_sha256": seed_state_sha256,
+                "seed_import": seed_import,
+            }
         )
         candidates = _candidate_rows(state, {spec["id"]: spec}, execution)
         teacher_manifest = {
@@ -907,7 +1096,7 @@ class Mix2KV4ContractTests(unittest.TestCase):
             "actual_review_roles": {"codex": 1},
             "review_modes": {SAME_PROVIDER_REVIEW_MODE: 1},
             "all_rows_cross_provider_reviewed": False,
-            "seed_import": {"cross_provider_passes_inherited": 0},
+            "seed_import": seed_import,
             "layout_normalized_rows": 0,
             "particle_normalized_rows": 0,
             "duplicate_rewrite_rows": 0,
@@ -944,6 +1133,27 @@ class Mix2KV4ContractTests(unittest.TestCase):
                 )
 
         validate(state)
+
+        unexpected_imported_review = deepcopy(state)
+        unexpected_record = unexpected_imported_review["records"][spec["id"]]
+        unexpected_record["review_attempts"].insert(
+            0,
+            {
+                "assigned_provider": "codex",
+                "provider": "codex",
+                "fallback_used": False,
+                "execution_pass": "review",
+                "attempt": 1,
+                "review_mode": SAME_PROVIDER_REVIEW_MODE,
+                "review": review,
+                "imported_from_seed": True,
+            },
+        )
+        unexpected_record["review_attempts"][-1]["attempt"] = 2
+        with self.assertRaisesRegex(
+            Mix2KV4FinalizeError, "seed 교차 PASS 이관 이력"
+        ):
+            validate(unexpected_imported_review)
 
         review_before_draft = deepcopy(state)
         review_before_draft["records"][spec["id"]]["review_attempts"][-1][
