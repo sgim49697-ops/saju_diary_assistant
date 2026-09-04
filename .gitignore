@@ -14,6 +14,8 @@
 /models/
 # AI Hub 파생 원문이 포함된 외부 검수 패키지
 /saju-mix20k-v3-review-ready/
+# MIX2K 외부 검토 ZIP은 로컬 provenance 입력으로만 사용
+/saju_mix2k_v4_*_reviewed_repair_package.zip
 /.venv/
 /.venv-data/
 /.venv-runtime/

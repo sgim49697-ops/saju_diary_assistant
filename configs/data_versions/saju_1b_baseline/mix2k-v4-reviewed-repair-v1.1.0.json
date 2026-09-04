@@ -1,0 +1,100 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_revision": "v1.1.0",
+  "dataset_version": "mix2k-v4-chart-day-8k",
+  "status": "EXPERIMENT_CANDIDATE_NOT_PRODUCTION_APPROVED",
+  "parent": {
+    "config_path": "configs/data_versions/saju_1b_baseline/mix2k-v4-chart-day-8k-v1.0.1.json",
+    "config_sha256": "c8267ec438e1bebe46670553a846fa81db371d23c5004a3a3c2aeecafe440f1c",
+    "spec_build_id": "build-da9014c5f24a",
+    "spec_build_sha256": "da9014c5f24a6ffc239cd8bf1ec64d2ba50855caff6ec90438d5a41a4fefd980",
+    "spec_manifest_sha256": "d5ca75b6998b565f51a4fcd79fc1f9dd41f0366d91fda38b08cdf249d238ebf9",
+    "specs_sha256": "d6286e8a00a5ee9f1bfbc660ac92727ed6f5410ec0cb8dce2a95c1ada7f2168e",
+    "dev_sha256": "7ff700be25c3eaa27401be89afb7eeda6bba4a9c27ef3451d7853a9fd8d8a629",
+    "final_build_id": "build-54836f556b4f",
+    "final_build_sha256": "54836f556b4f5eab0b82c5e21659b3ba23ff591d715a99677e4378c73eb370f3",
+    "final_manifest_sha256": "c088c96c26ebf49cf9368c28192994eddd533fbe6b88075d8f2804eb9f87078e",
+    "train_sha256": "a58904fa4968501f36be2e03e79d783ca6d4126164bd62fb859a924583e2293c",
+    "teacher_candidates_sha256": "864e2dfa6ee914db08501b0b824054352fa2d3755f74f67887a810283f4f4937",
+    "teacher_manifest_sha256": "2ff4a818ecd1d7b13545ce0a2ad723021c1fd70a75e0f2f7a2e766da9cb1541d",
+    "token_audit_sha256": "fa484c9169a233e06e30944a7f6ab59f0421d88ae76460d9e6b084f541a0621c"
+  },
+  "review_package": {
+    "expected_filename": "saju_mix2k_v4_1_0_3_reviewed_repair_package.zip",
+    "sha256": "fc01f6d119015928580c93689386fdf4b7b0724e4a7c8ea595e77c956709d17b",
+    "bytes": 3465757,
+    "members": 50,
+    "uncompressed_bytes": 53505306,
+    "root": "saju_mix2k_v4_1_0_3_reviewed_repair",
+    "declared_parent_upload_sha256": "1fba299ccaadb7e0a990e7cb62514cba011718a1f6e4d15188fac0ee1801effd",
+    "declared_parent_upload_available": false,
+    "review_rows_sha256": "cd2d297e53b8e4b9158b7687a1880cece487c637fdb7215cdf96d243a27fe6b4",
+    "candidate_train_sha256": "e539bb25d66ebd620106f129956afe99d503eba453c2d024a723b12f77c602db",
+    "direct_training_adoption_allowed": false
+  },
+  "repair": {
+    "rows": 2000,
+    "inherited_assistant_rows": 1600,
+    "regenerated_assistant_rows": 400,
+    "assistant_axes": {
+      "intake_state_correction": 250,
+      "uncertainty_blocked_boundary": 100,
+      "hard_fact_short_qa": 50
+    },
+    "selected_user_rewrites": {
+      "birth_date_correction": 12,
+      "target_date_change": 13,
+      "actual_birth_time_correction": 5,
+      "hypothetical_unknown_time_policy": 5
+    },
+    "all_other_user_messages_inherited": true,
+    "external_ids_allowed": false,
+    "external_system_messages_allowed": false,
+    "external_assistant_answers_are_gold": false,
+    "supplement_blueprints_included": false
+  },
+  "prompts": {
+    "bound_profile": "bound_chart_v2",
+    "bound_path": "configs/chat_prompts/saju_bound_chart_v2.txt",
+    "bound_sha256": "55bdcec6bdf7fa6a91fb68b03cd4a296c705ab9bac0e77abb067190519cc8f90",
+    "intake_profile": "guided_runtime_v2",
+    "intake_path": "configs/chat_prompts/saju_intake_runtime_v2.txt",
+    "intake_sha256": "9553310c9ad1dbfa771043d0d5d283c091c4a5dcf64d274023ed71de73bbee87",
+    "intake_projection_schema": "saju-intake-model-projection-v1.0.0"
+  },
+  "teacher": {
+    "changed_rows_per_direction": 200,
+    "shard_rows": 10,
+    "maximum_rewrite_rounds": 4,
+    "claude_model": "sonnet",
+    "codex_model": "configured_subscription_default",
+    "cross_provider_pass_required_for_changed_rows": true,
+    "provider_fallback_may_draft_but_may_not_finalize": true,
+    "api_keys_allowed": false
+  },
+  "token_budget": {
+    "training_selection_ladder": [2048, 3584, 4096, 8192],
+    "preferred_training_max_length": 2048,
+    "max_input_tokens": 4096,
+    "max_completion_tokens": 4096,
+    "truncate": false,
+    "assistant_only_loss": true
+  },
+  "serving_candidate": {
+    "dashboard_version": "v1.14.0",
+    "feature_enabled_by_default": false,
+    "max_input_tokens": 4096,
+    "max_new_tokens": 4096,
+    "native_context_tokens_minimum": 8192,
+    "relation_training_scope_expanded": false,
+    "active_dashboard_changed": false
+  },
+  "governance": {
+    "synthetic_public_rows_only": true,
+    "aihub_content_allowed": false,
+    "personal_data_allowed": false,
+    "development_targets_accessed": false,
+    "production_promotion_allowed": false,
+    "lora_r16_experimental_training_allowed_after_all_gates": true
+  }
+}
