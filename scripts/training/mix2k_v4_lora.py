@@ -1271,6 +1271,20 @@ def _gradient_callback(torch: Any, callback_class: Any) -> tuple[Any, dict[str, 
     return GradientContractCallback(), observed
 
 
+def _remove_fresh_trainer_metadata(final_adapter: Path) -> None:
+    """새 adapter 저장 시 Trainer가 덧붙인 비가중치 pickle metadata만 제거한다."""
+
+    metadata_path = final_adapter / "training_args.bin"
+    if not metadata_path.exists() and not metadata_path.is_symlink():
+        return
+    metadata_stat = metadata_path.lstat()
+    if metadata_path.is_symlink() or not stat.S_ISREG(metadata_stat.st_mode):
+        raise Mix2KV4LoRAError(
+            "Trainer metadata 경로가 일반 파일이 아니어서 제거할 수 없습니다."
+        )
+    metadata_path.unlink()
+
+
 def _execute_trainer(
     *,
     config: Mapping[str, Any],
@@ -1365,6 +1379,7 @@ def _execute_trainer(
     elapsed = time.monotonic() - started
     final_adapter = output_dir / "final_adapter"
     trainer.save_model(str(final_adapter))
+    _remove_fresh_trainer_metadata(final_adapter)
     tokenizer.save_pretrained(final_adapter)
     adapter_path = final_adapter / "adapter_model.safetensors"
     adapter_config_path = final_adapter / "adapter_config.json"
