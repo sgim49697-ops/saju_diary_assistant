@@ -311,3 +311,10 @@ Teacher 절반은 Claude 초안→Codex grounding 판정, 나머지 절반은 Co
 - r=16 preflight: `preflight-b165a8934069`가 RTX 5070 Ti에서 실제 1-step loss `2.476799726486206`, 유한·비영 gradient, base gradient 없음, adapter reload tensor 일치, base weight 불변, peak reserved `4,580,179,968` bytes로 통과했다. Kanana template를 직접 렌더링해 assistant 종료 `<|im_end|>` token id `128010`의 mask가 `1`임을 확인했으므로, 뒤의 supervised 개행 때문에 발생한 TRL의 마지막-token 경고는 실제 EOS 누락이 아니다.
 - 백그라운드 실행: r=16 `train-f340a82c76d3`을 시작했고, user systemd transient unit `saju-mix2k-lora-all-ranks.service`가 r=16 완료를 기다린다. 기존 실행이 완료 manifest 없이 끝나면 r=16을 checkpoint에서 재개하고, 성공 후 r=8 preflight→1 epoch 학습→r=32 preflight→1 epoch 학습을 같은 GPU lock 아래 순차 실행한다. 앞 단계 실패 시 다음 단계로 진행하지 않는다.
 - 남은 작업: 세 rank의 완료 manifest·adapter hash를 확인한 뒤 K0·KI20을 포함한 고정 dev 200건 5-arm 평가와 실제 회귀 release blocker 판정을 수행한다. 현재 실행 결과만으로 dashboard 또는 production 승격은 허용하지 않는다.
+
+### 2026-09-04 - Dashboard v1.13 20K 샘플 표시 복구
+
+- 작업 요약: v1.13 config에는 무작위 `sample_selection` 계약이 있지만 샘플 응답 코드가 v1.8까지만 새 분기로 인정해 `samples_per_axis`를 잘못 요구하던 회귀를 수정했다. schema 버전 열거 대신 실제 capability 존재 여부로 선택 방식을 결정하므로 이후 버전도 같은 누락을 반복하지 않는다.
+- 변경 범위: 20K 원본·manifest·staging record는 수정하지 않았다. `mix20k_v2.jsonl` SHA `731ace0ac5584fd97fc38f157a4ecdb1babedefd79e2ec5b2d755fa26e48a550`를 그대로 사용하며 대시보드 샘플링 코드와 v1.13 회귀 테스트만 변경했다.
+- 검증: v1.13 무작위 분기 단위 테스트와 Python compile, `git diff --check`를 통과했다. 실제 로컬 20K의 전체 보기와 7개 축을 각각 무작위 조회해 매 요청마다 고유한 message 샘플 10건이 해석되는 것을 원문 출력 없이 확인했다.
+- 남은 작업: 별도 v1.14 진단 대시보드에 2K direct dataset과 R16 adapter를 연결하고, 해당 UI/API smoke가 끝난 뒤 R8·R32 순차 학습을 다시 등록한다.

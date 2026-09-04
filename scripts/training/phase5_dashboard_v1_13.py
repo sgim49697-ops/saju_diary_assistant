@@ -1620,7 +1620,7 @@ def dataset_samples_payload(
     random_source: Any | None = None,
 ) -> dict[str, Any]:
     contract = _dataset_contract(context)
-    schema_version = context["config"]["schema_version"]
+    random_sampling = isinstance(contract.get("sample_selection"), dict)
     split = contract["splits"].get(split_id)
     if not isinstance(split, dict):
         raise DashboardRequestError(
@@ -1630,12 +1630,7 @@ def dataset_samples_payload(
         raise DashboardRequestError(
             HTTPStatus.NOT_FOUND, "허용되지 않은 dataset 축입니다."
         )
-    if randomize and schema_version not in {
-        "1.5.0",
-        "1.6.0",
-        "1.7.0",
-        "1.8.0",
-    }:
+    if randomize and not random_sampling:
         raise DashboardRequestError(
             HTTPStatus.NOT_FOUND,
             "이 dashboard config는 무작위 샘플을 지원하지 않습니다.",
@@ -1648,7 +1643,7 @@ def dataset_samples_payload(
             return cached
     candidates = _dataset_candidates(context, split_id, axis, active_cache)
     selected: list[dict[str, Any]] = []
-    if schema_version in {"1.5.0", "1.6.0", "1.7.0", "1.8.0"}:
+    if random_sampling:
         matching = (
             candidates
             if axis == "all"
