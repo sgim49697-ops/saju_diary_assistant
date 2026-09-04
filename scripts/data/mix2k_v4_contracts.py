@@ -75,7 +75,8 @@ NEGATED_STRUCTURAL_CLAIM = re.compile(
 )
 UNSUPPORTED_ACTION_NEGATION = re.compile(
     r"(?:통근|득령|신강약|신강|신약|격국|용신|대운|세운|삼합|육합|방합|"
-    r"암합|천간합|지지합|합충(?:형파해)?|상충|형살|파살|해살)"
+    r"암합|천간합|지지합|합충(?:형파해)?|합\s*(?:[·・]|이나|과)\s*충(?:\s*관계)?|"
+    r"충(?:돌)?\s*관계|상충|형살|파살|해살)"
     r"[^\n.!?。！？;；]{0,56}?"
     r"(?:(?:만들어\s*)?(?:말할|계산할|정할|판단할|도출할|확정할)\s*수\s*없|"
     r"(?:계산|판단|도출|확정|정)해서는\s*안)"
@@ -83,6 +84,313 @@ UNSUPPORTED_ACTION_NEGATION = re.compile(
 LOCAL_CLAIM_NEGATION = re.compile(
     r"(?:은|는|이|가|을|를)?\s*"
     r"(?:아닙|아닌|아니(?:라|다|라고|며|고|었|입|어서|므로))"
+)
+STRENGTH_TERM = r"(?:신강약|신강|신약|격국|용신)"
+STRENGTH_TERM_GROUP = rf"{STRENGTH_TERM}(?:(?:과|와|·){STRENGTH_TERM})*"
+EVIDENCE_BOUND_STRUCTURAL_CLAIM = re.compile(
+    rf"^{STRENGTH_TERM_GROUP}"
+    r"(?:은|는|이|가|을|를|의|으로|이다|입니다|에|하|합|했)?\s*"
+    r"(?:(?:에\s*관한\s*)?(?:별도(?:로|의)?\s*)?"
+    r"(?:(?:정해진|확정된|검증된)\s*(?:(?:판정|계산)\s*)?결과|"
+    r"(?:확정|검증)\s*결과)|"
+    r"별도로\s*제공되는\s*(?:확정된|검증된)\s*"
+    r"(?:(?:판정|계산)\s*)?결과)"
+    r"(?:가|는)?\s*"
+    r"(?:(?:제공|입력|확인)(?:된\s*(?:경우|범위|뒤)|되는\s*경우|될\s*때|되어야)|"
+    r"(?:나온|확인된)\s*뒤|있을\s*(?:경우|때))"
+    r"(?:에만|만|에서만|에서|\s*안에서만|\s*안에서|\s*내에서만|\s*내에서)?\s*"
+    r"(?:(?:그|해당)\s*(?:내용|결과|범위)"
+    r"(?:만|를|을|에서|\s*(?:안|내)에서)?\s*)?"
+    r"(?:(?:설명|안내)(?:할\s*수\s*있습니다|합니다)|"
+    r"다룰\s*수\s*있습니다)$"
+)
+ABSENT_EVIDENCE_STRUCTURAL_CLAIM = re.compile(
+    rf"^{STRENGTH_TERM_GROUP}"
+    r"(?:은|는|이|가|을|를|의|으로|이다|입니다|에|하|합|했)?\s*"
+    r"(?:(?:(?:관한|관해|대한)\s*)?(?:확정(?:된|한)?\s*)?(?:판정|계산)(?:\s*결과)?|"
+    r"(?:정|확정|판단|계산|도출)할(?:\s*수\s*있는)?\s*"
+    r"(?:확정된\s*)?(?:(?:판정|계산|검증)\s*)?결과)"
+    r"(?:이|가|은|는|도)?\s*"
+    r"(?:없습니다|없(?:어|어서|으므로)|확인되지\s*않아|"
+    r"제공되지\s*않아|주어지지\s*않아)"
+    r"(?:\s*(?:(?:값을\s*)?(?:만들\s*수|만들어\s*(?:답|말)할\s*수|"
+    r"(?:정|확정|판단|단정)할\s*수)"
+    r"\s*없습니다|"
+    r"임의로\s*(?:정|확정|판단|단정)하지\s*않겠습니다|"
+    r"지금\s*(?:값을\s*)?(?:정|확정|판단|단정)할\s*수\s*없습니다))?$"
+)
+DIRECT_NEGATED_STRENGTH_CLAIM = re.compile(
+    rf"^{STRENGTH_TERM_GROUP}"
+    r"(?:은|는|이|가|을|를|의|으로|이다|입니다|에|하|합|했)?\s*"
+    r"(?:(?:현재\s*자료에서\s*확인된\s*판단값이\s*아니므로\s*지금\s*)|"
+    r"(?:현재|지금)\s*정보만으로(?:는)?\s*)?"
+    r"(?:(?:여기서|이\s*자료만으로)\s*)?"
+    r"(?:(?:현재|지금)\s*)?(?:(?:바로|새로)\s*)?"
+    r"(?:(?:(?:판정|판단|산출|확정|정)할|결정해\s*드릴|만들)\s*수\s*없"
+    r"(?:습니다|으며)|"
+    r"(?:판정|판단|산출|단정|확정|정)할\s*수\s*있는\s*것은\s*아니며|"
+    r"(?:판정|판단|산출|단정)하지는?\s*않(?:습니다|으며|겠습니다)|"
+    r"(?:판정|판단|산출)하는\s*것은\s*아니며|"
+    r"(?:판정|판단|산출)해서는\s*안\s*됩니다)$"
+)
+SAFE_STRENGTH_INPUT_BASIS = (
+    r"(?:출생\s*정보|생년월일|원국(?:\s*(?:간지|네\s*기둥))?|간지|"
+    r"년주·월주·일주·시주|표면(?:에\s*드러난)?\s*오행(?:의)?\s*(?:개수|수))"
+)
+SAFE_STRENGTH_INPUT_BASIS_LIST = (
+    rf"{SAFE_STRENGTH_INPUT_BASIS}"
+    rf"(?:\s*(?:이나|나|과|와|·)\s*{SAFE_STRENGTH_INPUT_BASIS})*"
+)
+CONTEXTUAL_NEGATED_STRENGTH_CLAIM = re.compile(
+    rf"^{STRENGTH_TERM_GROUP}"
+    r"(?:은|는|이|가|을|를|의|으로|이다|입니다|에|하|합|했)?\s*"
+    rf"{SAFE_STRENGTH_INPUT_BASIS_LIST}\s*"
+    r"(?:(?:을|를)\s*)?"
+    r"(?:(?:(?:더\s*)?받았다는\s*이유|(?:추가(?:되었|됐)다는\s*이유)"
+    r"|(?:더\s*)?받는\s*것)만으로|만\s*(?:더\s*)?받았다고|"
+    r"임의로\s*(?:해석해\s*)?)\s*"
+    r"(?:(?:바로|곧바로|임의(?:로)?)\s*)?"
+    r"(?:해석해\s*)?(?:판정|판단|산출|확정|정)"
+    r"(?:할\s*수\s*없(?:습니다|으며)|하지\s*않(?:습니다|으며|고|겠습니다))$"
+)
+REQUIRED_STRENGTH_EVIDENCE_EXPLANATION = re.compile(
+    rf"^{STRENGTH_TERM_GROUP}"
+    r"(?:은|는|이|가|을|를|의|으로|이다|입니다|에|하|합|했)?\s*"
+    r"(?:(?:관한|관해|대한)\s*)?(?:별도(?:로|의)?\s*)?"
+    r"(?:(?:정해진|확정(?:된)?|검증된)\s*)?(?:(?:판정|계산)\s*)?결과"
+    r"(?:가|는)?\s*(?:별도로\s*)?(?:제공|입력|확인)되어야\s*"
+    r"(?:(?:그|해당)\s*)?(?:(?:내용|결과|범위)"
+    r"(?:(?:과|와)\s*(?:내용|결과|범위))?(?:을|를)?\s*)?"
+    r"(?:설명|안내)(?:할\s*수\s*있습니다|합니다)$"
+)
+REQUIRED_STRENGTH_EVIDENCE_CLAIM = re.compile(
+    rf"^{STRENGTH_TERM_GROUP}\s*(?:판단\s*)?결과가\s*"
+    r"(?:(?:함께\s*들어와야|별도로\s*제공되어야)\s*"
+    r"(?:그\s*의미를\s*)?설명할\s*수\s*있습니다|"
+    r"먼저\s*필요합니다|"
+    r"없(?:어|어서)\s*(?:(?:지금\s*정보만으로\s*)?(?:둘|두\s*항목)을\s*)?"
+    r"(?:정|확정|판단)할\s*수\s*없습니다)$"
+)
+PROVIDED_STRENGTH_EVIDENCE_CLAIM = re.compile(
+    rf"^{STRENGTH_TERM_GROUP}"
+    r"(?:은|는|이|가|을|를|의|으로|이다|입니다|에|하|합|했)?\s*"
+    r"(?:(?:(?:관한|대한)\s*)?(?:별도로\s*)?(?:제공된\s*)?"
+    r"(?:(?:정해진|확정(?:된)?|검증된)\s*)?(?:(?:판정|계산)\s*)?결과)"
+    r"(?:(?:가|는)?\s*(?:(?:제공|입력|확인)(?:된\s*(?:경우|범위|뒤)|"
+    r"되는\s*경우|될\s*때|되어야)|(?:나온|확인된)\s*뒤|있을\s*(?:경우|때))|"
+    r"를\s*제공(?:하는\s*경우|하면))"
+    r"(?:에만|만|에서만|에서|\s*안에서만|\s*안에서|\s*내에서만|\s*내에서)?\s*"
+    r"(?:(?:그|해당)\s*(?:내용|결과|범위)"
+    r"(?:만|를|을|에서|\s*(?:안|내)에서)?\s*)?"
+    r"(?:(?:설명|안내)(?:할\s*수\s*있습니다|합니다)|"
+    r"설명해\s*드릴(?:\s*수\s*있습니다|게요)|다룰\s*수\s*있습니다)$"
+)
+UNCERTAIN_STRENGTH_CHOICE_CLAIM = re.compile(
+    rf"^{STRENGTH_TERM}(?:은|는|이|가|을|를|이다|입니다)?\s*"
+    rf"(?:(?:이다|입니다)?\s*(?:또는|아니면)\s*{STRENGTH_TERM}\s*)?"
+    r"(?:이다|입니다)?\s*(?:중\s*)?(?:어느\s*쪽인지|무엇인지|어떤\s*것인지)\s*"
+    r"(?:알\s*수\s*없습니다|확인되지\s*않았습니다)$"
+)
+UNCERTAIN_STRENGTH_VALUE_CLAIM = re.compile(
+    rf"^{STRENGTH_TERM}(?:(?:은|는|이|가)\s*[^\n.!?。！？;；]{{1,32}}?인지\s*"
+    r"[^\n.!?。！？;；]{1,32}?인지|인지)\s*"
+    r"(?:지금(?:은|는)?\s*)?(?:알\s*수\s*없습니다|확인되지\s*않았습니다)$"
+)
+NEGATED_QUOTED_STRENGTH_ASSERTION_CLAIM = re.compile(
+    rf"^{STRENGTH_TERM}(?:이다|입니다)(?:라는?|이라고)?\s*"
+    r"(?:결론|판정|판단|단정)[^\n.!?。！？;；]{0,32}?"
+    r"(?:내리면\s*안|하면\s*안|해서는\s*안|할\s*수\s*없|하지\s*않)"
+    r"[^\n.!?。！？;；]{0,12}$"
+)
+ANAPHORIC_STRENGTH_MARKER = re.compile(
+    r"(?:실제\s*(?:값|결과|판정값|결론)|실제로|정답|결론|판정값|그\s*값)"
+    r"(?:은|는|이|가|:|：)?"
+)
+ANAPHORIC_STRENGTH_POSITIVE_PREDICATE = re.compile(
+    r"[^\n.!?。！？;；]{0,72}?"
+    r"(?:입니다|이다|이며|이고|이지만|예요|이에요|맞습니다|"
+    r"(?:이|가)?라고\s*(?:봅니다|판단합니다|정합니다)|"
+    r"(?:으)?로\s*(?:봅니다|판단합니다|정합니다)|쪽입니다|편입니다|"
+    r"강합니다|약합니다|가깝습니다)"
+)
+POST_STRENGTH_BARE_VALUE_MARKER = re.compile(
+    r"(?:^|[\n.!?。！？;；,，])\s*(?:[-*+]\s*)?"
+    r"(?P<body>"
+    r"(?:(?:[甲乙丙丁戊己庚辛壬癸](?:[木火土金水목화토금수])?|"
+    r"[목화토금수]|나무\s*기운|불\s*기운|흙\s*기운|땅\s*기운|"
+    r"쇠\s*기운|금속\s*기운|물\s*기운|신강|신약)\s*"
+    r"(?:(?:입니다|이다|예요|이에요)(?:라는?|라고)?|인지|"
+    r"(?:으)?로\s*(?:봅니다|판단합니다|정합니다)|"
+    r"쪽(?:입니다|이다|예요|이에요|으로\s*(?:봅니다|판단합니다))))|"
+    r"(?:강한|약한)\s*편(?:입니다|이다|예요|이에요))"
+)
+STRENGTH_ASSERTED_VALUE = (
+    r"(?:[甲乙丙丁戊己庚辛壬癸](?:[木火土金水])?|[木火土金水]|"
+    r"(?:갑|을|병|정|무|기|경|신|임|계)?[목화토금수]|"
+    r"나무\s*기운|불\s*기운|흙\s*기운|땅\s*기운|쇠\s*기운|"
+    r"금속\s*기운|물\s*기운)"
+)
+STRENGTH_VALUE_ASSERTION_MARKER = re.compile(
+    rf"(?P<body>(?:{STRENGTH_ASSERTED_VALUE}|신강|신약)\s*"
+    r"(?:(?:입니다|이다|이며|이고|이지만|예요|이에요)(?:라는?|라고)?|인지|"
+    r"(?:으)?로\s*(?:봅니다|판단합니다|정합니다)|"
+    r"쪽(?:입니다|이다|예요|이에요|으로\s*(?:봅니다|판단합니다)))|"
+    r"(?:강한|약한)\s*편(?:입니다|이다|이며|이고|이지만|예요|이에요))"
+)
+DIRECT_STRENGTH_VALUE_ASSERTION = re.compile(
+    rf"(?:용신)(?:은|는|이|가|을|를|:|：)\s*{STRENGTH_ASSERTED_VALUE}"
+    r"(?=\s*(?:입니다|이다|이며|이고|이지만|예요|이에요|(?:으)?로|"
+    r"이라고|라고|쪽|$))|"
+    rf"(?:(?:판정|계산)\s*결과)(?:은|는|이|가|:|：)\s*"
+    rf"{STRENGTH_ASSERTED_VALUE}"
+    r"(?=\s*(?:입니다|이다|이며|이고|이지만|예요|이에요|(?:으)?로|"
+    r"이라고|라고|쪽|$))|"
+    r"(?:신강약)(?:은|는|이|가|:|：)\s*(?:신강|신약|중화|강한|약한)"
+    r"(?=\s*(?:입니다|이다|이며|이고|이지만|예요|이에요|쪽|편|$))|"
+    r"(?:신강|신약)\s*(?:입니다|이다|이며|이고|이지만|예요|이에요|"
+    r"(?:으)?로\s*(?:봅니다|판단합니다)|쪽입니다|에\s*가깝습니다)|"
+    r"(?:강한|약한)\s*편(?:입니다|이다|이며|이고|이지만|예요|이에요)|"
+    r"(?:격국)(?:은|는|이|가|을|를|:|：)\s*[가-힣甲-龥]{1,16}격"
+)
+GENERAL_STRENGTH_LIMITATION_SIGNAL = re.compile(
+    r"(?:(?:정|판정|판단|계산|도출|산출|확정|단정|결정|추정|설명|안내|만들)"
+    r"[^\n.!?。！？;；]{0,32}?"
+    r"(?:할\s*수(?:는)?\s*없|할\s*수\s*있는\s*것은\s*아니|"
+    r"하는\s*것은\s*아니|하지는?\s*않|(?:어\s*)?내지\s*않|"
+    r"해서는\s*안|하면\s*안)|"
+    r"(?:(?:판정|계산|검증|확정)(?:된|한)?\s*)?"
+    r"(?:결과|판정|판단값|근거)[^\n.!?。！？;；]{0,32}?"
+    r"(?:없|제공되지|주어지지|확인되지|먼저\s*필요)|"
+    r"(?:(?:판정|계산|검증|확정)(?:된|한)?\s*)?결과"
+    r"[^\n.!?。！？;；]{0,32}?"
+    r"(?:제공|입력|확인)(?:되어야|되는\s*경우|될\s*때|"
+    r"되면|하면|된\s*(?:경우|범위|뒤))|"
+    r"(?:(?:판정|계산|검증|확정)(?:된|한)?\s*)?결과"
+    r"[^\n.!?。！？;；]{0,32}?"
+    r"(?:나오면|나온\s*경우|있으면|있어야|있을\s*때))"
+)
+RELATION_EVIDENCE_PREFIX = re.compile(
+    r"(?:(?:관계|판정|계산|검증|확정)\s*)?결과(?:가|는|를)?"
+    r"[^\n.!?。！？;；]{0,40}?"
+    r"(?:나오면|나온\s*뒤|나온\s*경우|제공되면|제공된\s*(?:뒤|경우|범위)|"
+    r"확인되면|확인된\s*(?:뒤|경우|범위)|있으면|있을\s*때|"
+    r"(?:반환|제공|확인|산출)되어야)"
+)
+RELATION_DERIVATION_PREFIX = re.compile(
+    r"(?:(?:관계(?:를|를\s*계산해)?\s*)?(?:연결해\s*)?"
+    r"(?:산출|확인|계산|제공|반환)된|"
+    r"(?:그\s*)?결과(?:에|에서)\s*(?:포함|확인|산출)된)\s*$"
+)
+RELATION_EXPLANATION_TAIL = re.compile(
+    r"^(?:삼합|육합|방합|암합|천간합|지지합|합충(?:형파해)?|"
+    r"합\s*(?:[·・]|이나|과)\s*충(?:\s*관계)?|상충|형살|파살|해살|"
+    r"충돌?\s*관계)"
+    r"(?:(?:이|가)\s*있을\s*때\s*(?:그\s*(?:내용|결과|범위)만?\s*)?|"
+    r"(?:만|은|는|을|를)?\s*)"
+    r"(?:(?:확인|제공|계산)된\s*(?:결과|범위)(?:에서|안에서)?\s*)?"
+    r"(?:(?:정확히|자연스럽게|그대로)\s*)?"
+    r"(?:설명|안내|다루)(?:할\s*수\s*있습니다|합니다|하게\s*됩니다|게\s*됩니다)$"
+)
+RELATION_CATEGORY_TERM = (
+    r"(?:삼합|육합|방합|암합|천간합|지지합|합충(?:형파해)?|"
+    r"합\s*(?:[·・]|이나|과)\s*충(?:\s*관계)?|상충|형살|파살|해살|"
+    r"충돌?\s*관계)"
+)
+NAMED_RELATION_TERM = (
+    r"(?:[甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥]{2,4}\s*"
+    r"(?:합|충|형|파|해))"
+)
+RELATION_CLAIM_TERM = rf"(?:{RELATION_CATEGORY_TERM}|{NAMED_RELATION_TERM})"
+RELATION_POSITIVE_ASSERTION = re.compile(
+    rf"{RELATION_CATEGORY_TERM}[^\n.!?。！？;；]{{0,48}}?"
+    r"(?:성립|작용|발생|생기|존재)"
+)
+RELATION_EXISTENCE_ASSERTION = re.compile(
+    rf"{RELATION_CATEGORY_TERM}(?:이|가|은|는|도|만)?\s*(?:실제로\s*)?"
+    r"(?:있(?:습니다|어요|다|지만|으며)|됩니다|된다)"
+)
+NAMED_RELATION_ASSERTION = re.compile(NAMED_RELATION_TERM)
+RELATION_FACT_ASSERTION = re.compile(
+    rf"{RELATION_CATEGORY_TERM}[^\n.!?。！？;；]{{0,48}}?"
+    r"(?:(?:틀림없는|명백한)\s*)?(?:사실|실제\s*관계|관계|판정|결론|결과)"
+    r"\s*(?:이고|이며|입니다|이다|맞(?:습니다|다|고|으며))|"
+    rf"{RELATION_CATEGORY_TERM}(?:이|가|은|는|도|만|을|를)?\s*"
+    r"(?:틀림없이\s*)?맞(?:습니다|다|고|으며)"
+)
+RELATION_SUBJECT_ASSERTION = re.compile(
+    r"(?:서로|둘(?:은|이|\s*사이(?:는|에|에는)?)?|두\s*기운(?:은|이)?|"
+    r"원국과\s*(?:오늘|날짜))[^\n.!?。！？;；]{0,32}?"
+    r"(?:합|충|형|파|해)(?:을|이|으로|\s*관계(?:가|는)?)?\s*"
+    r"(?:이루|성립|작용|발생|생기|존재)"
+)
+POST_RELATION_BARE_ASSERTION = re.compile(
+    r"(?:^|[\n.!?。！？;；,，]|하지만|그러나|그래도|다만)\s*"
+    r"(?:실제로\s*)?(?:(?:그|이|두|실제)\s*관계(?:는|가)?\s*)?"
+    r"(?:성립|작용|발생|생기|존재|있(?:습니다|어요|다|지만|으며)|"
+    r"됩니다|된다|"
+    r"(?:(?:틀림없는|명백한)\s*)?(?:사실|관계|판정|결론)"
+    r"\s*(?:입니다|이다|맞(?:습니다|다)))"
+)
+RELATION_NEGATION_SIGNAL = re.compile(
+    rf"(?:{RELATION_CLAIM_TERM}[^\n.!?。！？;；]{{0,64}}?"
+    r"(?:할\s*수\s*없|하지\s*않|단정할\s*근거가\s*없|"
+    r"해서는\s*안|결과(?:도|가|는)?\s*없|제공되지|확인되지|계산되지|"
+    r"범위[^\n.!?。！？;；]{0,24}?(?:있지\s*않|없|아니)))"
+)
+RELATION_EVIDENCE_GUARD = re.compile(
+    rf"(?:(?:확인|산출|제공|반환|계산|검증)된\s*{RELATION_CATEGORY_TERM}|"
+    rf"{RELATION_CATEGORY_TERM}[^\n.!?。！？;；]{{0,56}}?"
+    r"(?:판정|결과|범위)[^\n.!?。！？;；]{0,32}?"
+    r"(?:제공|확인|산출|반환)(?:된|되면|되어야)|"
+    rf"{RELATION_CATEGORY_TERM}[^\n.!?。！？;；]{{0,32}}?"
+    r"(?:제공|확인|산출|반환)된\s*(?:결과|범위)|"
+    r"(?:(?:관계|판정|계산|검증|확정)\s*)?결과"
+    r"[^\n.!?。！？;；]{0,48}?"
+    r"(?:나오면|나온\s*뒤|제공되면|제공된\s*(?:뒤|경우|범위)|"
+    rf"반환되어야|확인되면)[^\n.!?。！？;；]{{0,48}}?{RELATION_CATEGORY_TERM}|"
+    rf"결과(?:에|에서)\s*(?:포함|확인|산출)된\s*{RELATION_CATEGORY_TERM}|"
+    r"(?:제공|확인|산출|반환)된\s*결과"
+    rf"[^\n.!?。！？;；]{{0,40}}?{RELATION_CATEGORY_TERM}"
+    r"[^\n.!?。！？;；]{0,16}?(?:있을\s*때|있으면))"
+)
+RELATION_EVIDENCE_AUTHORITY = re.compile(
+    rf"(?:(?:제공|확인|산출|반환|계산|검증|명시|승인)"
+    rf"(?:된|되는|될|한|되어야|되면)[^\n.!?。！？;；]{{0,48}}?"
+    rf"{RELATION_CATEGORY_TERM}|"
+    rf"{RELATION_CATEGORY_TERM}[^\n.!?。！？;；]{{0,64}}?"
+    r"(?:제공|확인|산출|반환|계산|검증|명시|승인)"
+    r"(?:된|되는|될|한|되어야|되면|하면)|"
+    r"(?:결과|판정|계산|검증)[^\n.!?。！？;；]{0,64}?"
+    rf"(?:포함|확인|산출|명시|제공|반환)[^\n.!?。！？;；]{{0,32}}?"
+    rf"{RELATION_CATEGORY_TERM}|"
+    r"결과(?:가|는)?\s*나온\s*(?:뒤|경우|범위)?"
+    rf"[^\n.!?。！？;；]{{0,32}}?{RELATION_CATEGORY_TERM})"
+)
+RELATION_EXPLANATION_ACTION = re.compile(
+    r"(?:(?:설명|안내|다루)(?:할\s*수\s*있|합니다|하겠습니다|하게\s*됩니다|"
+    r"게\s*됩니다)|다룰\s*수\s*있)"
+)
+RELATION_SCOPE_GATE = re.compile(
+    r"(?:만\s*(?:(?:정확히|자연스럽게|그대로|확정적으로)\s*)?"
+    r"(?:설명|안내|다루)|"
+    r"(?:제공|확인|산출|반환|계산)(?:되면|하면|될\s*때|되어야|"
+    r"된\s*(?:뒤|경우|범위)|한\s*(?:뒤|경우))|"
+    r"(?:나오면|나온\s*(?:뒤|경우|범위))|(?:된|한)\s*후에만|"
+    r"(?:뒤|때)에만|있을\s*때|있으면|"
+    r"(?:명시적으로\s*)?제공된\s*범위에서|범위\s*안에서|"
+    r"(?:그\s*)?(?:계산\s*)?결과(?:\s*안)?에서|"
+    r"그\s*결과에\s*한해서|그\s*(?:내용|결과|범위)만)"
+)
+LINKED_RELATION_NONASSERTION = re.compile(
+    r"^\s*(?:(?:하|되|이루|생기|발생|작용|존재)?지(?:는|도)?\s*"
+    r"(?:않|못)|"
+    r"(?:은|는|이|가|도)?\s*(?:아닙|아니|제공되지|확인되지|계산되지|"
+    r"판정되지|성립하지|작용하지|존재하지)|"
+    r"(?:(?:한|하는|한다고|된다고|이라고|라는|인지|인지는|여부(?:는|가)?)\s*)"
+    r"[^\n.!?。！？;；]{0,40}?"
+    r"(?:단정|판단|확정|결론|말|확인|알)"
+    r"[^\n.!?。！？;；]{0,20}?"
+    r"(?:할\s*수\s*없|수\s*없|하지\s*않|하면\s*안|해서는\s*안))"
 )
 CORRECTION_CONNECTOR = (
     r"(?:(?:아니(?:라|고|어서|므로)|아닌(?:데)?|"
@@ -146,15 +454,25 @@ UNSUPPORTED_STRUCTURAL_PATTERNS = (
     (
         "relation",
         re.compile(
-            r"(?:삼합|육합|방합|암합|천간합|지지합|합충(?:형파해)?|상충|형살|파살|해살|"
+            r"(?:삼합|육합|방합|암합|천간합|지지합|합충(?:형파해)?|"
+            r"합\s*(?:[·・]|이나|과)\s*충(?:\s*관계)?|상충|형살|파살|해살|"
             r"충돌?\s*관계)"
         ),
     ),
     (
         "relation",
         re.compile(
-            r"(?:[甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥]|서로|둘이|두\s*기운)"
-            r"[^\n.!?]{0,16}(?:합|충|형|파|해)(?:을|이|으로)?\s*"
+            r"[甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥]{2,4}\s*"
+            r"(?:합|충|형|파|해)(?:(?:이|가|은|는|을|를|이다|입니다)|"
+            r"(?=\s*(?:[.!?。！？]|$)))"
+        ),
+    ),
+    (
+        "relation",
+        re.compile(
+            r"(?:[甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥]|서로|"
+            r"둘(?:은|이)|두\s*기운|원국과\s*(?:오늘|날짜))"
+            r"[^\n.!?]{0,24}(?:합|충|형|파|해)(?:을|이|으로)?\s*"
             r"(?:이루|이룬|이룹|성립|작용|한다|합니다|됩니다|이다|입니다)"
         ),
     ),
@@ -400,9 +718,7 @@ def _expected_labeled_fact_negation_errors(
             direct_matches = (
                 match
                 for match in direct.finditer(answer)
-                if not _label_completes_reverse_claim(
-                    answer, match.start("label")
-                )
+                if not _label_completes_reverse_claim(answer, match.start("label"))
             )
             if any(
                 LOCAL_CLAIM_NEGATION.match(
@@ -473,7 +789,103 @@ def _explicit_claim_is_negated(answer: str, start: int, end: int) -> bool:
     )
 
 
-def _unsupported_claim_is_negated(answer: str, start: int, end: int) -> bool:
+def _anaphoric_strength_clause_is_assertive(clause: str) -> bool:
+    marker = ANAPHORIC_STRENGTH_MARKER.search(clause)
+    if marker is None:
+        return False
+    body = " ".join(clause[marker.end() :].split())
+    if not body:
+        return False
+    direct_absence = re.fullmatch(
+        r"(?:(?:아직|현재|지금)(?:은|는)?\s*)?"
+        r"(?:없(?:습니다|어요)|제공되지\s*않았습니다|확인되지\s*않았습니다|"
+        r"알\s*수\s*없습니다|(?:하나로\s*)?(?:정|판단|확정)할\s*수\s*없습니다)",
+        body,
+    )
+    quoted_negation = re.fullmatch(
+        r"[^\n.!?。！？;；]{1,48}?"
+        r"(?:(?:이|가)?라고|이라는?|라는?|입니다(?:라는?|라고))\s*"
+        r"[^\n.!?。！？;；]{0,48}?"
+        r"(?:단정|판정|판단|확정|결론|정하|결정|내리)"
+        r"[^\n.!?。！？;；]{0,24}?"
+        r"(?:할\s*수\s*없|하면\s*안|해서는\s*안|내리면\s*안|"
+        r"하지\s*않|아닙)[^\n.!?。！？;；]{0,12}",
+        body,
+    )
+    choice_uncertainty = re.fullmatch(
+        r"(?:[^\n.!?。！？;；]{1,48}?(?:이다|입니다)?\s*"
+        r"(?:또는|아니면)\s*[^\n.!?。！？;；]{1,48}?(?:이다|입니다)?\s*"
+        r"(?:중\s*)?(?:어느\s*쪽인지|무엇인지|어떤\s*것인지)|"
+        r"[^\n.!?。！？;；]{1,48}?인지\s*"
+        r"[^\n.!?。！？;；]{1,48}?인지)\s*"
+        r"(?:지금(?:은|는)?\s*)?(?:알\s*수\s*없습니다|확인되지\s*않았습니다)",
+        body,
+    )
+    if direct_absence or quoted_negation or choice_uncertainty:
+        return False
+    return ANAPHORIC_STRENGTH_POSITIVE_PREDICATE.search(body) is not None
+
+
+def _strength_clause_is_safe_limitation(clause: str) -> bool:
+    """명시적 값 주장이 없는 근거 부재·판정 보류 문장을 허용한다."""
+
+    if DIRECT_STRENGTH_VALUE_ASSERTION.search(clause) is not None:
+        return False
+    for assertion in STRENGTH_VALUE_ASSERTION_MARKER.finditer(clause):
+        assertion_start = assertion.start("body")
+        assertion_clause = "그 값은 " + clause[assertion_start:]
+        if _anaphoric_strength_clause_is_assertive(assertion_clause):
+            return False
+    return GENERAL_STRENGTH_LIMITATION_SIGNAL.search(clause) is not None
+
+
+def _relation_clause_is_safe_limitation(sentence: str) -> bool:
+    """관계 성립값을 만들지 않는 보류 또는 evidence-bound 설명만 허용한다."""
+
+    if RELATION_NEGATION_SIGNAL.search(sentence) is not None:
+        return True
+    return (
+        (
+            RELATION_EVIDENCE_GUARD.search(sentence) is not None
+            or RELATION_EVIDENCE_AUTHORITY.search(sentence) is not None
+        )
+        and RELATION_EXPLANATION_ACTION.search(sentence) is not None
+        and RELATION_SCOPE_GATE.search(sentence) is not None
+    )
+
+
+def _relation_assertion_is_nonassertive(answer: str, end: int) -> bool:
+    """관계값 직후에 직접 연결된 부정·불확실성만 assertion 예외로 본다."""
+
+    sentence_end_match = re.search(r"[\n.!?。！？;；]", answer[end:])
+    sentence_end = (
+        end + sentence_end_match.start()
+        if sentence_end_match is not None
+        else len(answer)
+    )
+    return LINKED_RELATION_NONASSERTION.search(answer[end:sentence_end]) is not None
+
+
+def _relation_answer_has_unnegated_assertion(answer: str) -> bool:
+    """답변 어느 위치에든 근거 없는 관계 성립값이 있으면 강하게 차단한다."""
+
+    for pattern in (
+        RELATION_POSITIVE_ASSERTION,
+        RELATION_EXISTENCE_ASSERTION,
+        RELATION_FACT_ASSERTION,
+        RELATION_SUBJECT_ASSERTION,
+        POST_RELATION_BARE_ASSERTION,
+        NAMED_RELATION_ASSERTION,
+    ):
+        for match in pattern.finditer(answer):
+            if not _relation_assertion_is_nonassertive(answer, match.end()):
+                return True
+    return False
+
+
+def _unsupported_claim_is_negated(
+    answer: str, start: int, end: int, label: str
+) -> bool:
     """unsupported 용어와 직접 맞닿은 근거 부재 표현만 면제한다."""
 
     local_end_match = re.search(
@@ -481,11 +893,79 @@ def _unsupported_claim_is_negated(answer: str, start: int, end: int) -> bool:
         answer[end:],
     )
     local_end = (
-        end + local_end_match.start()
-        if local_end_match is not None
-        else len(answer)
+        end + local_end_match.start() if local_end_match is not None else len(answer)
     )
-    clause = answer[start:local_end]
+    clause = " ".join(answer[start:local_end].split())
+    if label == "strength_pattern_yongshin":
+        sentence_start_matches = list(re.finditer(r"[\n.!?。！？;；]", answer[:start]))
+        sentence_start = (
+            sentence_start_matches[-1].end() if sentence_start_matches else 0
+        )
+        sentence_clause = " ".join(answer[sentence_start:local_end].split())
+        evidence_bound = any(
+            pattern.fullmatch(clause) is not None
+            for pattern in (
+                EVIDENCE_BOUND_STRUCTURAL_CLAIM,
+                ABSENT_EVIDENCE_STRUCTURAL_CLAIM,
+                DIRECT_NEGATED_STRENGTH_CLAIM,
+                REQUIRED_STRENGTH_EVIDENCE_CLAIM,
+                PROVIDED_STRENGTH_EVIDENCE_CLAIM,
+                CONTEXTUAL_NEGATED_STRENGTH_CLAIM,
+                REQUIRED_STRENGTH_EVIDENCE_EXPLANATION,
+                UNCERTAIN_STRENGTH_CHOICE_CLAIM,
+                UNCERTAIN_STRENGTH_VALUE_CLAIM,
+                NEGATED_QUOTED_STRENGTH_ASSERTION_CLAIM,
+            )
+        )
+        if not evidence_bound:
+            evidence_bound = _strength_clause_is_safe_limitation(
+                clause
+            ) or _strength_clause_is_safe_limitation(sentence_clause)
+        for assertion in ANAPHORIC_STRENGTH_MARKER.finditer(answer, local_end):
+            tail_end_match = re.search(r"[\n.!?。！？;；]", answer[assertion.end() :])
+            tail_end = (
+                assertion.end() + tail_end_match.start()
+                if tail_end_match is not None
+                else len(answer)
+            )
+            assertion_clause = answer[assertion.start() : tail_end]
+            if _anaphoric_strength_clause_is_assertive(assertion_clause):
+                return False
+        for assertion in POST_STRENGTH_BARE_VALUE_MARKER.finditer(answer, local_end):
+            assertion_start = assertion.start("body")
+            tail_end_match = re.search(r"[\n.!?。！？;；]", answer[assertion_start:])
+            tail_end = (
+                assertion_start + tail_end_match.start()
+                if tail_end_match is not None
+                else len(answer)
+            )
+            assertion_clause = "그 값은 " + answer[assertion_start:tail_end]
+            if _anaphoric_strength_clause_is_assertive(assertion_clause):
+                return False
+        return evidence_bound
+    if label == "relation":
+        if _relation_answer_has_unnegated_assertion(answer):
+            return False
+        sentence_start_matches = list(re.finditer(r"[\n.!?。！？;；]", answer[:start]))
+        sentence_start = (
+            sentence_start_matches[-1].end() if sentence_start_matches else 0
+        )
+        sentence_end_match = re.search(r"[\n.!?。！？;；]", answer[end:])
+        sentence_end = (
+            end + sentence_end_match.start()
+            if sentence_end_match is not None
+            else len(answer)
+        )
+        sentence_clause = " ".join(answer[sentence_start:sentence_end].split())
+        if _relation_clause_is_safe_limitation(sentence_clause):
+            return True
+        if RELATION_EXPLANATION_TAIL.fullmatch(clause):
+            relation_prefix = answer[sentence_start:start]
+            if RELATION_EVIDENCE_PREFIX.search(
+                relation_prefix
+            ) or RELATION_DERIVATION_PREFIX.search(relation_prefix):
+                return True
+        return False
     return (
         NEGATED_STRUCTURAL_CLAIM.search(clause) is not None
         or UNSUPPORTED_ACTION_NEGATION.search(clause) is not None
@@ -925,8 +1405,7 @@ def parallel_pillar_field_claims(answer: str) -> list[tuple[str, str, str]]:
             claims.append((pillar, field, value))
 
         base_fields = {
-            re.sub(r"_(?:element|yin_yang)$", "", field)
-            for _, field in last_positions
+            re.sub(r"_(?:element|yin_yang)$", "", field) for _, field in last_positions
         }
         if len(base_fields) == 1 and base_fields <= {"stem", "branch"}:
             base_field = next(iter(base_fields))
@@ -1068,8 +1547,7 @@ def pillar_position_detail_claims(
         ("yin_yang", "음양", r"(?:음|양)"),
     ):
         detail_prefix = (
-            anchor
-            + rf"(?:(?!(?:천간|지지|\bstem\b|\bbranch\b))"
+            anchor + rf"(?:(?!(?:천간|지지|\bstem\b|\bbranch\b))"
             rf"[^\n.!?;；]){{0,40}}?"
             rf"(?P<detail_label>{korean_detail}(?:상)?|"
             rf"{position}[_ -]?{detail})"
@@ -1090,8 +1568,7 @@ def pillar_position_detail_claims(
             and not detail_claim_is_negated(match)
         )
         correction = re.compile(
-            detail_prefix
-            + rf"(?P<negated>{value_source})\s*(?:은|는|이|가)?\s*"
+            detail_prefix + rf"(?P<negated>{value_source})\s*(?:은|는|이|가)?\s*"
             rf"{CORRECTION_CONNECTOR}[^\n.!?。！？;；]{{0,24}}?"
             rf"(?P<corrected>{value_source})",
             re.IGNORECASE,
@@ -1112,33 +1589,28 @@ def pillar_position_detail_claims(
     )
 
     natural_pair = re.compile(
-        anchor
-        + r"\s*(?:은|는|이|가|도)?\s*"
+        anchor + r"\s*(?:은|는|이|가|도)?\s*"
         r"(?P<yin_yang>음|양)(?:의\s*)?(?P<element>[목화토금수])",
         re.IGNORECASE,
     )
     compact_patterns = (
         re.compile(
-            anchor
-            + r"\s*[\(\[]\s*(?P<element>[목화토금수])\s*[·,/\s]+\s*"
+            anchor + r"\s*[\(\[]\s*(?P<element>[목화토금수])\s*[·,/\s]+\s*"
             r"(?P<yin_yang>음|양)\s*[\)\]]",
             re.IGNORECASE,
         ),
         re.compile(
-            anchor
-            + r"\s*[\(\[]\s*(?P<yin_yang>음|양)\s*[·,/\s]+\s*"
+            anchor + r"\s*[\(\[]\s*(?P<yin_yang>음|양)\s*[·,/\s]+\s*"
             r"(?P<element>[목화토금수])\s*[\)\]]",
             re.IGNORECASE,
         ),
         re.compile(
-            anchor
-            + r"\s*[\(\[]\s*오행\s*(?P<element>[목화토금수])\s*[,，·/]\s*"
+            anchor + r"\s*[\(\[]\s*오행\s*(?P<element>[목화토금수])\s*[,，·/]\s*"
             r"음양\s*(?P<yin_yang>음|양)\s*[\)\]]",
             re.IGNORECASE,
         ),
         re.compile(
-            anchor
-            + r"\s*[\(\[]\s*음양\s*(?P<yin_yang>음|양)\s*[,，·/]\s*"
+            anchor + r"\s*[\(\[]\s*음양\s*(?P<yin_yang>음|양)\s*[,，·/]\s*"
             r"오행\s*(?P<element>[목화토금수])\s*[\)\]]",
             re.IGNORECASE,
         ),
@@ -1212,9 +1684,7 @@ def pillar_stem_role_claims(text: str) -> list[str]:
     claims = [
         match.group("value")
         for match in normal.finditer(text)
-        if not _explicit_claim_is_negated(
-            text, match.start("value"), match.end()
-        )
+        if not _explicit_claim_is_negated(text, match.start("value"), match.end())
     ]
     correction = re.compile(
         prefix
@@ -1528,8 +1998,7 @@ def _positioned_pillar_claim_errors(spec: Mapping[str, Any], answer: str) -> lis
                     continue
                 if match.group("value") != expected:
                     errors.append(
-                        f"natal_{pillar}_{error_label}_confusion:"
-                        f"{match.group('value')}"
+                        f"natal_{pillar}_{error_label}_confusion:{match.group('value')}"
                     )
             reverse_in_block = re.compile(
                 rf"(?P<value>{entity_source})\s*(?:은|는|이|가)\s*"
@@ -1740,9 +2209,7 @@ def _positioned_pillar_claim_errors(spec: Mapping[str, Any], answer: str) -> lis
             expected_entity = _path_value(
                 spec, f"chart.hard_facts.pillars.{pillar}.{position}"
             )
-            for entity, detail, value in pillar_position_detail_claims(
-                block, position
-            ):
+            for entity, detail, value in pillar_position_detail_claims(block, position):
                 expected_detail = _path_value(
                     spec,
                     f"chart.hard_facts.pillars.{pillar}.{position}_{detail}",
@@ -1766,7 +2233,10 @@ def _positioned_pillar_claim_errors(spec: Mapping[str, Any], answer: str) -> lis
                 expected_yin_yang = _path_value(
                     spec, f"chart.hard_facts.pillars.{pillar}.{position}_yin_yang"
                 )
-                if expected_entity is not None and match.group("entity") != expected_entity:
+                if (
+                    expected_entity is not None
+                    and match.group("entity") != expected_entity
+                ):
                     errors.append(
                         f"natal_{pillar}_{position}_confusion:{match.group('entity')}"
                     )
@@ -2423,9 +2893,7 @@ def structural_claim_errors(spec: Mapping[str, Any], answer: str) -> list[str]:
         expected = _path_value(spec, f"chart.hard_facts.pillars.{field}.ganzhi")
         if expected is not None and value != expected:
             errors.append(f"natal_{field}_label_confusion:{value}")
-    for label, value in _corrected_owner_claims(
-        answer, PILLAR_LABELS, GANYI.pattern
-    ):
+    for label, value in _corrected_owner_claims(answer, PILLAR_LABELS, GANYI.pattern):
         field = PILLAR_LABELS[label]
         expected = _path_value(spec, f"chart.hard_facts.pillars.{field}.ganzhi")
         if expected is not None and value != expected:
@@ -2436,9 +2904,7 @@ def structural_claim_errors(spec: Mapping[str, Any], answer: str) -> list[str]:
         expected = _path_value(spec, f"period.hard_facts.period.{field}")
         if expected is not None and value != expected:
             errors.append(f"period_{field}_label_confusion:{value}")
-    for label, value in _corrected_owner_claims(
-        answer, PERIOD_LABELS, GANYI.pattern
-    ):
+    for label, value in _corrected_owner_claims(answer, PERIOD_LABELS, GANYI.pattern):
         field = PERIOD_LABELS[label]
         expected = _path_value(spec, f"period.hard_facts.period.{field}")
         if expected is not None and value != expected:
@@ -2447,11 +2913,7 @@ def structural_claim_errors(spec: Mapping[str, Any], answer: str) -> list[str]:
     natal_pillars = {
         value
         for field in ("year", "month", "day", "hour")
-        if (
-            value := _path_value(
-                spec, f"chart.hard_facts.pillars.{field}.ganzhi"
-            )
-        )
+        if (value := _path_value(spec, f"chart.hard_facts.pillars.{field}.ganzhi"))
         is not None
     }
     singleton_chart_patterns = (
@@ -2495,9 +2957,13 @@ def structural_claim_errors(spec: Mapping[str, Any], answer: str) -> list[str]:
             errors.append(f"natal_single_pillar_called_full_chart:{value}")
     period_year = _path_value(spec, "period.hard_facts.period.year_ganzhi")
     period_day = _path_value(spec, "period.hard_facts.period.day_ganzhi")
-    if period_year and period_year != period_day and any(
-        PERIOD_LABELS[label] == "day_ganzhi" and value == period_year
-        for label, value, _, _ in period_claims
+    if (
+        period_year
+        and period_year != period_day
+        and any(
+            PERIOD_LABELS[label] == "day_ganzhi" and value == period_year
+            for label, value, _, _ in period_claims
+        )
     ):
         errors.append("period_year_called_day_ganzhi")
     target_date = _path_value(spec, "period.hard_facts.period.target_date")
@@ -2572,7 +3038,9 @@ def structural_claim_errors(spec: Mapping[str, Any], answer: str) -> list[str]:
     errors.extend(f"unprovided_ten_god:{value}" for value in sorted(missing_ten_gods))
     for label, pattern in UNSUPPORTED_STRUCTURAL_PATTERNS:
         for match in pattern.finditer(answer):
-            if not _unsupported_claim_is_negated(answer, match.start(), match.end()):
+            if not _unsupported_claim_is_negated(
+                answer, match.start(), match.end(), label
+            ):
                 errors.append(f"unsupported_structural_claim:{label}")
                 break
     return list(dict.fromkeys(errors))
@@ -2656,9 +3124,7 @@ def _pillar_field_claim_coverage(answer: str) -> set[tuple[str, str, str]]:
         coverage.update(
             (pillar, "stem_ten_god", match.group("value"))
             for match in reference_literal_stem_ten_god.finditer(block)
-            if not _explicit_claim_is_negated(
-                block, match.start("value"), match.end()
-            )
+            if not _explicit_claim_is_negated(block, match.start("value"), match.end())
             and re.match(
                 r"\s*(?:되지|하지|하면\s*안|해서는\s*안|되어서는\s*안|"
                 r"할\s*수\s*없)",
@@ -2667,8 +3133,7 @@ def _pillar_field_claim_coverage(answer: str) -> set[tuple[str, str, str]]:
             is None
         )
         coverage.update(
-            (pillar, "stem_ten_god", value)
-            for value in pillar_stem_role_claims(block)
+            (pillar, "stem_ten_god", value) for value in pillar_stem_role_claims(block)
         )
         for position, entity_source in (
             ("stem", STEM_ENTITY),
@@ -2686,9 +3151,7 @@ def _pillar_field_claim_coverage(answer: str) -> set[tuple[str, str, str]]:
             coverage.update(
                 (pillar, position, match.group("entity"))
                 for match in positioned.finditer(block)
-                if not _explicit_claim_is_negated(
-                    block, match.start(), match.end()
-                )
+                if not _explicit_claim_is_negated(block, match.start(), match.end())
             )
             natural_pair = re.compile(
                 rf"(?:{korean_position}|{position}){separators}"
@@ -2719,9 +3182,7 @@ def _pillar_field_claim_coverage(answer: str) -> set[tuple[str, str, str]]:
                         (pillar, f"{position}_yin_yang", match.group("yin_yang")),
                     }
                 )
-            for entity, detail, value in pillar_position_detail_claims(
-                block, position
-            ):
+            for entity, detail, value in pillar_position_detail_claims(block, position):
                 coverage.update(
                     {
                         (pillar, position, entity),
@@ -2821,9 +3282,7 @@ def _explicit_period_ganzhi_paths(spec: Mapping[str, Any], answer: str) -> set[s
         bridge = clause[label_matches[-1].end() : value_matches[0].start()]
         if re.search(r"(?:각각|순서(?:대로|로)?|순으로|[:：])", bridge) is None:
             continue
-        for label_match, value_match in zip(
-            label_matches, value_matches, strict=True
-        ):
+        for label_match, value_match in zip(label_matches, value_matches, strict=True):
             label = label_match.group(0)
             path = f"period.hard_facts.period.{PERIOD_LABELS[label]}"
             if value_match.group(0) == _path_value(spec, path):

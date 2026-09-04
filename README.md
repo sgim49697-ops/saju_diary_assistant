@@ -11,6 +11,7 @@ Kanana 2 1.3B 기반 한국어 사주·공감 대화 baseline 프로젝트다. `
 - [Phase 5 학습 계약](implementation/plans/saju_1b_10k_20k_baseline/phase-5-baseline-training.md)
 - [Phase 6 평가 계약](implementation/plans/saju_1b_10k_20k_baseline/phase-6-evaluation-v2-decision.md)
 - [MIX20K-v3 보정 계획](implementation/plans/mix20k_v3_repair_plan.md)
+- [K0 기반 MIX2K v4 교정·LoRA 계획](implementation/plans/mix2k_v4_chart_day_lora.md)
 - [만세력 Runtime 정본](implementation/plans/saju_runtime_calculator_adoption.md)
 - [chart-only 운영 준비 계약](docs/runtime/chart_only_operations.md)
 

@@ -1,0 +1,62 @@
+{
+  "schema_version": "1.0.0",
+  "candidate_dashboard_version": "v1.14.0",
+  "status": "INACTIVE_EXPERIMENT_CANDIDATE",
+  "parent": {
+    "path": "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.13.0.json",
+    "sha256": "a48221947122df11f04a0515e8be27b10d021a39973c4f1c568ec0a1856ebe54"
+  },
+  "feature_gate": {
+    "enabled_by_default": false,
+    "active_dashboard_config_changed": false,
+    "explicit_candidate_command_required": true
+  },
+  "generation": {
+    "do_sample": false,
+    "num_beams": 1,
+    "max_input_tokens": 4096,
+    "max_new_tokens": 4096,
+    "native_context_tokens_minimum": 8192,
+    "truncate_current_user_message": false
+  },
+  "prompt_profiles": {
+    "default_profile": "guided_runtime_v2",
+    "bound_profile": "bound_chart_v2",
+    "profiles": {
+      "guided_runtime_v2": {
+        "path": "configs/chat_prompts/saju_intake_runtime_v2.txt",
+        "bytes": 2509,
+        "sha256": "9553310c9ad1dbfa771043d0d5d283c091c4a5dcf64d274023ed71de73bbee87",
+        "model_projection_schema": "saju-intake-model-projection-v1.0.0"
+      },
+      "bound_chart_v2": {
+        "path": "configs/chat_prompts/saju_bound_chart_v2.txt",
+        "bytes": 2380,
+        "sha256": "55bdcec6bdf7fa6a91fb68b03cd4a296c705ab9bac0e77abb067190519cc8f90",
+        "model_projection_schema": "saju-chart-day-model-projection-v1.0.0"
+      }
+    }
+  },
+  "runtime_contract": {
+    "training_serving_prompt_parity_required": true,
+    "full_runtime_snapshot_preserved": true,
+    "compact_projection_used_for_bound_chart": false,
+    "intake_projection_is_app_owned": true,
+    "relation_training_scope_expanded": false,
+    "period_year_month_day_labels_required": true
+  },
+  "experiment": {
+    "data_config_path": "configs/data_versions/saju_1b_baseline/mix2k-v4-reviewed-repair-v1.1.0.json",
+    "data_config_sha256": "83cc6c36bc79e54614cdd015602bae1c2082c0bb4434343182fcf8a37ef167ae",
+    "primary_arm": "LORA_R16",
+    "comparators": ["K0", "KI20"],
+    "adapter_available": false
+  },
+  "governance": {
+    "diagnostic_only": true,
+    "production_promotion_allowed": false,
+    "active_v1_13_unchanged": true,
+    "aihub_content_allowed": false,
+    "personal_data_allowed": false
+  }
+}

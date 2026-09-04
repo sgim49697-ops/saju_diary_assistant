@@ -252,9 +252,7 @@ class Mix2KV4ContractTests(unittest.TestCase):
                 "da9014c5f24a6ffc239cd8bf1ec64d2ba50855caff6ec90438d5a41a4fefd980"
             ),
         }
-        policy, execution = _load_execution_policy(
-            CODEX_FALLBACK_POLICY_PATH, manifest
-        )
+        policy, execution = _load_execution_policy(CODEX_FALLBACK_POLICY_PATH, manifest)
         self.assertEqual(execution["mode"], CODEX_FALLBACK_EXECUTION_MODE)
         self.assertTrue(execution["lora_experimental_training_allowed"])
         self.assertFalse(execution["production_promotion_allowed"])
@@ -388,12 +386,8 @@ class Mix2KV4ContractTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory).resolve() / "training.jsonl"
             path.write_bytes(payload)
-            rows, observed_sha256 = load_lora_jsonl_snapshot(
-                path, "training snapshot"
-            )
-            self.assertEqual(
-                rows, [{"id": "row-1", "assistant": "checked"}]
-            )
+            rows, observed_sha256 = load_lora_jsonl_snapshot(path, "training snapshot")
+            self.assertEqual(rows, [{"id": "row-1", "assistant": "checked"}])
             self.assertEqual(observed_sha256, sha256_bytes(payload))
 
             oversized = Path(directory).resolve() / "oversized.jsonl"
@@ -543,9 +537,7 @@ class Mix2KV4ContractTests(unittest.TestCase):
         self.assertEqual(rejected["imported_current_drafts"], 0)
         self.assertEqual(rejected["rejected_current_drafts"], 1)
         self.assertEqual(rejected["rejection_counts"]["unrequested_period_fact"], 1)
-        self.assertEqual(
-            rejected_state["records"][spec["id"]]["status"], "needs_draft"
-        )
+        self.assertEqual(rejected_state["records"][spec["id"]]["status"], "needs_draft")
 
         recoverable_state = empty_state()
         recoverable_source = deepcopy(source_record)
@@ -563,9 +555,9 @@ class Mix2KV4ContractTests(unittest.TestCase):
         )
         self.assertEqual(recovered["imported_current_drafts"], 0)
         self.assertEqual(recovered["imported_recoverable_attempts"], 1)
-        recovered_attempt = recoverable_state["records"][spec["id"]][
-            "draft_attempts"
-        ][0]
+        recovered_attempt = recoverable_state["records"][spec["id"]]["draft_attempts"][
+            0
+        ]
         self.assertEqual(
             recovered_attempt["imported_source_kind"],
             "deterministic_recheck",
@@ -708,9 +700,7 @@ class Mix2KV4ContractTests(unittest.TestCase):
             execution=execution,
             preserve_cross_provider_acceptances=True,
         )
-        self.assertEqual(
-            superseded_report["cross_provider_passes_inherited"], 0
-        )
+        self.assertEqual(superseded_report["cross_provider_passes_inherited"], 0)
         self.assertEqual(
             superseded_report["cross_provider_pass_rejection_counts"],
             {"accepted_draft_not_current": 1},
@@ -728,9 +718,7 @@ class Mix2KV4ContractTests(unittest.TestCase):
         teacher_manifest = {
             "teacher_contract_mode": CODEX_FALLBACK_EXECUTION_MODE,
             "execution_policy_id": execution["policy_id"],
-            "selection_sha256": sha256_bytes(
-                canonical_json_bytes([spec["id"]])
-            ),
+            "selection_sha256": sha256_bytes(canonical_json_bytes([spec["id"]])),
             "teacher_roles": {"claude": 1},
             "review_roles": {"codex": 1},
             "assigned_teacher_roles": {"claude": 1},
@@ -744,9 +732,7 @@ class Mix2KV4ContractTests(unittest.TestCase):
             "particle_normalized_rows": 0,
             "duplicate_rewrite_rows": 0,
             "duplicate_rewrite_attempts": 0,
-            "maximum_duplicate_rewrite_rounds": (
-                MAXIMUM_DUPLICATE_REWRITE_ROUNDS
-            ),
+            "maximum_duplicate_rewrite_rounds": (MAXIMUM_DUPLICATE_REWRITE_ROUNDS),
         }
         config = {
             "diversity": {
@@ -775,18 +761,14 @@ class Mix2KV4ContractTests(unittest.TestCase):
             )
             forged_later_import = deepcopy(state)
             forged_later_record = forged_later_import["records"][spec["id"]]
-            duplicate_draft_import = deepcopy(
-                forged_later_record["draft_attempts"][0]
-            )
+            duplicate_draft_import = deepcopy(forged_later_record["draft_attempts"][0])
             duplicate_draft_import["attempt"] = 2
             forged_later_record["draft_attempts"].append(duplicate_draft_import)
             duplicate_review_import = deepcopy(
                 forged_later_record["review_attempts"][0]
             )
             duplicate_review_import["attempt"] = 2
-            forged_later_record["review_attempts"].append(
-                duplicate_review_import
-            )
+            forged_later_record["review_attempts"].append(duplicate_review_import)
             with self.assertRaisesRegex(
                 Mix2KV4FinalizeError, "seed 교차 PASS 이관 이력"
             ):
@@ -800,9 +782,9 @@ class Mix2KV4ContractTests(unittest.TestCase):
                 )
 
             imported_with_null_sequence = deepcopy(state)
-            imported_with_null_sequence["records"][spec["id"]][
-                "draft_attempts"
-            ][0]["provider_call_sequence"] = None
+            imported_with_null_sequence["records"][spec["id"]]["draft_attempts"][0][
+                "provider_call_sequence"
+            ] = None
             with self.assertRaisesRegex(
                 Mix2KV4FinalizeError, "seed 교차 PASS 이관 이력"
             ):
@@ -1085,9 +1067,7 @@ class Mix2KV4ContractTests(unittest.TestCase):
         teacher_manifest = {
             "teacher_contract_mode": CODEX_FALLBACK_EXECUTION_MODE,
             "execution_policy_id": execution["policy_id"],
-            "selection_sha256": sha256_bytes(
-                canonical_json_bytes([spec["id"]])
-            ),
+            "selection_sha256": sha256_bytes(canonical_json_bytes([spec["id"]])),
             "teacher_roles": {"codex": 1},
             "review_roles": {"codex": 1},
             "assigned_teacher_roles": {"claude": 1},
@@ -1101,9 +1081,7 @@ class Mix2KV4ContractTests(unittest.TestCase):
             "particle_normalized_rows": 0,
             "duplicate_rewrite_rows": 0,
             "duplicate_rewrite_attempts": 0,
-            "maximum_duplicate_rewrite_rounds": (
-                MAXIMUM_DUPLICATE_REWRITE_ROUNDS
-            ),
+            "maximum_duplicate_rewrite_rounds": (MAXIMUM_DUPLICATE_REWRITE_ROUNDS),
         }
         config = {
             "diversity": {
@@ -1150,9 +1128,7 @@ class Mix2KV4ContractTests(unittest.TestCase):
             },
         )
         unexpected_record["review_attempts"][-1]["attempt"] = 2
-        with self.assertRaisesRegex(
-            Mix2KV4FinalizeError, "seed 교차 PASS 이관 이력"
-        ):
+        with self.assertRaisesRegex(Mix2KV4FinalizeError, "seed 교차 PASS 이관 이력"):
             validate(unexpected_imported_review)
 
         review_before_draft = deepcopy(state)
@@ -1193,8 +1169,9 @@ class Mix2KV4ContractTests(unittest.TestCase):
         ):
             forged_manifest = deepcopy(teacher_manifest)
             forged_manifest[field] = forged_value
-            with self.subTest(field=field), self.assertRaisesRegex(
-                Mix2KV4FinalizeError, "provider 집계"
+            with (
+                self.subTest(field=field),
+                self.assertRaisesRegex(Mix2KV4FinalizeError, "provider 집계"),
             ):
                 validate(state, forged_manifest)
 
@@ -1268,9 +1245,7 @@ class Mix2KV4ContractTests(unittest.TestCase):
                 candidate_payload
             )
             (target / "pipeline_state.json").write_bytes(state_payload)
-            (target / "provenance/seed_pipeline_state.json").write_bytes(
-                seed_payload
-            )
+            (target / "provenance/seed_pipeline_state.json").write_bytes(seed_payload)
             manifest_path = target / "teacher_manifest.json"
             manifest_path.write_text(
                 json.dumps(manifest, ensure_ascii=False), encoding="utf-8"
@@ -1610,8 +1585,7 @@ class Mix2KV4ContractTests(unittest.TestCase):
                 "natal_year_stem_confusion:甲"
             ),
             (
-                "연주의 천간에 배정된 십신은 겁재이고 "
-                "지지에 배정된 십신은 편인입니다."
+                "연주의 천간에 배정된 십신은 겁재이고 지지에 배정된 십신은 편인입니다."
             ): "natal_year_stem_ten_god_confusion:겁재",
             "연주의 지장간 목록은 甲·乙·癸입니다.": (
                 "natal_year_hidden_stem_confusion:甲"
@@ -1639,19 +1613,11 @@ class Mix2KV4ContractTests(unittest.TestCase):
             ),
             "연주 기둥은 甲子입니다.": "natal_year_label_confusion:甲子",
             "연주라는 기둥은 甲子입니다.": "natal_year_label_confusion:甲子",
-            "연주의 간지 두 글자는 甲子입니다.": (
-                "natal_year_label_confusion:甲子"
-            ),
+            "연주의 간지 두 글자는 甲子입니다.": ("natal_year_label_confusion:甲子"),
             "甲子 기둥이 연주입니다.": "natal_year_label_confusion:甲子",
-            "연간지 항목은 己卯입니다.": (
-                "period_year_ganzhi_label_confusion:己卯"
-            ),
-            "연간지라는 값은 己卯입니다.": (
-                "period_year_ganzhi_label_confusion:己卯"
-            ),
-            "己卯 값이 연간지입니다.": (
-                "period_year_ganzhi_label_confusion:己卯"
-            ),
+            "연간지 항목은 己卯입니다.": ("period_year_ganzhi_label_confusion:己卯"),
+            "연간지라는 값은 己卯입니다.": ("period_year_ganzhi_label_confusion:己卯"),
+            "己卯 값이 연간지입니다.": ("period_year_ganzhi_label_confusion:己卯"),
             "2026-09-02의 하루 간지는 丙午입니다.": (
                 "period_day_ganzhi_label_confusion:丙午"
             ),
@@ -1661,9 +1627,7 @@ class Mix2KV4ContractTests(unittest.TestCase):
             "연주 천간 戊는 오행으로 보면 목입니다.": (
                 "natal_year_stem_element_confusion:목"
             ),
-            "연주 천간 戊는 오행상 목입니다.": (
-                "natal_year_stem_element_confusion:목"
-            ),
+            "연주 천간 戊는 오행상 목입니다.": ("natal_year_stem_element_confusion:목"),
             "일주의 지장간 구성은 戊, 癸, 辛입니다.": (
                 "natal_day_hidden_stem_confusion:戊"
             ),
@@ -1673,34 +1637,24 @@ class Mix2KV4ContractTests(unittest.TestCase):
             "연주의 천간 역할은 겁재입니다.": (
                 "natal_year_stem_ten_god_confusion:겁재"
             ),
-            "연주의 천간 戊은 목 기운입니다.": (
-                "natal_year_stem_element_confusion:목"
-            ),
-            "연주의 천간 戊은 목 오행입니다.": (
-                "natal_year_stem_element_confusion:목"
-            ),
+            "연주의 천간 戊은 목 기운입니다.": ("natal_year_stem_element_confusion:목"),
+            "연주의 천간 戊은 목 오행입니다.": ("natal_year_stem_element_confusion:목"),
             "연주의 지지 辰은 수 기운입니다.": (
                 "natal_year_branch_element_confusion:수"
             ),
-            "乙은 화 오행의 음 기운인 일간입니다.": (
-                "day_master_element_confusion:화"
-            ),
+            "乙은 화 오행의 음 기운인 일간입니다.": ("day_master_element_confusion:화"),
             "연주 천간의 십신 자리에 겁재가 놓입니다.": (
                 "natal_year_stem_ten_god_confusion:겁재"
             ),
             "연주에서 천간 쪽 역할은 겁재입니다.": (
                 "natal_year_stem_ten_god_confusion:겁재"
             ),
-            "戊辰은 연주가 아니라 월주입니다.": (
-                "natal_month_label_confusion:戊辰"
-            ),
+            "戊辰은 연주가 아니라 월주입니다.": ("natal_month_label_confusion:戊辰"),
             "己卯는 일진이 아니라 연간지입니다.": (
                 "period_year_ganzhi_label_confusion:己卯"
             ),
             "원국은 戊辰입니다.": "natal_single_pillar_called_full_chart:戊辰",
-            "원국에는 戊辰만 있습니다.": (
-                "natal_single_pillar_called_full_chart:戊辰"
-            ),
+            "원국에는 戊辰만 있습니다.": ("natal_single_pillar_called_full_chart:戊辰"),
             "원국을 이루는 간지는 戊辰뿐입니다.": (
                 "natal_single_pillar_called_full_chart:戊辰"
             ),
@@ -1978,8 +1932,7 @@ class Mix2KV4ContractTests(unittest.TestCase):
                 self.assertTrue(expected <= _pillar_field_claim_coverage(answer))
 
         wrong_labeled_compact = (
-            "연주는 천간 戊(오행 토, 음양 음)과 "
-            "지지 辰(오행 토, 음양 양)입니다."
+            "연주는 천간 戊(오행 토, 음양 음)과 지지 辰(오행 토, 음양 양)입니다."
         )
         self.assertIn(
             "natal_year_stem_yin_yang_confusion:음",
@@ -2003,9 +1956,7 @@ class Mix2KV4ContractTests(unittest.TestCase):
         corrected_element_wrong_yin_yang = (
             "연주는 천간 戊로 오행은 금이 아니라 토, 음양은 음입니다."
         )
-        mixed_coverage = _pillar_field_claim_coverage(
-            corrected_element_wrong_yin_yang
-        )
+        mixed_coverage = _pillar_field_claim_coverage(corrected_element_wrong_yin_yang)
         self.assertIn(("year", "stem_element", "토"), mixed_coverage)
         self.assertIn(("year", "stem_yin_yang", "음"), mixed_coverage)
         self.assertIn(
@@ -2266,6 +2217,271 @@ class Mix2KV4ContractTests(unittest.TestCase):
                     structural_claim_errors(_spec(), answer),
                 )
 
+    def test_strength_terms_allow_only_evidence_bound_explanation(self) -> None:
+        allowed = (
+            "surface five elements의 개수만으로는 제공되지 않은 신강약을 새로 판정할 수 없습니다.",
+            "그 원국 자체만으로 제가 두 판단을 새로 만들지는 않으며, 정해진 계산 정책에 따라 산출된 신강약과 용신 결과가 함께 들어와야 그 의미를 설명할 수 있습니다.",
+            "다만 이 출생 정보나 원국 네 기둥만으로 제가 신강약과 용신을 새로 판단하지는 않으며, 검증된 신강약·용신 판단 결과가 별도로 제공되어야 설명할 수 있습니다.",
+            "다만 출생정보나 년주·월주·일주·시주만 추가된다고 제가 신강약과 용신을 산출하는 것은 아니며, 정해진 계산 정책으로 검증된 판단 결과가 별도로 제공되어야 설명할 수 있습니다.",
+            "오행 개수만으로는 제공되지 않은 신강약을 새로 판정할 수 없습니다.",
+            "용신과 신강약은 현재 자료에서 확인된 판단값이 아니므로 지금 결정해 드릴 수 없습니다.",
+            "지금 정보만으로는 용신과 신강약을 정할 수 없습니다.",
+            "지금 주어진 내용에는 검증된 신강약·용신 판단 결과가 없어서 두 항목을 정할 수 없습니다.",
+            "표면 오행 개수만으로는 신강약을 바로 정할 수 없으며, 별도로 검증되어 입력된 결과만 설명할 수 있습니다.",
+            "표면에 드러난 오행의 개수만으로 제공되지 않은 신강약을 새로 판정해서는 안 됩니다.",
+            "표면에 드러난 오행의 수만으로 신강약을 바로 정할 수 없습니다.",
+            "현재 검증된 명식 계산 도구가 연결되어 있지 않으므로, 검증된 계산기가 산출한 원국과 신강약·용신 판단 결과가 먼저 필요합니다.",
+            "현재 검증된 신강약·용신 판단 결과가 없어 지금 정보만으로 둘을 정할 수 없습니다.",
+            "현재 승인된 명식 계산 도구가 연결되어 있지 않으며, 원국 자료만 보고 자체 산출하지 않고 검증된 신강약·용신 결과가 먼저 필요합니다.",
+            "현재 승인된 명식 계산 도구가 연결되어 있지 않으며, 원국 자료만으로 자체 산출하지 않고 검증된 신강약·용신 결과가 먼저 필요합니다.",
+            "현재 정보만으로는 신강약과 용신을 확정할 수 없습니다.",
+            "현재 정보만으로는 용신과 신강약을 정할 수 없습니다.",
+            "현재는 검증된 구조화 명식과 신강약·용신 판단 결과가 없어 둘을 정할 수 없습니다.",
+            "현재는 검증된 신강약·용신 판단 결과가 없어 두 항목을 정할 수 없습니다.",
+            "현재는 신강약과 용신을 정할 수 없습니다.",
+            "용신은 별도로 확정된 판정 결과가 제공된 경우에만 안내할 수 있습니다.",
+            "용신은 별도의 검증된 판정 결과가 제공될 때 그 내용을 설명할 수 있습니다.",
+            "용신은 별도의 확정된 판정 결과가 제공될 때 그 범위 안에서 설명합니다.",
+            "용신은 별도의 확정된 판정 결과가 제공된 범위에서 안내합니다.",
+            "용신은 별도의 확정된 판정 결과가 있을 때 해당 결과만 다룰 수 있습니다.",
+            "용신은 별도의 확정 결과가 나온 뒤 그 범위에서 안내합니다.",
+            "용신은 별도의 확정 결과가 제공된 뒤 그 범위에서 설명합니다.",
+            "신강약과 용신에 관한 정해진 계산 결과가 제공된 경우에만 그 범위를 설명할 수 있습니다.",
+            "신강약과 용신은 별도로 제공되는 검증된 판정 결과가 있을 때 설명할 수 있습니다.",
+            "신강약과 용신은 별도의 확정된 판정 결과가 제공될 때만 설명할 수 있습니다.",
+            "신강약을 단정할 수 있는 것은 아니며",
+            "용신을 정할 수 있는 계산 결과가 없습니다.",
+            "용신에 관한 확정 계산 결과를 제공하는 경우에만 그 내용을 설명할 수 있습니다.",
+            "용신에 대한 확정된 계산 결과도 없어 지금 정할 수 없습니다.",
+            "용신은 별도로 제공된 판정 결과가 있을 때 그 범위 안에서 설명해 드릴게요.",
+            "용신을 확정할 수 있는 판정 결과가 없어 값을 만들 수 없습니다.",
+            "용신을 정할 수 있는 확정된 판정 결과가 없어 단정할 수 없습니다.",
+            "용신을 확정할 판정 결과가 없으므로 지금 정할 수 없습니다.",
+            "용신에 관한 확정된 판정 결과가 없어 지금 정할 수 없습니다.",
+            "용신을 정할 수 있는 계산 결과가 확인되지 않아 단정할 수 없습니다.",
+            "실제로 신강입니다라는 결론을 내리면 안 됩니다.",
+            "판정값은 신약이다 또는 신강이다 중 무엇인지 알 수 없습니다.",
+            "용신이 목인지 화인지 지금은 알 수 없습니다.",
+            "용신은 별도의 확정된 판정 결과가 제공된 범위에서 안내합니다. 실제 결과는 목입니다 또는 화입니다 중 어느 쪽인지 알 수 없습니다.",
+            "용신은 별도의 확정된 판정 결과가 제공된 범위에서 안내합니다. 목인지 화인지 지금은 알 수 없습니다.",
+            "용신은 별도의 확정된 판정 결과가 제공된 범위에서 안내합니다. 목입니다라고 단정하면 안 됩니다.",
+            "용신은 출생정보나 원국 간지를 더 받았다는 이유만으로 임의 판정할 수 없으며",
+            "용신을 정할 수 있는 판정 결과가 없으므로 임의로 확정하지 않겠습니다",
+            "용신은 출생정보나 간지만 더 받았다고 바로 판단하지 않고",
+            "용신은 생년월일이나 간지를 임의로 해석해 확정하지 않고",
+            "용신에 관한 확정 계산 결과가 제공되어야 설명할 수 있습니다",
+            "용신에 관해 확정된 판정이 없어 값을 만들어 답할 수 없습니다",
+            "용신은 별도의 확정 계산 결과가 제공되어야 그 내용과 범위를 설명할 수 있습니다",
+            "용신을 지금 정할 수 없습니다",
+            "신강약에 관한 확정 계산 결과가 제공되어야 그 범위에서 설명할 수 있습니다",
+            "용신을 확정한 계산 결과도 없어 지금 정할 수 없습니다",
+            "용신은 별도로 확정된 계산 결과가 제공되는 경우에만 설명할 수 있습니다",
+            "용신은 별도의 검증된 판정 결과가 제공된 범위에서만 설명할 수 있습니다",
+            "용신은 현재 자료와 계산 상태를 확인했지만 판단 근거가 없어 임의로 결론 내리지 않겠습니다",
+            "격국은 검증된 결과를 받기 전에는 계산해서는 안 됩니다",
+            "신강약은 앱에서 판정 결과가 확인될 때만 설명합니다",
+            "그다음 앱에서 별도의 검증된 판정 결과가 나오면, 제공된 범위 안에서 신강약과 용신을 설명할 수 있습니다",
+            "용신은 현재 대화만으로 만들어 내지 않고",
+            "용신을 임의로 판단할 수 있는 것은 아니며",
+            "용신을 임의로 정하는 것은 아니며",
+            "용신을 임의 판정하지는 않으며",
+            "용신에 대한 확정된 판정도 제공되지 않았습니다",
+            "용신에 관한 확정 계산 결과를 제공하면",
+            "용신은 별도로 제공되는 검증된 판정 결과가 있어야 설명할 수 있습니다",
+            "용신을 정할 수는 없습니다",
+            (
+                "현재 정보만으로는 신강약과 용신을 정할 수 없습니다.\n"
+                "신강약과 용신은 출생정보나 원국 간지를 더 받았다는 이유만으로 임의 "
+                "판정할 수 없으며, 앱에서 해당 항목의 확정 계산 결과가 제공되어야 "
+                "설명할 수 있습니다.\n"
+                "우선 양력·음력 구분, 생년월일, 출생 도시·국가, 출생시각 또는 시간 "
+                "미상 여부를 알려 주시면 앱이 원국 계산을 요청할 수 있는 단계로 진행합니다."
+            ),
+            (
+                "현재는 신강약과 용신을 정할 수 있는 판정 결과가 없으므로 임의로 "
+                "확정하지 않겠습니다.\n"
+                "다음 단계로 양력·음력 구분, 생년월일, 출생 도시·국가, 출생시각 또는 "
+                "시간 미상 여부를 확인하면 앱이 원국 계산을 요청할 수 있습니다.\n"
+                "신강약과 용신은 출생정보나 간지만 더 받았다고 바로 판단하지 않고, "
+                "별도의 확정 계산 결과가 제공된 경우에만 설명할 수 있습니다."
+            ),
+            (
+                "현재는 개인 원국이 마련되어 있지 않아 지금 정보만으로 신강약과 "
+                "용신을 정할 수 없습니다.\n"
+                "신강약과 용신은 생년월일이나 간지를 임의로 해석해 확정하지 않고, "
+                "검증된 판정 결과가 제공된 경우에만 설명할 수 있습니다.\n"
+                "앱은 먼저 양력·음력 구분, 생년월일, 출생 도시·국가, 출생시각 또는 "
+                "시간 미상을 확인한 뒤 원국 계산을 요청하게 됩니다.\n"
+                "음력이라면 그다음에 윤달 여부도 확인합니다."
+            ),
+            (
+                "지금 정보만으로는 신강약과 용신을 확정할 수 없습니다.\n"
+                "이 두 항목은 출생정보나 원국 간지를 추가로 받는 것만으로 판단하지 "
+                "않으며, 앱에서 신강약과 용신에 관한 확정 계산 결과가 제공되어야 "
+                "설명할 수 있습니다.\n"
+                "우선 양력·음력 구분, 생년월일, 출생 도시·국가, 출생시각 또는 시간 "
+                "미상 여부를 알려 주시면 앱이 원국 계산을 요청할 수 있는 단계로 진행합니다."
+            ),
+            (
+                "지금은 신강약과 용신에 관해 확정된 판정이 없어 값을 만들어 답할 수 "
+                "없습니다.\n"
+                "먼저 양력·음력 구분, 생년월일, 출생 도시·국가, 출생시각 또는 시간 "
+                "미상 여부를 알려 주시면 앱이 원국 계산을 요청할 수 있습니다.\n"
+                "그 뒤에도 신강약과 용신은 별도의 확정 계산 결과가 제공되어야 그 "
+                "내용과 범위를 설명할 수 있습니다."
+            ),
+            (
+                "현재는 개인 원국이 마련되어 있지 않으므로 신강약과 용신을 지금 정할 "
+                "수 없습니다.\n"
+                "두 항목은 단순 추정으로 채우지 않으며, 검증된 판정 결과가 제공된 "
+                "경우에만 그 내용을 설명할 수 있습니다.\n"
+                "앱은 우선 양력·음력 구분, 생년월일, 출생 도시·국가, 출생시각 또는 "
+                "시간 미상을 확인하고 원국 계산을 요청하게 됩니다.\n"
+                "음력으로 답한 경우에는 윤달 여부도 이어서 확인합니다."
+            ),
+        )
+        for answer in allowed:
+            with self.subTest(answer=answer):
+                self.assertNotIn(
+                    "unsupported_structural_claim:strength_pattern_yongshin",
+                    structural_claim_errors(_spec(), answer),
+                )
+
+        blocked = (
+            "용신은 목으로 확정된 판정 결과가 제공된 경우에만 안내할 수 있습니다.",
+            "용신은 확정된 판정 결과가 제공된 경우 목입니다.",
+            "용신은 별도로 확정된 판정 결과가 제공됩니다.",
+            "용신은 목이며 이를 판단할 수 있는 결과가 없습니다.",
+            "용신은 별도로 확정된 판정 결과가 제공된 경우에만 안내하며 실제 값은 목입니다.",
+            "신강약은 별도의 검증된 판정 결과가 제공될 때 설명할 수 있지만 강한 편입니다.",
+            "용신을 정할 수 있는 판정 결과가 없어 값을 만들 수 없지만 실제 값은 화입니다.",
+            "용신은 목이지만 지금 정보만으로 정할 수 없습니다.",
+            "용신은 화이며 검증 결과가 먼저 필요합니다.",
+            "용신은 별도의 확정된 판정 결과가 제공된 범위에서 안내합니다, 실제 값은 목입니다.",
+            "용신은 별도의 확정된 판정 결과가 제공된 범위에서 안내합니다. 실제 값은 목입니다.",
+            "신강약은 지금 정보만으로 정할 수 없습니다, 실제로는 강한 편입니다.",
+            "신강약은 지금 정보만으로 정할 수 없습니다. 결론은 신약입니다.",
+            "용신은 별도의 확정된 판정 결과가 제공된 범위에서 안내합니다. 참고로 실제 값은 목입니다.",
+            "용신은 별도의 확정된 판정 결과가 제공된 범위에서 안내합니다. 그래서 실제 값은 목입니다.",
+            "용신은 별도의 확정된 판정 결과가 제공된 범위에서 안내합니다. 다만, 실제 값은 목입니다.",
+            "용신은 별도의 확정된 판정 결과가 제공된 범위에서 안내합니다.\n- 실제 값은 목입니다.",
+            "용신은 별도의 확정된 판정 결과가 제공된 범위에서 안내합니다. 정답은 목입니다.",
+            "용신은 별도의 확정된 판정 결과가 제공된 범위에서 안내합니다. 실제 결과는 목입니다.",
+            "용신은 별도의 확정된 판정 결과가 제공된 범위에서 안내합니다. "
+            + ("확인된 범위만 설명합니다. " * 20)
+            + "실제 값은 목입니다.",
+            "용신은 별도의 확정된 판정 결과가 제공된 범위에서 안내합니다. 실제 값은 목 기운입니다.",
+            "용신은 별도의 확정된 판정 결과가 제공된 범위에서 안내합니다. 실제 값은 갑목입니다.",
+            "용신은 별도의 확정된 판정 결과가 제공된 범위에서 안내합니다. 그 값은 나무 기운입니다.",
+            "용신은 별도의 확정된 판정 결과가 제공된 범위에서 안내합니다. 정답은 목으로 봅니다.",
+            "용신은 별도의 확정된 판정 결과가 제공된 범위에서 안내합니다. 실제 결과는 목 쪽입니다.",
+            "용신은 별도의 확정된 판정 결과가 제공된 범위에서 안내합니다. 판정값은 비교적 강한 편입니다.",
+            "용신은 별도의 확정된 판정 결과가 제공된 범위에서 안내합니다. 목입니다.",
+            "용신은 별도의 확정된 판정 결과가 제공된 범위에서 안내합니다. 화로 봅니다.",
+            "신강약은 지금 정보만으로 정할 수 없습니다. 강한 편입니다.",
+            "용신은 출생정보나 간지만 더 받았다고 바로 판단하지 않고, 강한 편입니다.",
+            "용신은 생년월일이나 간지를 임의로 해석해 확정하지 않고 화로 봅니다.",
+            "용신에 관한 확정 계산 결과가 제공되어야 설명할 수 있지만 실제 값은 목입니다.",
+            "용신에 관해 확정된 판정이 없어 값을 만들어 답할 수 없습니다. 정답은 화입니다.",
+            "용신을 정할 수 있는 판정 결과가 없으므로 임의로 확정하지 않겠지만 실제로는 목입니다.",
+            "용신은 목이며 출생정보나 원국 간지만 더 받았다고 판단하지 않습니다.",
+            "용신은 木으로 보지만 정확한 결과가 없어 확정할 수 없습니다.",
+            "용신을 갑목으로 보되 계산 결과가 없어 확정하지 않겠습니다.",
+            "신강약은 강한 편이지만 검증 결과가 없어 단정할 수 없습니다.",
+            "격국은 정관격이지만 확정 결과가 없어 단정할 수 없습니다.",
+            "신강입니다만 판정 결과가 없어 확정할 수 없습니다.",
+        )
+        for answer in blocked:
+            with self.subTest(answer=answer):
+                self.assertIn(
+                    "unsupported_structural_claim:strength_pattern_yongshin",
+                    structural_claim_errors(_spec(), answer),
+                )
+
+        valid = {
+            "record_id": _spec()["id"],
+            "answer": (
+                "원국 전체는 戊辰·甲子·乙丑·壬午이고 乙丑은 일주입니다.\n"
+                "2026-09-02의 연간지는 丙午, 월간지는 丙申, 일진은 己卯입니다.\n"
+                "용신은 별도로 확정된 판정 결과가 제공된 경우에만 안내하며 실제 값은 목입니다."
+            ),
+            "used_fact_paths": [],
+            "used_fact_values": [
+                "戊辰",
+                "甲子",
+                "乙丑",
+                "壬午",
+                "2026-09-02",
+                "丙午",
+                "丙申",
+                "己卯",
+            ],
+            "soft_interpretation_used": False,
+            "limitations": ["원국×기간 relation이 제공되지 않음"],
+            "self_check": "PASS",
+        }
+        with self.assertRaisesRegex(
+            Mix2KV4ContractError, "unsupported_structural_claim"
+        ):
+            validate_draft(_spec(), valid)
+
+    def test_relation_limitations_allow_only_evidence_bound_explanation(self) -> None:
+        allowed = (
+            "현재 원국이 없어 오늘과의 합·충 관계를 계산하거나 단정할 수 없습니다.",
+            "현재는 출생 원국과 오늘의 관계를 판단할 수 있는 입력과 계산 결과가 없어 합충을 단정할 수 없습니다.",
+            "그 결과가 나온 뒤 확인된 합충만 설명할 수 있습니다.",
+            "결과가 제공된 뒤 합충만 안내할 수 있습니다.",
+            "관계 계산 결과가 실제로 반환되어야 합·충을 설명할 수 있습니다.",
+            "실제로 연결된 계산 결과가 나온 뒤 합·충을 설명하게 됩니다.",
+            "오늘의 날짜 결과와 연결해 산출된 합·충만 안내하게 됩니다.",
+            "지금은 합이나 충을 계산해 단정할 수 없습니다.",
+            "반환된 합·충 관계가 있을 때 그 내용만 정확히 설명할 수 있습니다.",
+            "그 결과에 포함된 합·충만 안내하게 됩니다.",
+            "실제로 확인된 합·충만 설명하겠습니다.",
+            "두 결과 사이의 합·충이 명시적으로 제공된 범위에서 설명할 수 있습니다.",
+            "합·충은 두 결과를 연결해 산출된 판정이 제공된 뒤 설명할 수 있습니다.",
+            "합·충 관계는 성립하지 않습니다.",
+            "합충은 작용하지 않습니다.",
+            "합·충은 존재하지 않습니다.",
+            "子午충이라고 단정할 수 없습니다.",
+            "제공된 결과에 합·충이 있을 때 그 내용만 설명합니다.",
+        )
+        for answer in allowed:
+            with self.subTest(answer=answer):
+                self.assertNotIn(
+                    "unsupported_structural_claim:relation",
+                    structural_claim_errors(_spec(), answer),
+                )
+
+        blocked = (
+            "합·충 관계가 성립합니다.",
+            "결과가 나오면 합충이 성립합니다.",
+            "합이나 충이 성립합니다.",
+            "결과가 나온 뒤 확인된 합충만 설명할 수 있지만 子午충이 성립합니다.",
+            "확인된 합·충이 실제로 성립합니다.",
+            "반환된 子午충을 설명하겠습니다.",
+            "결과가 없어서 단정할 수 없지만 둘은 충을 이룹니다.",
+            "합·충은 설명할 수 없고 실제로 성립합니다.",
+            "합·충은 확인되지 않았으나 실제 관계입니다.",
+            "합·충은 계산되지 않았습니다, 하지만 성립합니다.",
+            "판정값: 子午충.",
+            "확인된 합충은 틀림없는 사실이고 설명할 수 있습니다.",
+            "확인된 합충은 실제 관계이며 설명할 수 있습니다.",
+            "산출된 합충은 맞고 설명하겠습니다.",
+            "합충은 제공된 결과이고 설명할 수 있습니다.",
+            "확인된 합충만 설명할 수 있지만 실제로 작용합니다.",
+            "합충은 판정이 제공된 뒤 설명할 수 있지만 사실입니다.",
+            "합충은 실제로 성립하지만 계산되지 않았습니다.",
+            "합·충 관계가 성립하지만 결과는 제공되지 않았습니다.",
+            "子午충입니다만 근거는 확인되지 않았습니다.",
+        )
+        for answer in blocked:
+            with self.subTest(answer=answer):
+                self.assertIn(
+                    "unsupported_structural_claim:relation",
+                    structural_claim_errors(_spec(), answer),
+                )
+
     def test_earlier_hedge_does_not_mask_later_wrong_label(self) -> None:
         for answer in (
             "근거가 없으므로 오늘 일진은 丙午입니다.",
@@ -2482,8 +2698,7 @@ class Mix2KV4ContractTests(unittest.TestCase):
             "선택 날짜의 연간지, 월간지, 일진을 서로 바꾸지 말고 알려줘."
         )
         period_only = (
-            "선택 날짜의 연간지는 丙午입니다. "
-            "월간지는 丙申이고 일진은 己卯입니다."
+            "선택 날짜의 연간지는 丙午입니다. 월간지는 丙申이고 일진은 己卯입니다."
         )
         self.assertIn(
             "explicit_natal_fact_omitted",
@@ -2514,8 +2729,7 @@ class Mix2KV4ContractTests(unittest.TestCase):
                     [],
                 )
         wrong_parallel = (
-            "연간지·월간지·일진은 각각 丙午·己卯·丙申입니다. "
-            "원국 일주는 乙丑입니다."
+            "연간지·월간지·일진은 각각 丙午·己卯·丙申입니다. 원국 일주는 乙丑입니다."
         )
         self.assertEqual(
             sum(
@@ -2632,16 +2846,12 @@ class Mix2KV4ContractTests(unittest.TestCase):
             "limitations": [],
             "self_check": "PASS",
         }
-        with self.assertRaisesRegex(
-            Mix2KV4ContractError, "명시 근거가 빠졌습니다"
-        ):
+        with self.assertRaisesRegex(Mix2KV4ContractError, "명시 근거가 빠졌습니다"):
             validate_draft(spec, draft)
         draft["used_fact_paths"].append(natal_path)
         self.assertEqual(validate_draft(spec, draft), draft)
         draft["used_fact_paths"] = [natal_path]
-        with self.assertRaisesRegex(
-            Mix2KV4ContractError, "명시 근거가 빠졌습니다"
-        ):
+        with self.assertRaisesRegex(Mix2KV4ContractError, "명시 근거가 빠졌습니다"):
             validate_draft(spec, draft)
 
     def test_general_replay_blocks_saju_injection_without_word_false_positives(
@@ -2743,9 +2953,7 @@ class Mix2KV4ContractTests(unittest.TestCase):
         for negated in (
             positioned_literal.replace("표기되어", "표기되지 않고"),
             positioned_literal.replace("표기되어", "표기하면 안 되고"),
-            positioned_literal.replace(
-                "표기되어 있고", "표기되는 것은 아닙니다. 또한"
-            ),
+            positioned_literal.replace("표기되어 있고", "표기되는 것은 아닙니다. 또한"),
             positioned_literal.replace(
                 "표기되어 있고", "표기된다는 뜻은 아닙니다. 또한"
             ),
@@ -2822,9 +3030,7 @@ class Mix2KV4ContractTests(unittest.TestCase):
         )
         self.assertEqual(required_fact_errors(spec, day_master_only), [])
 
-        spec["prompt"][-1]["content"] = (
-            "일간을 중심으로 원국의 표면 구성을 설명해줘."
-        )
+        spec["prompt"][-1]["content"] = "일간을 중심으로 원국의 표면 구성을 설명해줘."
         self.assertTrue(
             any(
                 error.startswith("required_chart_fact_omitted:")
@@ -2832,8 +3038,7 @@ class Mix2KV4ContractTests(unittest.TestCase):
             )
         )
         with_surface = (
-            day_master_only
-            + "\n표면 오행은 목 2, 화 1, 토 3, 금 0, 수 2입니다."
+            day_master_only + "\n표면 오행은 목 2, 화 1, 토 3, 금 0, 수 2입니다."
         )
         self.assertEqual(required_fact_errors(spec, with_surface), [])
 
@@ -2908,13 +3113,15 @@ class Mix2KV4ContractTests(unittest.TestCase):
         self.assertEqual(unchanged["answer"], too_short["answer"])
 
         already_multiline = deepcopy(one_line)
-        already_multiline["answer"] = "첫 문장입니다.\n둘째 문장입니다.\n셋째 문장입니다."
+        already_multiline["answer"] = (
+            "첫 문장입니다.\n둘째 문장입니다.\n셋째 문장입니다."
+        )
         unchanged, changed = _normalize_draft_answer_layout(spec, already_multiline)
         self.assertFalse(changed)
         self.assertEqual(unchanged["answer"], already_multiline["answer"])
 
         for protected in (
-            '`foo. bar. baz.`를 코드로 표시합니다.',
+            "`foo. bar. baz.`를 코드로 표시합니다.",
             "[참고. 예시. 항목.](https://example.com) 한 문장으로 안내합니다.",
             "- 첫 문장입니다. 둘째 문장입니다. 셋째 문장입니다.",
             "> 첫 문장입니다. 둘째 문장입니다. 셋째 문장입니다.",
@@ -2948,11 +3155,33 @@ class Mix2KV4ContractTests(unittest.TestCase):
                 "壬戌로 향하고 辛亥이더라도 그대로 둡니다."
             ),
         )
-        self.assertEqual(draft["answer"], (
-            "辛丑는 乙丑로 이어지고 癸丑와 구분합니다. "
-            "丁未은 乙未을 뜻하며 丁未이라는 표현을 씁니다. "
-            "壬戌으로 향하고 辛亥이더라도 그대로 둡니다."
-        ))
+        self.assertEqual(
+            draft["answer"],
+            (
+                "辛丑는 乙丑로 이어지고 癸丑와 구분합니다. "
+                "丁未은 乙未을 뜻하며 丁未이라는 표현을 씁니다. "
+                "壬戌으로 향하고 辛亥이더라도 그대로 둡니다."
+            ),
+        )
+
+    def test_teacher_particle_normalizer_handles_dates_and_request_spacing(
+        self,
+    ) -> None:
+        draft = {
+            "answer": (
+                "1988-07-14과 1988-07-20로 바뀌었습니다. "
+                "1988-07-01으로 되돌릴지 알려주세요."
+            )
+        }
+
+        normalized, changed = _normalize_draft_answer_particles(draft)
+
+        self.assertTrue(changed)
+        self.assertEqual(
+            normalized["answer"],
+            "1988-07-14와 1988-07-20으로 바뀌었습니다. "
+            "1988-07-01로 되돌릴지 알려 주세요.",
+        )
 
     def test_teacher_prompt_has_four_explicit_evidence_sections(self) -> None:
         spec = _spec()
