@@ -12,6 +12,7 @@ from scripts.training.mix2k_v4_lora import (
     REQUIRED_RESUME_CHECKPOINT_FILES,
     Mix2KV4LoRAError,
     _longest_rows,
+    _remove_fresh_trainer_metadata,
     _runtime_hash_matches_axis,
     _training_row_matches_spec,
     _valid_token_audit_row,
@@ -21,6 +22,34 @@ from scripts.training.mix2k_v4_lora import (
 
 
 class Mix2KV4LoRAResumeTests(unittest.TestCase):
+    def test_fresh_trainer_metadata_is_removed_without_weakening_reuse_gate(
+        self,
+    ) -> None:
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        adapter = Path(temporary.name) / "final_adapter"
+        adapter.mkdir()
+        metadata = adapter / "training_args.bin"
+        metadata.write_bytes(b"trusted trainer metadata")
+
+        _remove_fresh_trainer_metadata(adapter)
+
+        self.assertFalse(metadata.exists())
+        full_weight = adapter / "pytorch_model.bin"
+        full_weight.write_bytes(b"full weights")
+        _remove_fresh_trainer_metadata(adapter)
+        self.assertTrue(full_weight.is_file())
+
+    def test_fresh_trainer_metadata_rejects_non_regular_path(self) -> None:
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        adapter = Path(temporary.name) / "final_adapter"
+        adapter.mkdir()
+        (adapter / "training_args.bin").mkdir()
+
+        with self.assertRaisesRegex(Mix2KV4LoRAError, "일반 파일"):
+            _remove_fresh_trainer_metadata(adapter)
+
     def test_runtime_hash_contract_allows_optional_uncertainty_binding(self) -> None:
         digest = "a" * 64
         self.assertTrue(_runtime_hash_matches_axis("chart_day_today_flow", digest))
