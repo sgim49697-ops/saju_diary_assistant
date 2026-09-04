@@ -311,3 +311,20 @@ Teacher 절반은 Claude 초안→Codex grounding 판정, 나머지 절반은 Co
 - r=16 preflight: `preflight-b165a8934069`가 RTX 5070 Ti에서 실제 1-step loss `2.476799726486206`, 유한·비영 gradient, base gradient 없음, adapter reload tensor 일치, base weight 불변, peak reserved `4,580,179,968` bytes로 통과했다. Kanana template를 직접 렌더링해 assistant 종료 `<|im_end|>` token id `128010`의 mask가 `1`임을 확인했으므로, 뒤의 supervised 개행 때문에 발생한 TRL의 마지막-token 경고는 실제 EOS 누락이 아니다.
 - 백그라운드 실행: r=16 `train-f340a82c76d3`을 시작했고, user systemd transient unit `saju-mix2k-lora-all-ranks.service`가 r=16 완료를 기다린다. 기존 실행이 완료 manifest 없이 끝나면 r=16을 checkpoint에서 재개하고, 성공 후 r=8 preflight→1 epoch 학습→r=32 preflight→1 epoch 학습을 같은 GPU lock 아래 순차 실행한다. 앞 단계 실패 시 다음 단계로 진행하지 않는다.
 - 남은 작업: 세 rank의 완료 manifest·adapter hash를 확인한 뒤 K0·KI20을 포함한 고정 dev 200건 5-arm 평가와 실제 회귀 release blocker 판정을 수행한다. 현재 실행 결과만으로 dashboard 또는 production 승격은 허용하지 않는다.
+
+### 2026-09-04 - Dashboard v1.13 20K 샘플 표시 복구
+
+- 작업 요약: v1.13 config에는 무작위 `sample_selection` 계약이 있지만 샘플 응답 코드가 v1.8까지만 새 분기로 인정해 `samples_per_axis`를 잘못 요구하던 회귀를 수정했다. schema 버전 열거 대신 실제 capability 존재 여부로 선택 방식을 결정하므로 이후 버전도 같은 누락을 반복하지 않는다.
+- 변경 범위: 20K 원본·manifest·staging record는 수정하지 않았다. `mix20k_v2.jsonl` SHA `731ace0ac5584fd97fc38f157a4ecdb1babedefd79e2ec5b2d755fa26e48a550`를 그대로 사용하며 대시보드 샘플링 코드와 v1.13 회귀 테스트만 변경했다.
+- 검증: v1.13 무작위 분기 단위 테스트와 Python compile, `git diff --check`를 통과했다. 실제 로컬 20K의 전체 보기와 7개 축을 각각 무작위 조회해 매 요청마다 고유한 message 샘플 10건이 해석되는 것을 원문 출력 없이 확인했다.
+- 남은 작업: 별도 v1.14 진단 대시보드에 2K direct dataset과 R16 adapter를 연결하고, 해당 UI/API smoke가 끝난 뒤 R8·R32 순차 학습을 다시 등록한다.
+
+### 2026-09-04 - R16 완료 검증과 Dashboard v1.14 진단 연결
+
+- R16 완료: K0 base를 변경하지 않은 adapter-only `train-f340a82c76d3`을 완료 상태로 검증했다. 2,000행·1 epoch·250 step, 최종 training loss `1.1570811777114869`, elapsed `2,098.756`초이며 adapter model SHA는 `0ca0a3ba526370ab78fba55f5bd64e4744c172ca412c9cad4ef68797dbb029c5`다. training manifest·state·adapter config/model SHA와 rank 16, all-linear 224개, RSLoRA, base weight 불변, production 승격 금지를 대시보드 로드 시 fail-closed로 다시 검증한다.
+- 입력 parity: 활성 v1.13의 relation snapshot은 변경하지 않았다. R16은 학습 시 사용한 v1.11 계열 `chart + 단일 day period` binding과 byte-identical context formatter를 쓰는 별도 v1.14·loopback 8767 진단 lane에만 연결했다. 관계 계산 결과가 없는 R16에 v1.13 relation context를 주입하지 않는다.
+- raw 진단: 입력·출력 상한은 각각 4,096 token이고 native context는 최소 8,192를 요구한다. grounding 실패 시 보정 prompt·재시도·답변 폐기를 하지 않고 모델 원출력을 private 세션에 그대로 저장한 뒤 warning만 표시한다. 전역 MIX2K GPU lock을 K0↔R16 순차 생성 전체에서 보유하며 R8/R32 학습 중 요청은 `GPU_BUSY_TRAINING` 409로 차단한다.
+- 데이터 탭: fallback build `build-54836f556b4f`의 `train_2000.jsonl`을 기본 split으로 추가했다. build·training SHA, 정확한 8개 row field, 고유 ID, 8축 수량, role 순서, assistant-only loss와 제한 데이터 부재를 전수 검증하며 phase4 staging join을 사용하지 않는다. 기존 20K도 실제 전체 혼합에서 무작위 10건을 정상 반환한다. 원격 공유에서는 AI Hub 제한 축과 그 축을 포함하는 `all` 요청을 인증 여부와 관계없이 차단한다.
+- 실제 GPU smoke: 고정 회귀 원국 `戊辰·甲子·乙丑·壬午`, 날짜 `2026-09-02 / 丙午·丙申·己卯`로 R16 첫 답변과 같은 세션 후속 답변을 실행했다. 두 답변 모두 3줄이며 `丙午=연간지`, `丙申=월간지`, `己卯=일진`을 정확히 구분하고 통근·신강약·용신·사건을 만들지 않았다. 첫 답변은 원국 네 기둥 전체 대신 일간·일주만 언급해 `natal_pillars_omitted` warning이 남았고, 후속 “쉽게 설명해줘”는 grounding audit를 통과했다. peak allocated는 약 2.69 GiB, 각 생성은 약 17초였다. 따라서 R16은 비교 진단용이며 release blocker를 통과한 production 후보가 아니다.
+- 검증: v1.13 회귀와 신규 v1.14 계약·adapter 변조·PEFT load order·2K direct loader·raw 보존·구조 label regression·원격 제한·GPU lock 단위 테스트 16건(1건 private fixture skip), Ruff, Python compile, JavaScript syntax, config validation, 실제 2K/20K 무작위 10건과 K0·KI20·R16 availability를 통과했다.
+- 남은 작업: v1.14 loopback 서비스를 별도 transient unit으로 기동·HTTP smoke한 뒤, 고유 재시도 unit에서 완료 R16을 재사용 검증하고 R8 preflight→1 epoch→R32 preflight→1 epoch를 순차 시작한다. 이 세션에서는 unit 시작 상태까지만 확인하고 학습 완료를 계속 추적하지 않는다.

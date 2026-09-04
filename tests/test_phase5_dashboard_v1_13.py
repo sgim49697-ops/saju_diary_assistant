@@ -8,6 +8,7 @@ import os
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from scripts.evaluation.saju_runtime.relation_conformance_v1 import (
     TEST_PERIOD_KEY,
@@ -32,6 +33,7 @@ from scripts.training.phase5_dashboard_v1_13 import (
     V113_ASSET_ROOT,
     _messages_for_engine,
     _runtime_model_context_from_binding,
+    dataset_samples_payload,
     evaluate_bound_output,
     period_runtime_status_payload,
     validate_config,
@@ -74,6 +76,63 @@ def _binding(*, day_count: int = 1) -> dict[str, object]:
 
 
 class DashboardV113ContractTests(unittest.TestCase):
+    def test_v113_dataset_uses_capability_based_random_sampling(self) -> None:
+        context = {
+            "config": {
+                "schema_version": "1.13.0",
+                "dataset_browser": {
+                    "selection_seed": "phase5-dashboard-v1.5.0-dataset-samples",
+                    "sample_selection": {
+                        "mode": "cryptographic_random",
+                        "samples_per_request": 10,
+                        "unique_within_request": True,
+                        "repeat_across_requests_possible": True,
+                        "persisted": False,
+                    },
+                    "axis_labels": {"nemotron_saju": "Nemotron 사주"},
+                    "splits": {
+                        "ki20_train": {
+                            "label": "KI20 학습",
+                            "kind": "training",
+                            "axes": {"nemotron_saju": 10},
+                        }
+                    },
+                },
+            }
+        }
+        candidates = [
+            {
+                "identity": f"row-{index}",
+                "axis": "nemotron_saju",
+                "task": "테스트",
+                "format": "messages",
+                "messages": [{"role": "user", "content": "질문"}],
+                "restricted_local_only": False,
+            }
+            for index in range(10)
+        ]
+
+        class FirstTen:
+            @staticmethod
+            def sample(values: list[dict[str, object]], count: int) -> list[dict[str, object]]:
+                return values[:count]
+
+        with patch(
+            "scripts.training.phase5_dashboard_v1_13._dataset_candidates",
+            return_value=candidates,
+        ):
+            result = dataset_samples_payload(
+                context,
+                "ki20_train",
+                "nemotron_saju",
+                randomize=True,
+                random_source=FirstTen(),
+            )
+
+        self.assertEqual(result["selection"]["mode"], "cryptographic_random")
+        self.assertEqual(result["selection"]["returned"], 10)
+        self.assertEqual(len(result["items"]), 10)
+
     def test_disabled_runtime_status_keeps_v113_identity(self) -> None:
         class StubServer:
             def __init__(self) -> None:
