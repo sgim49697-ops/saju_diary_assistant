@@ -1,6 +1,6 @@
 # K0·MIX2K·LoRA 모델 학습 발표자료
 
-[발표용 PDF](./saju-model-training-overview-4p.pdf)는 16:9 화면 비율의 4페이지 자료다. 저장소 `master` 커밋 `85e0171`에서 확정된 모델·데이터·학습·Dashboard v1.14 사실만 사용했다.
+[발표용 PDF](./saju-model-training-overview-4p.pdf)는 16:9 화면 비율의 밝은 테마 4페이지 자료다. 첫 페이지 왼쪽 상단에는 발표자 표기 `특화형_4_멘티_김슬기_김민희`를 14pt로 표시한다. 저장소 `master` 커밋 `85e0171`에서 확정된 모델·데이터·학습·Dashboard v1.14 사실만 사용했다.
 
 ## 페이지 구성
 
@@ -35,4 +35,3 @@ uv run --with reportlab scripts/presentations/build_model_training_deck.py
 ```
 
 스크립트는 Windows의 맑은 고딕을 우선 사용하고, 없는 환경에서는 WenQuanYi Zen Hei로 대체한다.
-
