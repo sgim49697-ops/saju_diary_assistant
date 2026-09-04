@@ -13,20 +13,20 @@ from reportlab.pdfgen import canvas
 PAGE_W = 960
 PAGE_H = 540
 
-BG = HexColor("#07111F")
-BG_ALT = HexColor("#0A1627")
-PANEL = HexColor("#101F33")
-PANEL_ALT = HexColor("#152942")
-LINE = HexColor("#2B405C")
-TEXT = HexColor("#F4F7FB")
-MUTED = HexColor("#A8B8CD")
-CYAN = HexColor("#4DE1D0")
-BLUE = HexColor("#5BA8FF")
-PURPLE = HexColor("#9A86FF")
-ORANGE = HexColor("#FFB45B")
-GREEN = HexColor("#64D996")
-RED = HexColor("#FF7285")
-YELLOW = HexColor("#F3D36A")
+BG = HexColor("#F8FAFD")
+BG_ALT = HexColor("#F3F7FC")
+PANEL = HexColor("#FFFFFF")
+PANEL_ALT = HexColor("#EDF3FA")
+LINE = HexColor("#CDD8E6")
+TEXT = HexColor("#182235")
+MUTED = HexColor("#5E6E82")
+CYAN = HexColor("#007F78")
+BLUE = HexColor("#1D65BC")
+PURPLE = HexColor("#6E51C8")
+ORANGE = HexColor("#B85F00")
+GREEN = HexColor("#0F7A4A")
+RED = HexColor("#C83B55")
+YELLOW = HexColor("#8A6200")
 
 FONT_REGULAR = "DeckRegular"
 FONT_BOLD = "DeckBold"
@@ -231,12 +231,12 @@ def draw_background(pdf: canvas.Canvas, page: int) -> None:
     pdf.setFillColor(BG if page % 2 else BG_ALT)
     pdf.rect(0, 0, PAGE_W, PAGE_H, fill=1, stroke=0)
 
-    pdf.setFillColor(HexColor("#102744"))
+    pdf.setFillColor(HexColor("#E4EEFB"))
     pdf.circle(PAGE_W - 18, PAGE_H + 8, 170, fill=1, stroke=0)
-    pdf.setFillColor(HexColor("#191D46"))
+    pdf.setFillColor(HexColor("#EEE9FA"))
     pdf.circle(PAGE_W + 30, PAGE_H + 30, 105, fill=1, stroke=0)
 
-    pdf.setFillColor(HexColor("#163047"))
+    pdf.setFillColor(HexColor("#D5E2F0"))
     for row in range(4):
         for column in range(8):
             pdf.circle(54 + column * 14, 22 + row * 14, 1.25, fill=1, stroke=0)
@@ -268,7 +268,7 @@ def slide_title(
     text(pdf, 82, 70, subtitle, 10, MUTED)
     if badge:
         badge_width = pdfmetrics.stringWidth(badge, FONT_BOLD, 8) + 22
-        pill(pdf, 910 - badge_width, 38, badge, fill=HexColor("#3A2033"), color=RED)
+        pill(pdf, 910 - badge_width, 38, badge, fill=HexColor("#FBE9ED"), color=RED)
 
 
 def model_card(
@@ -295,7 +295,8 @@ def model_card(
 
 def slide_one(pdf: canvas.Canvas) -> None:
     draw_background(pdf, 1)
-    pill(pdf, 50, 34, "MODEL TRAINING BRIEF", fill=HexColor("#133447"), color=CYAN, size=7.5)
+    text(pdf, 50, 18, "특화형_4_멘티_김슬기_김민희", 14, TEXT, FONT_BOLD)
+    pill(pdf, 50, 43, "MODEL TRAINING BRIEF", fill=HexColor("#E4F5F3"), color=CYAN, size=7.5)
     right_text(pdf, 910, 36, "K0 × MIX2K × LoRA", 9, MUTED, FONT_BOLD)
 
     text(pdf, 50, 78, "작은 모델을,", 32, TEXT, FONT_BOLD)
@@ -342,9 +343,9 @@ def slide_one(pdf: canvas.Canvas) -> None:
         text(pdf, 682, current_top + 21, description, 8.2, MUTED)
 
     line(pdf, 642, 318, 888, 318, LINE)
-    pill(pdf, 642, 331, "KI20 = 실패 비교 baseline", fill=HexColor("#2B2334"), color=ORANGE, size=7.5)
+    pill(pdf, 642, 331, "KI20 = 실패 비교 baseline", fill=HexColor("#FFF1DF"), color=ORANGE, size=7.5)
 
-    rect(pdf, 50, 355, 533, 116, HexColor("#0D2A38"), radius=15, stroke=HexColor("#235369"))
+    rect(pdf, 50, 355, 533, 116, HexColor("#EAF8F6"), radius=15, stroke=HexColor("#A9DDD7"))
     text(pdf, 71, 376, "선정 결론", 9, CYAN, FONT_BOLD)
     text(pdf, 71, 401, "K0의 말하기 능력  +  LoRA의 근거 교정", 18, TEXT, FONT_BOLD)
     wrapped_text(
@@ -381,7 +382,7 @@ def donut(pdf: canvas.Canvas, x: float, top: float, size: float, trainable_ratio
     cx = x + size / 2
     cy = PAGE_H - top - size / 2
     radius = size / 2
-    pdf.setFillColor(HexColor("#223752"))
+    pdf.setFillColor(HexColor("#D9E4F1"))
     pdf.circle(cx, cy, radius, fill=1, stroke=0)
     pdf.setFillColor(CYAN)
     pdf.wedge(
@@ -412,7 +413,7 @@ def rank_bar(
     primary: bool = False,
 ) -> None:
     text(pdf, 438, top + 1, rank, 10, TEXT, FONT_BOLD)
-    rect(pdf, 490, top, 315, 18, HexColor("#1D3048"), radius=9)
+    rect(pdf, 490, top, 315, 18, HexColor("#E2EAF4"), radius=9)
     rect(pdf, 490, top, bar_width, 18, color, radius=9)
     text(pdf, 817, top + 1, f"{params} · {ratio}", 8.2, TEXT, FONT_BOLD)
     if primary:
@@ -464,7 +465,7 @@ def slide_two(pdf: canvas.Canvas) -> None:
     ]
     current_x = 428
     for label, accent in settings:
-        used = pill(pdf, current_x, 318, label, fill=HexColor("#1A344A"), color=accent, size=7.2, height=21)
+        used = pill(pdf, current_x, 318, label, fill=HexColor("#EDF3F8"), color=accent, size=7.2, height=21)
         current_x += used + 7
     text(pdf, 428, 351, "독립 adapter이므로 K0·r8·r16·r32를 같은 조건에서 비교 가능", 8.4, MUTED)
 
@@ -511,7 +512,7 @@ def slide_three(pdf: canvas.Canvas) -> None:
         "compact 요약본이 아니라 production-like full runtime snapshot을 그대로 학습했습니다.",
     )
 
-    rect(pdf, 50, 105, 860, 55, HexColor("#0D2A38"), radius=13, stroke=HexColor("#235369"))
+    rect(pdf, 50, 105, 860, 55, HexColor("#EAF8F6"), radius=13, stroke=HexColor("#A9DDD7"))
     text(pdf, 69, 120, "FULL RUNTIME SNAPSHOT", 8, CYAN, FONT_BOLD)
     text(
         pdf,
@@ -586,7 +587,7 @@ def slide_three(pdf: canvas.Canvas) -> None:
     gap = 31
     for index, (label, detail, accent) in enumerate(stages):
         x = start_x + index * (stage_width + gap)
-        rect(pdf, x, pipeline_top, stage_width, 52, HexColor("#11263B"), radius=11, stroke=accent)
+        rect(pdf, x, pipeline_top, stage_width, 52, PANEL, radius=11, stroke=accent)
         text(pdf, x + 13, pipeline_top + 10, label, 7.2, accent, FONT_BOLD)
         text(pdf, x + 13, pipeline_top + 27, detail, 9.2, TEXT, FONT_BOLD)
         if index < len(stages) - 1:
@@ -644,7 +645,7 @@ def slide_four(pdf: canvas.Canvas) -> None:
     )
 
     rect(pdf, 50, 109, 398, 286, PANEL, radius=15, stroke=LINE)
-    pill(pdf, 70, 127, "REAL INPUT · 핵심 사실 발췌", fill=HexColor("#17364C"), color=CYAN, size=7.3)
+    pill(pdf, 70, 127, "REAL INPUT · 핵심 사실 발췌", fill=HexColor("#E4F5F3"), color=CYAN, size=7.3)
     text(pdf, 70, 164, "natal", 9, BLUE, FONT_BOLD)
     input_row(pdf, 82, 186, "year / month", "戊辰  /  甲子", accent=TEXT)
     input_row(pdf, 82, 209, "day / hour", "乙丑  /  壬午", accent=TEXT)
@@ -653,13 +654,13 @@ def slide_four(pdf: canvas.Canvas) -> None:
     text(pdf, 70, 269, "period · 2026-09-02", 9, PURPLE, FONT_BOLD)
     input_row(pdf, 82, 292, "year / month", "丙午  /  丙申", accent=TEXT)
     input_row(pdf, 82, 315, "day", "己卯", accent=ORANGE)
-    rect(pdf, 70, 345, 358, 35, HexColor("#0B2A37"), radius=8)
+    rect(pdf, 70, 345, 358, 35, HexColor("#EAF7F7"), radius=8)
     text(pdf, 82, 355, "Q. 오늘의 흐름을 원국과 함께 이야기해줘", 8.3, TEXT, FONT_BOLD)
     text(pdf, 70, 385, "실제 호출 778 input tokens · full snapshot은 더 많은 field 포함", 6.8, MUTED)
 
     arrow(pdf, 458, 481, 252, CYAN)
 
-    rect(pdf, 490, 109, 420, 286, HexColor("#0D2634"), radius=15, stroke=CYAN, stroke_width=1.3)
+    rect(pdf, 490, 109, 420, 286, HexColor("#F2FBFA"), radius=15, stroke=CYAN, stroke_width=1.3)
     pill(pdf, 510, 127, "R16 RAW OUTPUT", fill=CYAN, color=BG, size=7.3)
     text(pdf, 510, 166, "원국에서 확인되는 일간은 乙이며,", 12.2, TEXT, FONT_BOLD)
     text(pdf, 510, 191, "일주는 乙丑입니다.", 12.2, TEXT, FONT_BOLD)
@@ -668,11 +669,11 @@ def slide_four(pdf: canvas.Canvas) -> None:
     text(pdf, 510, 286, "오늘의 흐름은 이 날짜 간지와 원국의 乙丑을", 9.3, TEXT)
     text(pdf, 510, 306, "함께 참고할 수 있지만, 두 정보를 합쳐 특정한", 9.3, TEXT)
     text(pdf, 510, 326, "사건이나 결과를 단정할 수는 없습니다.", 9.3, TEXT)
-    line(pdf, 510, 348, 890, 348, HexColor("#285063"))
-    pill(pdf, 510, 359, "16.7 s", fill=HexColor("#17364C"), color=CYAN, size=7.2)
-    pill(pdf, 575, 359, "peak 2.69 GiB", fill=HexColor("#17364C"), color=BLUE, size=7.2)
-    pill(pdf, 684, 359, "3 lines", fill=HexColor("#17364C"), color=GREEN, size=7.2)
-    pill(pdf, 752, 359, "no retry / rewrite", fill=HexColor("#17364C"), color=ORANGE, size=7.2)
+    line(pdf, 510, 348, 890, 348, HexColor("#B8DAD7"))
+    pill(pdf, 510, 359, "16.7 s", fill=HexColor("#E9F2F8"), color=CYAN, size=7.2)
+    pill(pdf, 575, 359, "peak 2.69 GiB", fill=HexColor("#E9F2F8"), color=BLUE, size=7.2)
+    pill(pdf, 684, 359, "3 lines", fill=HexColor("#E9F2F8"), color=GREEN, size=7.2)
+    pill(pdf, 752, 359, "no retry / rewrite", fill=HexColor("#E9F2F8"), color=ORANGE, size=7.2)
 
     outcome_item(pdf, 50, 416, 268, "정확해진 부분", "丙午=연간지 · 丙申=월간지 · 己卯=일진, 금지된 통근·신강약 생성 없음", GREEN)
     outcome_item(pdf, 334, 416, 268, "남은 release blocker", "원국 네 기둥 전체를 답변에서 생략 → warning, 진단 모델로만 유지", RED)
