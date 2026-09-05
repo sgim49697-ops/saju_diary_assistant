@@ -1,0 +1,78 @@
+{
+  "schema_version": "1.0.0",
+  "diagnostic_version": "synthetic-prompt20-v1.0.0",
+  "requests": 60,
+  "models": {
+    "k0_instruct": {
+      "generated": 18,
+      "pre_generation_blocks": 2,
+      "nonempty": 18,
+      "expected_block_behavior": true,
+      "bound_generated": 13,
+      "bound_diagnostic_pass": 8,
+      "warnings": {
+        "chart_fact_missing": 3,
+        "day_master_fact_missing": 1,
+        "day_master_value_mismatch": 1,
+        "period_day_fact_missing": 1
+      },
+      "max_input_tokens": 2024,
+      "omitted_turns": 0,
+      "block_codes": {
+        "RUNTIME_DATE_REBIND_REQUIRED": 1,
+        "RUNTIME_PERIOD_SCOPE_UNSUPPORTED": 1
+      }
+    },
+    "lora_r16": {
+      "generated": 18,
+      "pre_generation_blocks": 2,
+      "nonempty": 18,
+      "expected_block_behavior": true,
+      "bound_generated": 13,
+      "bound_diagnostic_pass": 10,
+      "warnings": {
+        "chart_fact_missing": 2,
+        "day_master_value_mismatch": 1,
+        "period_day_value_mismatch": 1
+      },
+      "max_input_tokens": 1945,
+      "omitted_turns": 0,
+      "block_codes": {
+        "RUNTIME_DATE_REBIND_REQUIRED": 1,
+        "RUNTIME_PERIOD_SCOPE_UNSUPPORTED": 1
+      }
+    },
+    "ki20_final": {
+      "generated": 18,
+      "pre_generation_blocks": 2,
+      "nonempty": 18,
+      "expected_block_behavior": true,
+      "bound_generated": 13,
+      "bound_diagnostic_pass": 8,
+      "warnings": {
+        "chart_fact_missing": 2,
+        "day_master_value_mismatch": 1,
+        "period_day_fact_missing": 2
+      },
+      "max_input_tokens": 1939,
+      "omitted_turns": 0,
+      "block_codes": {
+        "RUNTIME_DATE_REBIND_REQUIRED": 1,
+        "RUNTIME_PERIOD_SCOPE_UNSUPPORTED": 1
+      }
+    }
+  },
+  "first_turn_token_parity": true,
+  "first_turn_groups": 12,
+  "execution_contract_met": true,
+  "naturalness": "not_measured",
+  "semantics": "not_measured",
+  "model_quality_approval": false,
+  "sealed_blind_accessed": false,
+  "production_promotion_allowed": false,
+  "runtime_release_changed": false,
+  "phase6_changed": false,
+  "training_performed": false,
+  "system_prompt_changed": false,
+  "raw_output_rewrite_count": 0
+}
