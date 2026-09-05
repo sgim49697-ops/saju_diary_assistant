@@ -1,0 +1,28 @@
+{
+  "block_codes": [
+    "RUNTIME_DATE_REBIND_REQUIRED",
+    "RUNTIME_PERIOD_SCOPE_UNSUPPORTED"
+  ],
+  "bound_diagnostic_pass": true,
+  "clock_override_used": false,
+  "diagnostic": "dashboard-v115-current-day-http",
+  "existing_service_changed": false,
+  "feature_default": false,
+  "generated": 1,
+  "generation_runner_calls": 1,
+  "http_canary_passed": true,
+  "input_tokens": 1679,
+  "pre_generation_blocks": 2,
+  "production_promotion_allowed": false,
+  "raw_output_preserved": true,
+  "runtime_current_day_bound": true,
+  "schema_version": "1.0.0",
+  "scorer_version": "saju-bound-chart-grounding-v2.0.1",
+  "sealed_blind_accessed": false,
+  "server_kst_date": "2026-09-05",
+  "synthetic_only": true,
+  "synthetic_runtime_session_deleted": true,
+  "temporary_server_stopped": true,
+  "tokenizer_backend_sha256": "4f1fb83a437cc9c2f262ef579cfd635d355776a5eaf0fffafd9bf2b03487507f",
+  "ui_metadata_routes_ok": true
+}
