@@ -31,3 +31,9 @@
 - 관련 회귀·HTTP 사전 차단·tokenizer 변조·기존 v1.14·LoRA·문서 정책 41건 통과. 전체 scripts/tests Ruff와 JavaScript 구문 검사를 수행한다.
 - 전체 `.venv-data/bin/python -m unittest discover -s tests -q` 첫 실행은 795건 중 실패 4·오류 37·skip 37이었다. 수정 전 `9270a46`의 별도 clean worktree에서 782건을 재실행해 같은 실패 4·오류 37·skip 37을 재현했다. 비공개 artifact 미배치, Torch 없는 data 환경, 기존 LoRA core hash 및 recovery target 계약이 원인이다. 기존 문제를 이번 후보 회귀로 오인하거나 전체 green으로 기록하지 않는다.
 - 현재 Python 3.10 개발 헤더가 없어 공식 Ubuntu `libpython3.10-dev`의 지정 버전과 SHA-256을 검증하고 Git 제외 진단 경로에 추출했다. 시스템 패키지·Torch는 변경하지 않았으며 native JIT는 활성 상태를 유지한다.
+
+### 2026-09-05 — 합성 재생기 준비
+
+- `scripts/evaluation/dashboard_v115_replay.py`는 기존 합성 suite·snapshot의 고정 SHA를 검사한다. 기본 실행은 무기록 dry-run이다. 실제 실행은 `DASHBOARD_V115_DIAGNOSTIC=SYNTHETIC_30_V1`과 `--execute`를 함께 요구한다.
+- 재개 시 코드·입력 fingerprint와 개별 응답 SHA를 검사한다. 시작 기록만 있고 완료 응답이 없는 요청은 자동 재실행하지 않는다. 집계·manifest·응답을 덮어쓰지 않는다.
+- 재생기 회귀 2건으로 30요청→27생성+3차단, 재개 시 추가 생성 0회, 응답 변조·다른 fingerprint·허용 경로 밖 입력 거부를 확인했다. 실제 입력 dry-run과 전체 Ruff도 통과했다.
