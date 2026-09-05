@@ -59,3 +59,10 @@
 - 관련 47건·Ruff·JavaScript 구문·공백 검사가 통과했다. 최종 전체 805건은 기존 실패 4·오류 37·skip 37이며, 이번 변경으로 추가된 실패는 없다. 전체 green으로 기록하지 않는다.
 - 공개 build는 `data/reports/saju_1b_baseline/dashboard-v115-realistic-chat/v1.0.0/build-9e7b7d39475b`다. 자세한 해석·실행 차수·한계는 [완료 기록](../history/2026-09-05-dashboard-v115-grounding.md)에 정리했다. 원출력은 Git 제외 `runs/REALISTIC-CHAT`에만 보존했다.
 - 계획의 구현·진단 범위는 완료했다. 기존 서비스 전환·브랜치 병합·추가 학습·모델 승격은 수행하지 않았다.
+
+### 2026-09-05 — 후속 대화 예시 20문장 기록
+
+- 사용자와 대화에서 확정한 합성 질문 20개를 최상단 [대화 테스트 예시](../../SAJU_CHAT_TEST_PROMPTS.md)에 기록했다. 원국 연결, 오늘 일진 연결, 비연결 입력, 일반 대화·문장 작성의 네 그룹과 후속·분기 순서를 보존했다.
+- 이번 범위는 문서 저장뿐이다. 이 20문장으로 모델 생성·프롬프트 비교를 실행하지 않았으며 기존 진단 결과와 구분한다.
+- 공유 작업 폴더에는 동일 문서만 추가하고, 기존 전용 worktree와 브랜치에서 문서·진행 기록을 커밋한다. 공유 브랜치·index, 기존 ZIP, 대시보드 서비스와 다른 세션 변경은 건드리지 않는다.
+- 검증: 20문장 원문·1~20 연속 번호·네 그룹·연속 대화 3개·분기 2개의 일치, 두 위치 파일 byte 일치와 문서 링크 2개를 확인했다. `.venv-data/bin/python -m unittest tests.test_saju_product_roadmap tests.test_phase6_technical.Phase6TechnicalTests.test_canonical_docs_forbid_person_dependent_gates -q` 5건과 `git diff --check`가 통과했다. Python은 공유 프로젝트의 절대 경로로 실행했다.
