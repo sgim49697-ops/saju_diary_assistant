@@ -32,6 +32,13 @@ Teacher 절반은 Claude 초안→Codex grounding 판정, 나머지 절반은 Co
 
 ## 진행 기록
 
+### 2026-09-05 — 세 rank 완료 재확인과 신규 일상 대화 진단
+
+- R8 `train-7ce05b84b1aa`, R16 `train-f340a82c76d3`, R32 `train-0a3ada2de1db` 모두 2,000행·1 epoch·250 step 완료 상태다. 세 adapter model/config hash와 저장된 reload 일치·base 불변 metric을 현재 파일로 재검증했다. 이 완료 기록이 아래 R8/R32 실행 대기·시작 기록의 최신 상태다.
+- 활성 v1.14의 R16은 기존 fallback `build-54836f556b4f`를 사용한다. 별도 v1.1.0 보정은 `repair-23340fc31022` accepted 238/400·잔여 162건이며 현재 adapter에 반영되지 않았다.
+- 신규 합성 질문 10개×K0·R16·KI20의 30응답을 생성했다. R16의 원국·일진 구분 개선과 날짜 전환·시간 미상·요청 수행 문제를 관찰했고, scorer 오탐·누락 및 tokenizer backend 차이도 재현했다. loss·기존 Gate 통과 수만으로 rank를 선택하지 않는다.
+- 관련 테스트 19/19, 학습 build의 training/token audit/summary SHA 검증, 두 질문의 정확한 tokenizer 통제 4응답을 완료했다. 전체 분석은 [실제 대화 진단 기록](../history/2026-09-05-realistic-chat-audit.md)을 따른다. 학습 재실행·운영 모델 변경·Phase 6 재판정은 하지 않았다.
+
 ### 2026-09-02 - full-runtime spec·dev 고정
 
 - 작업 요약: K0 snapshot을 해시로 고정하고, v1.5 계산 엔진의 공개 synthetic 원국·단일 일진으로 dev 200건과 teacher spec 2,000건을 생성했다. AI Hub 원문·개인정보·sealed blind는 접근하지 않았다.
@@ -299,7 +306,7 @@ Teacher 절반은 Claude 초안→Codex grounding 판정, 나머지 절반은 Co
 - 변경 범위: `mix2k-v4-reviewed-repair-v1.1.0.json`, `saju_intake_runtime_v2.txt`, `mix2k_v4_reviewed_repair.py`, v1.14 비활성 dashboard candidate, K0 r=16 전용 LoRA 실행기·config와 관련 회귀 테스트를 추가했다. 활성 Dashboard v1.13과 K0 base는 변경하지 않았고 v1.14는 명시적 실행 전까지 비활성이다.
 - 안전성 보강: config·prompt·부모 build·ZIP은 같은 file descriptor에서 읽은 snapshot bytes만 hash·parse·소비한다. pipeline state와 provider 원문·정규화본·review는 원자 저장하고 호출 로그에서 전수 재생한다. 관계 validator는 문장 앞의 부정이 뒤의 `성립·작용·관계·사실` 단정을 가리지 못하도록 답변 전체 hard veto와 relation 전용 fail-closed 분기를 적용했으며, `子午충` 같은 새 관계값을 차단한다. 반대로 직접 부정과 검증 결과가 제공된 범위만 설명하는 문장은 허용한다.
 - 재현 검증: 과거 v1.1.0 진단 target 13개의 고유 draft 1,256건을 최신 validator로 재생해 과거 strength/relation 오탐 60건이 모두 해소되고, 기존 deterministic PASS에 새 오탐이 0건임을 확인했다. 공격 회귀에는 부정 뒤 후행 성립 주장, bare relation assertion, 구체 relation 값과 evidence guard 위장 문구를 포함했다. 일반 재작성은 최초안+최대 4회로 늘려 한 행 때문에 전체 immutable target을 반복 생성하는 낭비를 줄였고, terminal failure 시 중단·상대 provider PASS·deterministic PASS 조건은 유지한다.
-- 현재 teacher 상태: immutable target `repair-23340fc31022`, target SHA `23340fc310223e5c27850f7d0f240105ac2fd799ff95703696e7c81eabf7ec5a`, provider call 55, state SHA `caca7a3bd47b9b23c6e985ccae37c4a8884ba08e7c77ff899e9d5d45f4309436`이다. 400행 중 accepted 238, Claude review 대기 3, Claude draft·rewrite 대기 159, permanent failed 0이다. Codex 배정 200행은 모두 deterministic PASS했고 Claude가 197행을 승인했으며, Claude 배정분은 60행을 작성해 Codex가 41행을 승인했다. 같은 값이 여러 fact path에 쓰이면 `used_fact_values`에는 한 번만 기록한다는 계약과 충돌하는 reviewer 지시는 승인으로 간주하지 않는다.
+- 현재 teacher 상태: immutable target `repair-23340fc31022`, target SHA `23340fc310223e5c27850f7d0f240105ac2fd799ff95703696e7c81eabf7ec5a`, provider call 55, state SHA `caca7a3bd47b9b23c6e985ccae37c4a8884ba08e7c77ff899e9d5d45f4309436`이다. 400행 중 accepted 238, Claude review 대기 3, Claude draft·rewrite 대기 159, permanent failed 0이다. Codex 배정 200행은 모두 deterministic PASS했고 Claude가 197행을 승인했으며, Claude 배정분은 60행을 작성해 Codex가 41행을 승인했다. 같은 값이 여러 fact path에 쓰이면 `used_fact_values`에는 한 번만 기록한다는 계약과 충돌하는 판정 모델의 지시는 승인으로 간주하지 않는다.
 - 중단 사유: Claude Code가 2026-09-04 14:43 KST에 HTTP 429와 `18:00 KST reset`을 명시했다. 실패 호출은 state에 기록되지 않았다. Claude 결과를 Codex 단독 승인으로 대체하지 않고, quota 복구 전 가능한 Codex review와 재작성만 완료했다.
 - 검증: `/home/user/projects/saju_diary_assistant/.venv/bin/python -m unittest tests.test_mix2k_v4 tests.test_mix2k_v4_reviewed_repair tests.test_mix2k_v4_lora_v1_1` 103건, Ruff format/check, `git diff --check`, 과거 target replay를 통과했다. 최신 source SHA는 contracts `2aedeace1f70427d03a30df812d89368bca0c4a2a053c6d60a1e992ff09fd8ba`, repair runner `6d826fc6707ade49eb28e56f7bb0f3f4b5ae6f81cd93e3ff70def56d9990f734`, data config `83cc6c36bc79e54614cdd015602bae1c2082c0bb4434343182fcf8a37ef167ae`다.
 - 다음 단계: Claude quota 복구 뒤 같은 target에서 Claude review 3건과 draft·rewrite 159건을 재개한다. 이어 Codex가 Claude 최신 draft를 별도 호출로 판정하고, 400행 전부 양방향 교차 PASS·duplicate Gate를 통과하면 부모 1,600행과 결합해 pinned Kanana tokenizer로 2,000행 token/mask/EOS/leakage 전수 감사를 수행한다. 그 결과가 준비되기 전에는 v1.1.0 build를 입력으로 하는 r=16 학습이나 production 승격을 실행하지 않는다.
