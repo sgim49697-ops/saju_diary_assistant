@@ -862,7 +862,7 @@ def validate_config(config: dict[str, Any]) -> None:
         or governance.get("manual_sessions_local_only") is not True
         or not isinstance(manual_session, dict)
         or manual_session.get("private_output_relative")
-        != "dashboard/v1.15.0/manual_sessions"
+        != "dashboard/v1.15.0/grounding-v2.0.1/manual_sessions"
         or manual_session.get("max_sessions") != 100
         or manual_session.get("max_turns_per_session") != 50
         or manual_session.get("max_context_tokens") != 4096

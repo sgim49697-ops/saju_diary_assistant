@@ -7,7 +7,7 @@ from datetime import date, datetime, timedelta
 from typing import Any
 from zoneinfo import ZoneInfo
 
-SCORER_VERSION = "saju-bound-chart-grounding-v2.0.0"
+SCORER_VERSION = "saju-bound-chart-grounding-v2.0.1"
 DATE_REBIND = "RUNTIME_DATE_REBIND_REQUIRED"
 SCOPE_UNSUPPORTED = "RUNTIME_PERIOD_SCOPE_UNSUPPORTED"
 DATE_AMBIGUOUS = "RUNTIME_DATE_SELECTION_REQUIRED"
@@ -29,8 +29,9 @@ _ALIASES = {
 _VALUES = "|".join([*[re.escape(v) for v in _ALIASES.values()], *_ALIASES])
 _PAIR = re.compile(rf"(?P<value>{_VALUES})(?:[가-힣]?주)?")
 _LABEL = r"연주|년주|월주|일주|시주|일간|연간지|년간지|월간지|일진|세운"
+_SINGLE_STEM = r"[갑을병정무기경신임계](?=\s*(?:[（(][甲乙丙丁戊己庚辛壬癸][）)]|입니다|이고|이며|이\s*아니|가\s*아니|$|[,.;]))"
 _CLAIM = re.compile(
-    rf"(?P<label>{_LABEL})(?:\s|[:：=·*]|은|는|이|가|의|간지|값|바로|입니다|이고|이고요|라고|서버|기준|에서|[()])*?(?P<value>{_VALUES}|[甲乙丙丁戊己庚辛壬癸]|갑목|을목|병화|정화|무토|기토|경금|신금|임수|계수)"
+    rf"(?P<label>{_LABEL})(?:\s|[:：=·*]|은|는|이|가|의|간지|값|바로|입니다|이고|이고요|라고|서버|기준|에서|[()])*?(?P<value>{_VALUES}|[甲乙丙丁戊己庚辛壬癸]|갑목|을목|병화|정화|무토|기토|경금|신금|임수|계수|{_SINGLE_STEM})"
 )
 _REVERSE = re.compile(
     rf"(?P<value>{_VALUES}|갑목|을목|병화|정화|무토|기토|경금|신금|임수|계수)(?:\s|[()*,：:]|이|가|은|는|인|당신의|원국의|사주의)*(?P<label>{_LABEL})"
@@ -44,10 +45,11 @@ def kst_today() -> date:
 
 def prompt_intent(prompt: str) -> str:
     normalized = re.sub(r"\s+", " ", prompt.casefold()).strip()
+    if re.search(r"사주\s*(?:말고|빼고)|그냥\s*(?:얘기|이야기)", normalized):
+        return "general_followup"
     if re.search(
-        r"사주\s*(?:말고|빼고)|그냥\s*(?:얘기|이야기)|메시지|문자|메일|두\s*문장.*써",
-        normalized,
-    ):
+        r"메시지|문자|메일|회의|실수|위로|잠이|두\s*문장.*써", normalized
+    ) and not re.search(r"사주|운세|일진|원국|명식|운기|흐름", normalized):
         return "general_followup"
     temporal = bool(
         _RELATIVE.search(normalized)
@@ -137,6 +139,8 @@ def date_scope(
 
 
 def _canonical(value: str) -> str:
+    if len(value) == 1 and value in _STEM_KO:
+        return _STEMS[_STEM_KO.index(value)]
     if value in _ALIASES:
         return _ALIASES[value]
     if value in {
@@ -229,6 +233,11 @@ def audit_output(prompt: str, output: str, binding: dict[str, Any]) -> dict[str,
         r"snapshot|capability|system\s*prompt|내부검증|해시|hash", output, re.IGNORECASE
     ):
         reasons.append("internal_contract_exposed")
+    if re.search(
+        r"JSON.{0,50}(?:답하세요|명시해)|원국\s*질문에는.{0,50}(?:명시해|사용하세요)|사주\s*정보를\s*다시\s*요청하지\s*마세요",
+        output,
+    ):
+        reasons.append("prompt_instruction_echo")
     if intent == "chart_interpretation":
         if "일간" in prompt:
             if "day_master" not in valid_roles:

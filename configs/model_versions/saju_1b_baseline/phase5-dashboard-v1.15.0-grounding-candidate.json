@@ -85,7 +85,7 @@
     }
   },
   "manual_session": {
-    "private_output_relative": "dashboard/v1.15.0/manual_sessions",
+    "private_output_relative": "dashboard/v1.15.0/grounding-v2.0.1/manual_sessions",
     "max_sessions": 100,
     "max_turns_per_session": 50,
     "max_context_tokens": 4096,
@@ -224,7 +224,7 @@
     }
   },
   "grounding_gate": {
-    "gate_id": "saju-bound-chart-grounding-v2.0.0",
+    "gate_id": "saju-bound-chart-grounding-v2.0.1",
     "bound_profile": "bound_chart_v2",
     "maximum_correction_retries": 0,
     "failure_code": "RUNTIME_GROUNDING_WARNING",

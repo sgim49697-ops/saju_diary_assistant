@@ -67,6 +67,33 @@ def binding_fixture():
 
 
 class GroundingV2Tests(unittest.TestCase):
+    def test_korean_single_stem_cannot_replace_pillar_on_easy_followup(self):
+        result = audit_output(
+            "쉬운 말로 설명",
+            "일간이 병(丙)이고, 일주는 임(壬)입니다.",
+            binding_fixture(),
+        )
+        self.assertIn("natal_day_value_mismatch", result["reasons"])
+        self.assertNotIn("day_master_value_mismatch", result["reasons"])
+        self.assertTrue(
+            audit_output("내 일간", "일간은 병(丙)입니다.", binding_fixture())["passed"]
+        )
+        self.assertFalse(
+            audit_output("내 일간", "일간은 임(壬)입니다.", binding_fixture())["passed"]
+        )
+
+    def test_plain_counseling_and_instruction_echo(self):
+        self.assertEqual(
+            prompt_intent("오늘 회의에서 실수해서 잠이 안 와"), "general_followup"
+        )
+        self.assertEqual(prompt_intent("내일 운세를 메시지로 써줘"), "period_request")
+        result = audit_output(
+            "오늘 사주",
+            "원국 질문에는 JSON에 실제로 있는 원국 사실을 최소 하나 명시해 답하세요.",
+            binding_fixture(),
+        )
+        self.assertIn("prompt_instruction_echo", result["reasons"])
+
     def test_intent_boundaries(self):
         for prompt, expected in [
             (

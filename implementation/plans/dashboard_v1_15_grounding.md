@@ -8,7 +8,7 @@
 
 1. `scripts/training/dashboard_tokenizer_v1.py`: 원본 K0 tokenizer 파일·effective backend SHA와 chat template 검증. 세 모델 모두 `fix_mistral_regex=False`. 생성 직전 렌더링 SHA·최종 token ID SHA·입력 길이를 기록한다.
 2. `scripts/training/dashboard_grounding_v2.py`: 공백 경계 intent, 서버 KST 날짜와 연결 일진 대조, 실제 `period.hard_facts.period`의 역할별 간지 검사. 날짜 비교는 지원 범위 확인일 뿐 자유문장 계산·재결합이 아니다.
-3. `scripts/training/phase5_dashboard_v1_15.py`와 `phase5-dashboard-v1.15.0-grounding-candidate.json`: 기존 버전을 수정하지 않는 독립 진단 진입점. 새 세션은 `dashboard/v1.15.0/manual_sessions`, 연결 schema `1.7.0`, 비연결 schema `1.8.0`으로 저장한다. 후보에서 구버전 세션을 수정하지 않는다.
+3. `scripts/training/phase5_dashboard_v1_15.py`와 `phase5-dashboard-v1.15.0-grounding-candidate.json`: 기존 버전을 수정하지 않는 독립 진단 진입점. 현재 새 세션은 `dashboard/v1.15.0/grounding-v2.0.1/manual_sessions`, 연결 schema `1.7.0`, 비연결 schema `1.8.0`으로 저장한다. 초기 `grounding-v2.0.0` 진단 세션은 기존 `dashboard/v1.15.0/manual_sessions`에 불변 보존하며 현재 후보에서 수정하지 않는다.
 4. 관련 CPU 회귀 테스트 후 동일 합성 10질문을 K0·R16·KI20으로 재생한다. 30개 모델 요청 중 27개 생성과 내일·주간 후속 3개 사전 차단을 기대한다. 서버 시계는 진단 harness에서만 2026-09-05로 고정하며 HTTP client의 날짜 override 필드는 추가하지 않는다.
 5. 별도 현재 KST 날짜 HTTP canary에서 합성 원국·일진 계산 및 연결을 검증한다. 원출력은 Git 제외 경로에만 보존하고 공개 집계·build manifest와 진행 기록을 남긴다.
 
@@ -37,3 +37,9 @@
 - `scripts/evaluation/dashboard_v115_replay.py`는 기존 합성 suite·snapshot의 고정 SHA를 검사한다. 기본 실행은 무기록 dry-run이다. 실제 실행은 `DASHBOARD_V115_DIAGNOSTIC=SYNTHETIC_30_V1`과 `--execute`를 함께 요구한다.
 - 재개 시 코드·입력 fingerprint와 개별 응답 SHA를 검사한다. 시작 기록만 있고 완료 응답이 없는 요청은 자동 재실행하지 않는다. 집계·manifest·응답을 덮어쓰지 않는다.
 - 재생기 회귀 2건으로 30요청→27생성+3차단, 재개 시 추가 생성 0회, 응답 변조·다른 fingerprint·허용 경로 밖 입력 거부를 확인했다. 실제 입력 dry-run과 전체 Ruff도 통과했다.
+
+### 2026-09-05 — GPU 초기 재진단 후 추가 교정
+
+- 초기 실제 GPU 재생은 30요청·27생성·3사전 차단, 첫 turn 6개 그룹의 세 모델 token identity 일치, 제외 turn 0으로 완료했다.
+- 원출력 점검에서 KI20의 한국어 한 글자 천간을 일주로 부르는 주장을 검사기가 놓친 사례를 발견했다. 한 글자 천간의 역할 검사, 지시문 재출력 경고, 일반적인 감정 대화 분류 회귀를 추가했다.
+- scorer를 `saju-bound-chart-grounding-v2.0.1`로 올리고 세션 경로도 분리했다. 초기 원출력·집계·manifest는 덮어쓰지 않고, 동일 입력을 별도 새 build에서 다시 생성·검증한다. 초기 집계는 최종 품질 지표로 사용하지 않는다.
