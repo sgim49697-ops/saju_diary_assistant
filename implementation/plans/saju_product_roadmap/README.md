@@ -4,46 +4,51 @@
 
 | 항목 | 값 |
 |---|---|
-| 문서 버전 | `saju-product-roadmap-v1.0.0` |
-| 구현 기준 | `master@2298573ec2a2a14e6ae003ca45bccdeda54ade37` |
-| 기준일 | 2026-09-02 |
+| 문서 버전 | `saju-product-roadmap-v1.1.0` |
+| 진단 기준 | `26462137f9a4ef34adb2d3db0dd6eaff6282b309`의 완료 산출물 |
+| 기준일 | 2026-09-05 |
 | 현재 Runtime | `saju-runtime-release-v1.5.0-8b1d6ea2d46e` |
-| 현재 앱 | dashboard v1.11, exact 원국+단일 일진 제한 운영 |
-| 다음 실행 축 | 자동 모델 비교 → 별도 승인 전까지 데이터·학습 차단 |
+| 앱 상태 | dashboard v1.14 운영 / v1.15 검증 후보·미병합·미배포 |
+| 다음 실행 축 | 50-A 오류 분리 → 50-B 지시문 비교 → 50-C 큰 기본 모델 비교 → 50-D 데이터·입력 점검 |
 
 이 디렉터리는 새로 반입된 전체 구조·Runtime/기간/대시보드·모델/데이터 계획을 현재 저장소 사실에 맞춰 재분할한 실행 정본이다. 기존 문서와 역할은 다음처럼 나눈다.
 
 1. 과거 구현·계산 권위와 불변 보고서는 [`../saju_runtime_calculator_adoption.md`](../saju_runtime_calculator_adoption.md)가 소유한다.
 2. Phase 0~6과 현재 모델 판정은 [`../saju_1b_10k_20k_baseline/README.md`](../saju_1b_10k_20k_baseline/README.md)가 소유한다.
 3. MIX20K-v3.0.1 후보의 감사 결과는 [`../mix20k_v3_repair_plan.md`](../mix20k_v3_repair_plan.md)가 소유한다.
-4. 이 디렉터리는 위 사실을 바꾸지 않고 앞으로 실행할 workstream과 Gate만 소유한다.
+4. 이 README는 위 사실을 바꾸지 않고 **후속 실행 순서**를 소유한다. 같은 디렉터리의 00 문서는 **현재 상태**, 50 문서는 **원인 분리 진단 상세**를 소유한다.
+5. 최상단 01·02·03 문서는 각각 제품·Runtime·모델 요약과 연결만 제공한다. 별도의 실행 순서나 승인 Gate를 만들지 않는다. 완료된 LoRA 실행 이력은 [전용 계획](../mix2k_v4_chart_day_lora.md), v1.15 구현 이력은 [후보 계획](../dashboard_v1_15_grounding.md)에 보존한다.
 
 ## 현재 판정
 
 - v1.4 과거 공식 원국과 이를 부모로 한 v1.5 KST 정오 단일 일진은 승인됐다.
 - conformance v10 `build-46185262164f`는 8,522/8,522일 공식 label mismatch 0이다.
-- dashboard v1.11은 명시적 원국·날짜 대화 연결과 자동 Grounding Gate까지 완료됐다.
+- dashboard v1.11의 명시적 원국·날짜 연결과 자동 Grounding Gate는 완료된 부모 구현이다.
 - dashboard v1.12 기간 범위와 단일 날짜 relation v1 release가 완료됐다.
-- dashboard v1.13 relation 연결은 자동 canary 160/160을 통과한 기본-off 후보이며 현재 운영 dashboard v1.11 process는 교체하지 않았다.
+- dashboard v1.13 relation 연결은 자동 canary 160/160을 통과한 기본-off 후보다. 현재 서비스는 v1.14이며 v1.15 비교 조건·사전 차단 후보와 별개다.
+- K0 기반 R8·R16·R32 LoRA 학습은 완료됐다. 별도 v1.1 보정 400건은 미완료이며 현재 R16에 반영되지 않았다.
+- 확정 20문장 비교는 60요청·54생성·6차단으로 완료됐다. 구조 검사 통과 수는 모델 정확도가 아니며, 지시문 비교와 큰 기본 모델 비교는 아직 실행하지 않았다.
 - 분 단위 미래 절입은 승인되지 않았다.
 - Phase 6은 `AUTOMATED_REPAIR_REQUIRED`로 완료됐고 의미 품질은 `not_measured`다. 계약 밖 평가를 완료 조건으로 추가하지 않는다.
 - 소비된 sealed blind는 `spent_completed`이며 다시 열거나 재사용하지 않는다.
-- MIX20K-v3.1 생성·추가 학습·모델 승격은 계속 금지한다.
+- MIX20K-v3.1 생성·추가 학습·모델 승격은 이번 재정렬로 허용하지 않는다. 과거 승인으로 완료된 LoRA 실험을 미실행으로 되돌리지 않는다.
 
 ## 실행 파일 순서
 
-| 순서 | 문서 | 초기 상태 | 완료 조건 |
+| 순서 | 문서 | 현재 상태 | 완료 조건 또는 처리 |
 |---:|---|---|---|
-| 00 | [`00-current-baseline.md`](00-current-baseline.md) | 완료 | 통합 audit가 v1.5·v1.11까지 검증 |
+| 00 | [`00-current-baseline.md`](00-current-baseline.md) | 갱신 | 원격 master·진단 후보·운영 service·승인 범위 분리 |
 | 10 | [`10-period-contract-and-restore.md`](10-period-contract-and-restore.md) | 완료 | 기간 v2 계약·원국 재검산 복원 통과 |
 | 20 | [`20-daily-range-runtime.md`](20-daily-range-runtime.md) | 완료 | 8,522일·263,717 window mismatch 0 |
 | 30 | [`30-period-dashboard.md`](30-period-dashboard.md) | 완료 | dashboard v1.12 자동 canary 통과 |
 | 40 | [`40-day-relation-runtime.md`](40-day-relation-runtime.md) | 완료 | relation 전수 Gate와 dashboard v1.13 자동 canary 통과 |
-| 50 | [`50-automatic-model-evaluation.md`](50-automatic-model-evaluation.md) | 대기 | 동일 context K0↔KI20 자동 비교 완료 |
-| 60 | [`60-mix20k-v3-1-build.md`](60-mix20k-v3-1-build.md) | 차단 | 새 build·비학습 preflight blocker 0 |
-| 70 | [`70-training-and-promotion.md`](70-training-and-promotion.md) | 차단 | 별도 승인된 MIX2K 진단 이후 판단 |
+| 50 | [`50-automatic-model-evaluation.md`](50-automatic-model-evaluation.md) | 20문장 기준선 완료 / A~D 대기 | 원인별 비교 결과·한계·다음 조치 기록 |
+| 60 | [`60-mix20k-v3-1-build.md`](60-mix20k-v3-1-build.md) | 조건부 보류 | 50 결과로 데이터 변경 필요성을 확인한 뒤 별도 계약·승인 |
+| 70 | [`70-training-and-promotion.md`](70-training-and-promotion.md) | 조건부 보류 | 모델 크기·학습 방식·규모의 별도 결정과 명시 승인 |
 
-00은 기준선 정합화이고 첫 신규 기능은 10이다. 50 이후는 10~40의 승인 산출물을 입력으로만 사용하며 선행 실행하지 않는다.
+10~40은 완료 이력으로 보존하며 다시 구현하지 않는다. 다음 작업은 50-A다. 50-C의 큰 동일 계열 Instruct 기본 모델 비교는 필수 진단 축이며 선택 항목으로 건너뛰지 않는다. 정확한 모델 등록과 실행 가능성 확인 전 다운로드·GPU 실행은 하지 않는다.
+
+50의 진단 완료와 품질 승인·60/70 실행 승인은 서로 다르다. 비교가 부정적이어도 결과와 한계를 기록하면 해당 진단은 완료할 수 있다. 60/70은 자동 진행하지 않으며, 보정 400건 재개나 재학습도 원인 분리 결과에 따른 별도 판단이다.
 
 ## 공통 불변조건
 
@@ -55,6 +60,13 @@
 - 자동 계약으로 측정하지 않는 품질은 `not_measured`로 남기며 Phase blocker로 사용하지 않는다.
 
 ## 진행 기록
+
+### 2026-09-05 — 원인 분리 우선으로 실행 순서 재정렬
+
+- 최신 20문장 진단을 기준선으로 고정하고 50-A/B/C/D를 오류 분리·지시문 비교·큰 기본 모델 비교·데이터/입력 점검으로 나눴다. 큰 기본 모델 비교를 필수로 두되 이번 변경은 문서·정합성 테스트에 한정한다.
+- 최상단 세 계획을 요약·연결 문서로 통합하고 완료된 학습·Runtime 이력, 원격 master·v1.14 운영·v1.15 후보를 구분했다. 비자동 평가 절차와 고정 Full FT 우선 지시를 제거하고 60/70을 조건부로 뒀다.
+- 검증 명령·결과와 남은 환경 이슈는 [재정렬 검증 기록](../../history/2026-09-05-model-cause-roadmap.md)에 기록한다. 모델 실행·다운로드·보정 생성·학습·서비스 전환·브랜치 병합·기존 Gate 변경은 하지 않는다.
+- 아래 날짜별 기록은 당시 구현 사실이며 새로운 실행 지시가 아니다.
 
 ### 2026-09-02 — 반입 계획 정본화 설계
 

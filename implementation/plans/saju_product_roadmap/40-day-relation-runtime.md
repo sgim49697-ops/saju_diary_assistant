@@ -2,6 +2,8 @@
 
 # 40. 단일 날짜 Relation v1
 
+이 문서는 2026-09-02 완료 구현의 계약·재현 이력이다. 아래 v1.11 process 보존은 당시 작업 범위이며 현재 운영 상태는 [00 기준선](00-current-baseline.md)을 따른다. 후속 실행 순서는 [로드맵 README](README.md)의 50-A부터이며 이 후보를 자동 재실행·배포하지 않는다.
+
 ## 상태
 
 `완료` — `saju-natal-day-relation-release-v1.0.0-554bb9bfaea9`, dashboard v1.13 자동 canary `build-eaeeb35866d1`
@@ -28,7 +30,7 @@
 - 존재하지 않는 관계 생성 0, interpretation field 0.
 - 단일 날짜가 아니거나 relation release가 없으면 fail-closed.
 
-dashboard v1.13은 v1.12를 부모로 단일 날짜에만 relation card와 model allowlist를 추가했다. 주·월 범위는 날짜 label만 유지하며 relation은 `null`이다. 이 버전은 검증된 후보이고 feature 기본값과 현재 운영 dashboard v1.11 process는 바꾸지 않았다.
+dashboard v1.13은 v1.12를 부모로 단일 날짜에만 relation card와 model allowlist를 추가했다. 주·월 범위는 날짜 label만 유지하며 relation은 `null`이다. 이 버전은 검증된 후보이고 feature 기본값과 당시 운영 dashboard v1.11 process는 바꾸지 않았다.
 
 ## 고정 정책
 
@@ -77,6 +79,10 @@ dashboard v1.13은 v1.12를 부모로 단일 날짜에만 relation card와 model
 ```
 
 ## 진행 기록
+
+### 2026-09-05 — 완료 이력과 현재 운영 포인터 구분
+
+- 당시 v1.11 보존 문구를 현재 service 상태로 오해하지 않도록 00 정본을 연결했다. 기존 정책·release·canary는 보존했다. 문서 검증 결과는 [재정렬 기록](../../history/2026-09-05-model-cause-roadmap.md)을 따른다.
 
 ### 2026-09-02 — 단일 날짜 relation release 승인
 

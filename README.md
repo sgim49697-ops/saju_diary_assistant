@@ -4,9 +4,12 @@
 
 Kanana 2 1.3B 기반 한국어 사주·공감 대화 baseline 프로젝트다. `KI10-MIX-v2`와 독립 `KI20-MIX-v2/run-1f5d732cae67`의 1 epoch Full FT·최종 새 프로세스 재로딩을 완료했다. Phase 6 sealed blind 자동 기술평가는 단회 완료됐고 현재 baseline 결정은 `AUTOMATED_REPAIR_REQUIRED`다. sealed blind 재실행과 품질 인증·production 승격은 금지 상태다.
 
-계산기는 Skyfield 1.55·고정 JPL DE440s·내장 UT1 v1.3 후보를 보존하면서, 정규화 양력 `1920-01-07~2026-08-31`의 과거 공식 원국만 허용하는 v1.4 chart-only runtime을 구현했다. conformance v9 `build-9f1784e74a4e`와 release `saju-runtime-release-v1.4.0-63dc8d398e90`을 검증했고, 분리된 HMAC/AEAD 키·AES-256-GCM 세션 저장·구조화 event adapter의 합성 local canary `build-ddde6dce3d3c`도 130/130으로 통과했다. feature는 계속 기본 off이고 strict/full Gate·기간 계산·production 앱 연결은 차단돼 있다. `MIX20K-v3.0.1-repaired/build-94eb7b543490`도 자동 기술 Gate가 남은 비학습 후보이며 v3.1 생성·추가 학습은 수행하지 않았다.
+계산기는 과거 공식 원국 v1.4, 단일 일진 v1.5, 일별 기간·단일 날짜 관계 release까지 구현·검증됐다. K0 기반 R8·R16·R32 LoRA 학습도 완료됐다. 2026-09-05 기준 dashboard v1.14가 운영 중이고 v1.15·20문장 비교는 검증 후보·미병합·미배포다. 60요청·54생성·6차단 진단 이후에는 원인 분리를 먼저 수행하고 데이터 보정·추가 학습을 조건부로 판단한다. strict/full·미래 물리 절입·모델 승격은 열지 않으며 feature는 기본 off다. 현재 상태의 상세와 확인 시점은 아래 기준선 정본을 따른다.
 
-- [프로젝트 현황판](PROJECT_STATUS.html)
+- [후속 실행 순서 정본](implementation/plans/saju_product_roadmap/README.md)
+- [현재 기준선·운영과 후보 구분](implementation/plans/saju_product_roadmap/00-current-baseline.md)
+- [다음 작업: 원인 분리 진단](implementation/plans/saju_product_roadmap/50-automatic-model-evaluation.md)
+- [프로젝트 현황판 — versioned 과거 집계](PROJECT_STATUS.html)
 - [10K/20K 정본 계획](implementation/plans/saju_1b_10k_20k_baseline/README.md)
 - [Phase 5 학습 계약](implementation/plans/saju_1b_10k_20k_baseline/phase-5-baseline-training.md)
 - [Phase 6 평가 계약](implementation/plans/saju_1b_10k_20k_baseline/phase-6-evaluation-v2-decision.md)

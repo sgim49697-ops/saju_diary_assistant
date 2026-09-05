@@ -2,7 +2,15 @@
 
 # K0 기반 2K correction dataset·LoRA 실험
 
-## 목적
+## 현재 위치와 후속 실행 권한 — 2026-09-05
+
+R8·R16·R32 학습과 최신 20문장 비교는 완료됐다. 현재 R16은 `build-54836f556b4f` 입력이며 별도 v1.1 보정 400건은 미완료·미반영이다. 후속 실행 순서는 [로드맵 README](saju_product_roadmap/README.md), 현재 상태는 [00 기준선](saju_product_roadmap/00-current-baseline.md), 진단 상세는 [50 원인 분리](saju_product_roadmap/50-automatic-model-evaluation.md)가 소유한다.
+
+다음은 50-A~D다. 큰 동일 계열 Instruct 기본 모델 비교를 필수로 포함하고, 400건 보정은 50-D에서 범위 적합성을 판단하기 전 자동 재개·재학습하지 않는다. 다른 세션의 실행이나 accepted 행을 취소·변경하는 지시는 아니다. 기존 5-arm 생성 비교의 미완료 상태를 보존하되 그것을 원인 분리 착수의 선행 조건으로 추가하지 않는다.
+
+아래 목적·데이터·LoRA 계약과 날짜별 진행 기록은 완료 실험 및 당시 checkpoint의 이력이다. 당시의 `남은 작업`·`다음 단계`를 새 실행 지시로 사용하지 않는다. 최소 3문장/3줄 등 고정 데이터 계약은 소급 변경하지 않으며 향후 데이터의 자동 기본값도 아니다.
+
+## 완료 실험의 목적
 
 새 학습은 사주 지식을 임의로 늘리는 작업이 아니다. Dashboard v1.11이 전달하는 원국 네 기둥·일간·위치별 세부 필드·단일 날짜의 연간지/월간지/일진을 정확히 구분하고, 필요한 사실만 자연스러운 한국어로 풀어내는 행동을 K0에 교정한다.
 
@@ -31,6 +39,11 @@ Teacher 절반은 Claude 초안→Codex grounding 판정, 나머지 절반은 Co
 - 평가: schema field accuracy, natal/period label confusion, unsupported fact rate, provided fact omission, 자연스러운 설명 선호, follow-up evidence consistency, 일반 대화 보존, 반복·template 비율, false Saju injection, re-ask rate
 
 ## 진행 기록
+
+### 2026-09-05 — 완료 학습과 조건부 보정 경계 정합화
+
+- 최근 20문장 비교에서 지시문·모델 규모·데이터/입력 원인을 아직 분리하지 못했으므로 후속 순서를 50-A~D로 위임했다. 현재 R16에 별도 400건 보정이 적용됐다는 해석을 금지한다.
+- 검증 명령·결과는 [재정렬 기록](../history/2026-09-05-model-cause-roadmap.md)을 따른다. 이번 변경은 문서·정합성 테스트이며 teacher 호출·모델 생성·추가 학습을 하지 않는다.
 
 ### 2026-09-05 — 세 rank 완료 재확인과 신규 일상 대화 진단
 
@@ -309,7 +322,7 @@ Teacher 절반은 Claude 초안→Codex grounding 판정, 나머지 절반은 Co
 - 현재 teacher 상태: immutable target `repair-23340fc31022`, target SHA `23340fc310223e5c27850f7d0f240105ac2fd799ff95703696e7c81eabf7ec5a`, provider call 55, state SHA `caca7a3bd47b9b23c6e985ccae37c4a8884ba08e7c77ff899e9d5d45f4309436`이다. 400행 중 accepted 238, Claude review 대기 3, Claude draft·rewrite 대기 159, permanent failed 0이다. Codex 배정 200행은 모두 deterministic PASS했고 Claude가 197행을 승인했으며, Claude 배정분은 60행을 작성해 Codex가 41행을 승인했다. 같은 값이 여러 fact path에 쓰이면 `used_fact_values`에는 한 번만 기록한다는 계약과 충돌하는 판정 모델의 지시는 승인으로 간주하지 않는다.
 - 중단 사유: Claude Code가 2026-09-04 14:43 KST에 HTTP 429와 `18:00 KST reset`을 명시했다. 실패 호출은 state에 기록되지 않았다. Claude 결과를 Codex 단독 승인으로 대체하지 않고, quota 복구 전 가능한 Codex review와 재작성만 완료했다.
 - 검증: `/home/user/projects/saju_diary_assistant/.venv/bin/python -m unittest tests.test_mix2k_v4 tests.test_mix2k_v4_reviewed_repair tests.test_mix2k_v4_lora_v1_1` 103건, Ruff format/check, `git diff --check`, 과거 target replay를 통과했다. 최신 source SHA는 contracts `2aedeace1f70427d03a30df812d89368bca0c4a2a053c6d60a1e992ff09fd8ba`, repair runner `6d826fc6707ade49eb28e56f7bb0f3f4b5ae6f81cd93e3ff70def56d9990f734`, data config `83cc6c36bc79e54614cdd015602bae1c2082c0bb4434343182fcf8a37ef167ae`다.
-- 다음 단계: Claude quota 복구 뒤 같은 target에서 Claude review 3건과 draft·rewrite 159건을 재개한다. 이어 Codex가 Claude 최신 draft를 별도 호출로 판정하고, 400행 전부 양방향 교차 PASS·duplicate Gate를 통과하면 부모 1,600행과 결합해 pinned Kanana tokenizer로 2,000행 token/mask/EOS/leakage 전수 감사를 수행한다. 그 결과가 준비되기 전에는 v1.1.0 build를 입력으로 하는 r=16 학습이나 production 승격을 실행하지 않는다.
+- 당시 남은 범위: Claude review 3건과 draft·rewrite 159건, 양방향 교차 PASS·duplicate Gate·부모 1,600행 결합 후 2,000행 token/mask/EOS/leakage 전수 감사다. 2026-09-05 재정렬 이후 재개 여부는 50-D에서 범위 적합성을 판단한 뒤 별도로 결정한다. v1.1.0 입력의 r=16 학습이나 production 승격으로 자동 이어지지 않는다.
 
 ### 2026-09-04 - v1.0.1 LoRA 3개 rank 순차 실행 시작
 

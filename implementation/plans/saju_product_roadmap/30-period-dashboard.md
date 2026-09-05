@@ -2,6 +2,8 @@
 
 # 30. Dashboard v1.12 기간 범위
 
+이 문서는 2026-09-02 완료 구현의 계약·재현 이력이다. 아래 v1.11 process 보존은 당시 작업 범위이며 현재 운영 상태는 [00 기준선](00-current-baseline.md)을 따른다. 후속 실행 순서는 [로드맵 README](README.md)의 50-A부터이며 이 후보를 자동 재실행·배포하지 않는다.
+
 ## 동작
 
 - 기존 네 runtime/session route를 유지한다.
@@ -25,6 +27,10 @@ feature off 10, day/상대 날짜 40, 1~31일 범위 30, label 경계 30, proces
 Gate는 HTTP 오류 0, snapshot swap 0, fabricated period fact 0, 로그·보고서 개인정보/ID 0이다. 공개 산출물은 aggregate와 build manifest뿐이다.
 
 ## 진행 기록
+
+### 2026-09-05 — 완료 이력과 현재 운영 포인터 구분
+
+- 당시 v1.11 보존 문구를 현재 service 상태로 오해하지 않도록 00 정본을 연결했다. 기존 계약·canary·후속 운영 승인 경계는 보존했다. 문서 검증 결과는 [재정렬 기록](../../history/2026-09-05-model-cause-roadmap.md)을 따른다.
 
 ### 2026-09-02 — v1.12 구현·자동 canary 완료
 
