@@ -154,10 +154,17 @@ def header_check():
 
 
 def execute(suite, binding, identity, context, output):
+    previous_umask = os.umask(0o077)
+    try:
+        return _execute_private(suite, binding, identity, context, output)
+    finally:
+        os.umask(previous_umask)
+
+
+def _execute_private(suite, binding, identity, context, output):
     header_check()
     if _compute_processes() or _gpu_snapshot()["free_mib"] < 12 * 1024:
         raise ValueError("GPU compute 유휴·12GiB 이상 여유 조건이 필요합니다.")
-    os.umask(0o077)
     output.mkdir(parents=True, mode=0o700, exist_ok=True)
     output.chmod(0o700)
     manifest = output / "build_manifest.json"

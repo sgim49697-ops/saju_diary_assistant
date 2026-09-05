@@ -1,6 +1,7 @@
 # test_dashboard_v115_replay.py - 합성 진단의 재개·변조 차단·원출력 집계를 검증한다.
 
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -14,6 +15,8 @@ from tests.test_phase5_dashboard_v1_15 import context_fixture, generated_fixture
 
 class ReplayTests(unittest.TestCase):
     def test_30_requests_27_generations_resume_without_duplicate(self):
+        previous_umask = os.umask(0o022)
+        self.addCleanup(os.umask, previous_umask)
         suite = {
             "scenarios": [
                 ("today", True, ["오늘 사주", "쉬운 말로 설명", "내일과 이번 주 운세"]),
@@ -47,6 +50,7 @@ class ReplayTests(unittest.TestCase):
                 aggregate = replay.execute(
                     suite, binding_fixture(), {"fingerprint": "fixture"}, context, out
                 )
+                self.assertEqual(os.umask(0o022), 0o022)
                 self.assertEqual(generate.call_count, 27)
                 self.assertTrue(aggregate["execution_contract_met"])
                 self.assertTrue(aggregate["first_turn_token_parity"])
