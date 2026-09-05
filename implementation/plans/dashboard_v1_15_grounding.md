@@ -66,3 +66,11 @@
 - 이번 범위는 문서 저장뿐이다. 이 20문장으로 모델 생성·프롬프트 비교를 실행하지 않았으며 기존 진단 결과와 구분한다.
 - 공유 작업 폴더에는 동일 문서만 추가하고, 기존 전용 worktree와 브랜치에서 문서·진행 기록을 커밋한다. 공유 브랜치·index, 기존 ZIP, 대시보드 서비스와 다른 세션 변경은 건드리지 않는다.
 - 검증: 20문장 원문·1~20 연속 번호·네 그룹·연속 대화 3개·분기 2개의 일치, 두 위치 파일 byte 일치와 문서 링크 2개를 확인했다. `.venv-data/bin/python -m unittest tests.test_saju_product_roadmap tests.test_phase6_technical.Phase6TechnicalTests.test_canonical_docs_forbid_person_dependent_gates -q` 5건과 `git diff --check`가 통과했다. Python은 공유 프로젝트의 절대 경로로 실행했다.
+
+### 2026-09-05 — 확정 20문장 모델 테스트 준비
+
+- 후속 요청에 따라 `scripts/evaluation/dashboard_prompt20.py`에서 확정 문장 SHA와 원국/원국+일진/비연결 구분을 고정한다. K0·R16·KI20 각 20요청, 총 54생성과 날짜·주간 범위 6차단을 기대한다. 기존 시스템 지시문·모델·생성 설정은 유지한다.
+- 각 후속 요청은 해당 모델의 부모 응답 snapshot을 복제한 별도 진단 세션을 사용한다. 11·12번은 각각 7번에서 분기하며, 기존 서비스 세션은 읽거나 수정하지 않는다. 응답·진단 기록은 새 Git 제외 build에만 보관한다.
+- 기본 실행은 무기록 dry-run이며 실제 실행에는 `DASHBOARD_PROMPT20_DIAGNOSTIC=SYNTHETIC_20_V1`과 `--execute`를 함께 요구한다. 시작만 기록된 요청의 자동 중복 실행, 입력·코드 fingerprint 변경 재개와 기존 산출물 덮어쓰기를 거부한다.
+- 준비 검증: 관련 29건·전체 Ruff·공백 검사·실제 입력 무기록 dry-run이 통과했다. 기본 umask 022의 전체 808건은 실패 4·오류 37·skip 37이며 이전 최종 805건의 실패/오류 목록과 정확히 일치한다. 최초 실행의 umask 077에서는 기존 공개 파일 0644 기대 테스트가 추가 오류를 내어 실행 환경을 바로잡았다. 진단 자체는 성공·예외 모두 호출 전 umask를 복구한다.
+- GPU 공유 잠금 아래 Torch 2.13.0+cu130, CUDA 13.0, sm_120, BF16 연산과 일치하는 Python 개발 헤더·native JIT 활성 상태를 확인했다. 실제 GPU 결과는 완료 후 추가 기록한다. Phase 6·release·학습·승격·서비스 상태는 유지한다.
