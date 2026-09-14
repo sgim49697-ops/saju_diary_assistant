@@ -21,6 +21,7 @@ HANDOFF_FILES = (
     "implementation/plans/dashboard_v1_15_grounding.md",
     "implementation/plans/saju_system_context_diagnosis.md",
     "implementation/history/2026-09-05-model-cause-roadmap.md",
+    "implementation/history/2026-09-14-default-branch-integration.md",
 )
 ORDERED_FILES = (
     "00-current-baseline.md",
