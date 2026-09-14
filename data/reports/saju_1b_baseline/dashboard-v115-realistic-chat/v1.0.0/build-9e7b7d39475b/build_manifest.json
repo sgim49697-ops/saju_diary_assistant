@@ -1,0 +1,46 @@
+{
+  "build_id": "build-9e7b7d39475b",
+  "identity": {
+    "artifacts": {
+      "aggregate.json": {
+        "bytes": 1870,
+        "sha256": "557c244699b088da07f2710ca8d369f8302bf1fb251cca804b13cf267ce9f0be"
+      },
+      "http_canary.json": {
+        "bytes": 920,
+        "sha256": "77bfb0679517f958e9216cfb73681c016068bca70822b334baf0447ad5e92a1d"
+      },
+      "verification.json": {
+        "bytes": 894,
+        "sha256": "6f1f376bc654e61ca5387b5e05eb3ad308f37e963d79685cc709e152ba8ff39b"
+      }
+    },
+    "executed_code_sha256": {
+      "configs/chat_prompts/saju_bound_chart_v2.txt": "55bdcec6bdf7fa6a91fb68b03cd4a296c705ab9bac0e77abb067190519cc8f90",
+      "configs/chat_prompts/saju_intake_runtime_v2.txt": "9553310c9ad1dbfa771043d0d5d283c091c4a5dcf64d274023ed71de73bbee87",
+      "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.15.0-grounding-candidate.json": "0b79551f35ecd6764842d7b26f44805548e8b896b5aa395ef0c0ba9b8fe401d3",
+      "scripts/evaluation/dashboard_v115_http_canary.py": "f8bc982831d610f0feb4f3f100ebd68db6fcdb23b32b8bb20a75e5be5d9ee157",
+      "scripts/evaluation/dashboard_v115_replay.py": "60ee8a5cd4822b50c8ffe071b8ac34dc22068230a78aeee64e3e16569cee3317",
+      "scripts/training/dashboard_grounding_v2.py": "d3734d046e5209fc83a5e1c1edb03b36e1232c41f72cdee9a9ab128bc6dcf8f2",
+      "scripts/training/dashboard_tokenizer_v1.py": "df57b44fa1cf4429258ba219c7cf2613edb1bce88ba31868636d34b9a18107be",
+      "scripts/training/phase5_dashboard_v1_15.py": "c7f8076643d294660122dc7e1d19c217d8af37bf10686d8f5b8593462775662d"
+    },
+    "execution_commit": "b0a61895db07a7e69414828a3e9bb813fb6e8c40",
+    "http_build_manifest_sha256": "a44cec3991128b9b4885a36d08f163c7c6d80ae4cc34460e116d4c0698baf3b8",
+    "packages": {
+      "peft": "0.20.0",
+      "skyfield": "1.55",
+      "tokenizers": "0.22.2",
+      "torch": "2.13.0",
+      "transformers": "4.57.6"
+    },
+    "private_prompt_or_output_published": false,
+    "production_promotion_allowed": false,
+    "python": "3.10.12",
+    "replay_build_manifest_sha256": "5e5280a2be48542814fa131d872ed8a1edc6ba7937e926b057416139e10e6986",
+    "replay_private_manifest_sha256": "e8415e1f197d589692f0c1c450083be27c0fa4991175209f3b26405270698d8f",
+    "schema_version": "1.0.0",
+    "scorer_version": "saju-bound-chart-grounding-v2.0.1"
+  },
+  "identity_sha256": "9e7b7d39475bd849f2b1eb92b4743d9458352f4c41644c395605fc07303ea073"
+}

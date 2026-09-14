@@ -1,0 +1,95 @@
+{
+  "schema_version": "1.0.0",
+  "build_id": "build-9ab2958c83dc",
+  "identity": {
+    "schema_version": "1.0.0",
+    "dashboard_version": "1.15.0",
+    "frozen_server_kst_date": "2026-09-05",
+    "snapshot_sha256": "c83e48570a69db64d74eb7ec378752af4662bfbd68aac67d98635800e46a8ca8",
+    "source_sha256": {
+      "suite.json": "2691ee90456d47524917aef19334b52b6d590cfd77fc89df9f3d78672e3aea99",
+      "today.runtime.json": "52902a615886e2dd2e7eb199301294d1fc58fbb3855c2609a15f2bfda69390ce"
+    },
+    "code_sha256": {
+      "scripts/evaluation/dashboard_v115_replay.py": "60ee8a5cd4822b50c8ffe071b8ac34dc22068230a78aeee64e3e16569cee3317",
+      "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.15.0-grounding-candidate.json": "0b79551f35ecd6764842d7b26f44805548e8b896b5aa395ef0c0ba9b8fe401d3",
+      "scripts/training/phase5_dashboard_v1_15.py": "c7f8076643d294660122dc7e1d19c217d8af37bf10686d8f5b8593462775662d",
+      "scripts/training/dashboard_grounding_v2.py": "d3734d046e5209fc83a5e1c1edb03b36e1232c41f72cdee9a9ab128bc6dcf8f2",
+      "scripts/training/dashboard_tokenizer_v1.py": "df57b44fa1cf4429258ba219c7cf2613edb1bce88ba31868636d34b9a18107be",
+      "configs/chat_prompts/saju_bound_chart_v2.txt": "55bdcec6bdf7fa6a91fb68b03cd4a296c705ab9bac0e77abb067190519cc8f90",
+      "configs/chat_prompts/saju_intake_runtime_v2.txt": "9553310c9ad1dbfa771043d0d5d283c091c4a5dcf64d274023ed71de73bbee87",
+      "scripts/evaluation/dashboard_prompt20.py": "fc346599d97cf36128c5aaeaf0bb247b4ad9a069fda50c8cf2f636d2d2596cf8"
+    },
+    "engines": [
+      "k0_instruct",
+      "lora_r16",
+      "ki20_final"
+    ],
+    "expected_requests": 60,
+    "expected_generations": 54,
+    "expected_pre_generation_blocks": 6,
+    "sealed_blind_accessed": false,
+    "production_promotion_allowed": false,
+    "training_performed": false,
+    "first_turn_token_identity_required": true,
+    "followup_history": "own_engine_only",
+    "diagnostic_version": "synthetic-prompt20-v1.0.0",
+    "prompt_document_sha256": "e28a1a9defdbaf279b24896f663b581e0a49f76f07077230d06c3060a61eec18",
+    "prompts_sha256": "c78b08d30bd122bc56823eb731ed6e135a12be28a8652770a2e91d777fcdb72e",
+    "chart_snapshot_sha256": "687e318e70c4c1d7ffc4cf1a0f874b44370483ebc4bb421ed7f25bebefbfa9a9",
+    "expected_first_turn_groups": 12,
+    "generation": {
+      "do_sample": false,
+      "num_beams": 1,
+      "num_beam_groups": 1,
+      "num_return_sequences": 1,
+      "max_input_tokens": 4096,
+      "max_new_tokens": 4096,
+      "min_new_tokens": 0,
+      "native_context_tokens_minimum": 8192,
+      "use_cache": true,
+      "bos_token_id": 128000,
+      "eos_token_id": [
+        128010
+      ],
+      "pad_token_id": 128001,
+      "return_dict_in_generate": false,
+      "output_scores": false,
+      "renormalize_logits": false,
+      "remove_invalid_values": false,
+      "fix_mistral_regex": false,
+      "retry_or_grounding_rewrite_allowed": false,
+      "ignore_model_directory_generation_config": true
+    },
+    "system_prompt_changed": false,
+    "raw_output_rewrite_allowed": false,
+    "executed_code_commit": "f973f0436c68310a6a8cbf5c6f3e191ee6900f03",
+    "model_snapshots": {
+      "k0_instruct": {
+        "revision": "bf4786aa2a1908adce942d53976270132732f720",
+        "model_sha256": "49aa6cd8686563c59321d83810731956c61ec8d5c8538a249d38007986cdc942"
+      },
+      "lora_r16": {
+        "revision": "train-f340a82c76d3",
+        "model_sha256": "0ca0a3ba526370ab78fba55f5bd64e4744c172ca412c9cad4ef68797dbb029c5"
+      },
+      "ki20_final": {
+        "revision": "run-1f5d732cae67",
+        "model_sha256": "2fae23e28471c07d7db0c338bc6370493191722180ecc502de7e1e1d5fe5872d"
+      }
+    },
+    "expected_followup_edges": 8
+  },
+  "artifacts": {
+    "aggregate.json": {
+      "sha256": "a98f610edb323f6e96c8d98897eeebc052f75f0b8aa735cee5c472f34e98bdeb",
+      "bytes": 2167
+    },
+    "verification.json": {
+      "sha256": "34fc913ffeacc3b0da2ac6dbb334e9740ed20fafd770a122c77d865091152930",
+      "bytes": 1132
+    }
+  },
+  "aggregate_only": true,
+  "raw_outputs_tracked": false
+}

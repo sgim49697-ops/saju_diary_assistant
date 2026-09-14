@@ -1,0 +1,70 @@
+{
+  "dashboard_version": "1.15.0",
+  "execution_contract_met": true,
+  "first_turn_groups": 6,
+  "first_turn_token_parity": true,
+  "model_quality_approval": false,
+  "models": {
+    "k0_instruct": {
+      "block_codes": {
+        "RUNTIME_PERIOD_SCOPE_UNSUPPORTED": 1
+      },
+      "bound_diagnostic_pass": 1,
+      "bound_generated": 4,
+      "generated": 9,
+      "max_input_tokens": 1986,
+      "nonempty": 9,
+      "omitted_turns": 0,
+      "pre_generation_blocks": 1,
+      "warnings": {
+        "chart_fact_missing": 1,
+        "day_master_value_mismatch": 1,
+        "natal_day_value_mismatch": 2,
+        "natal_hour_value_mismatch": 1,
+        "natal_month_value_mismatch": 1,
+        "period_day_fact_missing": 1,
+        "period_day_value_mismatch": 1
+      }
+    },
+    "ki20_final": {
+      "block_codes": {
+        "RUNTIME_PERIOD_SCOPE_UNSUPPORTED": 1
+      },
+      "bound_diagnostic_pass": 0,
+      "bound_generated": 4,
+      "generated": 9,
+      "max_input_tokens": 1802,
+      "nonempty": 9,
+      "omitted_turns": 0,
+      "pre_generation_blocks": 1,
+      "warnings": {
+        "chart_fact_missing": 1,
+        "day_master_fact_missing": 1,
+        "natal_day_value_mismatch": 1,
+        "period_day_fact_missing": 1,
+        "prompt_instruction_echo": 1
+      }
+    },
+    "lora_r16": {
+      "block_codes": {
+        "RUNTIME_PERIOD_SCOPE_UNSUPPORTED": 1
+      },
+      "bound_diagnostic_pass": 4,
+      "bound_generated": 4,
+      "generated": 9,
+      "max_input_tokens": 1787,
+      "nonempty": 9,
+      "omitted_turns": 0,
+      "pre_generation_blocks": 1,
+      "warnings": {}
+    }
+  },
+  "naturalness": "not_measured",
+  "phase6_changed": false,
+  "production_promotion_allowed": false,
+  "requests": 30,
+  "runtime_release_changed": false,
+  "schema_version": "1.0.0",
+  "sealed_blind_accessed": false,
+  "semantics": "not_measured"
+}

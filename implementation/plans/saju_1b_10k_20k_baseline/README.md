@@ -11,6 +11,12 @@
 | 실험 범위 | 1K smoke, 같은 base에서 각각 시작하는 10K·20K Full FT, 사후 자동 기술평가와 baseline 결정 |
 | 배포 성격 | 광고형 자체 서비스 후보. 원문·checkpoint 공개와 원격 모델 접근 판매는 별도 Gate |
 
+## 완료 이후 후속 정본 — 2026-09-05
+
+Phase 0~6의 상태·아래 고정 Full FT 계약·날짜별 기록은 완료 이력으로 유지한다. 이후 완료된 기간·관계 Runtime, R8·R16·R32 LoRA, 20문장 진단을 이 초기 실험의 미완료 단계로 되돌리지 않는다. 현재 앱은 v1.14 운영 / v1.15 검증 후보·미병합·미배포이며, 아래 v1.11 운영 설명은 당시 이력이다.
+
+후속 실행 순서는 [제품 로드맵](../saju_product_roadmap/README.md), 현재 상태는 [00 기준선](../saju_product_roadmap/00-current-baseline.md), 진단 상세는 [50 원인 분리](../saju_product_roadmap/50-automatic-model-evaluation.md)를 따른다. 원인 분리 뒤 데이터·학습을 조건부로 결정하며 기존 Phase 6 판정·sealed blind·release·checkpoint를 변경하지 않는다.
+
 ## 고정 실험 계약
 
 - 모든 품질 Gate와 baseline 결정은 저장소 내부의 재현 가능한 자동 기술지표로만 수행한다. 계약 밖의 별도 평가 작업은 필수 조건이나 사용자 후속 작업으로 요구하지 않는다.
@@ -251,6 +257,11 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
 - 원본 SHA-256: `11dde66505aa3ca90834488a877a0f4db42512d9cb377880d935f71bc71d3724`
 
 ## 진행 기록
+
+### 2026-09-05 — 완료 Phase와 후속 원인 분리의 권한 분리
+
+- 초기 Full FT·Phase 0~6 계약은 보존하고 최신 LoRA·20문장 진단 이후 실행 순서·현재 상태·진단 상세를 제품 로드맵에 연결했다. 과거 v1.11 운영 설명을 최신 서비스 상태로 사용하지 않는다.
+- 검증 명령·결과는 [재정렬 기록](../../history/2026-09-05-model-cause-roadmap.md)을 따른다. Phase 상태·sealed blind·release·학습 산출물은 변경하지 않았다.
 
 - 2026-09-02
   - 작업 요약: 학습 Phase와 분리된 chart-only dashboard v1.9 production canary `build-ea53c272c1d6`와 실제 공개 앱 통합 smoke를 완료했다.

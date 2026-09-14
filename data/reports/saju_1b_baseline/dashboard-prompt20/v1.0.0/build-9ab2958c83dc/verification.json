@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0.0",
+  "actual_model_generations": 54,
+  "resume_additional_generations": 0,
+  "input_token_identity_recomputed": 54,
+  "parent_history_verified_requests": 60,
+  "private_inventory_entries": 122,
+  "private_session_files": 60,
+  "private_sha_and_permissions_verified": true,
+  "resume_files_unchanged": true,
+  "targeted_tests": {
+    "run": 29,
+    "passed": 29
+  },
+  "full_tests": {
+    "run": 808,
+    "failures": 4,
+    "errors": 37,
+    "skipped": 37,
+    "same_failure_and_error_names_as_previous": true
+  },
+  "previous_full_tests": {
+    "run": 805,
+    "failures": 4,
+    "errors": 37,
+    "skipped": 37
+  },
+  "ruff": "passed",
+  "gpu_environment": {
+    "torch": "2.13.0+cu130",
+    "cuda": "13.0",
+    "sm_120": true,
+    "bf16_operation": "passed",
+    "matching_python_headers": true,
+    "native_jit_enabled": true
+  },
+  "generation_elapsed_seconds": {
+    "k0_instruct": 115.312,
+    "lora_r16": 155.412,
+    "ki20_final": 84.325
+  },
+  "existing_service_http_status": 200,
+  "raw_output_rewrite_count": 0,
+  "sealed_blind_accessed": false,
+  "existing_service_process_unchanged": true
+}
