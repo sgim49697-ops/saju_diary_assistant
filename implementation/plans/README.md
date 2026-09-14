@@ -28,7 +28,7 @@
 | 계산기 연결 대화 | 기존 500건을 `eval-562c07d0e2e6`으로 재채점하고 2,048↔3,584 장문 200건 `eval-56d1357560d5` 완료 | 두 장문 arm 자동 목표 통과·3,584 상한 유지 후보, 전체 baseline·release·학습 권한 불변 |
 | K0 기반 LoRA | R8·R16·R32 학습 완료, 별도 400건 보정은 현재 R16에 미반영 | 새 학습·보정 재개는 원인 분리 후 별도 판단 |
 | 최신 대화 진단 | 20문장×3모델 60요청·54생성·6사전 차단 완료 | 50-A~D는 후속, 구조 통과 수를 정확도로 사용하지 않음 |
-| 앱 | dashboard v1.14 운영 / v1.15 검증 후보·미병합·미배포 | 현재 service·기본 모델 유지, 후보 검증만으로 교체하지 않음 |
+| 앱 | dashboard v1.14 운영 / v1.15 검증 후보·병합 완료·운영 미배포 | PR #28·원본 master 동기화 완료, 현재 service·기본 모델 유지 |
 
 루트 [`PROJECT_STATUS.html`](../../PROJECT_STATUS.html)은 Phase 6·대화 진단까지의 공개 집계를 `project-status/v1.3.0/build-38b9ca77ce45`로 보여준다. 이후 완료한 runtime release와 앱 통합은 모델·승격 상태를 바꾸지 않으므로 runtime 정본과 각 versioned 보고서에 별도로 고정한다. 현재 계산기 권위는 부모 v9 `data/reports/saju_runtime_conformance/v1.7.0/build-9f1784e74a4e/`와 단일 일진 v10 `data/reports/saju_runtime_conformance/v1.8.0/build-46185262164f/`를 함께 따른다.
 
@@ -49,6 +49,11 @@ Phase 6은 이미 단회 소비됐으므로 재실행하지 않고 다음 명령
 AI Hub 원문·내부 ID·private 결과·checkpoint는 계속 Git과 공개 보고서에서 제외한다. Phase 6의 공개 근거는 `data/reports/saju_1b_baseline/phase6-technical/v1.0.0/eval-e8630962cab2/`의 집계 3파일만 사용한다. 이후 대화 진단은 각 정본에 연결된 별도 공개 aggregate·manifest를 따른다.
 
 ## 진행 기록
+
+### 2026-09-14 — 최신 코드·문서의 기본 브랜치 통합
+
+- PR #28 `3bb0ce2`로 v1.15·20문장 진단·최신 정본과 기본 브랜치 작업 규칙을 통합하고 원본 폴더를 `master`에 맞췄다. 운영 service·모델·학습·기존 Gate는 유지한다.
+- 검증 결과와 브랜치·자료 보존 경계는 [통합 기록](../history/2026-09-14-default-branch-integration.md)을 따른다.
 
 ### 2026-09-14 — 전체 흐름 실험 설계 정본 연결
 

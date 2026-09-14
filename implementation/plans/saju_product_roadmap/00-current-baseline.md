@@ -2,15 +2,15 @@
 
 # 00. 현재 기준선과 권한 경계
 
-이 문서는 후속 로드맵의 **현재 상태 정본**이다. Git·운영 service는 2026-09-14 읽기 전용으로 재확인했고 학습·응답·데이터 수치는 아래 연결된 기존 완료 기록을 따른다. 실행 순서는 [로드맵 README](README.md), 진단 상세는 [50번 문서](50-automatic-model-evaluation.md)가 소유한다.
+이 문서는 후속 로드맵의 **현재 상태 정본**이다. 2026-09-14 PR #28 병합·원본 폴더 동기화 후 상태이며, 학습·응답·데이터 수치는 아래 연결된 기존 완료 기록을 따른다. 실행 순서는 [로드맵 README](README.md), 진단 상세는 [50번 문서](50-automatic-model-evaluation.md)가 소유한다.
 
 ## Git와 실제 운영을 구분한 기준선
 
 | 구분 | 확인 값 | 해석 |
 |---|---|---|
-| 원격 master | `b78f8e630261db7a1561c649d5fadac91e321d58` | 원격 조회 시점의 병합 상태 |
-| 진단 후보 | `codex/dashboard-v115-grounding` / `26462137f9a4ef34adb2d3db0dd6eaff6282b309` | v1.15·20문장 검증 완료, 미병합·미배포 |
-| 이번 문서 브랜치 | `codex/system-context-audit-plan`, 문서 부모 `f34f8562f24116558cd39fbc2a69cea430bb1158` 기반 | `codex/model-cause-roadmap`의 후속 문서·테스트 변경; master 동기화·병합 작업 아님 |
+| master 통합 기준 | `3bb0ce2affa50e395ef21b473f1e27c5ff5fdb38` | PR #28 병합 지점; 이후 상태 정리 커밋도 master에서 진행 |
+| 진단 후보 근거 | `26462137f9a4ef34adb2d3db0dd6eaff6282b309` | v1.15·20문장 검증·병합 완료·운영 미배포 |
+| 현재 작업 위치 | 원본 프로젝트 폴더의 `master` | `f34f856`·`56b0ecb`·작업 규칙 `f9173e5`까지 통합, 새 작업 브랜치 없음 |
 | 운영 service | `saju-mix2k-r16-dashboard-v1-14.service`, dashboard v1.14 | active/running, `127.0.0.1:8767` |
 | 운영 코드 | `0e77621846c4e9894cb40d801e84d59ad57cb0de` | 원격 master나 진단 후보 HEAD와 같다고 가정하지 않음 |
 | 모델 선택 | 기본 `ki20_final`, R16 선택 가능 | 진단의 관찰은 기본 모델 교체 승인이 아님 |
@@ -58,6 +58,8 @@
 
 최신 후보 검증은 [v1.15 완료 기록](../../history/2026-09-05-dashboard-v115-grounding.md), [20문장 완료 기록](../../history/2026-09-05-dashboard-prompt20.md)의 범위·결과·한계를 따른다. private artifact가 없는 격리 환경에서 생기는 전체 회귀 오류를 성공으로 기록하지 않는다.
 
+2026-09-14 병합 후 원본 폴더 재검증은 CPU 표적 58건 통과, 전체 unittest 841건에서 실패 5·오류 17이다. 잔여는 기존 LoRA hash 계약·teacher recovery fixture·고정 날짜 충돌이며 이번 문서/분기 정책 변경과 구분한다. 전체 성공으로 표시하지 않고 S0/S1에서 먼저 확인한다. 환경 차이·정확한 검증 범위와 보존 기록은 [기본 브랜치 통합 기록](../../history/2026-09-14-default-branch-integration.md)을 따른다.
+
 ## 변경하지 않는 권한
 
 - Phase 6은 완료 상태를 유지하고, 소비된 sealed blind `spent_completed`는 열거나 재사용하지 않는다.
@@ -66,6 +68,11 @@
 - 원본·private 응답·출생정보·키·checkpoint·불변 report/config는 이번 변경 대상이 아니다.
 
 ## 진행 기록
+
+### 2026-09-14 — PR #28 병합·원본 폴더 동기화
+
+- `3bb0ce2`를 기준으로 최신 대화 후보·계획·분기 정책을 통합했다. 원본 폴더는 `master`로 전환했으며 운영 v1.14는 기존 코드·PID를 유지한다.
+- 코드 반영과 배포를 구분하도록 현재 상태 포인터를 교정했다. 테스트·브랜치 정리와 자료 보존 결과는 [통합 기록](../../history/2026-09-14-default-branch-integration.md)을 따른다.
 
 ### 2026-09-14 — 운영·문서 부모 재확인
 

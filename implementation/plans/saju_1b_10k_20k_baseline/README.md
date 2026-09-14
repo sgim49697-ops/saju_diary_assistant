@@ -13,7 +13,7 @@
 
 ## 완료 이후 후속 정본 — 2026-09-05
 
-Phase 0~6의 상태·아래 고정 Full FT 계약·날짜별 기록은 완료 이력으로 유지한다. 이후 완료된 기간·관계 Runtime, R8·R16·R32 LoRA, 20문장 진단을 이 초기 실험의 미완료 단계로 되돌리지 않는다. 현재 앱은 v1.14 운영 / v1.15 검증 후보·미병합·미배포이며, 아래 v1.11 운영 설명은 당시 이력이다.
+Phase 0~6의 상태·아래 고정 Full FT 계약·날짜별 기록은 완료 이력으로 유지한다. 이후 완료된 기간·관계 Runtime, R8·R16·R32 LoRA, 20문장 진단을 이 초기 실험의 미완료 단계로 되돌리지 않는다. 현재 앱은 v1.14 운영 / v1.15 검증 후보·병합 완료·운영 미배포이며, 아래 v1.11 운영 설명은 당시 이력이다. PR #28의 코드 통합과 기본 브랜치 동기화는 기존 Phase 상태를 변경하지 않는다.
 
 후속 실행 순서는 [제품 로드맵](../saju_product_roadmap/README.md), 현재 상태는 [00 기준선](../saju_product_roadmap/00-current-baseline.md), 진단 상세는 [50 원인 분리](../saju_product_roadmap/50-automatic-model-evaluation.md)를 따른다. 원인 분리 뒤 데이터·학습을 조건부로 결정하며 기존 Phase 6 판정·sealed blind·release·checkpoint를 변경하지 않는다.
 

@@ -46,10 +46,10 @@ FORBIDDEN_REQUIRED_GATES = (
 class SajuProductRoadmapTests(unittest.TestCase):
     def test_index_uses_current_runtime_and_execution_order(self) -> None:
         index = (ROADMAP_ROOT / "README.md").read_text(encoding="utf-8")
-        self.assertIn("saju-product-roadmap-v1.2.0", index)
+        self.assertIn("saju-product-roadmap-v1.2.1", index)
         self.assertIn("26462137f9a4ef34adb2d3db0dd6eaff6282b309", index)
         self.assertIn("saju-runtime-release-v1.5.0-8b1d6ea2d46e", index)
-        self.assertIn("dashboard v1.14 운영 / v1.15 검증 후보·미병합·미배포", index)
+        self.assertIn("dashboard v1.14 운영 / v1.15 검증 후보·병합 완료·운영 미배포", index)
         offsets = [index.index(name) for name in ORDERED_FILES]
         self.assertEqual(offsets, sorted(offsets))
 
@@ -100,10 +100,11 @@ class SajuProductRoadmapTests(unittest.TestCase):
     def test_baseline_separates_remote_candidate_and_running_service(self) -> None:
         text = (ROADMAP_ROOT / "00-current-baseline.md").read_text(encoding="utf-8")
         for marker in (
-            "b78f8e630261db7a1561c649d5fadac91e321d58",
+            "3bb0ce2affa50e395ef21b473f1e27c5ff5fdb38",
             "26462137f9a4ef34adb2d3db0dd6eaff6282b309",
             "0e77621846c4e9894cb40d801e84d59ad57cb0de",
-            "미병합·미배포",
+            "병합 완료·운영 미배포",
+            "원본 프로젝트 폴더의 `master`",
             "saju-mix2k-r16-dashboard-v1-14.service",
             "기본 `ki20_final`",
             "R8·R16·R32",
