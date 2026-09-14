@@ -6,6 +6,8 @@
 
 이 문서는 모델·데이터의 **요약 문서**다. 실행 순서는 [로드맵 README](implementation/plans/saju_product_roadmap/README.md), 현재 상태는 [00 기준선](implementation/plans/saju_product_roadmap/00-current-baseline.md), 진단 상세는 [50 자동 모델 평가](implementation/plans/saju_product_roadmap/50-automatic-model-evaluation.md)가 소유한다. 여기서 별도 평가 수량·임계값·학습 순서를 만들지 않는다.
 
+50의 전체 경로·통제 변수·파일 구현 순서는 [컨텍스트 진단 실행 설계](implementation/plans/saju_system_context_diagnosis.md)를 따른다. 모델 크기뿐 아니라 계산·대화 상태·정보 선택·지시문·이력·학습·검사·실제 배포를 함께 확인한다.
+
 ## 완료와 미완료
 
 | 항목 | 상태 | 해석 |
@@ -22,16 +24,16 @@
 
 [20문장 완료 기록](implementation/history/2026-09-05-dashboard-prompt20.md)에서 연결 구조 검사 통과는 K0 8/13·R16 10/13·KI20 8/13이었다. R16의 일간·일주/일진 구분 개선이 있지만 세 모델 모두 틀린 일간 전제를 수용했다. 시간 범위, 개념 설명, 일반 대화 전환, 요청한 형식에서도 오류가 관찰됐다.
 
-입력 token identity·부모 이력은 검증됐고 최대 입력 2,024 token·제외 대화 0이었다. 무조건 context 확대나 재학습을 시작할 근거는 없다. 유한 검사기의 오탐·누락 때문에 위 통과 수를 모델 정확도나 해석 품질로 부르지 않는다.
+입력 token identity·부모 이력은 검증됐고 최대 입력 2,024 token·제외 대화 0이었다. 무조건 context 확대나 재학습을 시작할 근거는 없지만, 입력이 잘리지 않았다는 사실은 컨텍스트 간섭이 없다는 증거가 아니다. 필요한 정보만 준 조건과 전체 정보 조건을 작은/큰 기본 모델에 교차 적용한다. 유한 검사기의 오탐·누락 때문에 위 통과 수를 모델 정확도나 해석 품질로 부르지 않는다.
 
 현재 R16 데이터에서 일반 공감 250행은 모두 원국 미연결이고 2,000행 중 1,751행이 3줄 이상 답변이었다. 이는 연결 중 일반 대화 전환과 짧은 형식 요청의 커버리지를 점검할 단서이지 원인 확정이 아니다. 특정 문자열 0건만으로 의미상 예제 부재를 단정하지 않는다. 세부 집계 조건은 [재정렬 기록](implementation/history/2026-09-05-model-cause-roadmap.md)을 따른다.
 
 ## 다음 판단의 원칙
 
-- 모델 오류·검사기 오류·미측정 품질을 분리하고, R16 현재 지시문 대 개선 후보 하나를 비교한다.
+- 모델 오류·검사기 오류·미측정 품질을 분리하고 계산→상태→최종 입력→화면 경로부터 검증한다. 정보량 비교와 R16 현재 지시문 대 개선 후보 하나의 비교를 별도로 수행한다.
 - 큰 동일 계열 Instruct 기본 모델 비교는 필수다. K0 1.3B 기본 모델을 기준으로 크기 가설을 점검하며 R16과 큰 기본 모델만의 차이를 크기 효과로 부르지 않는다.
 - 모델별 공식 tokenizer/template·revision·정밀도·VRAM 조건을 실행 전에 등록한다. 다른 모델의 token ID 동일성을 요구하거나 메모리 부족 때 다른 계열·양자화로 자동 대체하지 않는다.
-- 남은 오류에 대해서만 데이터 커버리지와 serving 입력 상태를 점검한다. 별도 400건 보정의 범위가 이번 오류를 해결하는지도 이때 판단한다.
+- 데이터·학습·serving 계약과 무결성을 처음부터 확인하고 비교 후 남은 오류와 연결한다. 별도 400건 보정의 범위가 이번 오류를 해결하는지도 이때 판단한다.
 - [60 데이터 build](implementation/plans/saju_product_roadmap/60-mix20k-v3-1-build.md)와 [70 학습·승격](implementation/plans/saju_product_roadmap/70-training-and-promotion.md)은 조건부 후속이다. 진단 완료만으로 자동 진행하지 않으며 모델 크기·학습 방식·규모는 별도 결정이다.
 
 ## 평가·데이터 보존 원칙
@@ -43,6 +45,10 @@
 [기존 Phase 정본](implementation/plans/saju_1b_10k_20k_baseline/README.md), [v3 후보 보정 정본](implementation/plans/mix20k_v3_repair_plan.md), LoRA의 versioned 계약은 당시 실행 범위를 보존한다. 과거 768 길이·최소 3문장/3줄·Full FT 지시를 새 실험의 자동 기본값으로 복사하지 않는다.
 
 ## 진행 기록
+
+### 2026-09-14 — 모델 단독 진단에서 전체 경로 비교로 구체화
+
+- 입력 용량과 컨텍스트 간섭을 분리하고 정보 선택·크기 교차 비교를 50과 [새 실행 설계](implementation/plans/saju_system_context_diagnosis.md)에 연결했다. 검증 결과는 새 계획의 진행 기록을 따르며 다운로드·모델 실행·학습·서비스·기존 판정은 변경하지 않았다.
 
 ### 2026-09-05 — 보정·학습보다 원인 분리를 선행
 

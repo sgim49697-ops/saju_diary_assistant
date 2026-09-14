@@ -9,6 +9,7 @@ Kanana 2 1.3B 기반 한국어 사주·공감 대화 baseline 프로젝트다. `
 - [후속 실행 순서 정본](implementation/plans/saju_product_roadmap/README.md)
 - [현재 기준선·운영과 후보 구분](implementation/plans/saju_product_roadmap/00-current-baseline.md)
 - [다음 작업: 원인 분리 진단](implementation/plans/saju_product_roadmap/50-automatic-model-evaluation.md)
+- [전체 흐름·컨텍스트 진단 실행 계획](implementation/plans/saju_system_context_diagnosis.md)
 - [프로젝트 현황판 — versioned 과거 집계](PROJECT_STATUS.html)
 - [10K/20K 정본 계획](implementation/plans/saju_1b_10k_20k_baseline/README.md)
 - [Phase 5 학습 계약](implementation/plans/saju_1b_10k_20k_baseline/phase-5-baseline-training.md)

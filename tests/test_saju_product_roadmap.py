@@ -19,6 +19,7 @@ HANDOFF_FILES = (
     "implementation/plans/saju_1b_10k_20k_baseline/README.md",
     "implementation/plans/mix2k_v4_chart_day_lora.md",
     "implementation/plans/dashboard_v1_15_grounding.md",
+    "implementation/plans/saju_system_context_diagnosis.md",
     "implementation/history/2026-09-05-model-cause-roadmap.md",
 )
 ORDERED_FILES = (
@@ -44,7 +45,7 @@ FORBIDDEN_REQUIRED_GATES = (
 class SajuProductRoadmapTests(unittest.TestCase):
     def test_index_uses_current_runtime_and_execution_order(self) -> None:
         index = (ROADMAP_ROOT / "README.md").read_text(encoding="utf-8")
-        self.assertIn("saju-product-roadmap-v1.1.0", index)
+        self.assertIn("saju-product-roadmap-v1.2.0", index)
         self.assertIn("26462137f9a4ef34adb2d3db0dd6eaff6282b309", index)
         self.assertIn("saju-runtime-release-v1.5.0-8b1d6ea2d46e", index)
         self.assertIn("dashboard v1.14 운영 / v1.15 검증 후보·미병합·미배포", index)

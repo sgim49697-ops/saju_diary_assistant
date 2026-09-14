@@ -2,7 +2,7 @@
 
 # 00. 현재 기준선과 권한 경계
 
-이 문서는 후속 로드맵의 **현재 상태 정본**이다. 2026-09-05 확인 시점의 상태이며, 실행 순서는 [로드맵 README](README.md), 진단 상세는 [50번 문서](50-automatic-model-evaluation.md)가 소유한다.
+이 문서는 후속 로드맵의 **현재 상태 정본**이다. Git·운영 service는 2026-09-14 읽기 전용으로 재확인했고 학습·응답·데이터 수치는 아래 연결된 기존 완료 기록을 따른다. 실행 순서는 [로드맵 README](README.md), 진단 상세는 [50번 문서](50-automatic-model-evaluation.md)가 소유한다.
 
 ## Git와 실제 운영을 구분한 기준선
 
@@ -10,7 +10,7 @@
 |---|---|---|
 | 원격 master | `b78f8e630261db7a1561c649d5fadac91e321d58` | 원격 조회 시점의 병합 상태 |
 | 진단 후보 | `codex/dashboard-v115-grounding` / `26462137f9a4ef34adb2d3db0dd6eaff6282b309` | v1.15·20문장 검증 완료, 미병합·미배포 |
-| 이번 문서 브랜치 | `codex/model-cause-roadmap`, 위 진단 후보 기반 | 문서·정합성 테스트만 변경, master 동기화·병합 작업 아님 |
+| 이번 문서 브랜치 | `codex/system-context-audit-plan`, 문서 부모 `f34f8562f24116558cd39fbc2a69cea430bb1158` 기반 | `codex/model-cause-roadmap`의 후속 문서·테스트 변경; master 동기화·병합 작업 아님 |
 | 운영 service | `saju-mix2k-r16-dashboard-v1-14.service`, dashboard v1.14 | active/running, `127.0.0.1:8767` |
 | 운영 코드 | `0e77621846c4e9894cb40d801e84d59ad57cb0de` | 원격 master나 진단 후보 HEAD와 같다고 가정하지 않음 |
 | 모델 선택 | 기본 `ki20_final`, R16 선택 가능 | 진단의 관찰은 기본 모델 교체 승인이 아님 |
@@ -41,7 +41,7 @@
 - 별도 v1.1 보정 `repair-23340fc31022`는 마지막 확인 checkpoint 기준 accepted 238/400, 판정 대기 3, 초안·재작성 대기 159다. 현재 R16에 반영되지 않았다. 자동 재개하지 않고 50-D에서 보정 범위의 적합성을 먼저 판단한다. 다른 세션의 실행을 취소하는 지시는 아니다.
 - 기존 `MIX20K-v3.0.1-repaired/build-94eb7b543490`은 비학습 후보로 보존한다. 당시 chart 4,350회·period 900회, canonical 대기 3,800행·exact duplicate 참여 2,035행 등은 [보정 정본](../mix20k_v3_repair_plan.md)의 이력이며 현재 2K 학습 데이터 통계와 섞지 않는다.
 - 최신 [20문장 공개 집계](../../../data/reports/saju_1b_baseline/dashboard-prompt20/v1.0.0/build-9ab2958c83dc/aggregate.json)는 연결 구조 검사 K0 8/13·R16 10/13·KI20 8/13이다. 분모는 생성 18건 중 연결 13건이며 정확도나 의미 품질 점수가 아니다.
-- 최대 입력 2,024 token·제외 대화 0, 첫 질문 12개 그룹 token identity 일치가 확인됐다. 이번 실패를 context 용량 부족으로 단정할 근거는 없다. 자동 검사기의 누락·오탐과 실제 모델 오류를 분리한다.
+- 최대 입력 2,024 token·제외 대화 0, 첫 질문 12개 그룹 token identity 일치가 확인됐다. 이번 실패를 context 용량 부족으로 단정할 근거는 없지만 컨텍스트 간섭까지 배제하는 결과는 아니다. 자동 검사기의 누락·오탐과 실제 모델 오류를 분리하며 [전체 경로 진단](../saju_system_context_diagnosis.md)에서 필요한 정보만 제공하는 조건과 모델 크기를 교차 비교한다.
 
 ## 과거 audit의 적용 범위
 
@@ -66,6 +66,11 @@
 - 원본·private 응답·출생정보·키·checkpoint·불변 report/config는 이번 변경 대상이 아니다.
 
 ## 진행 기록
+
+### 2026-09-14 — 운영·문서 부모 재확인
+
+- 원격 master `b78f8e6`, 원인 분리 문서 부모 `f34f856`, 운영 v1.14 service active/running·재시작 0을 재확인했다. 진단 후보·운영 코드는 같지 않으며 기존 세션·service는 유지했다.
+- 신규 응답·학습 결과로 오해하지 않도록 확인 시점을 분리했다. 문서 검증 결과와 후속 S0/S1 범위는 [새 계획의 진행 기록](../saju_system_context_diagnosis.md)을 따른다.
 
 ### 2026-09-02 — 과거 audit v1.1·현황 v1.4 완료 이력
 

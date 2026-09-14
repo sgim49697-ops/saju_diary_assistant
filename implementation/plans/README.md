@@ -9,7 +9,8 @@
 - `grounded_dialogue_eval_plan.md`: 계산기 연결 대화의 자동 사실·상태·장문 진단 정본
 - `saju_product_roadmap/README.md`: 완료된 Runtime·LoRA·20문장 진단 이후 원인 분리와 조건부 데이터/학습의 실행순서 정본
 - `saju_product_roadmap/00-current-baseline.md`: 원격 master·v1.14 운영·v1.15 검증 후보를 구분하는 현재 상태 정본
-- `saju_product_roadmap/50-automatic-model-evaluation.md`: 오류 분리·지시문 비교·큰 기본 모델 비교·데이터/입력 점검의 진단 상세 정본
+- `saju_product_roadmap/50-automatic-model-evaluation.md`: 전체 경로·컨텍스트/지시문·큰 기본 모델·데이터/학습 점검의 진단 상세 정본
+- `saju_system_context_diagnosis.md`: 50-A~D 안의 S0~S6 실험 설계·통제 변수·파일 구현 순서 정본
 - `mix2k_v4_chart_day_lora.md`: 완료된 K0 기반 R8·R16·R32 학습과 별도 미완료 400건 보정 이력
 - `dashboard_v1_15_grounding.md`: 완료된 v1.15 후보 구현·비봉인 대화 진단 이력
 
@@ -33,7 +34,7 @@
 
 v1.11의 원국·단일 날짜 명시 연결은 완료된 부모 구현이다. AES-GCM state·공개 allowlist·snapshot hash·자동 Grounding Gate를 적용하며 날짜 변경은 기존 대화에 덮어쓰지 않는다. 최신 운영·후보 commit과 검증 범위는 [현재 기준선](saju_product_roadmap/00-current-baseline.md)을 따른다. 이 통합은 strict/full runtime, Phase 6, v3.1, 추가 학습과 모델 승격을 승인하지 않는다.
 
-다음 실행은 [50 진단](saju_product_roadmap/50-automatic-model-evaluation.md)의 A→B→C→D다. 큰 동일 계열 Instruct 기본 모델 비교를 필수로 포함하며, 결과에 따라 60/70을 별도 결정한다. 최상단 01·02·03은 요약·연결 문서이고 별도 실행 정본이 아니다.
+다음 실행은 [50 진단](saju_product_roadmap/50-automatic-model-evaluation.md)의 A→B→C→D다. [전체 흐름·컨텍스트 진단 계획](saju_system_context_diagnosis.md)의 S0/S1 기준선·추적·CPU 계약부터 시작한다. 큰 동일 계열 Instruct 기본 모델과 정보량의 교차 비교를 필수로 포함하며, 결과에 따라 60/70을 별도 결정한다. 최상단 01·02·03은 요약·연결 문서이고 별도 실행 정본이 아니다.
 
 ## 현재 평가 기본값
 
@@ -48,6 +49,10 @@ Phase 6은 이미 단회 소비됐으므로 재실행하지 않고 다음 명령
 AI Hub 원문·내부 ID·private 결과·checkpoint는 계속 Git과 공개 보고서에서 제외한다. Phase 6의 공개 근거는 `data/reports/saju_1b_baseline/phase6-technical/v1.0.0/eval-e8630962cab2/`의 집계 3파일만 사용한다. 이후 대화 진단은 각 정본에 연결된 별도 공개 aggregate·manifest를 따른다.
 
 ## 진행 기록
+
+### 2026-09-14 — 전체 흐름 실험 설계 정본 연결
+
+- 컨텍스트 간섭을 입력 용량과 구분하는 [새 계획](saju_system_context_diagnosis.md)을 50의 상세 실행 설계로 연결했다. 문서·정합성 테스트만 변경했으며 검증 결과·미실행 범위는 새 계획의 진행 기록을 따른다.
 
 ### 2026-09-05 — 후속 정본 연결 갱신
 
