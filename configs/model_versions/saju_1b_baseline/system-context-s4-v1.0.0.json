@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0.0",
+  "experiment_id": "saju-system-context-s4-v1.0.0",
+  "parent_build": "build-c39b4bce5089",
+  "s3_build": "build-ffd985905b51",
+  "engines": [
+    "k0_instruct",
+    "kanana3b_instruct"
+  ],
+  "context_arms": [
+    "C_FULL",
+    "C_MIN"
+  ],
+  "instruction_arm": "P0",
+  "case_count": 48,
+  "maximum_requests": 192,
+  "preflight_requests": 0,
+  "expected_preblocks": 20,
+  "maximum_generations": 172,
+  "initial_pair": "longest_eligible_per_model_from_main_budget",
+  "scoring": "role-aware-contract-v1.2.0",
+  "frozen_server_kst_date": "2026-09-15",
+  "seed": 20260915,
+  "minimum_free_vram_mib": 12288,
+  "request_timeout_seconds": 300,
+  "retry_allowed": false,
+  "history_truncation_allowed": false,
+  "model_registry": "configs/model_versions/saju_1b_baseline/kanana-2-3b-s4-v1.0.0.json",
+  "raw_root": "runs/SYSTEM-CONTEXT-S4/v1.0.0",
+  "public_root": "data/reports/saju_1b_baseline/system-context-s4/v1.0.0",
+  "governance": {
+    "synthetic_only": true,
+    "sealed_blind_accessed": false,
+    "training_performed": false,
+    "service_changed": false,
+    "production_promotion_allowed": false,
+    "runtime_release_changed": false,
+    "confirmation_24_used": false,
+    "phase8a_routing_used": false,
+    "application_model_registry_changed": false
+  }
+}

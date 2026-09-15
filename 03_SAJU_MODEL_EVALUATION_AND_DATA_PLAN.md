@@ -19,6 +19,7 @@
 | 별도 v1.1 보정 | 마지막 checkpoint accepted 238/400 | 현재 R16에 미반영, 자동 재개·재학습하지 않음 |
 | 20문장 기준선 | 3모델·60요청·54생성·6차단 완료 | 과거 개발 진단 이력 보존 |
 | 최신 전체 경로 진단 | S0/S1·S2·CPU 재집계 보존, Phase 8A v1.17 CPU/화면·8B S3 96요청 검증 완료 | P1 미채택; 다음 Phase 9/S4, 큰 모델 다운로드·추가 학습·운영 전환 미실행 |
+| Phase 9 비교 준비 | 공식 3B pin·S4 실행기·scorer v1.2·CPU 검증 완료 | GPU 생성 0, 실제 모델 비교 미실행·Phase 9 미완료 |
 | MIX20K-v3.0.1 | 보정·비학습 후보 이력 | 현재 2K 학습 데이터와 별도, v3.1 생성 승인 아님 |
 
 ## 최근 진단이 말해 주는 것
@@ -40,7 +41,7 @@
 - 모델별 공식 tokenizer/template·revision·정밀도·VRAM 조건을 실행 전에 등록한다. 다른 모델의 token ID 동일성을 요구하거나 메모리 부족 때 다른 계열·양자화로 자동 대체하지 않는다.
 - 데이터·학습·serving 계약과 무결성을 처음부터 확인하고 비교 후 남은 오류와 연결한다. 별도 400건 보정의 범위가 이번 오류를 해결하는지도 이때 판단한다.
 - S3의 P1은 prompt 파일과 formatter가 붙이는 지시를 합친 최종 시스템 지시문 묶음이다. 입력 JSON·역할·동결 부모 이력·필수 사실·출력 한도는 유지한다. 제품 응답 계약 변경을 S3에 섞지 않는다.
-- [Phase 9](implementation/plans/saju_product_roadmap/phases/phase-09.md)의 첫 비교 후보는 `kakaocorp/kanana-2-3b-instruct`다. 아직 등록·다운로드하지 않았으며 K0와 공통 P0, 각각 FULL/MIN을 비교한다. pruning·distillation 계보 때문에 순수 파라미터 수만의 인과 효과로 단정하지 않는다.
+- [Phase 9](implementation/plans/saju_product_roadmap/phases/phase-09.md)의 첫 비교 후보는 `kakaocorp/kanana-2-3b-instruct`다. 공식 revision/hash·실행기·CPU 검증은 [구현 기록](implementation/history/2026-09-16-phase9-s4.md)에 등록했으며 가중치 다운로드·GPU 비교는 미실행이다. K0와 공통 P0, 각각 FULL/MIN을 비교하며 pruning·distillation·attention 구조 차이 때문에 순수 파라미터 수만의 인과 효과로 단정하지 않는다.
 - [Phase 11](implementation/plans/saju_product_roadmap/phases/phase-11.md)에서 실제 teacher fallback 이력과 행동 7축을 확인하고 학습 가설·보정 대상·조건부 명세만 작성한다. 기존 400행은 accepted 238·초안 미판정 3·미작성 159 상태로, 단순 2,000+400 덧붙이기를 전제하지 않는다. [Phase 12](implementation/plans/saju_product_roadmap/phases/phase-12.md)의 실제 후보 결과를 대조한 뒤에만 학습 여부를 별도 결정하고 앱·지시문으로 해소됐으면 건너뛴다. 확인 묶음은 이후 학습이나 학습 후 새 평가에 재사용하지 않는다.
 - [60 데이터 build](implementation/plans/saju_product_roadmap/60-mix20k-v3-1-build.md)와 [70 학습·승격](implementation/plans/saju_product_roadmap/70-training-and-promotion.md)은 조건부 후속이다. 진단 완료만으로 자동 진행하지 않으며 모델 크기·학습 방식·규모는 별도 결정이다.
 
@@ -53,6 +54,10 @@
 [기존 Phase 정본](implementation/plans/saju_1b_10k_20k_baseline/README.md), [v3 후보 보정 정본](implementation/plans/mix20k_v3_repair_plan.md), LoRA의 versioned 계약은 당시 실행 범위를 보존한다. 과거 768 길이·최소 3문장/3줄·Full FT 지시를 새 실험의 자동 기본값으로 복사하지 않는다.
 
 ## 진행 기록
+
+### 2026-09-16 — S4 구현과 실제 비교 상태 구분
+
+- 모델 비교 실행기·공식 pin·CPU 회귀를 구현했으며 [검증 기록](implementation/history/2026-09-16-phase9-s4.md)에 연결했다. 잔여 예산 242와 실제 비교 미실행을 유지하고 모델·데이터 원인을 아직 확정하지 않는다.
 
 ### 2026-09-16 — 앱 후보·S3 완료와 다음 비교 연결
 

@@ -202,10 +202,35 @@ class SajuProductRoadmapTests(unittest.TestCase):
             "다른 계열이나 양자화 모델로 자동 대체하지 않는다",
             "서로 다른 모델의 token ID 동일성은 요구하지 않는다",
             "크기만의 순수 인과 효과를 증명한 것은 아니다",
-            "등록·다운로드하지 않았다",
+            "가중치는 아직 다운로드하지 않았다",
+            "전용 실행기·CPU 검증",
+            "실제 GPU 생성은 0",
         ):
             with self.subTest(marker=marker):
                 self.assertIn(marker, text)
+
+    def test_s4_registration_and_cpu_implementation_are_not_actual_comparison(self) -> None:
+        phase = (ROADMAP_ROOT / "phases/phase-09.md").read_text(encoding="utf-8")
+        history = (REPO_ROOT / "implementation/history/2026-09-16-phase9-s4.md").read_text(encoding="utf-8")
+        registry_path = REPO_ROOT / "configs/model_versions/saju_1b_baseline/kanana-2-3b-s4-v1.0.0.json"
+        config_path = REPO_ROOT / "configs/model_versions/saju_1b_baseline/system-context-s4-v1.0.0.json"
+        registry = json.loads(registry_path.read_bytes())
+        config = json.loads(config_path.read_bytes())
+        self.assertIn(registry["revision"], phase)
+        self.assertIn(str(sum(p["bytes"] for p in registry["files"].values())), phase.replace(",", ""))
+        self.assertEqual(config["maximum_requests"], 192)
+        self.assertEqual(config["maximum_generations"] + config["expected_preblocks"], 192)
+        self.assertEqual(config["preflight_requests"], 0)
+        self.assertIn("실행기 구현·CPU 검증 완료", phase)
+        self.assertIn("실제 비교 미실행, GPU 생성 0", history)
+        self.assertIn(config["scoring"], phase)
+        for name in ("system_context_s4.py", "system_context_s4_models.py", "system_context_scoring_v1_2.py"):
+            self.assertTrue((REPO_ROOT / "scripts/evaluation" / name).is_file())
+        mapping = json.loads((ROADMAP_ROOT / "requirements-20260915.json").read_bytes())
+        tasks = {r["id"]: r for r in mapping["entries"]}
+        for task_id in ("M-0293", "O-0173"):
+            self.assertEqual(tasks[task_id]["documentation_status"], "verified")
+            self.assertEqual(tasks[task_id]["execution_status"], "not_executed")
 
     def test_data_and_training_stay_conditional(self) -> None:
         for name in ("60-mix20k-v3-1-build.md", "70-training-and-promotion.md"):

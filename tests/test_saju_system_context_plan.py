@@ -48,7 +48,9 @@ class SajuSystemContextPlanTests(unittest.TestCase):
         self.assertIn("S0/S1은 `validated`", self.plan)
         self.assertIn("구현된 실행 파일", self.plan)
         self.assertIn("S3는 `executed`·공개 build `verified`", self.plan)
-        self.assertIn("S4~S6은 `not_executed`", self.plan)
+        self.assertIn("S4는 실행기 `implemented`·CPU 검증 완료/실제 비교 `not_executed`", self.plan)
+        self.assertIn("S5~S6은 `not_executed`", self.plan)
+        self.assertIn("가중치 다운로드·최대 192요청의 실제 비교는 범위 확인 전까지 보류", self.plan)
         self.assertIn("system_context_s3 verify --build build-ffd985905b51", self.plan)
         self.assertIn("system_context_diagnosis execute --execute", self.plan)
 

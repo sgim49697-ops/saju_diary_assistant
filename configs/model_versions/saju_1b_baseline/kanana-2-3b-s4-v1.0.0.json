@@ -1,0 +1,63 @@
+{
+  "schema_version": "1.0.0",
+  "model_id": "kakaocorp/kanana-2-3b-instruct",
+  "revision": "6a5d7889964c4c590299d16e309eabab1f73f8a9",
+  "local_path": "models/saju_1b_baseline/kanana-2-3b-instruct/6a5d7889964c4c590299d16e309eabab1f73f8a9",
+  "license_name": "Kanana Open License Agreement",
+  "license_url": "https://huggingface.co/kakaocorp/kanana-2-3b-instruct/blob/6a5d7889964c4c590299d16e309eabab1f73f8a9/LICENSE",
+  "metadata_checked_at": "2026-09-16",
+  "parameter_count": 3508972032,
+  "architecture": "Qwen3ForCausalLM",
+  "model_type": "qwen3",
+  "native_context_tokens": 32768,
+  "attention_layout": "32_full_attention_layers_no_sliding_window",
+  "dtype": "bfloat16",
+  "attn_implementation": "sdpa",
+  "trust_remote_code": false,
+  "adapter": false,
+  "quantization": false,
+  "cpu_offload": false,
+  "tokenizer_backend_sha256": "4f1fb83a437cc9c2f262ef579cfd635d355776a5eaf0fffafd9bf2b03487507f",
+  "files": {
+    "LICENSE": {
+      "bytes": 11490,
+      "sha256": "80745468c3213787d08ae8c3b1bc1ffb6b3563d6214ba53626547c39dfcdffd8"
+    },
+    "README.md": {
+      "bytes": 10207,
+      "sha256": "c5ec8f6d9a040405b44bfef8a524685352221d1b18fb050d04704c7c9171b998"
+    },
+    "config.json": {
+      "bytes": 1534,
+      "sha256": "b20745cf6680cab720a708142b99d995455780d270783c9bbd7496443a8697a3"
+    },
+    "generation_config.json": {
+      "bytes": 147,
+      "sha256": "8fb800a4ed31f6042adf130656f096b03af97fc935d8e360e93c01353d42262e"
+    },
+    "chat_template.jinja": {
+      "bytes": 10725,
+      "sha256": "b8ee6b31575eada17ebbe73d3f1ac65d3efde64f0a25ff922031dec7e1cae3e3"
+    },
+    "tokenizer.json": {
+      "bytes": 10057457,
+      "sha256": "1c4be9ecf77c926456fb82d4cf07ff1218a91907f3408f44895d2b01e0f2b5ab"
+    },
+    "tokenizer_config.json": {
+      "bytes": 50155,
+      "sha256": "1cdee8fcd4f6209e07e6d9966c8a3ff2d738830d79475193e94e448e153ae2d5"
+    },
+    "model.safetensors.index.json": {
+      "bytes": 29273,
+      "sha256": "e00bf13af0ebcc3e0484b16a6dbf6fdb1251aaf5c29432257489aff8cf04c132"
+    },
+    "model-00001-of-00002.safetensors": {
+      "bytes": 4962632064,
+      "sha256": "879fd56f37b7452f34208ea99be40ac2c8ebcd36db636fe953303a753314171d"
+    },
+    "model-00002-of-00002.safetensors": {
+      "bytes": 2055352808,
+      "sha256": "76d38f1e8aff33a43fe038888b9c041cec6d6cbfe735e3368bcea3536b11f186"
+    }
+  }
+}
