@@ -26,6 +26,7 @@ HANDOFF_FILES = (
     "implementation/history/2026-09-15-system-context-rescore.md",
     "implementation/history/2026-09-15-dashboard-v116-intent.md",
     "implementation/history/2026-09-15-phase7-canonicalization.md",
+    "implementation/history/2026-09-16-phase8-intent-s3.md",
 )
 ORDERED_FILES = (
     "00-current-baseline.md",
@@ -168,7 +169,7 @@ class SajuProductRoadmapTests(unittest.TestCase):
             "진단 완료는 품질 승인과 다르다",
             "실행하지 못한 필수 비교는 미실행",
             "A/S0·S1·B1/S2 342요청에 이어 새 검사 버전 CPU 재집계",
-            "다음 별도 과제는 B2/S3 지시문 비교",
+            "다음 별도 과제는 C/S4 모델 규모×정보 비교",
         ):
             self.assertIn(marker, text)
 

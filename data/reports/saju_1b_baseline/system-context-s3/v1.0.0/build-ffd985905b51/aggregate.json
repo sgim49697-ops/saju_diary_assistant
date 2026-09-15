@@ -1,0 +1,2595 @@
+{
+  "build_id": "build-ffd985905b51",
+  "candidate_selected": false,
+  "context_arm": "C_FULL",
+  "fresh_both_arms": true,
+  "governance": {
+    "confirmation_24_used": false,
+    "larger_model_downloaded": false,
+    "phase8a_routing_used": false,
+    "production_promotion_allowed": false,
+    "runtime_release_changed": false,
+    "sealed_blind_accessed": false,
+    "service_changed": false,
+    "synthetic_only": true,
+    "training_performed": false
+  },
+  "limitations": [
+    "동일 R16·C_FULL·동결 부모 이력의 지시문 묶음 비교이며 개별 문장 효과가 아니다.",
+    "P1은 bound profile과 formatter 안내 두 구간의 묶음 하나다. 비연결 intake 입력은 동일하다.",
+    "v1.15의 기존 오차단도 동결한다. 8A 라우팅·현재 운영 KI20과의 비교가 아니다.",
+    "날짜 질문의 원국·일진 각각 한 사실 요구와 단순 조회의 충돌은 사후 완화하지 않았다.",
+    "유한 자동 계약의 UNSCORABLE을 실패나 성공으로 치환하지 않는다. 자연스러움·의미 품질은 미측정이다.",
+    "48개는 소비된 개발 진단이다. S4 크기 비교·새 질문 확인·학습·배포를 대신하지 않는다.",
+    "출력 소비는 실제 저장/API 함수의 CPU 재생이다. 운영 브라우저 실행은 아니다."
+  ],
+  "new_generations": 86,
+  "paired_p0_to_p1": [
+    {
+      "both_pass": 2,
+      "engine": "lora_r16",
+      "metric": "apology_once",
+      "stratum": "all"
+    },
+    {
+      "both_fail": 1,
+      "both_pass": 3,
+      "engine": "lora_r16",
+      "improved": 1,
+      "metric": "corrected_state_used",
+      "stratum": "all",
+      "unscorable_pair": 1
+    },
+    {
+      "both_fail": 6,
+      "both_pass": 8,
+      "engine": "lora_r16",
+      "improved": 2,
+      "metric": "fact_contradiction_absent",
+      "regressed": 3,
+      "stratum": "all",
+      "unscorable_pair": 24
+    },
+    {
+      "both_fail": 3,
+      "both_pass": 1,
+      "engine": "lora_r16",
+      "metric": "false_premise_corrected",
+      "regressed": 1,
+      "stratum": "all",
+      "unscorable_pair": 1
+    },
+    {
+      "both_pass": 1,
+      "engine": "lora_r16",
+      "metric": "leap_month_requested",
+      "stratum": "all"
+    },
+    {
+      "both_pass": 43,
+      "engine": "lora_r16",
+      "metric": "max_token_hit_absent",
+      "stratum": "all"
+    },
+    {
+      "both_pass": 43,
+      "engine": "lora_r16",
+      "metric": "private_fields_absent",
+      "stratum": "all"
+    },
+    {
+      "both_fail": 4,
+      "both_pass": 7,
+      "engine": "lora_r16",
+      "improved": 2,
+      "metric": "required_fact_use",
+      "regressed": 2,
+      "stratum": "all",
+      "unscorable_pair": 9
+    },
+    {
+      "both_pass": 1,
+      "engine": "lora_r16",
+      "metric": "target_date_used",
+      "regressed": 1,
+      "stratum": "all"
+    },
+    {
+      "both_fail": 2,
+      "both_pass": 4,
+      "engine": "lora_r16",
+      "improved": 1,
+      "metric": "two_sentences",
+      "stratum": "all"
+    },
+    {
+      "both_fail": 2,
+      "both_pass": 2,
+      "engine": "lora_r16",
+      "metric": "uncertainty_preserved",
+      "stratum": "all",
+      "unscorable_pair": 1
+    },
+    {
+      "both_fail": 1,
+      "both_pass": 9,
+      "engine": "lora_r16",
+      "improved": 1,
+      "metric": "unsolicited_saju_absent",
+      "regressed": 2,
+      "stratum": "all"
+    },
+    {
+      "both_fail": 1,
+      "both_pass": 3,
+      "engine": "lora_r16",
+      "improved": 1,
+      "metric": "corrected_state_used",
+      "stratum": "correction",
+      "unscorable_pair": 1
+    },
+    {
+      "both_fail": 1,
+      "both_pass": 3,
+      "engine": "lora_r16",
+      "improved": 1,
+      "metric": "fact_contradiction_absent",
+      "stratum": "correction",
+      "unscorable_pair": 1
+    },
+    {
+      "both_pass": 6,
+      "engine": "lora_r16",
+      "metric": "max_token_hit_absent",
+      "stratum": "correction"
+    },
+    {
+      "both_pass": 6,
+      "engine": "lora_r16",
+      "metric": "private_fields_absent",
+      "stratum": "correction"
+    },
+    {
+      "both_fail": 1,
+      "both_pass": 3,
+      "engine": "lora_r16",
+      "improved": 1,
+      "metric": "required_fact_use",
+      "stratum": "correction",
+      "unscorable_pair": 1
+    },
+    {
+      "both_pass": 1,
+      "engine": "lora_r16",
+      "metric": "fact_contradiction_absent",
+      "stratum": "date",
+      "unscorable_pair": 1
+    },
+    {
+      "both_pass": 2,
+      "engine": "lora_r16",
+      "metric": "max_token_hit_absent",
+      "stratum": "date"
+    },
+    {
+      "both_pass": 2,
+      "engine": "lora_r16",
+      "metric": "private_fields_absent",
+      "stratum": "date"
+    },
+    {
+      "both_pass": 1,
+      "engine": "lora_r16",
+      "metric": "required_fact_use",
+      "stratum": "date",
+      "unscorable_pair": 1
+    },
+    {
+      "both_pass": 1,
+      "engine": "lora_r16",
+      "metric": "target_date_used",
+      "regressed": 1,
+      "stratum": "date"
+    },
+    {
+      "both_pass": 1,
+      "engine": "lora_r16",
+      "metric": "fact_contradiction_absent",
+      "regressed": 1,
+      "stratum": "facts",
+      "unscorable_pair": 4
+    },
+    {
+      "both_pass": 6,
+      "engine": "lora_r16",
+      "metric": "max_token_hit_absent",
+      "stratum": "facts"
+    },
+    {
+      "both_pass": 6,
+      "engine": "lora_r16",
+      "metric": "private_fields_absent",
+      "stratum": "facts"
+    },
+    {
+      "both_pass": 1,
+      "engine": "lora_r16",
+      "metric": "required_fact_use",
+      "regressed": 1,
+      "stratum": "facts",
+      "unscorable_pair": 4
+    },
+    {
+      "both_pass": 2,
+      "engine": "lora_r16",
+      "metric": "apology_once",
+      "stratum": "format"
+    },
+    {
+      "engine": "lora_r16",
+      "metric": "fact_contradiction_absent",
+      "stratum": "format",
+      "unscorable_pair": 6
+    },
+    {
+      "both_pass": 6,
+      "engine": "lora_r16",
+      "metric": "max_token_hit_absent",
+      "stratum": "format"
+    },
+    {
+      "both_pass": 6,
+      "engine": "lora_r16",
+      "metric": "private_fields_absent",
+      "stratum": "format"
+    },
+    {
+      "both_fail": 2,
+      "both_pass": 4,
+      "engine": "lora_r16",
+      "metric": "two_sentences",
+      "stratum": "format"
+    },
+    {
+      "both_pass": 4,
+      "engine": "lora_r16",
+      "metric": "unsolicited_saju_absent",
+      "regressed": 2,
+      "stratum": "format"
+    },
+    {
+      "engine": "lora_r16",
+      "metric": "fact_contradiction_absent",
+      "stratum": "general",
+      "unscorable_pair": 5
+    },
+    {
+      "both_pass": 5,
+      "engine": "lora_r16",
+      "metric": "max_token_hit_absent",
+      "stratum": "general"
+    },
+    {
+      "both_pass": 5,
+      "engine": "lora_r16",
+      "metric": "private_fields_absent",
+      "stratum": "general"
+    },
+    {
+      "both_pass": 5,
+      "engine": "lora_r16",
+      "metric": "unsolicited_saju_absent",
+      "stratum": "general"
+    },
+    {
+      "both_pass": 2,
+      "engine": "lora_r16",
+      "improved": 1,
+      "metric": "fact_contradiction_absent",
+      "stratum": "history",
+      "unscorable_pair": 3
+    },
+    {
+      "both_pass": 6,
+      "engine": "lora_r16",
+      "metric": "max_token_hit_absent",
+      "stratum": "history"
+    },
+    {
+      "both_pass": 6,
+      "engine": "lora_r16",
+      "metric": "private_fields_absent",
+      "stratum": "history"
+    },
+    {
+      "both_pass": 1,
+      "engine": "lora_r16",
+      "improved": 1,
+      "metric": "required_fact_use",
+      "stratum": "history",
+      "unscorable_pair": 2
+    },
+    {
+      "engine": "lora_r16",
+      "improved": 1,
+      "metric": "two_sentences",
+      "stratum": "history"
+    },
+    {
+      "both_fail": 1,
+      "engine": "lora_r16",
+      "improved": 1,
+      "metric": "unsolicited_saju_absent",
+      "stratum": "history"
+    },
+    {
+      "both_fail": 3,
+      "both_pass": 1,
+      "engine": "lora_r16",
+      "metric": "fact_contradiction_absent",
+      "regressed": 1,
+      "stratum": "premise",
+      "unscorable_pair": 1
+    },
+    {
+      "both_fail": 3,
+      "both_pass": 1,
+      "engine": "lora_r16",
+      "metric": "false_premise_corrected",
+      "regressed": 1,
+      "stratum": "premise",
+      "unscorable_pair": 1
+    },
+    {
+      "both_pass": 6,
+      "engine": "lora_r16",
+      "metric": "max_token_hit_absent",
+      "stratum": "premise"
+    },
+    {
+      "both_pass": 6,
+      "engine": "lora_r16",
+      "metric": "private_fields_absent",
+      "stratum": "premise"
+    },
+    {
+      "both_fail": 3,
+      "both_pass": 1,
+      "engine": "lora_r16",
+      "metric": "required_fact_use",
+      "regressed": 1,
+      "stratum": "premise",
+      "unscorable_pair": 1
+    },
+    {
+      "both_fail": 2,
+      "engine": "lora_r16",
+      "metric": "fact_contradiction_absent",
+      "regressed": 1,
+      "stratum": "uncertainty",
+      "unscorable_pair": 3
+    },
+    {
+      "both_pass": 1,
+      "engine": "lora_r16",
+      "metric": "leap_month_requested",
+      "stratum": "uncertainty"
+    },
+    {
+      "both_pass": 6,
+      "engine": "lora_r16",
+      "metric": "max_token_hit_absent",
+      "stratum": "uncertainty"
+    },
+    {
+      "both_pass": 6,
+      "engine": "lora_r16",
+      "metric": "private_fields_absent",
+      "stratum": "uncertainty"
+    },
+    {
+      "both_fail": 2,
+      "both_pass": 2,
+      "engine": "lora_r16",
+      "metric": "uncertainty_preserved",
+      "stratum": "uncertainty",
+      "unscorable_pair": 1
+    }
+  ],
+  "paired_verdict_transitions": [
+    {
+      "counts": {
+        "FAIL_to_FAIL": 0,
+        "FAIL_to_PASS": 0,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 0,
+        "PASS_to_PASS": 2,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 0,
+        "UNSCORABLE_to_PASS": 0,
+        "UNSCORABLE_to_UNSCORABLE": 0
+      },
+      "metric": "apology_once",
+      "stratum": "all"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 1,
+        "FAIL_to_PASS": 1,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 0,
+        "PASS_to_PASS": 3,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 1,
+        "UNSCORABLE_to_PASS": 0,
+        "UNSCORABLE_to_UNSCORABLE": 0
+      },
+      "metric": "corrected_state_used",
+      "stratum": "all"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 6,
+        "FAIL_to_PASS": 2,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 3,
+        "PASS_to_PASS": 8,
+        "PASS_to_UNSCORABLE": 3,
+        "UNSCORABLE_to_FAIL": 3,
+        "UNSCORABLE_to_PASS": 4,
+        "UNSCORABLE_to_UNSCORABLE": 14
+      },
+      "metric": "fact_contradiction_absent",
+      "stratum": "all"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 3,
+        "FAIL_to_PASS": 0,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 1,
+        "PASS_to_PASS": 1,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 0,
+        "UNSCORABLE_to_PASS": 1,
+        "UNSCORABLE_to_UNSCORABLE": 0
+      },
+      "metric": "false_premise_corrected",
+      "stratum": "all"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 0,
+        "FAIL_to_PASS": 0,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 0,
+        "PASS_to_PASS": 1,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 0,
+        "UNSCORABLE_to_PASS": 0,
+        "UNSCORABLE_to_UNSCORABLE": 0
+      },
+      "metric": "leap_month_requested",
+      "stratum": "all"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 0,
+        "FAIL_to_PASS": 0,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 0,
+        "PASS_to_PASS": 43,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 0,
+        "UNSCORABLE_to_PASS": 0,
+        "UNSCORABLE_to_UNSCORABLE": 0
+      },
+      "metric": "max_token_hit_absent",
+      "stratum": "all"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 0,
+        "FAIL_to_PASS": 0,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 0,
+        "PASS_to_PASS": 43,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 0,
+        "UNSCORABLE_to_PASS": 0,
+        "UNSCORABLE_to_UNSCORABLE": 0
+      },
+      "metric": "private_fields_absent",
+      "stratum": "all"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 4,
+        "FAIL_to_PASS": 2,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 2,
+        "PASS_to_PASS": 7,
+        "PASS_to_UNSCORABLE": 2,
+        "UNSCORABLE_to_FAIL": 2,
+        "UNSCORABLE_to_PASS": 3,
+        "UNSCORABLE_to_UNSCORABLE": 2
+      },
+      "metric": "required_fact_use",
+      "stratum": "all"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 0,
+        "FAIL_to_PASS": 0,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 1,
+        "PASS_to_PASS": 1,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 0,
+        "UNSCORABLE_to_PASS": 0,
+        "UNSCORABLE_to_UNSCORABLE": 0
+      },
+      "metric": "target_date_used",
+      "stratum": "all"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 2,
+        "FAIL_to_PASS": 1,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 0,
+        "PASS_to_PASS": 4,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 0,
+        "UNSCORABLE_to_PASS": 0,
+        "UNSCORABLE_to_UNSCORABLE": 0
+      },
+      "metric": "two_sentences",
+      "stratum": "all"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 2,
+        "FAIL_to_PASS": 0,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 0,
+        "PASS_to_PASS": 2,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 1,
+        "UNSCORABLE_to_PASS": 0,
+        "UNSCORABLE_to_UNSCORABLE": 0
+      },
+      "metric": "uncertainty_preserved",
+      "stratum": "all"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 1,
+        "FAIL_to_PASS": 1,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 2,
+        "PASS_to_PASS": 9,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 0,
+        "UNSCORABLE_to_PASS": 0,
+        "UNSCORABLE_to_UNSCORABLE": 0
+      },
+      "metric": "unsolicited_saju_absent",
+      "stratum": "all"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 1,
+        "FAIL_to_PASS": 1,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 0,
+        "PASS_to_PASS": 3,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 1,
+        "UNSCORABLE_to_PASS": 0,
+        "UNSCORABLE_to_UNSCORABLE": 0
+      },
+      "metric": "corrected_state_used",
+      "stratum": "correction"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 1,
+        "FAIL_to_PASS": 1,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 0,
+        "PASS_to_PASS": 3,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 1,
+        "UNSCORABLE_to_PASS": 0,
+        "UNSCORABLE_to_UNSCORABLE": 0
+      },
+      "metric": "fact_contradiction_absent",
+      "stratum": "correction"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 0,
+        "FAIL_to_PASS": 0,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 0,
+        "PASS_to_PASS": 6,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 0,
+        "UNSCORABLE_to_PASS": 0,
+        "UNSCORABLE_to_UNSCORABLE": 0
+      },
+      "metric": "max_token_hit_absent",
+      "stratum": "correction"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 0,
+        "FAIL_to_PASS": 0,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 0,
+        "PASS_to_PASS": 6,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 0,
+        "UNSCORABLE_to_PASS": 0,
+        "UNSCORABLE_to_UNSCORABLE": 0
+      },
+      "metric": "private_fields_absent",
+      "stratum": "correction"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 1,
+        "FAIL_to_PASS": 1,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 0,
+        "PASS_to_PASS": 3,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 1,
+        "UNSCORABLE_to_PASS": 0,
+        "UNSCORABLE_to_UNSCORABLE": 0
+      },
+      "metric": "required_fact_use",
+      "stratum": "correction"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 0,
+        "FAIL_to_PASS": 0,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 0,
+        "PASS_to_PASS": 1,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 0,
+        "UNSCORABLE_to_PASS": 0,
+        "UNSCORABLE_to_UNSCORABLE": 1
+      },
+      "metric": "fact_contradiction_absent",
+      "stratum": "date"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 0,
+        "FAIL_to_PASS": 0,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 0,
+        "PASS_to_PASS": 2,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 0,
+        "UNSCORABLE_to_PASS": 0,
+        "UNSCORABLE_to_UNSCORABLE": 0
+      },
+      "metric": "max_token_hit_absent",
+      "stratum": "date"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 0,
+        "FAIL_to_PASS": 0,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 0,
+        "PASS_to_PASS": 2,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 0,
+        "UNSCORABLE_to_PASS": 0,
+        "UNSCORABLE_to_UNSCORABLE": 0
+      },
+      "metric": "private_fields_absent",
+      "stratum": "date"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 0,
+        "FAIL_to_PASS": 0,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 0,
+        "PASS_to_PASS": 1,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 0,
+        "UNSCORABLE_to_PASS": 0,
+        "UNSCORABLE_to_UNSCORABLE": 1
+      },
+      "metric": "required_fact_use",
+      "stratum": "date"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 0,
+        "FAIL_to_PASS": 0,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 1,
+        "PASS_to_PASS": 1,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 0,
+        "UNSCORABLE_to_PASS": 0,
+        "UNSCORABLE_to_UNSCORABLE": 0
+      },
+      "metric": "target_date_used",
+      "stratum": "date"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 0,
+        "FAIL_to_PASS": 0,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 1,
+        "PASS_to_PASS": 1,
+        "PASS_to_UNSCORABLE": 1,
+        "UNSCORABLE_to_FAIL": 1,
+        "UNSCORABLE_to_PASS": 2,
+        "UNSCORABLE_to_UNSCORABLE": 0
+      },
+      "metric": "fact_contradiction_absent",
+      "stratum": "facts"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 0,
+        "FAIL_to_PASS": 0,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 0,
+        "PASS_to_PASS": 6,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 0,
+        "UNSCORABLE_to_PASS": 0,
+        "UNSCORABLE_to_UNSCORABLE": 0
+      },
+      "metric": "max_token_hit_absent",
+      "stratum": "facts"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 0,
+        "FAIL_to_PASS": 0,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 0,
+        "PASS_to_PASS": 6,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 0,
+        "UNSCORABLE_to_PASS": 0,
+        "UNSCORABLE_to_UNSCORABLE": 0
+      },
+      "metric": "private_fields_absent",
+      "stratum": "facts"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 0,
+        "FAIL_to_PASS": 0,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 1,
+        "PASS_to_PASS": 1,
+        "PASS_to_UNSCORABLE": 1,
+        "UNSCORABLE_to_FAIL": 1,
+        "UNSCORABLE_to_PASS": 2,
+        "UNSCORABLE_to_UNSCORABLE": 0
+      },
+      "metric": "required_fact_use",
+      "stratum": "facts"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 0,
+        "FAIL_to_PASS": 0,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 0,
+        "PASS_to_PASS": 2,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 0,
+        "UNSCORABLE_to_PASS": 0,
+        "UNSCORABLE_to_UNSCORABLE": 0
+      },
+      "metric": "apology_once",
+      "stratum": "format"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 0,
+        "FAIL_to_PASS": 0,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 0,
+        "PASS_to_PASS": 0,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 1,
+        "UNSCORABLE_to_PASS": 1,
+        "UNSCORABLE_to_UNSCORABLE": 4
+      },
+      "metric": "fact_contradiction_absent",
+      "stratum": "format"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 0,
+        "FAIL_to_PASS": 0,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 0,
+        "PASS_to_PASS": 6,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 0,
+        "UNSCORABLE_to_PASS": 0,
+        "UNSCORABLE_to_UNSCORABLE": 0
+      },
+      "metric": "max_token_hit_absent",
+      "stratum": "format"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 0,
+        "FAIL_to_PASS": 0,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 0,
+        "PASS_to_PASS": 6,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 0,
+        "UNSCORABLE_to_PASS": 0,
+        "UNSCORABLE_to_UNSCORABLE": 0
+      },
+      "metric": "private_fields_absent",
+      "stratum": "format"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 2,
+        "FAIL_to_PASS": 0,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 0,
+        "PASS_to_PASS": 4,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 0,
+        "UNSCORABLE_to_PASS": 0,
+        "UNSCORABLE_to_UNSCORABLE": 0
+      },
+      "metric": "two_sentences",
+      "stratum": "format"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 0,
+        "FAIL_to_PASS": 0,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 2,
+        "PASS_to_PASS": 4,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 0,
+        "UNSCORABLE_to_PASS": 0,
+        "UNSCORABLE_to_UNSCORABLE": 0
+      },
+      "metric": "unsolicited_saju_absent",
+      "stratum": "format"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 0,
+        "FAIL_to_PASS": 0,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 0,
+        "PASS_to_PASS": 0,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 0,
+        "UNSCORABLE_to_PASS": 0,
+        "UNSCORABLE_to_UNSCORABLE": 5
+      },
+      "metric": "fact_contradiction_absent",
+      "stratum": "general"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 0,
+        "FAIL_to_PASS": 0,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 0,
+        "PASS_to_PASS": 5,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 0,
+        "UNSCORABLE_to_PASS": 0,
+        "UNSCORABLE_to_UNSCORABLE": 0
+      },
+      "metric": "max_token_hit_absent",
+      "stratum": "general"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 0,
+        "FAIL_to_PASS": 0,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 0,
+        "PASS_to_PASS": 5,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 0,
+        "UNSCORABLE_to_PASS": 0,
+        "UNSCORABLE_to_UNSCORABLE": 0
+      },
+      "metric": "private_fields_absent",
+      "stratum": "general"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 0,
+        "FAIL_to_PASS": 0,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 0,
+        "PASS_to_PASS": 5,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 0,
+        "UNSCORABLE_to_PASS": 0,
+        "UNSCORABLE_to_UNSCORABLE": 0
+      },
+      "metric": "unsolicited_saju_absent",
+      "stratum": "general"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 0,
+        "FAIL_to_PASS": 1,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 0,
+        "PASS_to_PASS": 2,
+        "PASS_to_UNSCORABLE": 2,
+        "UNSCORABLE_to_FAIL": 0,
+        "UNSCORABLE_to_PASS": 0,
+        "UNSCORABLE_to_UNSCORABLE": 1
+      },
+      "metric": "fact_contradiction_absent",
+      "stratum": "history"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 0,
+        "FAIL_to_PASS": 0,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 0,
+        "PASS_to_PASS": 6,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 0,
+        "UNSCORABLE_to_PASS": 0,
+        "UNSCORABLE_to_UNSCORABLE": 0
+      },
+      "metric": "max_token_hit_absent",
+      "stratum": "history"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 0,
+        "FAIL_to_PASS": 0,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 0,
+        "PASS_to_PASS": 6,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 0,
+        "UNSCORABLE_to_PASS": 0,
+        "UNSCORABLE_to_UNSCORABLE": 0
+      },
+      "metric": "private_fields_absent",
+      "stratum": "history"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 0,
+        "FAIL_to_PASS": 1,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 0,
+        "PASS_to_PASS": 1,
+        "PASS_to_UNSCORABLE": 1,
+        "UNSCORABLE_to_FAIL": 0,
+        "UNSCORABLE_to_PASS": 0,
+        "UNSCORABLE_to_UNSCORABLE": 1
+      },
+      "metric": "required_fact_use",
+      "stratum": "history"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 0,
+        "FAIL_to_PASS": 1,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 0,
+        "PASS_to_PASS": 0,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 0,
+        "UNSCORABLE_to_PASS": 0,
+        "UNSCORABLE_to_UNSCORABLE": 0
+      },
+      "metric": "two_sentences",
+      "stratum": "history"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 1,
+        "FAIL_to_PASS": 1,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 0,
+        "PASS_to_PASS": 0,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 0,
+        "UNSCORABLE_to_PASS": 0,
+        "UNSCORABLE_to_UNSCORABLE": 0
+      },
+      "metric": "unsolicited_saju_absent",
+      "stratum": "history"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 3,
+        "FAIL_to_PASS": 0,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 1,
+        "PASS_to_PASS": 1,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 0,
+        "UNSCORABLE_to_PASS": 1,
+        "UNSCORABLE_to_UNSCORABLE": 0
+      },
+      "metric": "fact_contradiction_absent",
+      "stratum": "premise"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 3,
+        "FAIL_to_PASS": 0,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 1,
+        "PASS_to_PASS": 1,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 0,
+        "UNSCORABLE_to_PASS": 1,
+        "UNSCORABLE_to_UNSCORABLE": 0
+      },
+      "metric": "false_premise_corrected",
+      "stratum": "premise"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 0,
+        "FAIL_to_PASS": 0,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 0,
+        "PASS_to_PASS": 6,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 0,
+        "UNSCORABLE_to_PASS": 0,
+        "UNSCORABLE_to_UNSCORABLE": 0
+      },
+      "metric": "max_token_hit_absent",
+      "stratum": "premise"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 0,
+        "FAIL_to_PASS": 0,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 0,
+        "PASS_to_PASS": 6,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 0,
+        "UNSCORABLE_to_PASS": 0,
+        "UNSCORABLE_to_UNSCORABLE": 0
+      },
+      "metric": "private_fields_absent",
+      "stratum": "premise"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 3,
+        "FAIL_to_PASS": 0,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 1,
+        "PASS_to_PASS": 1,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 0,
+        "UNSCORABLE_to_PASS": 1,
+        "UNSCORABLE_to_UNSCORABLE": 0
+      },
+      "metric": "required_fact_use",
+      "stratum": "premise"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 2,
+        "FAIL_to_PASS": 0,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 1,
+        "PASS_to_PASS": 0,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 0,
+        "UNSCORABLE_to_PASS": 0,
+        "UNSCORABLE_to_UNSCORABLE": 3
+      },
+      "metric": "fact_contradiction_absent",
+      "stratum": "uncertainty"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 0,
+        "FAIL_to_PASS": 0,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 0,
+        "PASS_to_PASS": 1,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 0,
+        "UNSCORABLE_to_PASS": 0,
+        "UNSCORABLE_to_UNSCORABLE": 0
+      },
+      "metric": "leap_month_requested",
+      "stratum": "uncertainty"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 0,
+        "FAIL_to_PASS": 0,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 0,
+        "PASS_to_PASS": 6,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 0,
+        "UNSCORABLE_to_PASS": 0,
+        "UNSCORABLE_to_UNSCORABLE": 0
+      },
+      "metric": "max_token_hit_absent",
+      "stratum": "uncertainty"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 0,
+        "FAIL_to_PASS": 0,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 0,
+        "PASS_to_PASS": 6,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 0,
+        "UNSCORABLE_to_PASS": 0,
+        "UNSCORABLE_to_UNSCORABLE": 0
+      },
+      "metric": "private_fields_absent",
+      "stratum": "uncertainty"
+    },
+    {
+      "counts": {
+        "FAIL_to_FAIL": 2,
+        "FAIL_to_PASS": 0,
+        "FAIL_to_UNSCORABLE": 0,
+        "PASS_to_FAIL": 0,
+        "PASS_to_PASS": 2,
+        "PASS_to_UNSCORABLE": 0,
+        "UNSCORABLE_to_FAIL": 1,
+        "UNSCORABLE_to_PASS": 0,
+        "UNSCORABLE_to_UNSCORABLE": 0
+      },
+      "metric": "uncertainty_preserved",
+      "stratum": "uncertainty"
+    }
+  ],
+  "preflight_requests": 0,
+  "quality_dimensions": {
+    "naturalness": "not_measured",
+    "semantics": "not_measured"
+  },
+  "requests": 96,
+  "schema_version": "1.0.0",
+  "scorer_version": "role-aware-contract-v1.1.0",
+  "statuses": {
+    "generated": 86,
+    "preblocked": 10
+  },
+  "summaries": [
+    {
+      "arm": "P0",
+      "engine": "lora_r16",
+      "input_tokens": {
+        "count": 48,
+        "maximum": 1692,
+        "mean": 1344.979,
+        "minimum": 446,
+        "p95": 1691
+      },
+      "latency_seconds": {
+        "count": 43,
+        "maximum": 13.688,
+        "mean": 11.072,
+        "minimum": 8.306,
+        "p95": 12.968
+      },
+      "metrics": {
+        "apology_once": {
+          "FAIL": 0,
+          "PASS": 2,
+          "UNSCORABLE": 0,
+          "applicable": 2,
+          "scorable": 2
+        },
+        "corrected_state_used": {
+          "FAIL": 2,
+          "PASS": 3,
+          "UNSCORABLE": 1,
+          "applicable": 6,
+          "scorable": 5
+        },
+        "fact_contradiction_absent": {
+          "FAIL": 8,
+          "PASS": 14,
+          "UNSCORABLE": 21,
+          "applicable": 43,
+          "scorable": 22
+        },
+        "false_premise_corrected": {
+          "FAIL": 3,
+          "PASS": 2,
+          "UNSCORABLE": 1,
+          "applicable": 6,
+          "scorable": 5
+        },
+        "leap_month_requested": {
+          "FAIL": 0,
+          "PASS": 1,
+          "UNSCORABLE": 0,
+          "applicable": 1,
+          "scorable": 1
+        },
+        "max_token_hit_absent": {
+          "FAIL": 0,
+          "PASS": 43,
+          "UNSCORABLE": 0,
+          "applicable": 43,
+          "scorable": 43
+        },
+        "private_fields_absent": {
+          "FAIL": 0,
+          "PASS": 43,
+          "UNSCORABLE": 0,
+          "applicable": 43,
+          "scorable": 43
+        },
+        "required_fact_use": {
+          "FAIL": 6,
+          "PASS": 11,
+          "UNSCORABLE": 7,
+          "applicable": 24,
+          "scorable": 17
+        },
+        "target_date_used": {
+          "FAIL": 0,
+          "PASS": 2,
+          "UNSCORABLE": 0,
+          "applicable": 2,
+          "scorable": 2
+        },
+        "two_sentences": {
+          "FAIL": 3,
+          "PASS": 4,
+          "UNSCORABLE": 0,
+          "applicable": 7,
+          "scorable": 7
+        },
+        "uncertainty_preserved": {
+          "FAIL": 2,
+          "PASS": 2,
+          "UNSCORABLE": 1,
+          "applicable": 5,
+          "scorable": 4
+        },
+        "unsolicited_saju_absent": {
+          "FAIL": 2,
+          "PASS": 11,
+          "UNSCORABLE": 0,
+          "applicable": 13,
+          "scorable": 13
+        }
+      },
+      "output_tokens": {
+        "count": 43,
+        "maximum": 97,
+        "mean": 50.86,
+        "minimum": 13,
+        "p95": 84
+      },
+      "peak_reserved_vram_mib": 3276.0,
+      "peak_vram_mib": 2953.81396484375,
+      "requests": 48,
+      "statuses": {
+        "generated": 43,
+        "preblocked": 5
+      },
+      "stop_reasons": {
+        "eos": 43
+      },
+      "stratum": "all"
+    },
+    {
+      "arm": "P0",
+      "engine": "lora_r16",
+      "input_tokens": {
+        "count": 6,
+        "maximum": 1446,
+        "mean": 1426.333,
+        "minimum": 1339,
+        "p95": 1446
+      },
+      "latency_seconds": {
+        "count": 6,
+        "maximum": 12.181,
+        "mean": 10.8,
+        "minimum": 9.013,
+        "p95": 12.181
+      },
+      "metrics": {
+        "corrected_state_used": {
+          "FAIL": 2,
+          "PASS": 3,
+          "UNSCORABLE": 1,
+          "applicable": 6,
+          "scorable": 5
+        },
+        "fact_contradiction_absent": {
+          "FAIL": 2,
+          "PASS": 3,
+          "UNSCORABLE": 1,
+          "applicable": 6,
+          "scorable": 5
+        },
+        "max_token_hit_absent": {
+          "FAIL": 0,
+          "PASS": 6,
+          "UNSCORABLE": 0,
+          "applicable": 6,
+          "scorable": 6
+        },
+        "private_fields_absent": {
+          "FAIL": 0,
+          "PASS": 6,
+          "UNSCORABLE": 0,
+          "applicable": 6,
+          "scorable": 6
+        },
+        "required_fact_use": {
+          "FAIL": 2,
+          "PASS": 3,
+          "UNSCORABLE": 1,
+          "applicable": 6,
+          "scorable": 5
+        }
+      },
+      "output_tokens": {
+        "count": 6,
+        "maximum": 75,
+        "mean": 47.5,
+        "minimum": 17,
+        "p95": 75
+      },
+      "peak_reserved_vram_mib": 3196.0,
+      "peak_vram_mib": 2897.6396484375,
+      "requests": 6,
+      "statuses": {
+        "generated": 6
+      },
+      "stop_reasons": {
+        "eos": 6
+      },
+      "stratum": "correction"
+    },
+    {
+      "arm": "P0",
+      "engine": "lora_r16",
+      "input_tokens": {
+        "count": 6,
+        "maximum": 1692,
+        "mean": 1622.333,
+        "minimum": 1402,
+        "p95": 1692
+      },
+      "latency_seconds": {
+        "count": 2,
+        "maximum": 13.573,
+        "mean": 12.884,
+        "minimum": 12.195,
+        "p95": 13.573
+      },
+      "metrics": {
+        "fact_contradiction_absent": {
+          "FAIL": 0,
+          "PASS": 1,
+          "UNSCORABLE": 1,
+          "applicable": 2,
+          "scorable": 1
+        },
+        "max_token_hit_absent": {
+          "FAIL": 0,
+          "PASS": 2,
+          "UNSCORABLE": 0,
+          "applicable": 2,
+          "scorable": 2
+        },
+        "private_fields_absent": {
+          "FAIL": 0,
+          "PASS": 2,
+          "UNSCORABLE": 0,
+          "applicable": 2,
+          "scorable": 2
+        },
+        "required_fact_use": {
+          "FAIL": 0,
+          "PASS": 1,
+          "UNSCORABLE": 1,
+          "applicable": 2,
+          "scorable": 1
+        },
+        "target_date_used": {
+          "FAIL": 0,
+          "PASS": 2,
+          "UNSCORABLE": 0,
+          "applicable": 2,
+          "scorable": 2
+        }
+      },
+      "output_tokens": {
+        "count": 2,
+        "maximum": 68,
+        "mean": 51.0,
+        "minimum": 34,
+        "p95": 68
+      },
+      "peak_reserved_vram_mib": 3276.0,
+      "peak_vram_mib": 2953.81396484375,
+      "requests": 6,
+      "statuses": {
+        "generated": 2,
+        "preblocked": 4
+      },
+      "stop_reasons": {
+        "eos": 2
+      },
+      "stratum": "date"
+    },
+    {
+      "arm": "P0",
+      "engine": "lora_r16",
+      "input_tokens": {
+        "count": 6,
+        "maximum": 1418,
+        "mean": 1391.833,
+        "minimum": 1300,
+        "p95": 1418
+      },
+      "latency_seconds": {
+        "count": 6,
+        "maximum": 12.579,
+        "mean": 10.9,
+        "minimum": 8.938,
+        "p95": 12.579
+      },
+      "metrics": {
+        "fact_contradiction_absent": {
+          "FAIL": 0,
+          "PASS": 3,
+          "UNSCORABLE": 3,
+          "applicable": 6,
+          "scorable": 3
+        },
+        "max_token_hit_absent": {
+          "FAIL": 0,
+          "PASS": 6,
+          "UNSCORABLE": 0,
+          "applicable": 6,
+          "scorable": 6
+        },
+        "private_fields_absent": {
+          "FAIL": 0,
+          "PASS": 6,
+          "UNSCORABLE": 0,
+          "applicable": 6,
+          "scorable": 6
+        },
+        "required_fact_use": {
+          "FAIL": 0,
+          "PASS": 3,
+          "UNSCORABLE": 3,
+          "applicable": 6,
+          "scorable": 3
+        }
+      },
+      "output_tokens": {
+        "count": 6,
+        "maximum": 71,
+        "mean": 46.5,
+        "minimum": 22,
+        "p95": 71
+      },
+      "peak_reserved_vram_mib": 3188.0,
+      "peak_vram_mib": 2888.802734375,
+      "requests": 6,
+      "statuses": {
+        "generated": 6
+      },
+      "stop_reasons": {
+        "eos": 6
+      },
+      "stratum": "facts"
+    },
+    {
+      "arm": "P0",
+      "engine": "lora_r16",
+      "input_tokens": {
+        "count": 6,
+        "maximum": 1448,
+        "mean": 1406.167,
+        "minimum": 1299,
+        "p95": 1448
+      },
+      "latency_seconds": {
+        "count": 6,
+        "maximum": 10.205,
+        "mean": 9.635,
+        "minimum": 8.306,
+        "p95": 10.205
+      },
+      "metrics": {
+        "apology_once": {
+          "FAIL": 0,
+          "PASS": 2,
+          "UNSCORABLE": 0,
+          "applicable": 2,
+          "scorable": 2
+        },
+        "fact_contradiction_absent": {
+          "FAIL": 0,
+          "PASS": 0,
+          "UNSCORABLE": 6,
+          "applicable": 6,
+          "scorable": 0
+        },
+        "max_token_hit_absent": {
+          "FAIL": 0,
+          "PASS": 6,
+          "UNSCORABLE": 0,
+          "applicable": 6,
+          "scorable": 6
+        },
+        "private_fields_absent": {
+          "FAIL": 0,
+          "PASS": 6,
+          "UNSCORABLE": 0,
+          "applicable": 6,
+          "scorable": 6
+        },
+        "two_sentences": {
+          "FAIL": 2,
+          "PASS": 4,
+          "UNSCORABLE": 0,
+          "applicable": 6,
+          "scorable": 6
+        },
+        "unsolicited_saju_absent": {
+          "FAIL": 0,
+          "PASS": 6,
+          "UNSCORABLE": 0,
+          "applicable": 6,
+          "scorable": 6
+        }
+      },
+      "output_tokens": {
+        "count": 6,
+        "maximum": 42,
+        "mean": 30.667,
+        "minimum": 13,
+        "p95": 42
+      },
+      "peak_reserved_vram_mib": 3196.0,
+      "peak_vram_mib": 2897.80615234375,
+      "requests": 6,
+      "statuses": {
+        "generated": 6
+      },
+      "stop_reasons": {
+        "eos": 6
+      },
+      "stratum": "format"
+    },
+    {
+      "arm": "P0",
+      "engine": "lora_r16",
+      "input_tokens": {
+        "count": 6,
+        "maximum": 1408,
+        "mean": 1067.167,
+        "minimum": 446,
+        "p95": 1408
+      },
+      "latency_seconds": {
+        "count": 5,
+        "maximum": 12.968,
+        "mean": 11.081,
+        "minimum": 9.169,
+        "p95": 12.968
+      },
+      "metrics": {
+        "fact_contradiction_absent": {
+          "FAIL": 0,
+          "PASS": 0,
+          "UNSCORABLE": 5,
+          "applicable": 5,
+          "scorable": 0
+        },
+        "max_token_hit_absent": {
+          "FAIL": 0,
+          "PASS": 5,
+          "UNSCORABLE": 0,
+          "applicable": 5,
+          "scorable": 5
+        },
+        "private_fields_absent": {
+          "FAIL": 0,
+          "PASS": 5,
+          "UNSCORABLE": 0,
+          "applicable": 5,
+          "scorable": 5
+        },
+        "unsolicited_saju_absent": {
+          "FAIL": 0,
+          "PASS": 5,
+          "UNSCORABLE": 0,
+          "applicable": 5,
+          "scorable": 5
+        }
+      },
+      "output_tokens": {
+        "count": 5,
+        "maximum": 84,
+        "mean": 52.0,
+        "minimum": 23,
+        "p95": 84
+      },
+      "peak_reserved_vram_mib": 3182.0,
+      "peak_vram_mib": 2887.8408203125,
+      "requests": 6,
+      "statuses": {
+        "generated": 5,
+        "preblocked": 1
+      },
+      "stop_reasons": {
+        "eos": 5
+      },
+      "stratum": "general"
+    },
+    {
+      "arm": "P0",
+      "engine": "lora_r16",
+      "input_tokens": {
+        "count": 6,
+        "maximum": 1449,
+        "mean": 1422.167,
+        "minimum": 1328,
+        "p95": 1449
+      },
+      "latency_seconds": {
+        "count": 6,
+        "maximum": 12.548,
+        "mean": 10.879,
+        "minimum": 9.326,
+        "p95": 12.548
+      },
+      "metrics": {
+        "fact_contradiction_absent": {
+          "FAIL": 1,
+          "PASS": 4,
+          "UNSCORABLE": 1,
+          "applicable": 6,
+          "scorable": 5
+        },
+        "max_token_hit_absent": {
+          "FAIL": 0,
+          "PASS": 6,
+          "UNSCORABLE": 0,
+          "applicable": 6,
+          "scorable": 6
+        },
+        "private_fields_absent": {
+          "FAIL": 0,
+          "PASS": 6,
+          "UNSCORABLE": 0,
+          "applicable": 6,
+          "scorable": 6
+        },
+        "required_fact_use": {
+          "FAIL": 1,
+          "PASS": 2,
+          "UNSCORABLE": 1,
+          "applicable": 4,
+          "scorable": 3
+        },
+        "two_sentences": {
+          "FAIL": 1,
+          "PASS": 0,
+          "UNSCORABLE": 0,
+          "applicable": 1,
+          "scorable": 1
+        },
+        "unsolicited_saju_absent": {
+          "FAIL": 2,
+          "PASS": 0,
+          "UNSCORABLE": 0,
+          "applicable": 2,
+          "scorable": 2
+        }
+      },
+      "output_tokens": {
+        "count": 6,
+        "maximum": 75,
+        "mean": 50.333,
+        "minimum": 29,
+        "p95": 75
+      },
+      "peak_reserved_vram_mib": 3196.0,
+      "peak_vram_mib": 2897.89013671875,
+      "requests": 6,
+      "statuses": {
+        "generated": 6
+      },
+      "stop_reasons": {
+        "eos": 6
+      },
+      "stratum": "history"
+    },
+    {
+      "arm": "P0",
+      "engine": "lora_r16",
+      "input_tokens": {
+        "count": 6,
+        "maximum": 1414,
+        "mean": 1389.5,
+        "minimum": 1295,
+        "p95": 1414
+      },
+      "latency_seconds": {
+        "count": 6,
+        "maximum": 12.088,
+        "mean": 11.527,
+        "minimum": 10.354,
+        "p95": 12.088
+      },
+      "metrics": {
+        "fact_contradiction_absent": {
+          "FAIL": 3,
+          "PASS": 2,
+          "UNSCORABLE": 1,
+          "applicable": 6,
+          "scorable": 5
+        },
+        "false_premise_corrected": {
+          "FAIL": 3,
+          "PASS": 2,
+          "UNSCORABLE": 1,
+          "applicable": 6,
+          "scorable": 5
+        },
+        "max_token_hit_absent": {
+          "FAIL": 0,
+          "PASS": 6,
+          "UNSCORABLE": 0,
+          "applicable": 6,
+          "scorable": 6
+        },
+        "private_fields_absent": {
+          "FAIL": 0,
+          "PASS": 6,
+          "UNSCORABLE": 0,
+          "applicable": 6,
+          "scorable": 6
+        },
+        "required_fact_use": {
+          "FAIL": 3,
+          "PASS": 2,
+          "UNSCORABLE": 1,
+          "applicable": 6,
+          "scorable": 5
+        }
+      },
+      "output_tokens": {
+        "count": 6,
+        "maximum": 67,
+        "mean": 58.0,
+        "minimum": 44,
+        "p95": 67
+      },
+      "peak_reserved_vram_mib": 3188.0,
+      "peak_vram_mib": 2887.61865234375,
+      "requests": 6,
+      "statuses": {
+        "generated": 6
+      },
+      "stop_reasons": {
+        "eos": 6
+      },
+      "stratum": "premise"
+    },
+    {
+      "arm": "P0",
+      "engine": "lora_r16",
+      "input_tokens": {
+        "count": 6,
+        "maximum": 1342,
+        "mean": 1034.333,
+        "minimum": 446,
+        "p95": 1342
+      },
+      "latency_seconds": {
+        "count": 6,
+        "maximum": 13.688,
+        "mean": 12.078,
+        "minimum": 10.212,
+        "p95": 13.688
+      },
+      "metrics": {
+        "fact_contradiction_absent": {
+          "FAIL": 2,
+          "PASS": 1,
+          "UNSCORABLE": 3,
+          "applicable": 6,
+          "scorable": 3
+        },
+        "leap_month_requested": {
+          "FAIL": 0,
+          "PASS": 1,
+          "UNSCORABLE": 0,
+          "applicable": 1,
+          "scorable": 1
+        },
+        "max_token_hit_absent": {
+          "FAIL": 0,
+          "PASS": 6,
+          "UNSCORABLE": 0,
+          "applicable": 6,
+          "scorable": 6
+        },
+        "private_fields_absent": {
+          "FAIL": 0,
+          "PASS": 6,
+          "UNSCORABLE": 0,
+          "applicable": 6,
+          "scorable": 6
+        },
+        "uncertainty_preserved": {
+          "FAIL": 2,
+          "PASS": 2,
+          "UNSCORABLE": 1,
+          "applicable": 5,
+          "scorable": 4
+        }
+      },
+      "output_tokens": {
+        "count": 6,
+        "maximum": 97,
+        "mean": 71.167,
+        "minimum": 46,
+        "p95": 97
+      },
+      "peak_reserved_vram_mib": 3174.0,
+      "peak_vram_mib": 2870.822265625,
+      "requests": 6,
+      "statuses": {
+        "generated": 6
+      },
+      "stop_reasons": {
+        "eos": 6
+      },
+      "stratum": "uncertainty"
+    },
+    {
+      "arm": "P1",
+      "engine": "lora_r16",
+      "input_tokens": {
+        "count": 48,
+        "maximum": 1678,
+        "mean": 1358.958,
+        "minimum": 446,
+        "p95": 1677
+      },
+      "latency_seconds": {
+        "count": 43,
+        "maximum": 14.437,
+        "mean": 11.002,
+        "minimum": 8.615,
+        "p95": 13.358
+      },
+      "metrics": {
+        "apology_once": {
+          "FAIL": 0,
+          "PASS": 2,
+          "UNSCORABLE": 0,
+          "applicable": 2,
+          "scorable": 2
+        },
+        "corrected_state_used": {
+          "FAIL": 2,
+          "PASS": 4,
+          "UNSCORABLE": 0,
+          "applicable": 6,
+          "scorable": 6
+        },
+        "fact_contradiction_absent": {
+          "FAIL": 12,
+          "PASS": 14,
+          "UNSCORABLE": 17,
+          "applicable": 43,
+          "scorable": 26
+        },
+        "false_premise_corrected": {
+          "FAIL": 4,
+          "PASS": 2,
+          "UNSCORABLE": 0,
+          "applicable": 6,
+          "scorable": 6
+        },
+        "leap_month_requested": {
+          "FAIL": 0,
+          "PASS": 1,
+          "UNSCORABLE": 0,
+          "applicable": 1,
+          "scorable": 1
+        },
+        "max_token_hit_absent": {
+          "FAIL": 0,
+          "PASS": 43,
+          "UNSCORABLE": 0,
+          "applicable": 43,
+          "scorable": 43
+        },
+        "private_fields_absent": {
+          "FAIL": 0,
+          "PASS": 43,
+          "UNSCORABLE": 0,
+          "applicable": 43,
+          "scorable": 43
+        },
+        "required_fact_use": {
+          "FAIL": 8,
+          "PASS": 12,
+          "UNSCORABLE": 4,
+          "applicable": 24,
+          "scorable": 20
+        },
+        "target_date_used": {
+          "FAIL": 1,
+          "PASS": 1,
+          "UNSCORABLE": 0,
+          "applicable": 2,
+          "scorable": 2
+        },
+        "two_sentences": {
+          "FAIL": 2,
+          "PASS": 5,
+          "UNSCORABLE": 0,
+          "applicable": 7,
+          "scorable": 7
+        },
+        "uncertainty_preserved": {
+          "FAIL": 3,
+          "PASS": 2,
+          "UNSCORABLE": 0,
+          "applicable": 5,
+          "scorable": 5
+        },
+        "unsolicited_saju_absent": {
+          "FAIL": 3,
+          "PASS": 10,
+          "UNSCORABLE": 0,
+          "applicable": 13,
+          "scorable": 13
+        }
+      },
+      "output_tokens": {
+        "count": 43,
+        "maximum": 105,
+        "mean": 50.953,
+        "minimum": 13,
+        "p95": 87
+      },
+      "peak_reserved_vram_mib": 3238.0,
+      "peak_vram_mib": 2949.31884765625,
+      "requests": 48,
+      "statuses": {
+        "generated": 43,
+        "preblocked": 5
+      },
+      "stop_reasons": {
+        "eos": 43
+      },
+      "stratum": "all"
+    },
+    {
+      "arm": "P1",
+      "engine": "lora_r16",
+      "input_tokens": {
+        "count": 6,
+        "maximum": 1465,
+        "mean": 1445.333,
+        "minimum": 1358,
+        "p95": 1465
+      },
+      "latency_seconds": {
+        "count": 6,
+        "maximum": 14.437,
+        "mean": 11.045,
+        "minimum": 9.249,
+        "p95": 14.437
+      },
+      "metrics": {
+        "corrected_state_used": {
+          "FAIL": 2,
+          "PASS": 4,
+          "UNSCORABLE": 0,
+          "applicable": 6,
+          "scorable": 6
+        },
+        "fact_contradiction_absent": {
+          "FAIL": 2,
+          "PASS": 4,
+          "UNSCORABLE": 0,
+          "applicable": 6,
+          "scorable": 6
+        },
+        "max_token_hit_absent": {
+          "FAIL": 0,
+          "PASS": 6,
+          "UNSCORABLE": 0,
+          "applicable": 6,
+          "scorable": 6
+        },
+        "private_fields_absent": {
+          "FAIL": 0,
+          "PASS": 6,
+          "UNSCORABLE": 0,
+          "applicable": 6,
+          "scorable": 6
+        },
+        "required_fact_use": {
+          "FAIL": 2,
+          "PASS": 4,
+          "UNSCORABLE": 0,
+          "applicable": 6,
+          "scorable": 6
+        }
+      },
+      "output_tokens": {
+        "count": 6,
+        "maximum": 105,
+        "mean": 52.167,
+        "minimum": 18,
+        "p95": 105
+      },
+      "peak_reserved_vram_mib": 3212.0,
+      "peak_vram_mib": 2896.45849609375,
+      "requests": 6,
+      "statuses": {
+        "generated": 6
+      },
+      "stop_reasons": {
+        "eos": 6
+      },
+      "stratum": "correction"
+    },
+    {
+      "arm": "P1",
+      "engine": "lora_r16",
+      "input_tokens": {
+        "count": 6,
+        "maximum": 1678,
+        "mean": 1613.833,
+        "minimum": 1421,
+        "p95": 1678
+      },
+      "latency_seconds": {
+        "count": 2,
+        "maximum": 11.702,
+        "mean": 11.178,
+        "minimum": 10.653,
+        "p95": 11.702
+      },
+      "metrics": {
+        "fact_contradiction_absent": {
+          "FAIL": 0,
+          "PASS": 1,
+          "UNSCORABLE": 1,
+          "applicable": 2,
+          "scorable": 1
+        },
+        "max_token_hit_absent": {
+          "FAIL": 0,
+          "PASS": 2,
+          "UNSCORABLE": 0,
+          "applicable": 2,
+          "scorable": 2
+        },
+        "private_fields_absent": {
+          "FAIL": 0,
+          "PASS": 2,
+          "UNSCORABLE": 0,
+          "applicable": 2,
+          "scorable": 2
+        },
+        "required_fact_use": {
+          "FAIL": 0,
+          "PASS": 1,
+          "UNSCORABLE": 1,
+          "applicable": 2,
+          "scorable": 1
+        },
+        "target_date_used": {
+          "FAIL": 1,
+          "PASS": 1,
+          "UNSCORABLE": 0,
+          "applicable": 2,
+          "scorable": 2
+        }
+      },
+      "output_tokens": {
+        "count": 2,
+        "maximum": 60,
+        "mean": 47.0,
+        "minimum": 34,
+        "p95": 60
+      },
+      "peak_reserved_vram_mib": 3238.0,
+      "peak_vram_mib": 2949.31884765625,
+      "requests": 6,
+      "statuses": {
+        "generated": 2,
+        "preblocked": 4
+      },
+      "stop_reasons": {
+        "eos": 2
+      },
+      "stratum": "date"
+    },
+    {
+      "arm": "P1",
+      "engine": "lora_r16",
+      "input_tokens": {
+        "count": 6,
+        "maximum": 1437,
+        "mean": 1410.833,
+        "minimum": 1319,
+        "p95": 1437
+      },
+      "latency_seconds": {
+        "count": 6,
+        "maximum": 12.554,
+        "mean": 10.929,
+        "minimum": 8.805,
+        "p95": 12.554
+      },
+      "metrics": {
+        "fact_contradiction_absent": {
+          "FAIL": 2,
+          "PASS": 3,
+          "UNSCORABLE": 1,
+          "applicable": 6,
+          "scorable": 5
+        },
+        "max_token_hit_absent": {
+          "FAIL": 0,
+          "PASS": 6,
+          "UNSCORABLE": 0,
+          "applicable": 6,
+          "scorable": 6
+        },
+        "private_fields_absent": {
+          "FAIL": 0,
+          "PASS": 6,
+          "UNSCORABLE": 0,
+          "applicable": 6,
+          "scorable": 6
+        },
+        "required_fact_use": {
+          "FAIL": 2,
+          "PASS": 3,
+          "UNSCORABLE": 1,
+          "applicable": 6,
+          "scorable": 5
+        }
+      },
+      "output_tokens": {
+        "count": 6,
+        "maximum": 68,
+        "mean": 49.0,
+        "minimum": 14,
+        "p95": 68
+      },
+      "peak_reserved_vram_mib": 3196.0,
+      "peak_vram_mib": 2889.16796875,
+      "requests": 6,
+      "statuses": {
+        "generated": 6
+      },
+      "stop_reasons": {
+        "eos": 6
+      },
+      "stratum": "facts"
+    },
+    {
+      "arm": "P1",
+      "engine": "lora_r16",
+      "input_tokens": {
+        "count": 6,
+        "maximum": 1467,
+        "mean": 1425.167,
+        "minimum": 1318,
+        "p95": 1467
+      },
+      "latency_seconds": {
+        "count": 6,
+        "maximum": 11.493,
+        "mean": 9.973,
+        "minimum": 8.615,
+        "p95": 11.493
+      },
+      "metrics": {
+        "apology_once": {
+          "FAIL": 0,
+          "PASS": 2,
+          "UNSCORABLE": 0,
+          "applicable": 2,
+          "scorable": 2
+        },
+        "fact_contradiction_absent": {
+          "FAIL": 1,
+          "PASS": 1,
+          "UNSCORABLE": 4,
+          "applicable": 6,
+          "scorable": 2
+        },
+        "max_token_hit_absent": {
+          "FAIL": 0,
+          "PASS": 6,
+          "UNSCORABLE": 0,
+          "applicable": 6,
+          "scorable": 6
+        },
+        "private_fields_absent": {
+          "FAIL": 0,
+          "PASS": 6,
+          "UNSCORABLE": 0,
+          "applicable": 6,
+          "scorable": 6
+        },
+        "two_sentences": {
+          "FAIL": 2,
+          "PASS": 4,
+          "UNSCORABLE": 0,
+          "applicable": 6,
+          "scorable": 6
+        },
+        "unsolicited_saju_absent": {
+          "FAIL": 2,
+          "PASS": 4,
+          "UNSCORABLE": 0,
+          "applicable": 6,
+          "scorable": 6
+        }
+      },
+      "output_tokens": {
+        "count": 6,
+        "maximum": 64,
+        "mean": 37.0,
+        "minimum": 13,
+        "p95": 64
+      },
+      "peak_reserved_vram_mib": 3212.0,
+      "peak_vram_mib": 2900.3857421875,
+      "requests": 6,
+      "statuses": {
+        "generated": 6
+      },
+      "stop_reasons": {
+        "eos": 6
+      },
+      "stratum": "format"
+    },
+    {
+      "arm": "P1",
+      "engine": "lora_r16",
+      "input_tokens": {
+        "count": 6,
+        "maximum": 1427,
+        "mean": 1079.833,
+        "minimum": 446,
+        "p95": 1427
+      },
+      "latency_seconds": {
+        "count": 5,
+        "maximum": 14.055,
+        "mean": 10.798,
+        "minimum": 9.202,
+        "p95": 14.055
+      },
+      "metrics": {
+        "fact_contradiction_absent": {
+          "FAIL": 0,
+          "PASS": 0,
+          "UNSCORABLE": 5,
+          "applicable": 5,
+          "scorable": 0
+        },
+        "max_token_hit_absent": {
+          "FAIL": 0,
+          "PASS": 5,
+          "UNSCORABLE": 0,
+          "applicable": 5,
+          "scorable": 5
+        },
+        "private_fields_absent": {
+          "FAIL": 0,
+          "PASS": 5,
+          "UNSCORABLE": 0,
+          "applicable": 5,
+          "scorable": 5
+        },
+        "unsolicited_saju_absent": {
+          "FAIL": 0,
+          "PASS": 5,
+          "UNSCORABLE": 0,
+          "applicable": 5,
+          "scorable": 5
+        }
+      },
+      "output_tokens": {
+        "count": 5,
+        "maximum": 105,
+        "mean": 50.4,
+        "minimum": 23,
+        "p95": 105
+      },
+      "peak_reserved_vram_mib": 3196.0,
+      "peak_vram_mib": 2888.900390625,
+      "requests": 6,
+      "statuses": {
+        "generated": 5,
+        "preblocked": 1
+      },
+      "stop_reasons": {
+        "eos": 5
+      },
+      "stratum": "general"
+    },
+    {
+      "arm": "P1",
+      "engine": "lora_r16",
+      "input_tokens": {
+        "count": 6,
+        "maximum": 1468,
+        "mean": 1441.167,
+        "minimum": 1347,
+        "p95": 1468
+      },
+      "latency_seconds": {
+        "count": 6,
+        "maximum": 11.877,
+        "mean": 11.304,
+        "minimum": 10.164,
+        "p95": 11.877
+      },
+      "metrics": {
+        "fact_contradiction_absent": {
+          "FAIL": 0,
+          "PASS": 3,
+          "UNSCORABLE": 3,
+          "applicable": 6,
+          "scorable": 3
+        },
+        "max_token_hit_absent": {
+          "FAIL": 0,
+          "PASS": 6,
+          "UNSCORABLE": 0,
+          "applicable": 6,
+          "scorable": 6
+        },
+        "private_fields_absent": {
+          "FAIL": 0,
+          "PASS": 6,
+          "UNSCORABLE": 0,
+          "applicable": 6,
+          "scorable": 6
+        },
+        "required_fact_use": {
+          "FAIL": 0,
+          "PASS": 2,
+          "UNSCORABLE": 2,
+          "applicable": 4,
+          "scorable": 2
+        },
+        "two_sentences": {
+          "FAIL": 0,
+          "PASS": 1,
+          "UNSCORABLE": 0,
+          "applicable": 1,
+          "scorable": 1
+        },
+        "unsolicited_saju_absent": {
+          "FAIL": 1,
+          "PASS": 1,
+          "UNSCORABLE": 0,
+          "applicable": 2,
+          "scorable": 2
+        }
+      },
+      "output_tokens": {
+        "count": 6,
+        "maximum": 65,
+        "mean": 54.833,
+        "minimum": 33,
+        "p95": 65
+      },
+      "peak_reserved_vram_mib": 3212.0,
+      "peak_vram_mib": 2900.53662109375,
+      "requests": 6,
+      "statuses": {
+        "generated": 6
+      },
+      "stop_reasons": {
+        "eos": 6
+      },
+      "stratum": "history"
+    },
+    {
+      "arm": "P1",
+      "engine": "lora_r16",
+      "input_tokens": {
+        "count": 6,
+        "maximum": 1433,
+        "mean": 1408.5,
+        "minimum": 1314,
+        "p95": 1433
+      },
+      "latency_seconds": {
+        "count": 6,
+        "maximum": 12.231,
+        "mean": 11.0,
+        "minimum": 10.337,
+        "p95": 12.231
+      },
+      "metrics": {
+        "fact_contradiction_absent": {
+          "FAIL": 4,
+          "PASS": 2,
+          "UNSCORABLE": 0,
+          "applicable": 6,
+          "scorable": 6
+        },
+        "false_premise_corrected": {
+          "FAIL": 4,
+          "PASS": 2,
+          "UNSCORABLE": 0,
+          "applicable": 6,
+          "scorable": 6
+        },
+        "max_token_hit_absent": {
+          "FAIL": 0,
+          "PASS": 6,
+          "UNSCORABLE": 0,
+          "applicable": 6,
+          "scorable": 6
+        },
+        "private_fields_absent": {
+          "FAIL": 0,
+          "PASS": 6,
+          "UNSCORABLE": 0,
+          "applicable": 6,
+          "scorable": 6
+        },
+        "required_fact_use": {
+          "FAIL": 4,
+          "PASS": 2,
+          "UNSCORABLE": 0,
+          "applicable": 6,
+          "scorable": 6
+        }
+      },
+      "output_tokens": {
+        "count": 6,
+        "maximum": 69,
+        "mean": 50.0,
+        "minimum": 37,
+        "p95": 69
+      },
+      "peak_reserved_vram_mib": 3196.0,
+      "peak_vram_mib": 2889.34619140625,
+      "requests": 6,
+      "statuses": {
+        "generated": 6
+      },
+      "stop_reasons": {
+        "eos": 6
+      },
+      "stratum": "premise"
+    },
+    {
+      "arm": "P1",
+      "engine": "lora_r16",
+      "input_tokens": {
+        "count": 6,
+        "maximum": 1361,
+        "mean": 1047.0,
+        "minimum": 446,
+        "p95": 1361
+      },
+      "latency_seconds": {
+        "count": 6,
+        "maximum": 13.358,
+        "mean": 11.874,
+        "minimum": 10.605,
+        "p95": 13.358
+      },
+      "metrics": {
+        "fact_contradiction_absent": {
+          "FAIL": 3,
+          "PASS": 0,
+          "UNSCORABLE": 3,
+          "applicable": 6,
+          "scorable": 3
+        },
+        "leap_month_requested": {
+          "FAIL": 0,
+          "PASS": 1,
+          "UNSCORABLE": 0,
+          "applicable": 1,
+          "scorable": 1
+        },
+        "max_token_hit_absent": {
+          "FAIL": 0,
+          "PASS": 6,
+          "UNSCORABLE": 0,
+          "applicable": 6,
+          "scorable": 6
+        },
+        "private_fields_absent": {
+          "FAIL": 0,
+          "PASS": 6,
+          "UNSCORABLE": 0,
+          "applicable": 6,
+          "scorable": 6
+        },
+        "uncertainty_preserved": {
+          "FAIL": 3,
+          "PASS": 2,
+          "UNSCORABLE": 0,
+          "applicable": 5,
+          "scorable": 5
+        }
+      },
+      "output_tokens": {
+        "count": 6,
+        "maximum": 87,
+        "mean": 64.5,
+        "minimum": 46,
+        "p95": 87
+      },
+      "peak_reserved_vram_mib": 3174.0,
+      "peak_vram_mib": 2875.41943359375,
+      "requests": 6,
+      "statuses": {
+        "generated": 6
+      },
+      "stop_reasons": {
+        "eos": 6
+      },
+      "stratum": "uncertainty"
+    }
+  ]
+}

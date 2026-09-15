@@ -1,0 +1,20 @@
+{
+  "aggregate_file_sha256": "46e83c1e1b787ad1a244b723f3982efa275d042fe04e4cc1ed6d2590368bf3a2",
+  "build_id": "build-ffd985905b51",
+  "governance": {
+    "confirmation_24_used": false,
+    "larger_model_downloaded": false,
+    "phase8a_routing_used": false,
+    "production_promotion_allowed": false,
+    "runtime_release_changed": false,
+    "sealed_blind_accessed": false,
+    "service_changed": false,
+    "synthetic_only": true,
+    "training_performed": false
+  },
+  "manifest_file_sha256": "c1e83a8423da5e74a5f9c0eed5de0b7eeca6c851fde7893f4eca3d0122c8e5a0",
+  "raw_files_git_tracked": false,
+  "requests": 96,
+  "schema_version": "1.0.0",
+  "status": "verified"
+}

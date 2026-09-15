@@ -10,10 +10,10 @@
 | 작성일 | 2026-09-14 |
 | 문서 부모 | `f34f8562f24116558cd39fbc2a69cea430bb1158` |
 | 응답 기준선 | `26462137f9a4ef34adb2d3db0dd6eaff6282b309`의 20문장 진단 |
-| 현재 단계 | S0/S1 계약·CPU 검증 완료; S2 342요청 실행·재구성 검증 완료 |
+| 현재 단계 | S0/S1·S2·CPU 재집계 및 S3 96요청 실행·재구성 검증 완료 |
 | 최신 S2 build | `build-c39b4bce5089`, 312생성·30사전 차단; 검사기 오탐 별도 확인 |
-| 현재 승인 후속 | S1 새 검사기·CPU 파생 `build-8547c487c858`, 앱 v1.16 CPU canary `build-641ac655f656` 검증 완료 |
-| 다음 별도 작업 | Phase 8A 앱 오차단 / 8B S3 → Phase 9 S4; 이번 Phase 7은 정본화만 수행 |
+| 현재 승인 후속 | Phase 8A v1.17 CPU/화면 `build-49b9aed70565`·8B S3 `build-ffd985905b51` 완료 |
+| 다음 별도 작업 | Phase 9 S4; 등록·다운로드·실행은 별도 범위로 확인 |
 
 2026-09-14 PR #28로 이 계획과 부모 v1.15 후보를 `master`에 통합했다. 2026-09-15 사용자 승인 범위인 S0/S1 구현·검증과 S2 실행을 완료했다. 코드 통합과 격리 진단은 운영 v1.15 배포가 아니다. [완료 기록](../history/2026-09-15-system-context-diagnosis.md)은 실제 모델 오류와 검사기 오탐을 구분한다. 입력·집계 재구성 검증 통과가 검사기의 의미 타당성이나 모델 품질 승인은 아니다.
 
@@ -41,6 +41,7 @@
 - [학습 Phase 정본](saju_1b_10k_20k_baseline/README.md), [Runtime 정본](saju_runtime_calculator_adoption.md)의 승인 범위와 과거 불변 산출물은 그대로다. 50의 단계를 바꾸려면 이 문서와 50·로드맵 연결을 함께 갱신한다.
 - 2026-09-14 계획 작성은 문서·테스트 정합화였고 이후 PR #28로 통합했다. 2026-09-15 승인 범위는 S0/S1과 S2까지다. P0 교체·큰 모델 다운로드·teacher 호출·데이터 생성·400건 재개·학습·서비스 전환·브랜치 병합은 실행하지 않는다.
 - 2026-09-15 후속 승인으로 새 진단 검사기와 기존 S2 응답의 CPU 재집계, 별도 앱 v1.16 의도 정책 후보·합성 canary를 진행한다. 이전 S2·v1.15·grounding v2의 파일과 결과는 변경하지 않는다. 운영 앱 교체·추가 GPU 생성·S3 이후 실험은 승인 범위 밖이다.
+- 2026-09-16 별도 구현 승인으로 Phase 8A 오차단 후보·CPU/합성 화면 검증과 Phase 8B/S3 96요청을 완료했다. 아래 2026-09-15 승인 범위는 당시 이력이며, 이번에도 Phase 9 이후·큰 모델 다운로드·데이터 보정·학습·운영 전환은 하지 않았다. [실제 실행 기록](../history/2026-09-16-phase8-intent-s3.md)을 따른다.
 
 ## 3. 확인된 사실과 아직 모르는 것
 
@@ -53,6 +54,7 @@
 | [LoRA 실행 이력](mix2k_v4_chart_day_lora.md) | R8/R16/R32 모두 2,000행·250 step 완료; `max_length=2048`; full snapshot 학습; 전체 rendered 최대 1,960 token, truncation·loss 누출 0 | 8K라는 작업명만으로 장문 학습 완료, 낮은 training loss만으로 더 좋은 대화 |
 | 같은 LoRA 이력·[분포 점검](../history/2026-09-05-model-cause-roadmap.md) | 승인 fallback 초안 2,000건; 최종 Claude 판정 191·Codex 별도 판정 1,809; 일반 공감 250행 모두 원국 미연결, 답변 1,751행이 3줄 이상 | 교차 provider 조건 충족, 특정 문자열 0건만으로 의미상 예제 부재, 현재 오류의 단일 원인 |
 | [00 기준선](saju_product_roadmap/00-current-baseline.md) | 최신 코드·계획은 master 통합, 운영은 v1.14 유지; 400건 보정은 현재 R16에 미반영 | 코드 병합만으로 후보가 이미 운영에 적용됐다는 가정 |
+| [S3 완료 기록](../history/2026-09-16-phase8-intent-s3.md#phase8b) | R16/P0·P1 96요청·86생성·10차단, 일부 형식 개선과 실제 오류·검사 오탐/누락 병존 | P1 일괄 개선, 모델 크기·데이터 단일 원인, 현재 KI20 대비 개선 |
 
 위 수치의 생성 시점은 각 원본 기록을 따른다. 2026-09-14에는 문서·코드·공개 집계와 Git·서비스 상태를 대조했으며 새 응답을 생성하거나 private 학습 자료를 다시 전수 판정하지 않았다. 계산기 승인은 날짜·원국·관계의 제한된 계산 사실에 대한 것이지 성격·길흉 해석의 정답을 보장하는 승인이 아니다.
 
@@ -151,7 +153,7 @@ S1에서 후보 선택 규칙도 고정한다. 계산 권한·상태·privacy에
 | 실행 적격성 소규모 확인 | tokenizer·cache·메모리·종료 확인 | 8 |
 | 합계 상한 | 위 요청 합계 | 680 |
 
-680은 **요청 상한이지 GPU 생성 완료 수가 아니다**. 동일 immutable 실행 identity의 결과만 재사용할 수 있고 재사용 수를 별도로 표시한다. 요청 = 신규 생성 완료 + 검증된 재사용 + 예상 사전 차단 + 예상 밖 차단/오류 + 미실행으로 전량 대조한다. 결과가 나쁘다고 조건·seed·재시도를 추가하지 않는다. 예상 벽시계 시간은 소규모 확인의 실제 속도로 산출한다. **680 전체 예산은 승인하지 않았다.** 이번 승인 상한은 S2와 적격성 확인을 합친 344이며, 구현은 342요청(288+48+6)을 등록했다. GPU 유휴·여유 12GiB 이상에서 끝까지 순차 진행하고, 경쟁 작업은 종료하지 않는다.
+680은 **요청 상한이지 GPU 생성 완료 수가 아니다**. 동일 immutable 실행 identity의 결과만 재사용할 수 있고 재사용 수를 별도로 표시한다. 요청 = 신규 생성 완료 + 검증된 재사용 + 예상 사전 차단 + 예상 밖 차단/오류 + 미실행으로 전량 대조한다. 결과가 나쁘다고 조건·seed·재시도를 추가하지 않는다. 예상 벽시계 시간은 소규모 확인의 실제 속도로 산출한다. **680 전체 예산은 승인하지 않았다.** 2026-09-15 승인 상한은 S2와 적격성 확인을 합친 344였고 342요청(288+48+6)을 등록·완료했다. 2026-09-16 별도 승인 S3 96요청을 완료해 누적은 438이며 추가 적격성 요청은 0이다. GPU 유휴·여유 12GiB 이상에서 순차 진행하고, 경쟁 작업은 종료하지 않는다.
 
 ## 7. 자동 판정과 원인 해석
 
@@ -225,17 +227,17 @@ SYSTEM_CONTEXT_DIAGNOSIS=S0_S1_S2_V1 .venv/bin/python -B -m scripts.evaluation.s
 
 ## 10. 종료·보존·후속 결정
 
-후속 실행의 전체 순서는 [Phase 7~14 로드맵](saju_product_roadmap/README.md)을 따른다. [예산 정본](saju_product_roadmap/phases/phase-07.md#budget)의 계획상 잔여 338 = 본 비교 336 + 적격성 2는 실행 승인이 아니다. 추가 실제 모델 호출·학습 후 평가는 목적·범위·예산을 별도로 정하며 CPU 모의 검증과 구분한다. Phase 11은 학습 가설·보정 대상·조건부 명세, Phase 12는 실제 제품 결과 대조 후 Phase 13 실행 여부 결정, Phase 14는 운영 검토다. 앱·지시문으로 해소됐으면 기존 400건이나 명세가 있어도 학습을 건너뛴다. 미시험 3B/P1·새 projection은 새 통합 후보이며 S6 첫 확인의 한계를 밝힌다. 새 학습 검증에 이미 사용한 S6를 재사용하지 않는다.
+후속 실행의 전체 순서는 [Phase 7~14 로드맵](saju_product_roadmap/README.md)을 따른다. [예산 정본](saju_product_roadmap/phases/phase-07.md#budget)은 Phase 7 당시 잔여 338과 S3 완료 후 현재 잔여 **242 = 본 비교 240 + 적격성 2**를 구분한다. 이는 실행 승인이 아니다. 추가 실제 모델 호출·학습 후 평가는 목적·범위·예산을 별도로 정하며 CPU 모의 검증과 구분한다. Phase 11은 학습 가설·보정 대상·조건부 명세, Phase 12는 실제 제품 결과 대조 후 Phase 13 실행 여부 결정, Phase 14는 운영 검토다. 앱·지시문으로 해소됐으면 기존 400건이나 명세가 있어도 학습을 건너뛴다. 미시험 3B/P1·새 projection은 새 통합 후보이며 S6 첫 확인의 한계를 밝힌다. 새 학습 검증에 이미 사용한 S6를 재사용하지 않는다.
 
 S6 후보 하나는 [Phase 12](saju_product_roadmap/phases/phase-12.md#confirmation)의 모델·지시문 묶음·정보 선택·라우팅·이력 정책·검사·채택 규칙을 포함한 전체 실행 구성이다. 새 24문항 사용 전에 동결하며 결과를 보고 같은 질문으로 재선발하지 않는다. 실험 R16/P0/C_FULL 기준선과 운영 KI20의 비교·미측정·되돌림은 [Phase 14](saju_product_roadmap/phases/phase-14.md#comparison-baselines)를 따른다. 이 차이를 이유로 S6 비교군을 늘리지 않는다.
 
-- S0~S6마다 `planned / implemented / validated / executed / not_executed`를 구분한다. 문서 존재를 구현 완료나 실행 완료로 세지 않는다. 현재 S0/S1은 `validated`, S2는 `executed`·공개 build `verified`, S3~S6은 `not_executed`다. S1의 기존 계약·CPU 검증 완료와 S2에서 추가 발견한 검사 문법 결함은 구분한다.
+- S0~S6마다 `planned / implemented / validated / executed / not_executed`를 구분한다. 문서 존재를 구현 완료나 실행 완료로 세지 않는다. 현재 S0/S1은 `validated`, S2는 `executed`·공개 build `verified`, S3는 `executed`·공개 build `verified`, S4~S6은 `not_executed`다. S1의 기존 계약·CPU 검증 완료와 S2/S3에서 추가 발견한 검사 문법 결함은 구분한다.
 - 공개 파일에는 합성 사례의 집계·계약·manifest·코드/버전 hash와 한계만 기록한다. 원시 trace·질문에 결합된 계산 내용·모델 출력·token 배열은 Git 제외 private 경로에 두고 최소 권한·보존/삭제 정책을 검증한다.
 - 기존 Phase 6·grounded-dialogue 원시 결과와 소비된 sealed blind는 열거나 재사용하지 않는다. 자연스러움 등 계약 밖 품질은 `not_measured`로 남기고 계약 밖 평가를 완료 조건으로 추가하지 않는다.
 - Phase 6·Runtime release·production 허용·기본 모델·feature 기본 off는 자동 변경하지 않는다. [60 데이터](saju_product_roadmap/60-mix20k-v3-1-build.md)·[70 학습](saju_product_roadmap/70-training-and-promotion.md)은 원인별 결과에 따른 별도 결정이다.
 - 종료 보고는 “어디서 잘못됐는가 / 무엇으로 확인했는가 / 무엇은 아직 모르는가 / 다음에 고칠 최소 범위”를 답한다. 실패가 남아도 근거 없는 전면 재학습이나 모델 교체를 처방하지 않는다.
 
-### S2 이후 승인 후속 범위 — 재집계·앱 CPU 후보 검증 완료
+### S2 이후 승인 후속 범위 — 2026-09-15 재집계·앱 CPU 완료 이력
 
 1. 검사기 새 버전에서 인접 label/value, 간접 부정, 정정 전/현재 범위, 이전 답변 인용을 합성 양성·음성 fixture로 보강한다. R16 자동 회귀 8개 중 6개가 이 문제였으므로 기존 13→6 PASS를 실제 정확도 하락으로 사용하지 않는다.
 2. 같은 S2 private 합성 응답을 재생성 없이 읽어 새 검사 버전의 파생 집계를 만든다. 원래 build·config·scorer·공개 집계는 보존한다. 새 GPU 호출·학습·sealed blind 접근은 필요하지 않다. 새 계약 `system-context-rescore-v1.0.0.json`과 `system_context_rescore` CLI에서 부모 공개 3파일 pin·기존 source 460파일·입력/응답 684파일을 검증한다. 새 파일 추가로 부모의 전체 source fingerprint가 달라져도 기존 검증기를 완화하지 않고 고정 부모 map을 읽기 전용으로 검증한다.
@@ -269,12 +271,29 @@ S6 후보 하나는 [Phase 12](saju_product_roadmap/phases/phase-12.md#confirmat
 .venv-data/bin/python -B -m scripts.evaluation.dashboard_intent_canary verify --build build-641ac655f656
 ```
 
+### Phase 8A·8B 완료 — 2026-09-16
+
+8A는 v1.17/grounding v4·의도 v2, CPU 45개·합성 브라우저 6개를 검증했다. 직전 사용자 발화만 읽기 전용으로 참조하며 이력·snapshot·모델 입력은 재구성하지 않았다. S3에는 이 라우팅을 적용하지 않았다.
+
+S3의 구현된 실행 파일은 `scripts.evaluation.system_context_s3`이며 기존 `system_context_diagnosis`를 S3 runner로 재사용하지 않는다. P1 지시문 묶음·config·source·모델·입력 hash를 동결한 `build-ffd985905b51`에서 96요청·86생성·10차단을 완료했다. 입력 통제·비용·PASS/FAIL/UNSCORABLE·검사 오탐/누락·실제 오류는 [8B 완료 기록](../history/2026-09-16-phase8-intent-s3.md#phase8b)을 따른다. P1은 미채택이며 S4에 공통 P0를 적용하는 계획을 유지한다.
+
+완료 build의 읽기 전용 검증 명령은 다음과 같다. 실행·resume 명령은 위 완료 기록의 당시 환경을 따르며 완료된 요청을 다시 생성하지 않는다.
+
+```bash
+HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 .venv/bin/python -B -m scripts.evaluation.system_context_s3 verify --build build-ffd985905b51
+```
+
 ## 11. 실험 설계의 참고 근거
 
 - 긴 입력에서 관련 정보의 위치에 따라 성능이 달라지는 관찰을 위치 대조의 근거로 삼는다. 이는 이 저장소 모델의 원인이 이미 증명됐다는 뜻이 아니다. [Liu 외, Lost in the Middle, v3](https://arxiv.org/abs/2307.03172v3).
 - 무관한 자료가 포함된 산술 문제의 성능 저하 연구를 정보 관련성 대조의 근거로 삼는다. 해당 과제 결과를 한국어 사주 대화나 모델 크기의 인과 결론으로 직접 일반화하지 않는다. [Shi 외, Large Language Models Can Be Easily Distracted by Irrelevant Context, v3](https://arxiv.org/abs/2302.00093v3).
 
 ## 진행 기록
+
+### 2026-09-16 — 8A 후보·S3 96요청 실행 완료
+
+- `c1f090f`·`2d951b4`를 master에서 검증·푸시하고 S3를 실행했다. 부모 source·입력/출력·P0·scorer는 보존했고 내장·별도 verify가 같은 공개 hash로 통과했다. 실제 실행·항목별 결과·비용·검사 한계는 [실행 기록](../history/2026-09-16-phase8-intent-s3.md)에 고정한다.
+- 다음 과제는 Phase 9/S4이며 큰 모델 등록·다운로드·GPU 실행은 하지 않았다. 운영 v1.14 PID 3144071·재시작 0·기본 KI20·feature off와 기존 학습·Phase 6·계산 release를 유지했다.
 
 ### 2026-09-15 — Phase 7 보완에 따른 경계 정합화
 

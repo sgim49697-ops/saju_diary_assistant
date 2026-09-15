@@ -36,7 +36,7 @@
 
 ## 현재 위치와 다음 방향
 
-Runtime 10~40 구현과 R8·R16·R32 학습은 완료됐다. dashboard v1.14가 운영 중이며 최신 v1.16 의도 후보는 CPU 검증·병합 완료·운영 미배포 상태다. S0/S1·S2와 파생 CPU 재집계를 보존하고 [Phase 8](implementation/plans/saju_product_roadmap/phases/phase-08.md)에서 남은 앱 오차단과 S3를 분리한다. [Phase 9](implementation/plans/saju_product_roadmap/phases/phase-09.md)는 K0·3B의 동일 P0/FULL·MIN 비교다. 원본 프로젝트 폴더의 `master`에서 후속 작업을 진행하며 구현 상세나 실행 명령을 이 문서에 중복 정의하지 않는다.
+Runtime 10~40 구현과 R8·R16·R32 학습은 완료됐다. dashboard v1.14가 운영 중이며 최신 v1.17 오차단 후보는 CPU·합성 화면 검증·master 통합 완료·운영 미배포 상태다. S0/S1·S2와 파생 CPU 재집계를 보존하고 [Phase 8](implementation/plans/saju_product_roadmap/phases/phase-08.md)의 앱 후보·S3 96요청을 각각 완료했다. P1은 미채택이며 다음 별도 과제인 [Phase 9](implementation/plans/saju_product_roadmap/phases/phase-09.md)는 K0·3B의 동일 P0/FULL·MIN 비교다. 원본 프로젝트 폴더의 `master`에서 후속 작업을 진행하며 구현 상세나 실행 명령을 이 문서에 중복 정의하지 않는다.
 
 [Phase 10](implementation/plans/saju_product_roadmap/phases/phase-10.md)에서는 서버의 원국 연결 상태와 현재 응답 모드를 분리한다. 일반 대화로 전환해도 연결은 유지하고, 출생정보 정정은 새 계산·명시적 연결과 revision 안내를 거친다. 과거 답변·옛 snapshot이 현재 사실을 덮어쓰지 않게 하며 새 router·장기 기억을 필수 의존성으로 추가하지 않는다.
 

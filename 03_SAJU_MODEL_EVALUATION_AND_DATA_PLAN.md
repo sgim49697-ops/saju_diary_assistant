@@ -18,12 +18,14 @@
 | 현재 R16 입력 | `v1.0.1/build-54836f556b4f` | [LoRA 계획](implementation/plans/mix2k_v4_chart_day_lora.md)의 고정 학습 이력 |
 | 별도 v1.1 보정 | 마지막 checkpoint accepted 238/400 | 현재 R16에 미반영, 자동 재개·재학습하지 않음 |
 | 20문장 기준선 | 3모델·60요청·54생성·6차단 완료 | 과거 개발 진단 이력 보존 |
-| 최신 전체 경로 진단 | S0/S1·S2 완료, 312응답 새 검사 버전 CPU 재집계·v1.16 의도 canary 검증 완료 | 다음 Phase 8A 앱 보완·8B S3; 큰 기본 모델 비교·추가 학습·운영 전환 미실행 |
+| 최신 전체 경로 진단 | S0/S1·S2·CPU 재집계 보존, Phase 8A v1.17 CPU/화면·8B S3 96요청 검증 완료 | P1 미채택; 다음 Phase 9/S4, 큰 모델 다운로드·추가 학습·운영 전환 미실행 |
 | MIX20K-v3.0.1 | 보정·비학습 후보 이력 | 현재 2K 학습 데이터와 별도, v3.1 생성 승인 아님 |
 
 ## 최근 진단이 말해 주는 것
 
-[S2 완료 기록](implementation/history/2026-09-15-system-context-diagnosis.md)의 최대 입력 1,692 token·삭제 이력 0·원응답은 보존했다. 후속 [CPU 재집계](implementation/history/2026-09-15-system-context-rescore.md)에서 R16 검사 오탐 6건은 2건 PASS·4건 판단 불가로 바뀌고 실제 MIN 오류 2건은 FAIL을 유지했다. [v1.16 앱 후보](implementation/history/2026-09-15-dashboard-v116-intent.md)는 일반 대화의 날짜 오탐을 분리해 CPU canary를 통과했다. 남은 오차단과 모델 오류는 별개이며 모델 응답을 새로 생성하거나 성능을 개선한 결과는 아니다. 다음은 [Phase 8](implementation/plans/saju_product_roadmap/phases/phase-08.md)의 앱 보완·S3 지시문 묶음 비교다.
+[S2 완료 기록](implementation/history/2026-09-15-system-context-diagnosis.md)의 최대 입력 1,692 token·삭제 이력 0·원응답은 보존했다. 후속 [CPU 재집계](implementation/history/2026-09-15-system-context-rescore.md)에서 R16 검사 오탐 6건은 2건 PASS·4건 판단 불가로 바뀌고 실제 MIN 오류 2건은 FAIL을 유지했다. [v1.16 앱 후보](implementation/history/2026-09-15-dashboard-v116-intent.md)는 당시 CPU canary를 통과했고 남은 오차단은 v1.17에서 추가 수정·검증했다. 앱 오차단 수정과 모델 품질은 별개다.
+
+[Phase 8 완료 기록](implementation/history/2026-09-16-phase8-intent-s3.md#phase8b)의 S3는 96요청·86생성·10차단이다. P1에서 일부 형식·필수 사실 지표가 좋아졌지만 실제 날짜 누락·사실 혼동과 부정 표현 오탐·일반 사주 언급 누락이 함께 남았다. 원점수·scorer는 보존하며 P1의 일괄 개선이나 교체 근거로 사용하지 않는다. 다음은 [Phase 9](implementation/plans/saju_product_roadmap/phases/phase-09.md)의 공통 P0에서 모델 규모×정보 비교다. 아직 실행하지 않았다.
 
 [20문장 완료 기록](implementation/history/2026-09-05-dashboard-prompt20.md)에서 연결 구조 검사 통과는 K0 8/13·R16 10/13·KI20 8/13이었다. R16의 일간·일주/일진 구분 개선이 있지만 세 모델 모두 틀린 일간 전제를 수용했다. 시간 범위, 개념 설명, 일반 대화 전환, 요청한 형식에서도 오류가 관찰됐다.
 
@@ -51,6 +53,10 @@
 [기존 Phase 정본](implementation/plans/saju_1b_10k_20k_baseline/README.md), [v3 후보 보정 정본](implementation/plans/mix20k_v3_repair_plan.md), LoRA의 versioned 계약은 당시 실행 범위를 보존한다. 과거 768 길이·최소 3문장/3줄·Full FT 지시를 새 실험의 자동 기본값으로 복사하지 않는다.
 
 ## 진행 기록
+
+### 2026-09-16 — 앱 후보·S3 완료와 다음 비교 연결
+
+- 8A CPU/합성 화면과 8B 실제 모델 비교의 증거를 분리했다. P1 미채택·검사 한계·잔여 예산은 [실행 기록](implementation/history/2026-09-16-phase8-intent-s3.md)을 따르며 모델 크기나 데이터 단일 원인으로 단정하지 않는다. 데이터 보정·학습·운영 전환은 수행하지 않았다.
 
 ### 2026-09-15 — 학습 실행 시점 보완
 

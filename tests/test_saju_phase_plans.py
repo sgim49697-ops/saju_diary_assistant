@@ -42,7 +42,7 @@ DOCUMENTATION_TASK_IDS = {
 NON_TASK_TYPES = {
     "current_fact", "policy", "development_example", "evidence_link", "structure",
 }
-IMPLEMENTATION_TASK_IDS = {"O-0171"}
+IMPLEMENTATION_TASK_IDS = {"O-0171", "M-0292", "O-0172"}
 SEMANTIC_TYPES = NON_TASK_TYPES | {
     "execution_task", "conditional_proposal", "completed_history",
 }
@@ -141,6 +141,9 @@ def validate_mapping(manifest: dict) -> None:
             evidence, separator, anchor = entry.get("execution_evidence", "").partition("#")
             if evidence != "../../history/2026-09-16-phase8-intent-s3.md" or not separator:
                 raise ValueError("implementation completion without evidence")
+            expected_anchor = "phase8a" if entry["id"] == "O-0171" else "phase8b"
+            if anchor != expected_anchor:
+                raise ValueError("implementation evidence refers to another task")
             if f'<a id="{anchor}"></a>' not in (ROADMAP / evidence).read_text(encoding="utf-8"):
                 raise ValueError("implementation evidence section missing")
     if seen != set(expected):
@@ -274,8 +277,9 @@ class SajuPhasePlansTests(unittest.TestCase):
                 if phase == 7:
                     self.assertRegex(text, r"(?m)^상태: 완료\.")
                 elif phase == 8:
-                    self.assertIn("8A 후보 구현·CPU 확인 완료 / 8B 실행 준비", text)
+                    self.assertIn("8A 후보 구현·CPU 확인 완료 / 8B S3 실행·검증 완료", text)
                     self.assertIn("2026-09-16-phase8-intent-s3.md#phase8a", text)
+                    self.assertIn("2026-09-16-phase8-intent-s3.md#phase8b", text)
                 elif 9 <= phase <= 12:
                     self.assertIn("상태: 미실행", text)
                 elif phase >= 13:
@@ -293,6 +297,7 @@ class SajuPhasePlansTests(unittest.TestCase):
             "implementation/plans/saju_1b_10k_20k_baseline/README.md",
             "implementation/plans/mix2k_v4_chart_day_lora.md",
             "implementation/history/2026-09-15-phase7-canonicalization.md",
+            "implementation/history/2026-09-16-phase8-intent-s3.md",
         ))
         for path in paths:
             for target in LINK_PATTERN.findall(path.read_text(encoding="utf-8")):
@@ -353,7 +358,8 @@ class SajuPhasePlansTests(unittest.TestCase):
             ("M-0042", "completed_history", "historical_completed"),
             ("O-0068", "development_example", "not_applicable"),
             ("C-0197", "evidence_link", "not_applicable"),
-            ("M-0292", "execution_task", "not_executed"),
+            ("M-0292", "execution_task", "completed"),
+            ("M-0293", "execution_task", "not_executed"),
             ("M-0296", "conditional_proposal", "conditional_not_executed"),
             ("C-0001", "structure", "not_applicable"),
         ):
@@ -365,7 +371,8 @@ class SajuPhasePlansTests(unittest.TestCase):
 
     def test_status_validation_rejects_fictional_execution_and_missing_fields(self) -> None:
         for source_id, field, value in (
-            ("M-0292", "execution_status", "completed"),
+            ("M-0293", "execution_status", "completed"),
+            ("M-0292", "execution_evidence", "../../history/2026-09-16-phase8-intent-s3.md#phase8a"),
             ("M-0296", "execution_status", "completed"),
             ("O-0068", "execution_status", "not_executed"),
             ("M-0042", "execution_status", "completed"),
@@ -421,6 +428,53 @@ class SajuPhasePlansTests(unittest.TestCase):
             self.assertEqual(active_roadmap_documents(root), (nested,))
             scanned = "\n".join(p.read_text() for p in active_roadmap_documents(root))
             self.assertIn(FORBIDDEN_REQUIRED_GATES[0], scanned)
+
+    def test_phase8b_completion_has_frozen_actual_evidence_not_promotion(self) -> None:
+        for task_id in ("M-0292", "O-0172"):
+            entry = next(e for e in self.manifest["entries"] if e["id"] == task_id)
+            self.assertEqual(entry["execution_status"], "completed")
+            self.assertTrue(entry["execution_evidence"].endswith("#phase8b"))
+            broken = copy.deepcopy(self.manifest)
+            next(e for e in broken["entries"] if e["id"] == task_id).pop("execution_evidence")
+            with self.assertRaises(ValueError):
+                validate_mapping(broken)
+        root = REPO_ROOT / "data/reports/saju_1b_baseline/system-context-s3/v1.0.0/build-ffd985905b51"
+        summary = json.loads((root / "aggregate.json").read_bytes())
+        verification = json.loads((root / "verification.json").read_bytes())
+        for name, key, digest in (
+            ("aggregate.json", "aggregate_file_sha256", "46e83c1e1b787ad1a244b723f3982efa275d042fe04e4cc1ed6d2590368bf3a2"),
+            ("build_manifest.json", "manifest_file_sha256", "c1e83a8423da5e74a5f9c0eed5de0b7eeca6c851fde7893f4eca3d0122c8e5a0"),
+        ):
+            self.assertEqual(hashlib.sha256((root / name).read_bytes()).hexdigest(), digest)
+            self.assertEqual(verification[key], digest)
+        self.assertEqual(verification["status"], "verified")
+        self.assertFalse(verification["raw_files_git_tracked"])
+        self.assertEqual(summary["requests"], 96)
+        self.assertEqual(summary["statuses"], {"generated": 86, "preblocked": 10})
+        self.assertEqual(summary["new_generations"], 86)
+        self.assertEqual(summary["preflight_requests"], 0)
+        self.assertTrue(summary["fresh_both_arms"])
+        self.assertFalse(summary["candidate_selected"])
+        self.assertEqual(summary["scorer_version"], "role-aware-contract-v1.1.0")
+        arms = {r["arm"]: r for r in summary["summaries"] if r["stratum"] == "all"}
+        self.assertEqual(set(arms), {"P0", "P1"})
+        for arm in arms.values():
+            self.assertEqual(arm["engine"], "lora_r16")
+            self.assertEqual(arm["requests"], 48)
+            self.assertEqual(arm["statuses"], {"generated": 43, "preblocked": 5})
+            self.assertEqual(arm["stop_reasons"], {"eos": 43})
+            for metric in arm["metrics"].values():
+                self.assertEqual(metric["applicable"], sum(metric[k] for k in ("PASS", "FAIL", "UNSCORABLE")))
+        for arm, counts in (("P0", (11, 6, 7)), ("P1", (12, 8, 4))):
+            metric = arms[arm]["metrics"]["required_fact_use"]
+            self.assertEqual(tuple(metric[k] for k in ("PASS", "FAIL", "UNSCORABLE")), counts)
+        self.assertEqual(summary["quality_dimensions"], {"naturalness": "not_measured", "semantics": "not_measured"})
+        self.assertEqual(summary["governance"], {
+            "confirmation_24_used": False, "larger_model_downloaded": False,
+            "phase8a_routing_used": False, "production_promotion_allowed": False,
+            "runtime_release_changed": False, "sealed_blind_accessed": False,
+            "service_changed": False, "synthetic_only": True, "training_performed": False,
+        })
 
     def test_agents_and_indexes_share_authority_without_changing_safety(self) -> None:
         agents = (REPO_ROOT / "AGENTS.md").read_text(encoding="utf-8")
@@ -525,6 +579,9 @@ class SajuPhasePlansTests(unittest.TestCase):
         counts = [int(n) for n in re.findall(r"^\| .*? \| (\d+) \|$", budget, re.MULTILINE)]
         self.assertEqual(counts, [680 - 342, 96 + 192 + 48, 8 - 6])
         self.assertEqual(counts[0], sum(counts[1:]))
+        self.assertIn("Phase 7 등록 당시", budget)
+        self.assertIn("242 = 680 - 438 = 본 비교 240(S4 192 + S6 48) + 적격성 2", budget)
+        self.assertEqual(680 - 342 - 96, 192 + 48 + 2)
         for marker in (
             "실행 승인이나 성공 생성 수가 아니다", "목적·범위·예산을 사전에 별도 등록",
             "CPU 모의 테스트는 실제 모델 호출이 아니다", "Phase 13 학습 후 평가는",
@@ -542,6 +599,8 @@ class SajuPhasePlansTests(unittest.TestCase):
         self.assertIn("8A나 전체 모드 구현 때문에 S4를 미루지 않는다", phase8)
         self.assertIn("Phase 8B", phase9)
         self.assertIn("8A", phase9)
+        self.assertIn("부정/개념 설명 오탐 2건과 일반 사주 언급 누락 2건", phase9)
+        self.assertIn("동결 S3 scorer·집계의 사후 수정이나 S3 재튜닝은 하지 않는다", phase9)
         self.assertIn("R16/P0/C_FULL과 선택 후보 하나의 24×2=48요청", phase12)
         for marker in (
             "모델 생성, 프로그램 직접 응답, 확인 요청, 예상 차단",

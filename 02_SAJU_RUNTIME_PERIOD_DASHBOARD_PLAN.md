@@ -24,11 +24,11 @@
 ## 앱 구현과 실제 운영 분리
 
 - dashboard v1.11은 명시적 원국·단일 날짜 연결의 부모 구현이다. v1.12 기간·v1.13 관계 후보도 자동 canary를 완료했다.
-- 2026-09-15 확인 기준 실제 운영은 dashboard v1.14다. 기본 `ki20_final`과 선택 가능한 R16을 유지하며 이번 변경으로 서비스를 교체하지 않는다.
+- 2026-09-16 확인 기준 실제 운영은 dashboard v1.14다. 기본 `ki20_final`과 선택 가능한 R16을 유지하며 이번 변경으로 서비스를 교체하지 않는다.
 - [v1.15 계획](implementation/plans/dashboard_v1_15_grounding.md)의 tokenizer 동결·날짜 사전 차단·역할별 사실 검사는 구현·진단을 완료하고 PR #28로 **병합 완료·운영 미배포 상태인 후보**다. 자유문장에서 새 기간을 계산하거나 연결 snapshot을 자동 교체하지 않는다.
 - v1.15의 20문장 비교는 60요청·54생성·6사전 차단이다. 내일/주간 사주 요청의 사전 차단과 일반 메시지 작성은 구분한다. 이는 별도 period Runtime의 승인 범위가 사라졌다는 뜻이 아니라 해당 대화 후보의 연결 범위 제한이다.
 - 날짜·원국 변경은 새 계산·명시적 연결을 거친다. feature 기본 off, 암호화 상태·권한·rate limit·로그 비노출은 유지한다. 운영 키는 공개하지 않는다.
-- 최신 v1.16 의도 후보는 CPU canary 통과·운영 미배포다. `오늘 야근했어` 등의 남은 날짜 표현 오차단은 [Phase 8A](implementation/plans/saju_product_roadmap/phases/phase-08.md#routing), 원국 연결 유지·응답 모드·정정 이력은 [Phase 10](implementation/plans/saju_product_roadmap/phases/phase-10.md)에서 다룬다. CPU 통과를 실제 모델 응답·브라우저 확인 완료로 바꾸지 않는다.
+- 최신 v1.17 의도 후보는 [Phase 8A](implementation/plans/saju_product_roadmap/phases/phase-08.md#routing)의 날짜 표현 오차단·직전 사용자 맥락·확인 안내를 구현했다. 45개 CPU·6개 합성 브라우저 검증을 통과했으며 v1.16 부모는 보존하고 운영에는 배포하지 않았다. 원국 연결 유지·응답 모드·정정 이력 재구성은 [Phase 10](implementation/plans/saju_product_roadmap/phases/phase-10.md)에서 다룬다. 합성 화면 검사를 실제 운영 통합·모델 품질 확인으로 바꾸지 않는다.
 
 ## 실제 구현 입구
 
@@ -37,11 +37,15 @@
 | 승인 원국·단일 일진 | [engine_v1_4.py](scripts/runtime/calculation/engine_v1_4.py), [engine_v1_5.py](scripts/runtime/calculation/engine_v1_5.py) |
 | 기간 해석·복원·실행 | [period_v1](scripts/runtime/period_v1/) |
 | 단일 날짜 관계 | [relation_v1](scripts/runtime/relation_v1/) |
-| 운영 계열·진단 후보 | [v1.14](scripts/training/phase5_dashboard_v1_14.py), [v1.15](scripts/training/phase5_dashboard_v1_15.py), [v1.16](scripts/training/phase5_dashboard_v1_16.py) |
+| 운영 계열·진단 후보 | [v1.14](scripts/training/phase5_dashboard_v1_14.py), [v1.15](scripts/training/phase5_dashboard_v1_15.py), [v1.16](scripts/training/phase5_dashboard_v1_16.py), [v1.17](scripts/training/phase5_dashboard_v1_17.py) |
 | tokenizer·사실 검사 | [dashboard_tokenizer_v1.py](scripts/training/dashboard_tokenizer_v1.py), [dashboard_grounding_v2.py](scripts/training/dashboard_grounding_v2.py) |
 | 원국 운영 보안 | [운영 계약](docs/runtime/chart_only_operations.md) |
 
 ## 후속 경계와 진행 기록
+
+### 2026-09-16 — 의도 후보 CPU 확인
+
+- v1.17의 확인·일반 대화·날짜 검사와 이력 읽기 전용 경계를 구현·검증했다. 운영 v1.14·계산 release는 유지하며 [8A 실행 기록](implementation/history/2026-09-16-phase8-intent-s3.md#phase8a)을 따른다.
 
 ### 2026-09-15 — 계산 범위 동결과 앱 후속 분리
 

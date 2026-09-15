@@ -4,7 +4,7 @@
 
 ## 목적과 현재 상태
 
-상태: **8A 후보 구현·CPU 확인 완료 / 8B 실행 준비**. 8A는 v1.17 앱 후보, 8B는 S3/50-B2 실험이다. v1.16의 기존 CPU 25개는 그대로 보존하며 새 후보 45개 CPU·6개 합성 브라우저 검사는 별도 [실행 기록](../../../history/2026-09-16-phase8-intent-s3.md#phase8a)으로 연결한다. 실제 모델 확인이나 운영 배포 완료를 뜻하지 않는다. [로드맵](../README.md)·[50](../50-automatic-model-evaluation.md)·[실험 상세](../../saju_system_context_diagnosis.md)를 따른다.
+상태: **8A 후보 구현·CPU 확인 완료 / 8B S3 실행·검증 완료**. 8A는 v1.17 앱 후보, 8B는 S3/50-B2 실험이다. v1.16의 기존 CPU 25개는 그대로 보존하며 새 후보 45개 CPU·6개 합성 브라우저 검사는 별도 [8A 실행 기록](../../../history/2026-09-16-phase8-intent-s3.md#phase8a)으로 연결한다. [8B 결과](../../../history/2026-09-16-phase8-intent-s3.md#phase8b)는 96요청·86생성·10사전 차단과 재구성 검증을 완료했다. P1의 일괄 개선은 확인되지 않았으며 후보 채택·운영 배포는 하지 않았다. [로드맵](../README.md)·[50](../50-automatic-model-evaluation.md)·[실험 상세](../../saju_system_context_diagnosis.md)를 따른다.
 
 ## 진입 조건
 
@@ -76,6 +76,8 @@ CPU에서 일반 대화·명시 요청·혼합 날짜·제외·후속 문맥·ta
 모델 문서 §3~4, 전체 문서 §4와 CPU 체크리스트 중 날짜 의도를 반영한다. [원문·섹션 색인](../source-20260915.md)과 [행별 반영표](../requirements-20260915.json)를 따른다.
 
 ## 진행 기록
+
+- 2026-09-16 S3 완료: `build-ffd985905b51`의 96요청(86생성·10차단)을 끝냈다. 추가 preflight·재사용·오류·재시도 0, 실행 내장·별도 verify가 동일 hash로 통과했다. 개선·회귀·판정 불가와 검사 오탐/누락을 구분해 [결과](../../../history/2026-09-16-phase8-intent-s3.md#phase8b)에 기록했다. 8A와 S3는 각각의 종료 조건을 충족했지만 운영·학습은 불변이며 다음 별도 과제는 Phase 9/S4다.
 
 - 2026-09-16 S3 준비: 전용 `scripts.evaluation.system_context_s3`와 P1 지시문 묶음 하나를 구현했다. 48개 P0 부모 입력/비지시 영역 일치, 96요청/10사전 차단, 최대 입력 1,692 token의 dry-run과 CPU 18개를 통과했다. 아직 실제 생성·S3 완료는 아니며 [고정 구성·CLI·권한](../../../history/2026-09-16-phase8-intent-s3.md#phase8b)을 따른다.
 

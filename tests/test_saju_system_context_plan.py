@@ -47,7 +47,9 @@ class SajuSystemContextPlanTests(unittest.TestCase):
         )
         self.assertIn("S0/S1은 `validated`", self.plan)
         self.assertIn("구현된 실행 파일", self.plan)
-        self.assertIn("S3~S6은 `not_executed`", self.plan)
+        self.assertIn("S3는 `executed`·공개 build `verified`", self.plan)
+        self.assertIn("S4~S6은 `not_executed`", self.plan)
+        self.assertIn("system_context_s3 verify --build build-ffd985905b51", self.plan)
         self.assertIn("system_context_diagnosis execute --execute", self.plan)
 
     def test_hypotheses_cover_the_whole_system_without_assuming_a_cause(self) -> None:
