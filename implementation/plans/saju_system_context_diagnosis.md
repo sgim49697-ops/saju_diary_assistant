@@ -8,10 +8,11 @@
 | 작성일 | 2026-09-14 |
 | 문서 부모 | `f34f8562f24116558cd39fbc2a69cea430bb1158` |
 | 응답 기준선 | `26462137f9a4ef34adb2d3db0dd6eaff6282b309`의 20문장 진단 |
-| 현재 단계 | S0/S1 구현·CPU 검증 완료; S2 실제 생성 준비 |
-| 다음 실행 | 동결된 S2 342요청(사전 차단 30·생성 대상 312); S3~S6 미실행 |
+| 현재 단계 | S0/S1 계약·CPU 검증 완료; S2 342요청 실행·재구성 검증 완료 |
+| 최신 S2 build | `build-c39b4bce5089`, 312생성·30사전 차단; 검사기 오탐 별도 확인 |
+| 다음 작업 | S1 검사기 새 버전·기존 합성 응답 파생 재집계 제안 → S3 → S4; 이번 범위 종료 |
 
-2026-09-14 PR #28로 이 계획과 부모 v1.15 후보를 `master`에 통합했다. 2026-09-15 사용자 승인으로 S0/S1 구현·검증과 S2 실행을 진행한다. 코드 통합과 격리 진단은 운영 v1.15 배포가 아니다. 실제 실행 완료 수는 아래 진행 기록·공개 build를 기준으로 한다.
+2026-09-14 PR #28로 이 계획과 부모 v1.15 후보를 `master`에 통합했다. 2026-09-15 사용자 승인 범위인 S0/S1 구현·검증과 S2 실행을 완료했다. 코드 통합과 격리 진단은 운영 v1.15 배포가 아니다. [완료 기록](../history/2026-09-15-system-context-diagnosis.md)은 실제 모델 오류와 검사기 오탐을 구분한다. 입력·집계 재구성 검증 통과가 검사기의 의미 타당성이나 모델 품질 승인은 아니다.
 
 ## 1. 먼저 쉽게 정리
 
@@ -212,11 +213,18 @@ SYSTEM_CONTEXT_DIAGNOSIS=S0_S1_S2_V1 .venv/bin/python -B -m scripts.evaluation.s
 
 ## 10. 종료·보존·후속 결정
 
-- S0~S6마다 `planned / implemented / validated / executed / not_executed`를 구분한다. 문서 존재를 구현 완료나 실행 완료로 세지 않는다. 현재 S0/S1은 `validated`, S2는 `implemented`, S3~S6은 `not_executed`다. S2 실제 완료는 공개 build 검증 뒤에만 기록한다.
+- S0~S6마다 `planned / implemented / validated / executed / not_executed`를 구분한다. 문서 존재를 구현 완료나 실행 완료로 세지 않는다. 현재 S0/S1은 `validated`, S2는 `executed`·공개 build `verified`, S3~S6은 `not_executed`다. S1의 기존 계약·CPU 검증 완료와 S2에서 추가 발견한 검사 문법 결함은 구분한다.
 - 공개 파일에는 합성 사례의 집계·계약·manifest·코드/버전 hash와 한계만 기록한다. 원시 trace·질문에 결합된 계산 내용·모델 출력·token 배열은 Git 제외 private 경로에 두고 최소 권한·보존/삭제 정책을 검증한다.
 - 기존 Phase 6·grounded-dialogue 원시 결과와 소비된 sealed blind는 열거나 재사용하지 않는다. 자연스러움 등 계약 밖 품질은 `not_measured`로 남기고 계약 밖 평가를 완료 조건으로 추가하지 않는다.
 - Phase 6·Runtime release·production 허용·기본 모델·feature 기본 off는 자동 변경하지 않는다. [60 데이터](saju_product_roadmap/60-mix20k-v3-1-build.md)·[70 학습](saju_product_roadmap/70-training-and-promotion.md)은 원인별 결과에 따른 별도 결정이다.
 - 종료 보고는 “어디서 잘못됐는가 / 무엇으로 확인했는가 / 무엇은 아직 모르는가 / 다음에 고칠 최소 범위”를 답한다. 실패가 남아도 근거 없는 전면 재학습이나 모델 교체를 처방하지 않는다.
+
+### S2 이후 최소 후속 범위 — 아직 미실행
+
+1. 검사기 새 버전에서 인접 label/value, 간접 부정, 정정 전/현재 범위, 이전 답변 인용을 합성 양성·음성 fixture로 보강한다. R16 자동 회귀 8개 중 6개가 이 문제였으므로 기존 13→6 PASS를 실제 정확도 하락으로 사용하지 않는다.
+2. 같은 S2 private 합성 응답을 재생성 없이 읽어 새 검사 버전의 파생 집계를 만든다. 원래 build·config·scorer·공개 집계는 보존한다. 새 GPU 호출·학습·sealed blind 접근은 필요하지 않다. 추가 파생 분석의 명령·계약은 아직 구현하지 않았다.
+3. 검사가 허용하는 범위를 정리한 뒤 S3 지시문 단일 변수 비교, S4 큰 기본 모델×정보 비교를 진행한다. 이번 세 모델은 모두 1.3B이므로 크기 원인은 미확정이다. 입력 축소나 모델 교체를 자동 채택하지 않는다.
+4. 모델 전 사전 차단으로 확인된 일반 공감 문장의 날짜 의도 오탐은 별도 앱 회귀 수정 후보로 둔다. S2 결과에 운영 분류기 수정·배포를 섞지 않는다.
 
 ## 11. 실험 설계의 참고 근거
 
@@ -224,6 +232,14 @@ SYSTEM_CONTEXT_DIAGNOSIS=S0_S1_S2_V1 .venv/bin/python -B -m scripts.evaluation.s
 - 무관한 자료가 포함된 산술 문제의 성능 저하 연구를 정보 관련성 대조의 근거로 삼는다. 해당 과제 결과를 한국어 사주 대화나 모델 크기의 인과 결론으로 직접 일반화하지 않는다. [Shi 외, Large Language Models Can Be Easily Distracted by Irrelevant Context, v3](https://arxiv.org/abs/2302.00093v3).
 
 ## 진행 기록
+
+### 2026-09-15 — S2 실제 비교·재검증 완료와 검사기 오탐 분리
+
+- 구현 기준 `98f44d1`의 `build-c39b4bce5089`를 단일 실행했다. 342요청은 312생성·30사전 차단으로 모두 종료했고 재사용·재시도·오류·미실행 0이다. 312개 모두 EOS 종료, 최대 출력 444 token, 입력 최대 1,692 token·이력 삭제 0이다.
+- [공개 집계](../../data/reports/saju_1b_baseline/system-context-diagnosis/v1.0.0/build-c39b4bce5089/aggregate.json), [manifest](../../data/reports/saju_1b_baseline/system-context-diagnosis/v1.0.0/build-c39b4bce5089/build_manifest.json), [검증](../../data/reports/saju_1b_baseline/system-context-diagnosis/v1.0.0/build-c39b4bce5089/verification.json)을 발행했다. 실행 종료 자동 검증과 별도 `verify --build build-c39b4bce5089` 모두 통과했다. 원출력·trace는 Git 제외 private 경로에 보존한다.
+- 필수 사실 자동 PASS는 FULL→MIN에서 K0 3→2, R16 13→6, KI20 0→1(조건별 적용 24)이다. R16 회귀 8개 중 6개는 검사기 오탐으로 확인했다. 이 수치로 모델/정보 조건의 실제 정확도나 우열을 주장하지 않으며 기존 scorer·집계를 사후 변경하지 않았다. 상세 분모·위치 대조·실제 오류·문법 재현은 [완료 기록](../history/2026-09-15-system-context-diagnosis.md)을 따른다.
+- 실제 KI20 학습 길이 768과 R16 2,048을 재확인했다. FULL/MIN 모두 48개 중 44개 입력이 768을 넘는다. 학습/serving 차이는 원인 후보이며 크기 효과의 증명이 아니다. 단순 입력 축소만으로 실제 오류가 해소되지 않았고 S3~S6은 미실행이다.
+- 실행 후 `.venv/bin/python -B -m unittest discover -s tests -q -b` → 879건 전부 통과·건너뜀 0(81.088초). 운영 v1.14 PID·재시작 0·코드 hash를 유지했고 Phase 6·Runtime release·학습·승격은 변경하지 않았다. 다음 제안은 S1 검사 보강과 새 파생 집계이며 이번 승인 범위는 여기서 종료한다.
 
 ### 2026-09-15 — S0/S1 동결·S2 실행 준비
 
