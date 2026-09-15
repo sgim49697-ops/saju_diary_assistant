@@ -7,6 +7,7 @@ import json
 import os
 import tempfile
 import unittest
+from datetime import date
 from pathlib import Path
 
 from scripts.runtime.calculation.contracts import REPO_ROOT
@@ -22,6 +23,7 @@ from scripts.training.phase5_dashboard_v1_12 import (
 )
 
 EPHEMERIS = REPO_ROOT / "data/raw/saju_runtime/ephemeris/v1.1.0/de440s.bsp"
+FIXED_TODAY = date(2026, 9, 2)
 
 
 def _period() -> dict[str, object]:
@@ -171,7 +173,7 @@ class PeriodDashboardRestartIntegrationTests(unittest.TestCase):
             lease = root / "period-runtime.lease"
 
             def open_binding() -> PeriodDashboardBinding:
-                return PeriodDashboardBinding(
+                instance = PeriodDashboardBinding(
                     parent_release_registry=RELEASE_V15_PATH,
                     period_release_registry=PERIOD_RELEASE_PATH,
                     ephemeris_path=EPHEMERIS,
@@ -180,6 +182,8 @@ class PeriodDashboardRestartIntegrationTests(unittest.TestCase):
                     store_root=store,
                     process_lease_file=lease,
                 )
+                instance.adapter.engine._today_provider = lambda: FIXED_TODAY
+                return instance
 
             binding = open_binding()
             created = binding.create_session()

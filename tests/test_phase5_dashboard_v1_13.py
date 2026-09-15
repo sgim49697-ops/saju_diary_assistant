@@ -7,6 +7,7 @@ import json
 import os
 import tempfile
 import unittest
+from datetime import date
 from pathlib import Path
 from unittest.mock import patch
 
@@ -40,6 +41,7 @@ from scripts.training.phase5_dashboard_v1_13 import (
 )
 
 EPHEMERIS = REPO_ROOT / "data/raw/saju_runtime/ephemeris/v1.1.0/de440s.bsp"
+FIXED_TODAY = date(2026, 9, 2)
 
 
 def _binding(*, day_count: int = 1) -> dict[str, object]:
@@ -237,7 +239,7 @@ class RelationDashboardRestartIntegrationTests(unittest.TestCase):
             lease = root / "relation-runtime.lease"
 
             def open_binding() -> RelationDashboardBinding:
-                return RelationDashboardBinding(
+                instance = RelationDashboardBinding(
                     parent_release_registry=RELEASE_V15_PATH,
                     period_release_registry=PERIOD_RELEASE_PATH,
                     relation_release_registry=RELATION_RELEASE_PATH,
@@ -247,6 +249,8 @@ class RelationDashboardRestartIntegrationTests(unittest.TestCase):
                     store_root=store,
                     process_lease_file=lease,
                 )
+                instance.adapter.engine._today_provider = lambda: FIXED_TODAY
+                return instance
 
             binding = open_binding()
             created = binding.create_session()

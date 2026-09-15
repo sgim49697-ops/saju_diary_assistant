@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import tempfile
 import unittest
+from contextlib import contextmanager
 from copy import deepcopy
 from pathlib import Path
 from unittest.mock import patch
@@ -17,7 +18,35 @@ from scripts.data import mix2k_v4_teacher_recovery_call174 as recovery_call174
 from scripts.data import mix2k_v4_teacher_recovery_call177 as recovery_call177
 from scripts.data import mix2k_v4_teacher_recovery_call178 as recovery_call178
 from scripts.data import mix2k_v4_teacher_recovery_call181 as recovery_call181
-from scripts.data.mix2k_v4_contracts import sha256_bytes
+from scripts.data.mix2k_v4_contracts import sha256_bytes, sha256_file
+
+
+@contextmanager
+def _pinned_recovery_sources(path_owner: object, hash_owner: object):
+    """recover()가 참조하는 RUNNER_PATH/CONTRACTS_PATH와 EXPECTED_* pin을,
+    with 블록 동안만 테스트 전용 임시 source 파일과 그 실제 SHA-256으로
+    맞춘다. 실제 저장소의 runner/contracts 파일과 과거 pin 상수는 건드리지
+    않는다."""
+
+    with tempfile.TemporaryDirectory(prefix="mix2k-v4-recovery-source-") as directory:
+        root = Path(directory).resolve()
+        runner_path = root / "runner_source.py"
+        contracts_path = root / "contracts_source.py"
+        runner_path.write_bytes(b"# temporary recovery test runner source\n")
+        contracts_path.write_bytes(b"# temporary recovery test contracts source\n")
+        with (
+            patch.object(path_owner, "RUNNER_PATH", runner_path),
+            patch.object(path_owner, "CONTRACTS_PATH", contracts_path),
+            patch.object(
+                hash_owner, "EXPECTED_RUNNER_SHA256", sha256_file(runner_path)
+            ),
+            patch.object(
+                hash_owner,
+                "EXPECTED_CONTRACTS_SHA256",
+                sha256_file(contracts_path),
+            ),
+        ):
+            yield runner_path, contracts_path
 
 
 def _attempt(sequence: int, *, deterministic_pass: bool) -> dict[str, object]:
@@ -758,35 +787,95 @@ class Mix2KV4TeacherRecoveryTests(unittest.TestCase):
         )
 
     def test_recover_is_locked_hash_bound_and_idempotent(self) -> None:
-        before = _pre_state()
-        before_payload = recovery._json_bytes(before)
-        before_sha = sha256_bytes(before_payload)
+        with _pinned_recovery_sources(recovery, recovery):
+            before = _pre_state()
+            before_payload = recovery._json_bytes(before)
+            before_sha = sha256_bytes(before_payload)
+            with tempfile.TemporaryDirectory() as directory:
+                output_root = Path(directory).resolve()
+                target = output_root / recovery.TARGET_NAME
+                target.mkdir(mode=0o700)
+                (target / ".pipeline.lock").write_bytes(b"lock\n")
+                (target / "pipeline_state.json").write_bytes(before_payload)
+                with (
+                    patch.object(recovery, "DEFAULT_OUTPUT_ROOT", output_root),
+                    patch.object(
+                        recovery, "EXPECTED_PRE_STATE_SHA256", before_sha
+                    ),
+                ):
+                    first = recovery.recover(target)
+                    second = recovery.recover(target)
+
+                self.assertFalse(first["already_applied"])
+                self.assertTrue(second["already_applied"])
+                live = json.loads((target / "pipeline_state.json").read_bytes())
+                self.assertEqual(
+                    live["operator_recoveries"][0]["recovery_id"],
+                    recovery.RECOVERY_ID,
+                )
+                self.assertEqual(
+                    (target / recovery.BEFORE_STATE_RELATIVE).read_bytes(),
+                    before_payload,
+                )
+
+    def test_recover_rejects_real_stale_source_pin_before_any_state_change(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as directory:
             output_root = Path(directory).resolve()
             target = output_root / recovery.TARGET_NAME
             target.mkdir(mode=0o700)
             (target / ".pipeline.lock").write_bytes(b"lock\n")
-            (target / "pipeline_state.json").write_bytes(before_payload)
+            (target / "pipeline_state.json").write_bytes(b'{"placeholder": true}')
             with (
                 patch.object(recovery, "DEFAULT_OUTPUT_ROOT", output_root),
-                patch.object(
-                    recovery, "EXPECTED_PRE_STATE_SHA256", before_sha
+                self.assertRaisesRegex(
+                    recovery.Mix2KV4RecoveryError, "허용된 recovery target"
                 ),
             ):
-                first = recovery.recover(target)
-                second = recovery.recover(target)
+                recovery.recover(target)
+            self.assertEqual(
+                (target / "pipeline_state.json").read_bytes(),
+                b'{"placeholder": true}',
+            )
 
-            self.assertFalse(first["already_applied"])
-            self.assertTrue(second["already_applied"])
-            live = json.loads((target / "pipeline_state.json").read_bytes())
-            self.assertEqual(
-                live["operator_recoveries"][0]["recovery_id"],
-                recovery.RECOVERY_ID,
-            )
-            self.assertEqual(
-                (target / recovery.BEFORE_STATE_RELATIVE).read_bytes(),
-                before_payload,
-            )
+    def test_recover_rejects_tampered_pinned_source_bytes_before_any_state_change(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as source_directory:
+            source_root = Path(source_directory).resolve()
+            runner_path = source_root / "runner_source.py"
+            contracts_path = source_root / "contracts_source.py"
+            runner_path.write_bytes(b"# pinned runner source\n")
+            contracts_path.write_bytes(b"# pinned contracts source\n")
+            runner_sha = sha256_file(runner_path)
+            contracts_sha = sha256_file(contracts_path)
+            with tempfile.TemporaryDirectory() as directory:
+                output_root = Path(directory).resolve()
+                target = output_root / recovery.TARGET_NAME
+                target.mkdir(mode=0o700)
+                (target / ".pipeline.lock").write_bytes(b"lock\n")
+                (target / "pipeline_state.json").write_bytes(
+                    b'{"placeholder": true}'
+                )
+                with (
+                    patch.object(recovery, "DEFAULT_OUTPUT_ROOT", output_root),
+                    patch.object(recovery, "RUNNER_PATH", runner_path),
+                    patch.object(recovery, "CONTRACTS_PATH", contracts_path),
+                    patch.object(recovery, "EXPECTED_RUNNER_SHA256", runner_sha),
+                    patch.object(
+                        recovery, "EXPECTED_CONTRACTS_SHA256", contracts_sha
+                    ),
+                ):
+                    runner_path.write_bytes(b"tampered")
+                    with self.assertRaisesRegex(
+                        recovery.Mix2KV4RecoveryError, "허용된 recovery target"
+                    ):
+                        recovery.recover(target)
+                self.assertEqual(
+                    (target / "pipeline_state.json").read_bytes(),
+                    b'{"placeholder": true}',
+                )
 
     def test_bundle_requires_real_later_draft_and_review_for_finalization(
         self,
@@ -876,50 +965,53 @@ class Mix2KV4TeacherRecoveryTests(unittest.TestCase):
             self.assertEqual(after["records"][record_id]["status"], "needs_draft")
 
     def test_call148_recover_resumes_prepared_bundle_after_crash(self) -> None:
-        before = _call148_pre_state()
-        before_payload = recovery_call148._json_bytes(before)
-        before_sha = sha256_bytes(before_payload)
-        with tempfile.TemporaryDirectory() as directory:
-            output_root = Path(directory).resolve()
-            target = output_root / recovery_call148.TARGET_NAME
-            target.mkdir(mode=0o700)
-            (target / ".pipeline.lock").write_bytes(b"lock\n")
-            (target / "pipeline_state.json").write_bytes(before_payload)
-            (target / recovery_call148.RECOVERY_DIR_RELATIVE).mkdir(parents=True)
-            with patch.object(
-                recovery_call148, "EXPECTED_PRE_STATE_SHA256", before_sha
-            ):
-                after = recovery_call148.build_recovered_state(
-                    before, before_payload
+        with _pinned_recovery_sources(recovery_call148, recovery_call148):
+            before = _call148_pre_state()
+            before_payload = recovery_call148._json_bytes(before)
+            before_sha = sha256_bytes(before_payload)
+            with tempfile.TemporaryDirectory() as directory:
+                output_root = Path(directory).resolve()
+                target = output_root / recovery_call148.TARGET_NAME
+                target.mkdir(mode=0o700)
+                (target / ".pipeline.lock").write_bytes(b"lock\n")
+                (target / "pipeline_state.json").write_bytes(before_payload)
+                (target / recovery_call148.RECOVERY_DIR_RELATIVE).mkdir(
+                    parents=True
                 )
-                after_payload = recovery_call148._json_bytes(after)
-                manifest = recovery_call148._expected_manifest(after_payload)
-                (target / recovery_call148.BEFORE_STATE_RELATIVE).write_bytes(
-                    before_payload
-                )
-                (target / recovery_call148.AFTER_STATE_RELATIVE).write_bytes(
-                    after_payload
-                )
-                (target / recovery_call148.RECOVERY_MANIFEST_RELATIVE).write_bytes(
-                    recovery_call148._json_bytes(manifest)
-                )
-                with (
-                    patch.object(
-                        recovery_call148, "DEFAULT_OUTPUT_ROOT", output_root
-                    ),
-                    patch.object(
-                        recovery_call148,
-                        "validate_first_recovery_bundle",
-                        return_value={"recovery_id": recovery.RECOVERY_ID},
-                    ),
+                with patch.object(
+                    recovery_call148, "EXPECTED_PRE_STATE_SHA256", before_sha
                 ):
-                    report = recovery_call148.recover(target)
+                    after = recovery_call148.build_recovered_state(
+                        before, before_payload
+                    )
+                    after_payload = recovery_call148._json_bytes(after)
+                    manifest = recovery_call148._expected_manifest(after_payload)
+                    (target / recovery_call148.BEFORE_STATE_RELATIVE).write_bytes(
+                        before_payload
+                    )
+                    (target / recovery_call148.AFTER_STATE_RELATIVE).write_bytes(
+                        after_payload
+                    )
+                    (
+                        target / recovery_call148.RECOVERY_MANIFEST_RELATIVE
+                    ).write_bytes(recovery_call148._json_bytes(manifest))
+                    with (
+                        patch.object(
+                            recovery_call148, "DEFAULT_OUTPUT_ROOT", output_root
+                        ),
+                        patch.object(
+                            recovery_call148,
+                            "validate_first_recovery_bundle",
+                            return_value={"recovery_id": recovery.RECOVERY_ID},
+                        ),
+                    ):
+                        report = recovery_call148.recover(target)
 
-            self.assertTrue(report["resumed_prepared_bundle"])
-            self.assertFalse(report["already_applied"])
-            self.assertEqual(
-                (target / "pipeline_state.json").read_bytes(), after_payload
-            )
+                self.assertTrue(report["resumed_prepared_bundle"])
+                self.assertFalse(report["already_applied"])
+                self.assertEqual(
+                    (target / "pipeline_state.json").read_bytes(), after_payload
+                )
 
     def test_recovery_chain_requires_exact_known_attempt_overflows(self) -> None:
         first = recovery_call148.first_recovery_event()
@@ -1249,39 +1341,44 @@ class Mix2KV4TeacherRecoveryTests(unittest.TestCase):
             )
 
     def test_call149_recover_completes_partial_bundle_without_deleting(self) -> None:
-        before = _call149_pre_state()
-        before_payload = recovery_call149._json_bytes(before)
-        before_sha = sha256_bytes(before_payload)
-        with tempfile.TemporaryDirectory() as directory:
-            output_root = Path(directory).resolve()
-            target = output_root / recovery_call149.TARGET_NAME
-            target.mkdir(mode=0o700)
-            (target / ".pipeline.lock").write_bytes(b"lock\n")
-            (target / "pipeline_state.json").write_bytes(before_payload)
-            (target / recovery_call149.RECOVERY_DIR_RELATIVE).mkdir(parents=True)
-            with (
-                patch.object(recovery_call149, "DEFAULT_OUTPUT_ROOT", output_root),
-                patch.object(
-                    recovery_call149, "EXPECTED_PRE_STATE_SHA256", before_sha
-                ),
-                patch.object(
-                    recovery_call149,
-                    "validate_recovery_chain",
-                    side_effect=lambda *_args, **_kwargs: {
-                        "schema_version": "1.0.0",
-                        "recoveries": [],
-                    },
-                ),
-            ):
-                first = recovery_call149.recover(target)
-                second = recovery_call149.recover(target)
+        with _pinned_recovery_sources(recovery_call149, recovery_call149):
+            before = _call149_pre_state()
+            before_payload = recovery_call149._json_bytes(before)
+            before_sha = sha256_bytes(before_payload)
+            with tempfile.TemporaryDirectory() as directory:
+                output_root = Path(directory).resolve()
+                target = output_root / recovery_call149.TARGET_NAME
+                target.mkdir(mode=0o700)
+                (target / ".pipeline.lock").write_bytes(b"lock\n")
+                (target / "pipeline_state.json").write_bytes(before_payload)
+                (target / recovery_call149.RECOVERY_DIR_RELATIVE).mkdir(
+                    parents=True
+                )
+                with (
+                    patch.object(
+                        recovery_call149, "DEFAULT_OUTPUT_ROOT", output_root
+                    ),
+                    patch.object(
+                        recovery_call149, "EXPECTED_PRE_STATE_SHA256", before_sha
+                    ),
+                    patch.object(
+                        recovery_call149,
+                        "validate_recovery_chain",
+                        side_effect=lambda *_args, **_kwargs: {
+                            "schema_version": "1.0.0",
+                            "recoveries": [],
+                        },
+                    ),
+                ):
+                    first = recovery_call149.recover(target)
+                    second = recovery_call149.recover(target)
 
-            self.assertTrue(first["resumed_prepared_bundle"])
-            self.assertFalse(first["already_applied"])
-            self.assertTrue(second["already_applied"])
-            self.assertTrue(
-                (target / recovery_call149.RECOVERY_MANIFEST_RELATIVE).is_file()
-            )
+                self.assertTrue(first["resumed_prepared_bundle"])
+                self.assertFalse(first["already_applied"])
+                self.assertTrue(second["already_applied"])
+                self.assertTrue(
+                    (target / recovery_call149.RECOVERY_MANIFEST_RELATIVE).is_file()
+                )
 
     def test_call154_recovery_preserves_attempts_and_counters(self) -> None:
         before = _call154_pre_state()
@@ -1830,46 +1927,47 @@ class Mix2KV4TeacherRecoveryTests(unittest.TestCase):
     def test_call174_recover_does_not_write_live_state_when_validation_fails(
         self,
     ) -> None:
-        before = _call174_pre_state()
-        before_payload = recovery_call174.teachers._json_bytes(before)
-        before_sha256 = sha256_bytes(before_payload)
-        with tempfile.TemporaryDirectory() as directory:
-            output_root = Path(directory).resolve()
-            target = output_root / recovery_call174.TARGET_NAME
-            target.mkdir(mode=0o700)
-            (target / ".pipeline.lock").write_bytes(b"lock\n")
-            state_path = target / "pipeline_state.json"
-            state_path.write_bytes(before_payload)
-            with (
-                patch.object(
-                    recovery_call174.teachers,
-                    "DEFAULT_OUTPUT_ROOT",
-                    output_root,
-                ),
-                patch.object(
-                    recovery_call174,
-                    "EXPECTED_PRE_STATE_SHA256",
-                    before_sha256,
-                ),
-                patch.object(
-                    recovery_call174,
-                    "_validate_incident_pre_state",
-                ),
-                patch.object(
-                    recovery_call174,
-                    "validate_recovery_chain",
-                    side_effect=recovery.Mix2KV4RecoveryError(
-                        "synthetic validation failure"
+        with _pinned_recovery_sources(recovery_call174.teachers, recovery_call174):
+            before = _call174_pre_state()
+            before_payload = recovery_call174.teachers._json_bytes(before)
+            before_sha256 = sha256_bytes(before_payload)
+            with tempfile.TemporaryDirectory() as directory:
+                output_root = Path(directory).resolve()
+                target = output_root / recovery_call174.TARGET_NAME
+                target.mkdir(mode=0o700)
+                (target / ".pipeline.lock").write_bytes(b"lock\n")
+                state_path = target / "pipeline_state.json"
+                state_path.write_bytes(before_payload)
+                with (
+                    patch.object(
+                        recovery_call174.teachers,
+                        "DEFAULT_OUTPUT_ROOT",
+                        output_root,
                     ),
-                ),
-                self.assertRaisesRegex(
-                    recovery.Mix2KV4RecoveryError,
-                    "synthetic validation failure",
-                ),
-            ):
-                recovery_call174.recover(target)
+                    patch.object(
+                        recovery_call174,
+                        "EXPECTED_PRE_STATE_SHA256",
+                        before_sha256,
+                    ),
+                    patch.object(
+                        recovery_call174,
+                        "_validate_incident_pre_state",
+                    ),
+                    patch.object(
+                        recovery_call174,
+                        "validate_recovery_chain",
+                        side_effect=recovery.Mix2KV4RecoveryError(
+                            "synthetic validation failure"
+                        ),
+                    ),
+                    self.assertRaisesRegex(
+                        recovery.Mix2KV4RecoveryError,
+                        "synthetic validation failure",
+                    ),
+                ):
+                    recovery_call174.recover(target)
 
-            self.assertEqual(state_path.read_bytes(), before_payload)
+                self.assertEqual(state_path.read_bytes(), before_payload)
 
     def test_call177_recovery_preserves_fixed_d5_r3(self) -> None:
         before = _call177_pre_state()
@@ -2253,45 +2351,48 @@ class Mix2KV4TeacherRecoveryTests(unittest.TestCase):
                 next_sequence += 2
 
     def test_call177_validation_failure_preserves_live_state(self) -> None:
-        before = _call177_pre_state()
-        before_payload = recovery_call177.teachers._json_bytes(before)
-        with tempfile.TemporaryDirectory() as directory:
-            output_root = Path(directory).resolve()
-            target = output_root / recovery_call177.TARGET_NAME
-            target.mkdir(mode=0o700)
-            (target / ".pipeline.lock").write_bytes(b"lock\n")
-            state_path = target / "pipeline_state.json"
-            state_path.write_bytes(before_payload)
-            with (
-                patch.object(
-                    recovery_call177.teachers,
-                    "DEFAULT_OUTPUT_ROOT",
-                    output_root,
-                ),
-                patch.object(
-                    recovery_call177,
-                    "EXPECTED_PRE_STATE_SHA256",
-                    sha256_bytes(before_payload),
-                ),
-                patch.object(recovery_call177, "_validate_incident_pre_state"),
-                patch.object(
-                    recovery_call177,
-                    "_validate_full_chain_before_live_write",
-                    side_effect=recovery.Mix2KV4RecoveryError(
-                        "synthetic full-chain failure"
+        with _pinned_recovery_sources(recovery_call177.teachers, recovery_call177):
+            before = _call177_pre_state()
+            before["runner_sha256"] = recovery_call177.EXPECTED_RUNNER_SHA256
+            before["contracts_sha256"] = recovery_call177.EXPECTED_CONTRACTS_SHA256
+            before_payload = recovery_call177.teachers._json_bytes(before)
+            with tempfile.TemporaryDirectory() as directory:
+                output_root = Path(directory).resolve()
+                target = output_root / recovery_call177.TARGET_NAME
+                target.mkdir(mode=0o700)
+                (target / ".pipeline.lock").write_bytes(b"lock\n")
+                state_path = target / "pipeline_state.json"
+                state_path.write_bytes(before_payload)
+                with (
+                    patch.object(
+                        recovery_call177.teachers,
+                        "DEFAULT_OUTPUT_ROOT",
+                        output_root,
                     ),
-                ),
-                self.assertRaisesRegex(
-                    recovery.Mix2KV4RecoveryError,
-                    "synthetic full-chain failure",
-                ),
-            ):
-                recovery_call177.recover(target)
+                    patch.object(
+                        recovery_call177,
+                        "EXPECTED_PRE_STATE_SHA256",
+                        sha256_bytes(before_payload),
+                    ),
+                    patch.object(recovery_call177, "_validate_incident_pre_state"),
+                    patch.object(
+                        recovery_call177,
+                        "_validate_full_chain_before_live_write",
+                        side_effect=recovery.Mix2KV4RecoveryError(
+                            "synthetic full-chain failure"
+                        ),
+                    ),
+                    self.assertRaisesRegex(
+                        recovery.Mix2KV4RecoveryError,
+                        "synthetic full-chain failure",
+                    ),
+                ):
+                    recovery_call177.recover(target)
 
-            self.assertTrue(
-                (target / recovery_call177.RECOVERY_MANIFEST_RELATIVE).is_file()
-            )
-            self.assertEqual(state_path.read_bytes(), before_payload)
+                self.assertTrue(
+                    (target / recovery_call177.RECOVERY_MANIFEST_RELATIVE).is_file()
+                )
+                self.assertEqual(state_path.read_bytes(), before_payload)
 
     def test_call178_recovery_preserves_failed_attempts_and_counters(self) -> None:
         before = _call178_pre_state()

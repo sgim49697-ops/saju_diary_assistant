@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import tempfile
 import unittest
+from datetime import date
 from pathlib import Path
 
 from scripts.runtime.calculation.contracts import REPO_ROOT
@@ -21,6 +22,7 @@ from scripts.runtime.chart_day_dashboard_binding import (
 from scripts.runtime.chart_only_security import create_secret_key
 
 EPHEMERIS = REPO_ROOT / "data/raw/saju_runtime/ephemeris/v1.1.0/de440s.bsp"
+FIXED_TODAY = date(2026, 9, 2)
 
 
 def _private_directory(parent: Path, name: str) -> Path:
@@ -113,6 +115,7 @@ class ChartDayIntegrationTests(unittest.TestCase):
                 encryption_key_file=resources["encryption"],
                 store_root=resources["store"],
             ) as adapter:
+                adapter.engine._today_provider = lambda: FIXED_TODAY
                 session_id = adapter.create_session()["session_id"]
                 response = None
                 for event in _events():
@@ -192,6 +195,7 @@ class ChartDayIntegrationTests(unittest.TestCase):
                 store_root=resources["store"],
                 process_lease_file=lease,
             ) as binding:
+                binding.adapter.engine._today_provider = lambda: FIXED_TODAY
                 status = binding.status()
                 self.assertEqual(status["single_day_today_kst"], "2026-09-02")
                 created = binding.create_session()
@@ -219,3 +223,31 @@ class ChartDayIntegrationTests(unittest.TestCase):
                         event=_period_event(),
                     )
                 self.assertEqual(caught.exception.reason_code, "STALE_RUNTIME_REVISION")
+
+    def test_period_request_older_than_pinned_today_is_blocked(self) -> None:
+        with tempfile.TemporaryDirectory(
+            prefix="saju-chart-day-future-clock-"
+        ) as directory:
+            root = Path(directory)
+            root.chmod(0o700)
+            resources = self._resources(root)
+            with build_chart_day_app_adapter(
+                enable_adapter=True,
+                release_registry=RELEASE_V15_PATH,
+                ephemeris_path=EPHEMERIS,
+                hmac_key_file=resources["hmac"],
+                encryption_key_file=resources["encryption"],
+                store_root=resources["store"],
+            ) as adapter:
+                adapter.engine._today_provider = lambda: date(2026, 9, 15)
+                session_id = adapter.create_session()["session_id"]
+                for event in _events():
+                    adapter.handle_event(session_id, event)
+                blocked = adapter.handle_event(
+                    session_id, _period_event("2026-09-02")
+                )
+                self.assertEqual(blocked["status"], "blocked")
+                self.assertEqual(
+                    blocked["decision"]["reason_code"],
+                    "SINGLE_DAY_OUT_OF_APPROVED_RANGE",
+                )

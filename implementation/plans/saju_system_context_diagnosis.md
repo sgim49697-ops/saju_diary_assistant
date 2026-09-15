@@ -213,6 +213,14 @@ GPU 없이 계약과 dry-run을 먼저 닫는다. 실행 단계는 구현된 CLI
 
 ## 진행 기록
 
+### 2026-09-15 — 실행 전 테스트 기준선 복구
+
+- 사용자 승인 범위는 S0/S1 구현·검증과 S2 비교까지다. 최대 344요청(본 비교 288·보조 48·적격성 최대 8) 안에서 유휴 GPU를 순차 사용하며 S3~S6·서비스 전환·추가 학습은 수행하지 않는다.
+- 실제 Claude Code CLI와 테스트 5파일을 교차 점검했다. 과거 LoRA/복구 source pin과 승인 파일은 보존하고, 기능 fixture만 현재 core 또는 실제 임시 source 파일 SHA에 결합했다. 과거 pin 거부·source 변조 거부·날짜 경계 음성 회귀를 추가했다. Claude 제안의 call177 부모 identity 누락은 실제 실행에서 발견해 수정했다.
+- 이전 841건의 실패 5·오류 17은 Torch 미설치 9건, LoRA core pin 4건, 복구 source pin 5건, 고정 시계 미주입 4건으로 재분류한다. 이전 통합 기록의 LoRA 13건 전체를 core hash로 묶은 표현은 이 분류로 정정한다.
+- 검증: `.venv/bin/python -B -m unittest discover -s tests -q` → 846건 전부 통과, 건너뜀 0. `.venv-data/bin/python -B -m unittest tests.test_mix2k_v4_lora_v1_1 tests.test_mix2k_v4_teacher_recovery tests.test_chart_day_operations tests.test_phase5_dashboard_v1_12 tests.test_phase5_dashboard_v1_13 -q` → 72건, 실패·오류 0, tensor 의존 fixture 건너뜀 9(ML 환경 전체 실행에서 검증).
+- 변경한 테스트 5파일 Ruff와 `git diff --check` 통과. 운영 v1.14 PID·재시작 수와 모델·학습 산출물을 유지했다. 새 진단 코드는 별도 체크포인트에서 검증하며 이 기록은 새 GPU 응답 생성 완료를 뜻하지 않는다.
+
 ### 2026-09-14 — 기본 브랜치 통합 완료
 
 - PR #28을 `3bb0ce2`로 병합하고 원본 프로젝트 폴더를 `master`에 동기화했다. 자료/서비스 보존 대상 외의 기존 분기와 작업 폴더를 정리했으며 새 분기는 만들지 않았다.

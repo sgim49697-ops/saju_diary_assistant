@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import importlib.util
 import json
 import os
 import tempfile
@@ -42,7 +43,10 @@ from scripts.training.mix2k_v4_lora_v1_1 import (
 
 class Mix2KV4LoRAV11ContractTest(unittest.TestCase):
     def _config(self) -> dict[str, object]:
-        return json.loads(DEFAULT_CONFIG.read_text(encoding="utf-8"))
+        # 과거 정본 pin은 불변이다. 기능 fixture의 복사본만 현재 core에 결합한다.
+        config = json.loads(DEFAULT_CONFIG.read_text(encoding="utf-8"))
+        config["training_core"]["sha256"] = sha256_file(Path(core.__file__))
+        return config
 
     def _write_config(self, value: dict[str, object]) -> Path:
         temporary = tempfile.TemporaryDirectory(prefix="mix2k-v11-lora-config-")
@@ -74,6 +78,8 @@ class Mix2KV4LoRAV11ContractTest(unittest.TestCase):
     def _checkpoint_fixture(
         self, *, step: int = 50
     ) -> tuple[Path, Path, dict[str, object], dict[str, object]]:
+        if any(importlib.util.find_spec(name) is None for name in ("torch", "safetensors")):
+            self.skipTest("checkpoint tensor 검증은 .venv ML 환경에서 실행합니다.")
         import torch
         from safetensors.torch import save_file
 
@@ -144,7 +150,7 @@ class Mix2KV4LoRAV11ContractTest(unittest.TestCase):
         return target, checkpoint, config, identity
 
     def test_default_contract_is_explicitly_unpinned_and_r16_only(self) -> None:
-        config = _validate_config(DEFAULT_CONFIG)
+        config = json.loads(DEFAULT_CONFIG.read_text(encoding="utf-8"))
 
         self.assertEqual(
             config["required_data"]["pin_state"], "unpinned_pending_final_build"
@@ -165,12 +171,24 @@ class Mix2KV4LoRAV11ContractTest(unittest.TestCase):
     ) -> None:
         with self.assertRaisesRegex(Mix2KV4LoRAV11Error, "unpinned"):
             run_preflight(
-                config_path=DEFAULT_CONFIG,
+                config_path=self._write_config(self._config()),
                 data_build=Path("/does/not/exist"),
                 model_root=Path("/does/not/exist"),
                 artifact_root=Path("/does/not/exist"),
                 execute=False,
             )
+
+    def test_immutable_default_rejects_changed_core_before_preflight(self) -> None:
+        original = DEFAULT_CONFIG.read_bytes()
+        with self.assertRaisesRegex(Mix2KV4LoRAV11Error, "training core hash"):
+            _validate_config(DEFAULT_CONFIG)
+        self.assertEqual(DEFAULT_CONFIG.read_bytes(), original)
+
+    def test_behavior_fixture_still_rejects_tampered_core_pin(self) -> None:
+        config = self._config()
+        config["training_core"]["sha256"] = "0" * 64
+        with self.assertRaisesRegex(Mix2KV4LoRAV11Error, "training core hash"):
+            _validate_config(self._write_config(config))
 
     def test_partial_pin_is_rejected_but_complete_pin_shape_is_accepted(self) -> None:
         partial = self._config()
