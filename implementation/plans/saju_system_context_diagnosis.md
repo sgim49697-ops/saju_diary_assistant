@@ -11,7 +11,7 @@
 | 응답 기준선 | `26462137f9a4ef34adb2d3db0dd6eaff6282b309`의 20문장 진단 |
 | 현재 단계 | S0/S1 계약·CPU 검증 완료; S2 342요청 실행·재구성 검증 완료 |
 | 최신 S2 build | `build-c39b4bce5089`, 312생성·30사전 차단; 검사기 오탐 별도 확인 |
-| 현재 승인 후속 | S1 새 검사기·CPU 파생 재집계 + 앱 의도 오탐 v1.16 후보; 구현·검증 중 |
+| 현재 승인 후속 | S1 새 검사기·CPU 파생 `build-8547c487c858` 검증 완료; 앱 v1.16 canary 최종 확인 중 |
 | 다음 별도 작업 | S3 지시문 단일 변수 비교 → S4 크기×정보 비교; 이번에는 실행하지 않음 |
 
 2026-09-14 PR #28로 이 계획과 부모 v1.15 후보를 `master`에 통합했다. 2026-09-15 사용자 승인 범위인 S0/S1 구현·검증과 S2 실행을 완료했다. 코드 통합과 격리 진단은 운영 v1.15 배포가 아니다. [완료 기록](../history/2026-09-15-system-context-diagnosis.md)은 실제 모델 오류와 검사기 오탐을 구분한다. 입력·집계 재구성 검증 통과가 검사기의 의미 타당성이나 모델 품질 승인은 아니다.
@@ -222,7 +222,7 @@ SYSTEM_CONTEXT_DIAGNOSIS=S0_S1_S2_V1 .venv/bin/python -B -m scripts.evaluation.s
 - Phase 6·Runtime release·production 허용·기본 모델·feature 기본 off는 자동 변경하지 않는다. [60 데이터](saju_product_roadmap/60-mix20k-v3-1-build.md)·[70 학습](saju_product_roadmap/70-training-and-promotion.md)은 원인별 결과에 따른 별도 결정이다.
 - 종료 보고는 “어디서 잘못됐는가 / 무엇으로 확인했는가 / 무엇은 아직 모르는가 / 다음에 고칠 최소 범위”를 답한다. 실패가 남아도 근거 없는 전면 재학습이나 모델 교체를 처방하지 않는다.
 
-### S2 이후 승인 후속 범위 — 구현·검증 중
+### S2 이후 승인 후속 범위 — 재집계 완료·앱 후보 최종 확인
 
 1. 검사기 새 버전에서 인접 label/value, 간접 부정, 정정 전/현재 범위, 이전 답변 인용을 합성 양성·음성 fixture로 보강한다. R16 자동 회귀 8개 중 6개가 이 문제였으므로 기존 13→6 PASS를 실제 정확도 하락으로 사용하지 않는다.
 2. 같은 S2 private 합성 응답을 재생성 없이 읽어 새 검사 버전의 파생 집계를 만든다. 원래 build·config·scorer·공개 집계는 보존한다. 새 GPU 호출·학습·sealed blind 접근은 필요하지 않다. 새 계약 `system-context-rescore-v1.0.0.json`과 `system_context_rescore` CLI에서 부모 공개 3파일 pin·기존 source 460파일·입력/응답 684파일을 검증한다. 새 파일 추가로 부모의 전체 source fingerprint가 달라져도 기존 검증기를 완화하지 않고 고정 부모 map을 읽기 전용으로 검증한다.
@@ -254,6 +254,12 @@ SYSTEM_CONTEXT_DIAGNOSIS=S0_S1_S2_V1 .venv/bin/python -B -m scripts.evaluation.s
 - 무관한 자료가 포함된 산술 문제의 성능 저하 연구를 정보 관련성 대조의 근거로 삼는다. 해당 과제 결과를 한국어 사주 대화나 모델 크기의 인과 결론으로 직접 일반화하지 않는다. [Shi 외, Large Language Models Can Be Easily Distracted by Irrelevant Context, v3](https://arxiv.org/abs/2302.00093v3).
 
 ## 진행 기록
+
+### 2026-09-15 — 동결된 S2 응답 312개 CPU 재채점·재검증 완료
+
+- 구현 `53c251a`로 파생 `build-8547c487c858`를 발행했다. 342요청·312재채점·30기존 차단을 대조했고 별도 verify·동일 실행 재사용이 같은 hash로 통과했다. 적격성 6건은 비교 분모에서 제외했다.
+- [파생 완료 기록](../history/2026-09-15-system-context-rescore.md)에 전이·보조 12개·한계를 고정했다. 기존 R16 오탐 6건은 2 PASS·4 UNSCORABLE로 바뀌었고 실제 MIN 오류 2건은 FAIL을 유지했다. 필수 사실 FULL/MIN은 R16 11/24·6/24 PASS, 판단 불가 7·8개다. 모델 성능 향상으로 읽지 않는다.
+- 독립 지표 변경 0, 원본 460 source·684 입력/응답·공개 부모 3파일 보존. 새 GPU 생성·학습·운영 교체·S3/S4는 실행하지 않았다.
 
 ### 2026-09-15 — 승인 후속의 새 검사기와 읽기 전용 부모 검증
 

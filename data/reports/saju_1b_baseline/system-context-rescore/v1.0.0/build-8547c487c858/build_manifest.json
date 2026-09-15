@@ -1,0 +1,40 @@
+{
+  "aggregate_sha256": "85e61d3d2f1a5ced2bc612f1b353d55a9bc4dff688b7d0efa1f7864781024a40",
+  "build_id": "build-8547c487c858",
+  "generated_rescored": 312,
+  "governance": {
+    "cpu_only": true,
+    "new_generations": 0,
+    "parent_outputs_modified": false,
+    "production_promotion_allowed": false,
+    "runtime_release_changed": false,
+    "sealed_blind_accessed": false,
+    "service_changed": false,
+    "training_performed": false
+  },
+  "identity": {
+    "analysis_id": "system-context-rescore-v1.0.0",
+    "code_sha256": {
+      "configs/model_versions/saju_1b_baseline/system-context-rescore-v1.0.0.json": "eee238b92e895196bbae72c9242e1b90bb3c7477c340252d2ab4be7892c4d145",
+      "scripts/evaluation/system_context_rescore.py": "55e14fc9c1e782b0d34caff5770da85bb317f4e19528c3648399aae96ef38c01",
+      "scripts/evaluation/system_context_scoring_v1_1.py": "361988a66bed622b6c54ff21e18102ee22cb704a29077681d9657f84fe4f57be"
+    },
+    "parent_build": "build-c39b4bce5089",
+    "parent_public_sha256": {
+      "aggregate.json": "d97979399747b4f0aae857860142ce47bf6cf5a67042955dc6392c95cadeb1ce",
+      "build_manifest.json": "af74b65d2551843dcfd2d7c96b5a292da4e4e2b89c15d0894975c60b4f97ad10",
+      "verification.json": "115e0dd8efa830d1b01d633b5e06090f9fe3b667d42cb7239f0332c34a6f6504"
+    },
+    "python": [
+      3,
+      10,
+      12
+    ],
+    "scorer_version": "role-aware-contract-v1.1.0"
+  },
+  "preflight_excluded_from_comparisons": 6,
+  "private_file_sha256": "dd64ba20146f05269b7f62f1c980405f64a4520c92d8513970cffddc223999bb",
+  "private_trace_sha256": "2b5e78a05d0e550bafb69c81e82edc1a1d1d66f3c81438443339190747e57f6e",
+  "requests": 342,
+  "schema_version": "1.0.0"
+}
