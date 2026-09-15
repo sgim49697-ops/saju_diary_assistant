@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0.0",
+  "analysis_id": "system-context-rescore-v1.0.0",
+  "scorer_version": "role-aware-contract-v1.1.0",
+  "parent_build": "build-c39b4bce5089",
+  "parent_public_sha256": {
+    "aggregate.json": "d97979399747b4f0aae857860142ce47bf6cf5a67042955dc6392c95cadeb1ce",
+    "build_manifest.json": "af74b65d2551843dcfd2d7c96b5a292da4e4e2b89c15d0894975c60b4f97ad10",
+    "verification.json": "115e0dd8efa830d1b01d633b5e06090f9fe3b667d42cb7239f0332c34a6f6504"
+  },
+  "expected_requests": 342,
+  "expected_generated": 312,
+  "expected_preblocked": 30,
+  "expected_preflight": 6,
+  "expected_source_files": 460,
+  "raw_root": "runs/SYSTEM-CONTEXT-RESCORE/v1.0.0",
+  "public_root": "data/reports/saju_1b_baseline/system-context-rescore/v1.0.0",
+  "governance": {
+    "cpu_only": true,
+    "new_generations": 0,
+    "parent_outputs_modified": false,
+    "sealed_blind_accessed": false,
+    "training_performed": false,
+    "service_changed": false,
+    "production_promotion_allowed": false,
+    "runtime_release_changed": false
+  }
+}

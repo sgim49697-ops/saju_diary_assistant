@@ -4,13 +4,15 @@
 
 | 항목 | 값 |
 |---|---|
-| 계획 버전 | `saju-system-context-diagnosis-v1.0.0` |
+| 계획 버전 | `saju-system-context-diagnosis-v1.1.0` |
+| 보존된 부모 실행 계약 | `saju-system-context-diagnosis-v1.0.0` |
 | 작성일 | 2026-09-14 |
 | 문서 부모 | `f34f8562f24116558cd39fbc2a69cea430bb1158` |
 | 응답 기준선 | `26462137f9a4ef34adb2d3db0dd6eaff6282b309`의 20문장 진단 |
 | 현재 단계 | S0/S1 계약·CPU 검증 완료; S2 342요청 실행·재구성 검증 완료 |
 | 최신 S2 build | `build-c39b4bce5089`, 312생성·30사전 차단; 검사기 오탐 별도 확인 |
-| 다음 작업 | S1 검사기 새 버전·기존 합성 응답 파생 재집계 제안 → S3 → S4; 이번 범위 종료 |
+| 현재 승인 후속 | S1 새 검사기·CPU 파생 재집계 + 앱 의도 오탐 v1.16 후보; 구현·검증 중 |
+| 다음 별도 작업 | S3 지시문 단일 변수 비교 → S4 크기×정보 비교; 이번에는 실행하지 않음 |
 
 2026-09-14 PR #28로 이 계획과 부모 v1.15 후보를 `master`에 통합했다. 2026-09-15 사용자 승인 범위인 S0/S1 구현·검증과 S2 실행을 완료했다. 코드 통합과 격리 진단은 운영 v1.15 배포가 아니다. [완료 기록](../history/2026-09-15-system-context-diagnosis.md)은 실제 모델 오류와 검사기 오탐을 구분한다. 입력·집계 재구성 검증 통과가 검사기의 의미 타당성이나 모델 품질 승인은 아니다.
 
@@ -35,6 +37,7 @@
 - **이 문서는 50이 위임한 전체 흐름의 실험 설계·변수·실행 파일 순서 정본**이다. 별도 Phase나 release Gate를 만들지 않는다. 50-B는 컨텍스트 비교와 지시문 비교로 세분하고, 50-C는 크기×컨텍스트 교차 비교로 구체화한다.
 - [학습 Phase 정본](saju_1b_10k_20k_baseline/README.md), [Runtime 정본](saju_runtime_calculator_adoption.md)의 승인 범위와 과거 불변 산출물은 그대로다. 50의 단계를 바꾸려면 이 문서와 50·로드맵 연결을 함께 갱신한다.
 - 2026-09-14 계획 작성은 문서·테스트 정합화였고 이후 PR #28로 통합했다. 2026-09-15 승인 범위는 S0/S1과 S2까지다. P0 교체·큰 모델 다운로드·teacher 호출·데이터 생성·400건 재개·학습·서비스 전환·브랜치 병합은 실행하지 않는다.
+- 2026-09-15 후속 승인으로 새 진단 검사기와 기존 S2 응답의 CPU 재집계, 별도 앱 v1.16 의도 정책 후보·합성 canary를 진행한다. 이전 S2·v1.15·grounding v2의 파일과 결과는 변경하지 않는다. 운영 앱 교체·추가 GPU 생성·S3 이후 실험은 승인 범위 밖이다.
 
 ## 3. 확인된 사실과 아직 모르는 것
 
@@ -219,12 +222,31 @@ SYSTEM_CONTEXT_DIAGNOSIS=S0_S1_S2_V1 .venv/bin/python -B -m scripts.evaluation.s
 - Phase 6·Runtime release·production 허용·기본 모델·feature 기본 off는 자동 변경하지 않는다. [60 데이터](saju_product_roadmap/60-mix20k-v3-1-build.md)·[70 학습](saju_product_roadmap/70-training-and-promotion.md)은 원인별 결과에 따른 별도 결정이다.
 - 종료 보고는 “어디서 잘못됐는가 / 무엇으로 확인했는가 / 무엇은 아직 모르는가 / 다음에 고칠 최소 범위”를 답한다. 실패가 남아도 근거 없는 전면 재학습이나 모델 교체를 처방하지 않는다.
 
-### S2 이후 최소 후속 범위 — 아직 미실행
+### S2 이후 승인 후속 범위 — 구현·검증 중
 
 1. 검사기 새 버전에서 인접 label/value, 간접 부정, 정정 전/현재 범위, 이전 답변 인용을 합성 양성·음성 fixture로 보강한다. R16 자동 회귀 8개 중 6개가 이 문제였으므로 기존 13→6 PASS를 실제 정확도 하락으로 사용하지 않는다.
-2. 같은 S2 private 합성 응답을 재생성 없이 읽어 새 검사 버전의 파생 집계를 만든다. 원래 build·config·scorer·공개 집계는 보존한다. 새 GPU 호출·학습·sealed blind 접근은 필요하지 않다. 추가 파생 분석의 명령·계약은 아직 구현하지 않았다.
+2. 같은 S2 private 합성 응답을 재생성 없이 읽어 새 검사 버전의 파생 집계를 만든다. 원래 build·config·scorer·공개 집계는 보존한다. 새 GPU 호출·학습·sealed blind 접근은 필요하지 않다. 새 계약 `system-context-rescore-v1.0.0.json`과 `system_context_rescore` CLI에서 부모 공개 3파일 pin·기존 source 460파일·입력/응답 684파일을 검증한다. 새 파일 추가로 부모의 전체 source fingerprint가 달라져도 기존 검증기를 완화하지 않고 고정 부모 map을 읽기 전용으로 검증한다.
 3. 검사가 허용하는 범위를 정리한 뒤 S3 지시문 단일 변수 비교, S4 큰 기본 모델×정보 비교를 진행한다. 이번 세 모델은 모두 1.3B이므로 크기 원인은 미확정이다. 입력 축소나 모델 교체를 자동 채택하지 않는다.
-4. 모델 전 사전 차단으로 확인된 일반 공감 문장의 날짜 의도 오탐은 별도 앱 회귀 수정 후보로 둔다. S2 결과에 운영 분류기 수정·배포를 섞지 않는다.
+4. 모델 전 사전 차단으로 확인된 일반 공감 문장의 날짜 의도 오탐은 별도 앱 v1.16 후보로 수정한다. P0·모델·생성 계약·앱 사실 검사 문법은 유지하고 새 `dashboard_grounding_v3`의 의도 정책만 바꾼다. 단일 날짜 추출·KST·snapshot 일치 규칙은 그대로이며 애매한 날짜 후속은 계속 보수적으로 처리한다. 부모 사전 차단 30건을 새 응답이나 새 허용 사례로 바꾸지 않는다.
+
+### 후속 실행 순서와 격리 계약
+
+1. 새 진단 검사기의 부정·인용·과거 범위·인접 역할·정정·판단 불가 합성 회귀를 먼저 고정한다. 실제 312응답의 새 점수를 보고 규칙을 조정하지 않는다.
+2. 아래 CPU 명령으로 부모 검증 → dry-run → immutable 파생 발행 → 별도 재검증을 수행한다. 342요청 중 312응답을 재채점하고 사전 차단 30건을 유지한다. 적격성 6건은 비교 분모에서 제외하며 모든 적용 지표의 PASS/FAIL/UNSCORABLE 전이를 공개한다.
+3. 앱 후보는 v1.15의 독립 version snapshot이다. 모듈 전역 상태를 교체하는 wrapper를 사용하지 않으며 HTTP·직접 생성·새 프로세스·감사 metadata가 같은 의도 정책을 사용한다. 기본 포트 8769·별도 private 세션 경로·feature 기본 off, UI 자산은 v1.15를 그대로 재사용한다.
+4. 합성 입력·대체 생성기로 CPU canary를 실행한다. 현재 v1.14 서비스·포트 8767은 교체하지 않는다. 진단 검사기 개선과 앱 사실 검사기 변경을 혼합하지 않는다.
+5. 결과 집계·한계·부모 보존을 검증하고 `master`에 한글 커밋·push한다. S3/S4는 다음 별도 승인 단계다.
+
+```bash
+.venv-data/bin/python -B -m scripts.evaluation.system_context_rescore validate-contract
+.venv-data/bin/python -B -m scripts.evaluation.system_context_rescore plan
+.venv-data/bin/python -B -m scripts.evaluation.system_context_rescore verify-parent
+.venv-data/bin/python -B -m scripts.evaluation.system_context_rescore execute
+.venv-data/bin/python -B -m scripts.evaluation.system_context_rescore execute --execute
+.venv-data/bin/python -B -m scripts.evaluation.system_context_rescore verify --build <파생-build-ID>
+```
+
+새 명령은 모델 파일·tokenizer를 불러오지 않는다. trace는 `runs/SYSTEM-CONTEXT-RESCORE/v1.0.0/`의 0700/0600 파일에만 보존하고, 공개 경로에는 aggregate·build manifest·verification만 발행한다. 자연스러움·해석 의미는 계속 `not_measured`이며 추가 완료 조건으로 요구하지 않는다.
 
 ## 11. 실험 설계의 참고 근거
 
@@ -232,6 +254,14 @@ SYSTEM_CONTEXT_DIAGNOSIS=S0_S1_S2_V1 .venv/bin/python -B -m scripts.evaluation.s
 - 무관한 자료가 포함된 산술 문제의 성능 저하 연구를 정보 관련성 대조의 근거로 삼는다. 해당 과제 결과를 한국어 사주 대화나 모델 크기의 인과 결론으로 직접 일반화하지 않는다. [Shi 외, Large Language Models Can Be Easily Distracted by Irrelevant Context, v3](https://arxiv.org/abs/2302.00093v3).
 
 ## 진행 기록
+
+### 2026-09-15 — 승인 후속의 새 검사기와 읽기 전용 부모 검증
+
+- 새 `role-aware-contract-v1.1.0`은 기대 정답을 참조하지 않는 주장 추출과 범위·부정·정정 trace를 제공한다. 지원 문법 밖의 label/value와 불확실 표현은 판단 불가로 남긴다. 문장 수·날짜·비공개 필드·토큰 종료 등 독립 지표는 그대로다.
+- 실제 Claude Code를 읽기 전용으로 호출했다. 제시한 5개 반례를 재현하여 부정 삽입어·인용 앞의 오류 단서·불확실 표현·역할 교차 정정을 수정했다. 가정절을 현재 사실로 승격하는 제안은 채택하지 않고 판단 불가 회귀로 고정했다.
+- 진단 검사기 16건·재집계 11건의 CPU 회귀가 통과했다. 합성 부모의 byte/hash chain·응답/입력/공개 파일 변조·권한·원본 코드 변경·새 파일 추가·배타적 발행·재사용·분모 보존을 검증했다. 실제 부모 460개 source와 684개 입력/응답 검증도 통과했다.
+- 현재 파생 재채점은 실행 전이다. 앱 v1.16 후보·합성 canary와 전체 회귀 결과는 다음 기록에 추가한다. 운영·학습·release·승격은 변경하지 않았다.
+- 체크포인트 검증: 새 진단·앱 후보를 포함한 전체 회귀 925건이 통과했다(86.542초, 건너뜀 0). 최초 실행의 문서 버전 검사 1건 실패는 새 계획과 보존된 부모 실행 계약을 분리해 수정했다. CPU 표적 54건·재집계 dry-run·Ruff·diff 검사 통과 후 진단 검사기·재집계 도구를 먼저 동결하며 실제 재채점과 앱 canary는 별도 산출물로 남긴다.
 
 ### 2026-09-15 — S2 실제 비교·재검증 완료와 검사기 오탐 분리
 
