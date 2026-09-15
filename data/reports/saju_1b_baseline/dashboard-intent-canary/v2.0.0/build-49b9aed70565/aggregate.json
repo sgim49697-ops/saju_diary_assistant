@@ -1,0 +1,52 @@
+{
+  "active_request_clause_only": true,
+  "browser": {
+    "browser_version": "149.0.7827.55",
+    "cases_passed": 6,
+    "model_generations": 0,
+    "passed": true,
+    "production_service_accessed": false,
+    "synthetic_http": true
+  },
+  "build_id": "build-49b9aed70565",
+  "dashboard_version": "1.17.0",
+  "feature_default_off": true,
+  "governance": {
+    "cpu_only": true,
+    "fake_generation_used": true,
+    "model_loading_cli_executed": false,
+    "new_model_generations": 0,
+    "production_promotion_allowed": false,
+    "runtime_release_changed": false,
+    "sealed_blind_accessed": false,
+    "service_changed": false,
+    "synthetic_only": true,
+    "training_performed": false
+  },
+  "history_and_binding_read_only": true,
+  "intent_policy_version": "saju-request-intent-v2.0.0",
+  "limitations": [
+    "새 합성 경로 검사이며 모델 응답 품질 점수가 아니다.",
+    "CLI 모델 로딩·GPU 생성·운영 브라우저·서비스 배포는 실행하지 않았다.",
+    "의도 정책은 유한 규칙이며 미지원 표현의 일반적 이해를 보장하지 않는다.",
+    "진단용 새 주장 검사기는 앱 사실 검사기에 적용하지 않았다."
+  ],
+  "matrix_cases_per_path": 24,
+  "parent_date_grammar_unchanged": true,
+  "parent_fact_syntax_unchanged": true,
+  "parent_prompt_and_generation_unchanged": true,
+  "paths": [
+    "loopback_http",
+    "direct_generation_with_fake_engine",
+    "subprocess_launcher_target",
+    "fresh_process_http_and_direct",
+    "stored_audit_policy"
+  ],
+  "previous_user_context_cases": 3,
+  "schema_version": "2.0.0",
+  "scorer_version": "saju-bound-chart-grounding-v4.0.0",
+  "status": "passed",
+  "tests_failed": 0,
+  "tests_passed": 45,
+  "tests_skipped": 0
+}

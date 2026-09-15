@@ -61,7 +61,7 @@ class SajuProductRoadmapTests(unittest.TestCase):
         self.assertIn("saju-product-roadmap-v1.3.1", index)
         self.assertIn("26462137f9a4ef34adb2d3db0dd6eaff6282b309", index)
         self.assertIn("saju-runtime-release-v1.5.0-8b1d6ea2d46e", index)
-        self.assertIn("dashboard v1.14 운영 / v1.15 부모·v1.16 의도 후보 CPU 검증·운영 미배포", index)
+        self.assertIn("dashboard v1.14 운영 / v1.15·v1.16 보존 / v1.17 오차단 후보 CPU 검증·운영 미배포", index)
         offsets = [index.index(name) for name in ORDERED_FILES]
         self.assertEqual(offsets, sorted(offsets))
 

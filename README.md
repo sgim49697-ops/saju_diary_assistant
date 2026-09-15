@@ -8,7 +8,7 @@ Kanana 2 1.3B 기반 한국어 사주·공감 대화 baseline 프로젝트다. `
 
 2026-09-15 S0/S1·S2 342요청에 이어 [312응답 CPU 재채점](implementation/history/2026-09-15-system-context-rescore.md)과 [앱 v1.16 의도 정책 후보·CPU canary](implementation/history/2026-09-15-dashboard-v116-intent.md)를 검증했다. 원래 응답과 차단 30건은 보존했고 새 모델 응답은 생성하지 않았다. 유한 검사기의 판단 불가가 남아 자동 점수로 모델 우열을 단정하지 않는다. 운영 v1.14와 미배포 v1.16 후보를 구분한다.
 
-새 ZIP 계획 3개는 [Phase 7 정본화](implementation/plans/saju_product_roadmap/phases/phase-07.md)에서 원문 보존·요구사항 연결 후 Phase 7~14로 통합·검증했다. 다음은 **Phase 8A 앱 오차단 보완 + 8B 같은 R16의 지시문 묶음 비교(S3)**이며, 이어 3B 교차 비교→응답 모드·정정 이력→데이터 원인 분석→확인 평가 순서다. 보정·학습·운영 전환은 결과에 따른 조건부 후속이며 이번 작업은 문서 정합화뿐이다.
+새 ZIP 계획 3개는 [Phase 7 정본화](implementation/plans/saju_product_roadmap/phases/phase-07.md)에서 원문 보존·요구사항 연결 후 Phase 7~14로 통합·검증했다. **Phase 8A v1.17 오차단 후보는 CPU·합성 화면 검증 완료, 8B 같은 R16의 지시문 묶음 비교(S3)는 실행 준비 중**이다. [실행 기록](implementation/history/2026-09-16-phase8-intent-s3.md)을 따른다. 이어 3B 교차 비교→응답 모드·정정 이력→데이터 원인 분석→확인 평가 순서이며 보정·학습·운영 전환은 조건부 후속이다. 현재 운영 v1.14는 그대로다.
 
 - [후속 실행 순서 정본](implementation/plans/saju_product_roadmap/README.md)
 - [현재 기준선·운영과 후보 구분](implementation/plans/saju_product_roadmap/00-current-baseline.md)

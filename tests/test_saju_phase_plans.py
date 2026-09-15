@@ -42,6 +42,7 @@ DOCUMENTATION_TASK_IDS = {
 NON_TASK_TYPES = {
     "current_fact", "policy", "development_example", "evidence_link", "structure",
 }
+IMPLEMENTATION_TASK_IDS = {"O-0171"}
 SEMANTIC_TYPES = NON_TASK_TYPES | {
     "execution_task", "conditional_proposal", "completed_history",
 }
@@ -129,13 +130,19 @@ def validate_mapping(manifest: dict) -> None:
         elif requirement_type == "conditional_proposal":
             expected_status = "conditional_not_executed"
         else:
-            expected_status = "completed" if entry["id"] in DOCUMENTATION_TASK_IDS else "not_executed"
+            expected_status = "completed" if entry["id"] in DOCUMENTATION_TASK_IDS | IMPLEMENTATION_TASK_IDS else "not_executed"
         if entry["execution_status"] != expected_status:
             raise ValueError("requirement type/execution status contradiction")
         if entry["id"] in DOCUMENTATION_TASK_IDS and requirement_type != "execution_task":
             raise ValueError("documentation task misclassified")
         if entry["execution_status"] == "completed" and phase != 7:
-            raise ValueError("future phase incorrectly completed")
+            if phase != 8 or entry["id"] not in IMPLEMENTATION_TASK_IDS:
+                raise ValueError("future phase incorrectly completed")
+            evidence, separator, anchor = entry.get("execution_evidence", "").partition("#")
+            if evidence != "../../history/2026-09-16-phase8-intent-s3.md" or not separator:
+                raise ValueError("implementation completion without evidence")
+            if f'<a id="{anchor}"></a>' not in (ROADMAP / evidence).read_text(encoding="utf-8"):
+                raise ValueError("implementation evidence section missing")
     if seen != set(expected):
         raise ValueError("unmapped source lines")
 
@@ -151,7 +158,7 @@ class SajuPhasePlansTests(unittest.TestCase):
         self.assertEqual(self.manifest["archive_name"], "saju_plans_20260915.zip")
         self.assertEqual(self.manifest["archive_sha256"], ARCHIVE_HASH)
         self.assertEqual(self.manifest["baseline_commit"], BASELINE_COMMIT)
-        self.assertEqual(self.manifest["schema_version"], "1.1.0")
+        self.assertEqual(self.manifest["schema_version"], "1.2.0")
         self.assertEqual(
             self.manifest["canonicalization_baseline_commit"],
             "d151548e2eed37e8d36dd2e5fd9328aec1fb7315",
@@ -266,7 +273,10 @@ class SajuPhasePlansTests(unittest.TestCase):
                 self.assertIn("../source-20260915.md", text)
                 if phase == 7:
                     self.assertRegex(text, r"(?m)^상태: 완료\.")
-                elif 8 <= phase <= 12:
+                elif phase == 8:
+                    self.assertIn("8A 후보 구현·CPU 확인 완료 / 8B 실행 준비", text)
+                    self.assertIn("2026-09-16-phase8-intent-s3.md#phase8a", text)
+                elif 9 <= phase <= 12:
                     self.assertIn("상태: 미실행", text)
                 elif phase >= 13:
                     self.assertIn("상태: 조건부 보류", text)
@@ -351,7 +361,7 @@ class SajuPhasePlansTests(unittest.TestCase):
                 self.assertEqual(entries[source_id]["requirement_type"], requirement_type)
                 self.assertEqual(entries[source_id]["execution_status"], status)
         completed = {e["id"] for e in entries.values() if e["execution_status"] == "completed"}
-        self.assertEqual(completed, DOCUMENTATION_TASK_IDS)
+        self.assertEqual(completed, DOCUMENTATION_TASK_IDS | IMPLEMENTATION_TASK_IDS)
 
     def test_status_validation_rejects_fictional_execution_and_missing_fields(self) -> None:
         for source_id, field, value in (
@@ -374,6 +384,25 @@ class SajuPhasePlansTests(unittest.TestCase):
             manifest["entries"][0].pop(field)
             with self.subTest(missing=field), self.assertRaises(ValueError):
                 validate_mapping(manifest)
+
+    def test_phase8a_completion_has_verified_cpu_evidence_not_deployment(self) -> None:
+        entry = next(e for e in self.manifest["entries"] if e["id"] == "O-0171")
+        self.assertEqual(entry["execution_status"], "completed")
+        root = REPO_ROOT / "data/reports/saju_1b_baseline/dashboard-intent-canary/v2.0.0/build-49b9aed70565"
+        summary = json.loads((root / "aggregate.json").read_bytes())
+        verification = json.loads((root / "verification.json").read_bytes())
+        self.assertEqual(summary["tests_passed"], 45)
+        self.assertEqual(summary["browser"]["cases_passed"], 6)
+        self.assertEqual(verification["status"], "verified")
+        self.assertEqual(verification["aggregate_file_sha256"], hashlib.sha256((root / "aggregate.json").read_bytes()).hexdigest())
+        self.assertEqual(verification["manifest_file_sha256"], hashlib.sha256((root / "build_manifest.json").read_bytes()).hexdigest())
+        self.assertEqual(summary["governance"]["new_model_generations"], 0)
+        self.assertFalse(summary["governance"]["service_changed"])
+        self.assertFalse(summary["governance"]["production_promotion_allowed"])
+        broken = copy.deepcopy(self.manifest)
+        next(e for e in broken["entries"] if e["id"] == "O-0171").pop("execution_evidence")
+        with self.assertRaises(ValueError):
+            validate_mapping(broken)
 
     def test_active_collection_recurses_and_keeps_archive_policy_separate(self) -> None:
         real_active = set(active_roadmap_documents())

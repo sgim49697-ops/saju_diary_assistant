@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.1.0",
+  "schema_version": "1.2.0",
   "description": "원문 비공백 행의 의미 유형·문서 반영 상태·실제 실행 상태와 담당 정본 절을 구분한다.",
   "archive_name": "saju_plans_20260915.zip",
   "archive_sha256": "85fe0f0716347b5fdbe83fe9b1aeccca67efd6917b30de2dfb248592b8bab47c",
@@ -12,6 +12,7 @@
     "links": 32,
     "mapped_nonempty_lines": 588
   },
+  "governance_scope": "Phase 7 원문 정본화 당시 권한; 후속 별도 승인·실행 증거는 담당 Phase의 진행 기록을 따른다.",
   "governance": {
     "documentation_only": true,
     "gpu_execution_allowed": false,
@@ -546,7 +547,7 @@
     {"id":"O-0168","source":"O","line":168,"kind":"table_row","phase":7,"target":"phases/phase-07.md#phase-order","disposition":"adopted","requirement_type":"structure","documentation_status":"verified","execution_status":"not_applicable"},
     {"id":"O-0169","source":"O","line":169,"kind":"structure","phase":7,"target":"phases/phase-07.md#phase-order","disposition":"adopted","requirement_type":"structure","documentation_status":"verified","execution_status":"not_applicable"},
     {"id":"O-0170","source":"O","line":170,"kind":"table_row","phase":7,"target":"phases/phase-07.md#phase-order","disposition":"adopted","requirement_type":"execution_task","documentation_status":"verified","execution_status":"completed"},
-    {"id":"O-0171","source":"O","line":171,"kind":"table_row","phase":8,"target":"phases/phase-08.md#routing","disposition":"adopted","requirement_type":"execution_task","documentation_status":"verified","execution_status":"not_executed"},
+    {"id":"O-0171","source":"O","line":171,"kind":"table_row","phase":8,"target":"phases/phase-08.md#routing","disposition":"adopted","requirement_type":"execution_task","documentation_status":"verified","execution_status":"completed","execution_evidence":"../../history/2026-09-16-phase8-intent-s3.md#phase8a"},
     {"id":"O-0172","source":"O","line":172,"kind":"table_row","phase":8,"target":"phases/phase-08.md#s3-controls","disposition":"adopted","requirement_type":"execution_task","documentation_status":"verified","execution_status":"not_executed"},
     {"id":"O-0173","source":"O","line":173,"kind":"table_row","phase":9,"target":"phases/phase-09.md#comparison","disposition":"adopted","requirement_type":"execution_task","documentation_status":"verified","execution_status":"not_executed"},
     {"id":"O-0174","source":"O","line":174,"kind":"table_row","phase":10,"target":"phases/phase-10.md#cpu-regression","disposition":"adopted","requirement_type":"execution_task","documentation_status":"verified","execution_status":"not_executed"},
