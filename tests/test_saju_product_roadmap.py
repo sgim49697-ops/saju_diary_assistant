@@ -155,7 +155,7 @@ class SajuProductRoadmapTests(unittest.TestCase):
             "입력 전달 오류는 앱/상태 수정으로",
             "진단 완료는 품질 승인과 다르다",
             "실행하지 못한 필수 비교는 미실행",
-            "이번 재정렬은 문서와 정합성 테스트만 변경한다",
+            "A/S0·S1을 구현·CPU 검증",
         ):
             self.assertIn(marker, text)
 

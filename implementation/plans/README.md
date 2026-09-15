@@ -34,7 +34,7 @@
 
 v1.11의 원국·단일 날짜 명시 연결은 완료된 부모 구현이다. AES-GCM state·공개 allowlist·snapshot hash·자동 Grounding Gate를 적용하며 날짜 변경은 기존 대화에 덮어쓰지 않는다. 최신 운영·후보 commit과 검증 범위는 [현재 기준선](saju_product_roadmap/00-current-baseline.md)을 따른다. 이 통합은 strict/full runtime, Phase 6, v3.1, 추가 학습과 모델 승격을 승인하지 않는다.
 
-다음 실행은 [50 진단](saju_product_roadmap/50-automatic-model-evaluation.md)의 A→B→C→D다. [전체 흐름·컨텍스트 진단 계획](saju_system_context_diagnosis.md)의 S0/S1 기준선·추적·CPU 계약부터 시작한다. 큰 동일 계열 Instruct 기본 모델과 정보량의 교차 비교를 필수로 포함하며, 결과에 따라 60/70을 별도 결정한다. 최상단 01·02·03은 요약·연결 문서이고 별도 실행 정본이 아니다.
+실행 순서는 [50 진단](saju_product_roadmap/50-automatic-model-evaluation.md)의 A→B→C→D다. [전체 흐름·컨텍스트 진단 계획](saju_system_context_diagnosis.md)의 S0/S1 기준선·추적·CPU 계약을 구현·검증했고 승인된 다음 실행은 S2 342요청이다. 큰 동일 계열 Instruct 기본 모델 비교는 필수 후속이나 이번 범위에는 없으며, 결과에 따라 60/70을 별도 결정한다. 최상단 01·02·03은 요약·연결 문서이고 별도 실행 정본이 아니다.
 
 ## 현재 평가 기본값
 

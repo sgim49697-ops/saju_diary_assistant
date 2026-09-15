@@ -8,10 +8,10 @@
 | 작성일 | 2026-09-14 |
 | 문서 부모 | `f34f8562f24116558cd39fbc2a69cea430bb1158` |
 | 응답 기준선 | `26462137f9a4ef34adb2d3db0dd6eaff6282b309`의 20문장 진단 |
-| 현재 단계 | 계획·문서 정합성 검증만 수행; 아래 S0~S6 실행은 대기 |
-| 다음 구현 | S0 실행 기준선 고정 → S1 CPU 추적·자동 검사 계약 |
+| 현재 단계 | S0/S1 구현·CPU 검증 완료; S2 실제 생성 준비 |
+| 다음 실행 | 동결된 S2 342요청(사전 차단 30·생성 대상 312); S3~S6 미실행 |
 
-2026-09-14 PR #28로 이 계획과 부모 v1.15 후보를 `master`에 통합했고 원본 프로젝트 폴더도 동기화했다. 아래는 진단 실행 설계이며 S0~S6 실험은 아직 실행하지 않았다. 코드 통합은 운영 v1.15 배포가 아니다.
+2026-09-14 PR #28로 이 계획과 부모 v1.15 후보를 `master`에 통합했다. 2026-09-15 사용자 승인으로 S0/S1 구현·검증과 S2 실행을 진행한다. 코드 통합과 격리 진단은 운영 v1.15 배포가 아니다. 실제 실행 완료 수는 아래 진행 기록·공개 build를 기준으로 한다.
 
 ## 1. 먼저 쉽게 정리
 
@@ -33,7 +33,7 @@
 - [후속 로드맵](saju_product_roadmap/README.md)은 실행 순서, [00 기준선](saju_product_roadmap/00-current-baseline.md)은 현재 상태, [50 진단](saju_product_roadmap/50-automatic-model-evaluation.md)은 A~D 단계와 종료 경계를 소유한다.
 - **이 문서는 50이 위임한 전체 흐름의 실험 설계·변수·실행 파일 순서 정본**이다. 별도 Phase나 release Gate를 만들지 않는다. 50-B는 컨텍스트 비교와 지시문 비교로 세분하고, 50-C는 크기×컨텍스트 교차 비교로 구체화한다.
 - [학습 Phase 정본](saju_1b_10k_20k_baseline/README.md), [Runtime 정본](saju_runtime_calculator_adoption.md)의 승인 범위와 과거 불변 산출물은 그대로다. 50의 단계를 바꾸려면 이 문서와 50·로드맵 연결을 함께 갱신한다.
-- 진단 계획 작성 범위는 새 계획과 문서·테스트의 정합화다. 진단 코드 구현, 프롬프트 교체, 모델 다운로드·GPU 실행, teacher 호출, 데이터 생성·400건 재개·학습, 서비스 전환·브랜치 병합은 실행하지 않는다. 이후 별도 통합 요청으로 완료한 PR #28은 위 현재 위치와 통합 기록으로 구분한다.
+- 2026-09-14 계획 작성은 문서·테스트 정합화였고 이후 PR #28로 통합했다. 2026-09-15 승인 범위는 S0/S1과 S2까지다. P0 교체·큰 모델 다운로드·teacher 호출·데이터 생성·400건 재개·학습·서비스 전환·브랜치 병합은 실행하지 않는다.
 
 ## 3. 확인된 사실과 아직 모르는 것
 
@@ -142,7 +142,7 @@ S1에서 후보 선택 규칙도 고정한다. 계산 권한·상태·privacy에
 | 실행 적격성 소규모 확인 | tokenizer·cache·메모리·종료 확인 | 8 |
 | 합계 상한 | 위 요청 합계 | 680 |
 
-680은 **요청 상한이지 GPU 생성 완료 수가 아니다**. 동일 immutable 실행 identity의 결과만 재사용할 수 있고 재사용 수를 별도로 표시한다. 요청 = 신규 생성 완료 + 검증된 재사용 + 예상 사전 차단 + 예상 밖 차단/오류 + 미실행으로 전량 대조한다. 결과가 나쁘다고 조건·seed·재시도를 추가하지 않는다. 예상 벽시계 시간은 소규모 확인의 실제 속도로 산출하고 GPU 순차 점유 계획을 승인받는다. 오늘 이 예산을 집행하지 않는다.
+680은 **요청 상한이지 GPU 생성 완료 수가 아니다**. 동일 immutable 실행 identity의 결과만 재사용할 수 있고 재사용 수를 별도로 표시한다. 요청 = 신규 생성 완료 + 검증된 재사용 + 예상 사전 차단 + 예상 밖 차단/오류 + 미실행으로 전량 대조한다. 결과가 나쁘다고 조건·seed·재시도를 추가하지 않는다. 예상 벽시계 시간은 소규모 확인의 실제 속도로 산출한다. **680 전체 예산은 승인하지 않았다.** 이번 승인 상한은 S2와 적격성 확인을 합친 344이며, 구현은 342요청(288+48+6)을 등록했다. GPU 유휴·여유 12GiB 이상에서 끝까지 순차 진행하고, 경쟁 작업은 종료하지 않는다.
 
 ## 7. 자동 판정과 원인 해석
 
@@ -188,19 +188,31 @@ S0/S1에서는 목록과 무결성을 먼저 확인하고 S5에서 응답 결과
 | 5 | [tokenizer](../../scripts/training/dashboard_tokenizer_v1.py), [grounding 검사](../../scripts/training/dashboard_grounding_v2.py), [후보 replay](../../scripts/evaluation/dashboard_v115_replay.py) | 최종 token·모델 loader·원응답/표시·오탐/누락 |
 | 6 | [데이터 계약](../../scripts/data/mix2k_v4_contracts.py), [teacher](../../scripts/data/mix2k_v4_teachers.py), [finalizer](../../scripts/data/mix2k_v4_finalize.py), [LoRA](../../scripts/training/mix2k_v4_lora.py) | 입력 출처·분포·학습과 serving 차이 |
 
-후속 구현의 **미구현 제안 파일**은 아래 순서다. 아직 존재하는 CLI처럼 명령을 안내하거나 실행하지 않는다.
+S0/S1의 **구현된 실행 파일**은 아래 순서다. 과거 미구현 제안 파일 표기는 이번 구현으로 대체한다.
 
 1. `configs/model_versions/saju_1b_baseline/system-context-diagnosis-v1.0.0.json`: 입력·arm·모델 등록·예산·privacy·판정 계약. 응답을 보기 전에 고정한다.
 2. `scripts/evaluation/system_context_contracts.py`: schema·경로/중복/변조·필수 fact·실행 자격 검증. 기존 유틸리티를 재사용한다.
-3. `scripts/evaluation/system_context_cases.py`: 합성 48/24개·고정 부모·projection·음성/양성 대조. 기존 20문장이나 불변 build를 수정하지 않는다.
-4. `scripts/evaluation/system_context_diagnosis.py`: 추적·dry-run·순차 실행·안전 재개·public aggregate/manifest 검증. 큰 모델 loader를 분리하고 기존 운영 코드를 변경하지 않는다.
+3. `scripts/evaluation/system_context_cases.py`: 새 합성 48개·고정 부모·승인 adapter 재생·음성/양성 대조. S6의 24개는 아직 만들거나 사용하지 않았다. 기존 20문장이나 불변 build를 수정하지 않는다.
+4. `scripts/evaluation/system_context_diagnosis.py`: 추적·dry-run·순차 실행·안전 재개·public aggregate/manifest 검증. 별도 `system_context_projection.py`, `system_context_scoring.py`, `system_context_backend.py`가 정보 선택·자동 계약·격리 추론을 담당한다. 큰 모델 loader는 이번 범위가 아니며 기존 운영 코드를 변경하지 않는다.
 5. `tests/test_system_context_diagnosis.py`: 단계 1~4의 CPU 계약·trace·정보 선택·검사기·개인정보·예산·재개 테스트를 기능과 함께 추가한다.
 
 GPU 없이 계약과 dry-run을 먼저 닫는다. 실행 단계는 구현된 CLI의 도움말·실제 테스트에 맞춰 별도 진행 기록에 확정한다. 새 source/config/scorer가 생기면 version/build를 올리고 승인된 부모 파일을 덮어쓰지 않는다.
 
+### 확정 실행 명령
+
+```bash
+.venv-data/bin/python -B -m scripts.evaluation.system_context_diagnosis validate-contract
+.venv-data/bin/python -B -m scripts.evaluation.system_context_diagnosis plan
+.venv/bin/python -B -m scripts.evaluation.system_context_diagnosis execute
+SYSTEM_CONTEXT_DIAGNOSIS=S0_S1_S2_V1 .venv/bin/python -B -m scripts.evaluation.system_context_diagnosis execute --execute
+.venv/bin/python -B -m scripts.evaluation.system_context_diagnosis verify --build <동결된-build-ID>
+```
+
+실행·재구성은 기존 `.venv` ML 환경을 사용한다. GPU 실행 전에 검증된 project-local Python 3.10 headers를 `CPATH`에 추가하고 native JIT를 유지한다. 중단 뒤에는 동일 명령에 `--resume --build <동결된-build-ID>`를 추가한다. 완료 행은 검증 후 재사용하고, 시작됐으나 결과가 없거나 오류인 행은 재생성하지 않는다. 적격성 6건 중 오류가 있으면 본 비교는 시작하지 않는다. 시작 행·raw trace·모델 출력은 `runs/SYSTEM-CONTEXT-DIAGNOSIS/`에 0700/0600으로 보존하며 Git에 추가하지 않는다.
+
 ## 10. 종료·보존·후속 결정
 
-- S0~S6마다 `planned / implemented / validated / executed / not_executed`를 구분한다. 문서 존재를 구현 완료나 실행 완료로 세지 않는다. 현재는 이 계획만 작성된 상태다.
+- S0~S6마다 `planned / implemented / validated / executed / not_executed`를 구분한다. 문서 존재를 구현 완료나 실행 완료로 세지 않는다. 현재 S0/S1은 `validated`, S2는 `implemented`, S3~S6은 `not_executed`다. S2 실제 완료는 공개 build 검증 뒤에만 기록한다.
 - 공개 파일에는 합성 사례의 집계·계약·manifest·코드/버전 hash와 한계만 기록한다. 원시 trace·질문에 결합된 계산 내용·모델 출력·token 배열은 Git 제외 private 경로에 두고 최소 권한·보존/삭제 정책을 검증한다.
 - 기존 Phase 6·grounded-dialogue 원시 결과와 소비된 sealed blind는 열거나 재사용하지 않는다. 자연스러움 등 계약 밖 품질은 `not_measured`로 남기고 계약 밖 평가를 완료 조건으로 추가하지 않는다.
 - Phase 6·Runtime release·production 허용·기본 모델·feature 기본 off는 자동 변경하지 않는다. [60 데이터](saju_product_roadmap/60-mix20k-v3-1-build.md)·[70 학습](saju_product_roadmap/70-training-and-promotion.md)은 원인별 결과에 따른 별도 결정이다.
@@ -212,6 +224,16 @@ GPU 없이 계약과 dry-run을 먼저 닫는다. 실행 단계는 구현된 CLI
 - 무관한 자료가 포함된 산술 문제의 성능 저하 연구를 정보 관련성 대조의 근거로 삼는다. 해당 과제 결과를 한국어 사주 대화나 모델 크기의 인과 결론으로 직접 일반화하지 않는다. [Shi 외, Large Language Models Can Be Easily Distracted by Irrelevant Context, v3](https://arxiv.org/abs/2302.00093v3).
 
 ## 진행 기록
+
+### 2026-09-15 — S0/S1 동결·S2 실행 준비
+
+- 전용 config·합성 48개·실제 v1.4/v1.5 adapter 입력과 정정·projection·유한 검사·순차 worker·재개·공개 검증을 구현했다. C_FULL은 v1.15 원본 renderer와 byte/token이 일치하고 P0·부모 이력·필수 사실을 유지한다. C_MIN은 앱 schema를 위조하지 않는 별도 진단 projection이다.
+- CPU dry-run은 342요청, 사전 차단 30, 최대 입력 1,692 token, 이력 삭제 0을 확인했다. 승인 2K 해시·2,000행·8축을 다시 검증했다. 부모를 포함한 assistant turn 2,300개 중 3줄 이상 2,051개, 마지막 답변만 보면 기존과 같은 1,751/2,000개다. 새 질문과 허용 학습 질문·공개 20문장의 정확 중복은 0이며 의미 유사도는 미측정이다.
+- 현재 v1.15는 `오늘은 사주 얘기를 쉬고 싶어…`를 일진 요청으로 분류해 차단한다. `오늘…내일…` 문장은 다중 날짜로 차단한다. 이 앱 관측은 기대 차단으로 사전 등록해 모델 오답과 분리했다. 이번 실험에서 운영 분류기나 P0를 수정하지 않았다.
+- 실제 Claude Code의 추가 코드 검토로 공개 manifest 전체 재계산, 실제 선택 P0 hash, 상속 GPU lock 재확인·부모 PID 결합을 보강했다. 공개 파일에는 집계·hash·manifest만 허용한다. 원응답과 API/저장 결과는 격리 CPU 소비 경로에서 대조하며 실제 운영 브라우저를 검증했다고 표시하지 않는다.
+- 상태: S0/S1 `validated`, S2 `implemented`·실제 실행 준비, S3~S6 `not_executed`. 최종 검증 명령·결과와 실제 S2 완료는 아래 후속 기록에 추가한다. 모든 Phase·Runtime 승인·모델·서비스를 유지한다.
+- 실행 전 최종 검증: `uvx ruff check scripts tests`, `git diff --check` 통과. `.venv/bin/python -B -m unittest discover -s tests -q -b` → 879건 전부 통과·건너뜀 0. `.venv-data/bin/python -B -m unittest tests.test_system_context_diagnosis tests.test_saju_system_context_plan tests.test_saju_product_roadmap -q -b` → 52건, 실패·오류 0, ML tokenizer 검사 1건은 ML 전체 실행에서 검증했다.
+- `validate-contract`, `plan`, ML 환경 `execute` dry-run을 통과했다. GPU 실행 전 입력 identity는 `build-c39b4bce5089`로 고정했으며 이후 응답을 보고 config·사례·projection·scorer를 수정하지 않는다. source hash가 달라지면 해당 build에 추가 생성하지 않는다.
 
 ### 2026-09-15 — 실행 전 테스트 기준선 복구
 

@@ -58,7 +58,7 @@
 
 최신 후보 검증은 [v1.15 완료 기록](../../history/2026-09-05-dashboard-v115-grounding.md), [20문장 완료 기록](../../history/2026-09-05-dashboard-prompt20.md)의 범위·결과·한계를 따른다. private artifact가 없는 격리 환경에서 생기는 전체 회귀 오류를 성공으로 기록하지 않는다.
 
-2026-09-14 병합 후 원본 폴더 재검증은 CPU 표적 58건 통과, 전체 unittest 841건에서 실패 5·오류 17이다. 잔여는 기존 LoRA hash 계약·teacher recovery fixture·고정 날짜 충돌이며 이번 문서/분기 정책 변경과 구분한다. 전체 성공으로 표시하지 않고 S0/S1에서 먼저 확인한다. 환경 차이·정확한 검증 범위와 보존 기록은 [기본 브랜치 통합 기록](../../history/2026-09-14-default-branch-integration.md)을 따른다.
+2026-09-14 병합 후 841건의 실패 5·오류 17은 2026-09-15 `455fd9e`에서 복구했다. 과거 승인 source pin은 유지하고 기능 fixture·시계 주입을 분리했으며 `.venv/bin/python -B -m unittest discover -s tests -q` 846건 모두 통과했다. 이어 [전체 경로 진단](../saju_system_context_diagnosis.md)의 S0/S1과 새 S2 runner를 구현했다. S2 342요청 중 30개는 기존 앱의 사전 차단이며 실제 생성 완료는 후속 공개 build로 확인한다. 이전 실패 분류의 정정과 신규 검증은 연결된 계획의 진행 기록을 따른다.
 
 ## 변경하지 않는 권한
 

@@ -41,9 +41,10 @@ class SajuSystemContextPlanTests(unittest.TestCase):
                 ("S4", "50-C"), ("S5", "50-D"), ("S6", "50-D"),
             ],
         )
-        self.assertIn("아래 S0~S6 실행은 대기", self.plan)
-        self.assertIn("미구현 제안 파일", self.plan)
-        self.assertIn("아직 존재하는 CLI처럼 명령을 안내하거나 실행하지 않는다", self.plan)
+        self.assertIn("S0/S1은 `validated`", self.plan)
+        self.assertIn("구현된 실행 파일", self.plan)
+        self.assertIn("S3~S6은 `not_executed`", self.plan)
+        self.assertIn("system_context_diagnosis execute --execute", self.plan)
 
     def test_hypotheses_cover_the_whole_system_without_assuming_a_cause(self) -> None:
         hypotheses = re.findall(r"^\| (H-[A-Z]+) \|", self.plan, re.MULTILINE)
@@ -100,7 +101,7 @@ class SajuSystemContextPlanTests(unittest.TestCase):
             "요청 상한이지 GPU 생성 완료 수가 아니다",
             "신규 생성 완료 + 검증된 재사용 + 예상 사전 차단 + 예상 밖 차단/오류 + 미실행",
             "부모 생성을 추가 GPU 요청으로 숨기지 않는다",
-            "오늘 이 예산을 집행하지 않는다",
+            "680 전체 예산은 승인하지 않았다",
         ):
             self.assertIn(marker, self.plan)
 
