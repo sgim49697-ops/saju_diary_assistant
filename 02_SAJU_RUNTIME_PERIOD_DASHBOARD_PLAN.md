@@ -19,13 +19,16 @@
 
 [10 계약·복원](implementation/plans/saju_product_roadmap/10-period-contract-and-restore.md), [20 기간 Runtime](implementation/plans/saju_product_roadmap/20-daily-range-runtime.md), [30 기간 앱](implementation/plans/saju_product_roadmap/30-period-dashboard.md), [40 관계 Runtime](implementation/plans/saju_product_roadmap/40-day-relation-runtime.md)은 완료 이력으로 보존한다. 다시 구현하거나 과거 v1.3 후보의 범위를 현재 release로 잘못 사용하지 않는다.
 
+[Phase 7 계산기 유지보수 방침](implementation/plans/saju_product_roadmap/phases/phase-07.md#calc-freeze)에 따라 범위·정밀도 확대는 동결하되 재현된 오류는 수정한다. 날짜 evidence의 시작과 실제 요청 하한은 다르며 요청 하한은 `max(2026-09-02, 오늘 KST)`다. 부분 원국을 exact 원국으로 승격하거나 단일 날짜 연결에 우회 사용하지 않는다. 기존 격리 50건은 입력 분 수이지 모든 절입에 적용하는 ±50분 창이 아니다.
+
 ## 앱 구현과 실제 운영 분리
 
 - dashboard v1.11은 명시적 원국·단일 날짜 연결의 부모 구현이다. v1.12 기간·v1.13 관계 후보도 자동 canary를 완료했다.
-- 2026-09-05 기준 실제 운영은 dashboard v1.14다. 기본 `ki20_final`과 선택 가능한 R16을 유지하며 이번 변경으로 서비스를 교체하지 않는다.
+- 2026-09-15 확인 기준 실제 운영은 dashboard v1.14다. 기본 `ki20_final`과 선택 가능한 R16을 유지하며 이번 변경으로 서비스를 교체하지 않는다.
 - [v1.15 계획](implementation/plans/dashboard_v1_15_grounding.md)의 tokenizer 동결·날짜 사전 차단·역할별 사실 검사는 구현·진단을 완료하고 PR #28로 **병합 완료·운영 미배포 상태인 후보**다. 자유문장에서 새 기간을 계산하거나 연결 snapshot을 자동 교체하지 않는다.
 - v1.15의 20문장 비교는 60요청·54생성·6사전 차단이다. 내일/주간 사주 요청의 사전 차단과 일반 메시지 작성은 구분한다. 이는 별도 period Runtime의 승인 범위가 사라졌다는 뜻이 아니라 해당 대화 후보의 연결 범위 제한이다.
 - 날짜·원국 변경은 새 계산·명시적 연결을 거친다. feature 기본 off, 암호화 상태·권한·rate limit·로그 비노출은 유지한다. 운영 키는 공개하지 않는다.
+- 최신 v1.16 의도 후보는 CPU canary 통과·운영 미배포다. `오늘 야근했어` 등의 남은 날짜 표현 오차단은 [Phase 8A](implementation/plans/saju_product_roadmap/phases/phase-08.md#routing), 원국 연결 유지·응답 모드·정정 이력은 [Phase 10](implementation/plans/saju_product_roadmap/phases/phase-10.md)에서 다룬다. CPU 통과를 실제 모델 응답·브라우저 확인 완료로 바꾸지 않는다.
 
 ## 실제 구현 입구
 
@@ -34,11 +37,15 @@
 | 승인 원국·단일 일진 | [engine_v1_4.py](scripts/runtime/calculation/engine_v1_4.py), [engine_v1_5.py](scripts/runtime/calculation/engine_v1_5.py) |
 | 기간 해석·복원·실행 | [period_v1](scripts/runtime/period_v1/) |
 | 단일 날짜 관계 | [relation_v1](scripts/runtime/relation_v1/) |
-| 운영 계열·진단 후보 | [v1.14](scripts/training/phase5_dashboard_v1_14.py), [v1.15](scripts/training/phase5_dashboard_v1_15.py) |
+| 운영 계열·진단 후보 | [v1.14](scripts/training/phase5_dashboard_v1_14.py), [v1.15](scripts/training/phase5_dashboard_v1_15.py), [v1.16](scripts/training/phase5_dashboard_v1_16.py) |
 | tokenizer·사실 검사 | [dashboard_tokenizer_v1.py](scripts/training/dashboard_tokenizer_v1.py), [dashboard_grounding_v2.py](scripts/training/dashboard_grounding_v2.py) |
 | 원국 운영 보안 | [운영 계약](docs/runtime/chart_only_operations.md) |
 
 ## 후속 경계와 진행 기록
+
+### 2026-09-15 — 계산 범위 동결과 앱 후속 분리
+
+- 증거 범위·동적 요청 하한·부분 원국·격리 입력 분 수를 명확히 하고 Phase 8A·10·12의 앱 후속을 연결했다. 계산 코드·release·실행 서비스는 변경하지 않았으며 검증은 [정본화 기록](implementation/history/2026-09-15-phase7-canonicalization.md)을 따른다.
 
 ### 2026-09-05 — 오래된 구현 지시를 완료 범위와 코드 지도로 통합
 

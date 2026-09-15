@@ -8,6 +8,8 @@
 
 ## 완료 이력과 새 실험의 분리
 
+후속 [Phase 11](phases/phase-11.md)은 학습 여부·최소 범위를 결정하고, [Phase 13](phases/phase-13.md)은 별도 승인된 데이터/단일 학습, [Phase 14](phases/phase-14.md)는 실제 후보 확인 뒤 제한 운영을 담당한다. 현재 진단의 S6와 새 학습 평가를 같은 완료 기록으로 합치지 않는다. 미시험 3B/P1을 이미 확인된 개선으로 부르지 않는다.
+
 - KI10·KI20 Full FT와 K0 기반 R8·R16·R32 LoRA는 완료 이력이다. [LoRA 계획](../mix2k_v4_chart_day_lora.md)의 고정 build·adapter·계약을 보존하고 다시 학습하지 않는다.
 - [50-C](50-automatic-model-evaluation.md)의 K0 기본 모델↔큰 동일 계열 Instruct 기본 모델 비교는 학습 없는 원인 분리다. 그 비교를 R16 학습 효과나 운영 모델 승격으로 해석하지 않는다.
 - 후속 학습의 모델 크기·LoRA/Full FT 방식·데이터 규모·context 길이는 원인 분리 결과와 자원 검증을 근거로 **별도 결정**한다. Full FT 우선이나 2K→10K→20K 자동 확대 순서를 고정하지 않는다.
@@ -17,11 +19,15 @@
 1. 50-A~D 결과에서 해결할 오류와 재검증 조건이 특정돼야 한다. 표적 데이터가 필요하면 [60번 문서](60-mix20k-v3-1-build.md)의 새 비학습 Gate를 먼저 거친다.
 2. 모델 revision·학습 방식·데이터와 평가 split·tokenizer/template·decoding·context·seed·예산·중단/재개 조건을 새 versioned 계약으로 고정한다. 데이터 규모·모델 크기·context를 동시에 바꿔 원인을 다시 섞지 않는다.
 3. 명시 실행 승인 뒤 유휴 GPU·여유 VRAM·고정 환경·일치하는 Python 개발 헤더·native JIT·adapter/base 무결성·private run root를 검증한다. 승인된 현재 환경을 임의 교체하지 않는다.
-4. 기존 KI20을 이어학습하지 않는다. 새 실험은 선택한 기본 모델의 고정 revision에서 별도로 시작하며 비교 baseline과 이전 checkpoint를 보존한다.
+4. 기존 KI20을 이어학습하지 않는다. 기본값은 선택한 기본 모델의 고정 revision에서 새 실험을 시작하는 것이다. R16 이어학습을 선택하려면 Phase 11에서 이유·부모·동등 비교·새 검증을 별도 계약으로 확정해야 하며 자동 전환하지 않는다. 출발점 하나를 고정하고 비교 baseline과 이전 checkpoint를 보존한다.
 5. 새 final 후보가 동결되고 최종 평가가 별도 승인된 뒤에만 새 version의 자동 sealed set을 단회 사용한다. 이미 소비된 `spent_completed` split은 열거나 재사용하지 않는다.
 6. 학습 완료·자동 진단 완료·모델 승격·Runtime release·운영 서비스 전환을 별개로 기록한다. 측정하지 않은 자연스러움·의미 품질은 `not_measured`로 남기고 계약 밖 평가를 완료 조건으로 추가하지 않는다.
 
 ## 진행 기록
+
+### 2026-09-15 — 단일 학습·새 확인·운영 분리
+
+- [반입 원문](source-20260915.md)의 출발점 통제와 새 학습/현재 S6 분리를 반영했다. 학습 여부·규모·출발점은 자동 결정하지 않으며 실행은 미실행이다. 검증은 [정본화 기록](../../history/2026-09-15-phase7-canonicalization.md)을 따른다.
 
 ### 2026-09-05 — 학습 방식과 규모를 사후 결정으로 정정
 

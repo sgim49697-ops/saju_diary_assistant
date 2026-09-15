@@ -2,11 +2,13 @@
 
 # K0 기반 2K correction dataset·LoRA 실험
 
-## 현재 위치와 후속 실행 권한 — 2026-09-05
+## 현재 위치와 후속 실행 권한 — 2026-09-15
 
 R8·R16·R32 학습과 최신 20문장 비교는 완료됐다. 현재 R16은 `build-54836f556b4f` 입력이며 별도 v1.1 보정 400건은 미완료·미반영이다. 후속 실행 순서는 [로드맵 README](saju_product_roadmap/README.md), 현재 상태는 [00 기준선](saju_product_roadmap/00-current-baseline.md), 진단 상세는 [50 원인 분리](saju_product_roadmap/50-automatic-model-evaluation.md)가 소유한다.
 
-다음은 50-A~D다. 큰 동일 계열 Instruct 기본 모델 비교를 필수로 포함하고, 400건 보정은 50-D에서 범위 적합성을 판단하기 전 자동 재개·재학습하지 않는다. 다른 세션의 실행이나 accepted 행을 취소·변경하는 지시는 아니다. 기존 5-arm 생성 비교의 미완료 상태를 보존하되 그것을 원인 분리 착수의 선행 조건으로 추가하지 않는다.
+S0/S1·S2와 CPU 재집계까지 완료했고 다음은 [Phase 8B/S3](saju_product_roadmap/phases/phase-08.md#s3-controls)의 지시문 묶음 비교다. 이어 [Phase 9/S4](saju_product_roadmap/phases/phase-09.md)의 공통 P0 K0·3B 비교, [Phase 11/S5](saju_product_roadmap/phases/phase-11.md)의 데이터 7축·실제 teacher fallback 분석으로 진행한다. 400건 보정은 적합성을 판단하기 전 자동 재개·재학습하지 않는다. 다른 세션의 실행이나 accepted 행을 취소·변경하는 지시는 아니다. 기존 5-arm 생성 비교의 미완료 상태를 보존하되 그것을 원인 분리 착수의 선행 조건으로 추가하지 않는다.
+
+새 보정·단일 학습은 [Phase 13](saju_product_roadmap/phases/phase-13.md)의 조건부 작업이다. 기본 제안은 고정 K0에서 새 LoRA이며, R16 이어학습은 출발 checkpoint·기존 노출량을 명시한 별도 계약으로 결정해야 한다. KI20 이어학습은 금지한다. 별도 400행을 무조건 추가해 2,400행으로 만들거나 과거 최소 3문장 조건을 새 데이터의 기본값으로 삼지 않는다.
 
 아래 목적·데이터·LoRA 계약과 날짜별 진행 기록은 완료 실험 및 당시 checkpoint의 이력이다. 당시의 `남은 작업`·`다음 단계`를 새 실행 지시로 사용하지 않는다. 최소 3문장/3줄 등 고정 데이터 계약은 소급 변경하지 않으며 향후 데이터의 자동 기본값도 아니다.
 
@@ -39,6 +41,10 @@ Teacher 절반은 Claude 초안→Codex grounding 판정, 나머지 절반은 Co
 - 평가: schema field accuracy, natal/period label confusion, unsupported fact rate, provided fact omission, 자연스러운 설명 선호, follow-up evidence consistency, 일반 대화 보존, 반복·template 비율, false Saju injection, re-ask rate
 
 ## 진행 기록
+
+### 2026-09-15 — 완료 LoRA 이력과 조건부 Phase 13 분리
+
+- S3→S4→S5와 행동 7축·400건 선택·학습 출발점 결정을 새 Phase에 연결했다. 승인 데이터·adapter·teacher 기록을 변경하지 않았으며 검증은 [정본화 기록](../history/2026-09-15-phase7-canonicalization.md)을 따른다.
 
 ### 2026-09-05 — 완료 학습과 조건부 보정 경계 정합화
 

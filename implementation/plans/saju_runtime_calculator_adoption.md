@@ -2,6 +2,18 @@
 
 # 한국식 만세력 Runtime 계산기 도입 정본
 
+## 현재 유지보수 방침 — 2026-09-15
+
+계산 권위·불변 release는 이 문서와 registry가 계속 소유한다. 최신 범위는 [00 기준선](saju_product_roadmap/00-current-baseline.md), 후속 순서는 [Phase 7~14](saju_product_roadmap/README.md)를 따른다. 아래 v2.14.0 표·v1.11 운영·주/월 차단 설명은 2026-09-02 당시 범위이며 이후 완료된 기간 일별 배열·관계 구현을 미완료로 되돌리는 지시가 아니다.
+
+[Phase 7 동결·유지보수](saju_product_roadmap/phases/phase-07.md#calc-freeze)에 따라 현재 KR·민간시·승인 날짜·정오 label·불확실성을 유지한다. 원국 자료 범위와 실제 일진 하한 `max(2026-09-02, 서버 KST 오늘)`을 분리한다. 부분 원국을 exact 일진 binding에 넣지 않는다. 경계 분 50개는 모든 절입 전후 50분 차단이 아니다.
+
+새 정밀화·지역·연도·대운 확장은 기본 과제에서 제외한다. 승인 범위의 계산/정규화 오답·불확실성 은폐·무결성 결함은 계속 수정하며 [재개 조건·변경별 검증](saju_product_roadmap/phases/phase-07.md#reopen)을 따른다. 값이 달라지면 별도 후보·필요한 새 release로 검증하고 과거 산출물을 덮어쓰지 않는다. 과거 일진 조회나 출생 상한 확대는 우선 정책·연결 문제로 검토한다.
+
+진행 기록: 2026-09-15 문서의 유지보수·후속 연결만 추가했다. 계산 코드·공식 자료·registry·전수 보고서는 변경하지 않았으며 [정본화 검증 기록](../history/2026-09-15-phase7-canonicalization.md)을 따른다.
+
+## v2.14.0 승인 이력과 당시 기준선
+
 | 항목 | 값 |
 |---|---|
 | 문서 버전 | `runtime-calculator-adoption-v2.14.0` |

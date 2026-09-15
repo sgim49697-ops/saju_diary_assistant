@@ -18,12 +18,12 @@
 | 현재 R16 입력 | `v1.0.1/build-54836f556b4f` | [LoRA 계획](implementation/plans/mix2k_v4_chart_day_lora.md)의 고정 학습 이력 |
 | 별도 v1.1 보정 | 마지막 checkpoint accepted 238/400 | 현재 R16에 미반영, 자동 재개·재학습하지 않음 |
 | 20문장 기준선 | 3모델·60요청·54생성·6차단 완료 | 과거 개발 진단 이력 보존 |
-| 최신 전체 경로 진단 | S0/S1·S2 완료, 312응답 새 검사 버전 CPU 재집계·v1.16 의도 canary 검증 완료 | 다음 S3 지시문 A/B; 큰 기본 모델 비교·추가 학습·운영 전환 미실행 |
+| 최신 전체 경로 진단 | S0/S1·S2 완료, 312응답 새 검사 버전 CPU 재집계·v1.16 의도 canary 검증 완료 | 다음 Phase 8A 앱 보완·8B S3; 큰 기본 모델 비교·추가 학습·운영 전환 미실행 |
 | MIX20K-v3.0.1 | 보정·비학습 후보 이력 | 현재 2K 학습 데이터와 별도, v3.1 생성 승인 아님 |
 
 ## 최근 진단이 말해 주는 것
 
-[S2 완료 기록](implementation/history/2026-09-15-system-context-diagnosis.md)의 최대 입력 1,692 token·삭제 이력 0·원응답은 보존했다. 후속 [CPU 재집계](implementation/history/2026-09-15-system-context-rescore.md)에서 R16 검사 오탐 6건은 2건 PASS·4건 판단 불가로 바뀌고 실제 MIN 오류 2건은 FAIL을 유지했다. [v1.16 앱 후보](implementation/history/2026-09-15-dashboard-v116-intent.md)는 일반 대화의 날짜 오탐을 분리해 CPU canary를 통과했다. 모델 응답을 새로 생성하거나 성능을 개선한 결과는 아니며, S3 지시문 단일 변수 비교가 다음 별도 과제다.
+[S2 완료 기록](implementation/history/2026-09-15-system-context-diagnosis.md)의 최대 입력 1,692 token·삭제 이력 0·원응답은 보존했다. 후속 [CPU 재집계](implementation/history/2026-09-15-system-context-rescore.md)에서 R16 검사 오탐 6건은 2건 PASS·4건 판단 불가로 바뀌고 실제 MIN 오류 2건은 FAIL을 유지했다. [v1.16 앱 후보](implementation/history/2026-09-15-dashboard-v116-intent.md)는 일반 대화의 날짜 오탐을 분리해 CPU canary를 통과했다. 남은 오차단과 모델 오류는 별개이며 모델 응답을 새로 생성하거나 성능을 개선한 결과는 아니다. 다음은 [Phase 8](implementation/plans/saju_product_roadmap/phases/phase-08.md)의 앱 보완·S3 지시문 묶음 비교다.
 
 [20문장 완료 기록](implementation/history/2026-09-05-dashboard-prompt20.md)에서 연결 구조 검사 통과는 K0 8/13·R16 10/13·KI20 8/13이었다. R16의 일간·일주/일진 구분 개선이 있지만 세 모델 모두 틀린 일간 전제를 수용했다. 시간 범위, 개념 설명, 일반 대화 전환, 요청한 형식에서도 오류가 관찰됐다.
 
@@ -37,6 +37,9 @@
 - 큰 동일 계열 Instruct 기본 모델 비교는 필수다. K0 1.3B 기본 모델을 기준으로 크기 가설을 점검하며 R16과 큰 기본 모델만의 차이를 크기 효과로 부르지 않는다.
 - 모델별 공식 tokenizer/template·revision·정밀도·VRAM 조건을 실행 전에 등록한다. 다른 모델의 token ID 동일성을 요구하거나 메모리 부족 때 다른 계열·양자화로 자동 대체하지 않는다.
 - 데이터·학습·serving 계약과 무결성을 처음부터 확인하고 비교 후 남은 오류와 연결한다. 별도 400건 보정의 범위가 이번 오류를 해결하는지도 이때 판단한다.
+- S3의 P1은 prompt 파일과 formatter가 붙이는 지시를 합친 최종 시스템 지시문 묶음이다. 입력 JSON·역할·동결 부모 이력·필수 사실·출력 한도는 유지한다. 제품 응답 계약 변경을 S3에 섞지 않는다.
+- [Phase 9](implementation/plans/saju_product_roadmap/phases/phase-09.md)의 첫 비교 후보는 `kakaocorp/kanana-2-3b-instruct`다. 아직 등록·다운로드하지 않았으며 K0와 공통 P0, 각각 FULL/MIN을 비교한다. pruning·distillation 계보 때문에 순수 파라미터 수만의 인과 효과로 단정하지 않는다.
+- [Phase 11](implementation/plans/saju_product_roadmap/phases/phase-11.md)에서 실제 teacher fallback 이력과 행동 7축을 확인한다. 기존 400행은 accepted 238·초안 미판정 3·미작성 159 상태로, 단순 2,000+400 덧붙이기를 전제하지 않는다. [Phase 12](implementation/plans/saju_product_roadmap/phases/phase-12.md) 확인 묶음은 이후 학습에 재사용하지 않는다.
 - [60 데이터 build](implementation/plans/saju_product_roadmap/60-mix20k-v3-1-build.md)와 [70 학습·승격](implementation/plans/saju_product_roadmap/70-training-and-promotion.md)은 조건부 후속이다. 진단 완료만으로 자동 진행하지 않으며 모델 크기·학습 방식·규모는 별도 결정이다.
 
 ## 평가·데이터 보존 원칙
@@ -48,6 +51,10 @@
 [기존 Phase 정본](implementation/plans/saju_1b_10k_20k_baseline/README.md), [v3 후보 보정 정본](implementation/plans/mix20k_v3_repair_plan.md), LoRA의 versioned 계약은 당시 실행 범위를 보존한다. 과거 768 길이·최소 3문장/3줄·Full FT 지시를 새 실험의 자동 기본값으로 복사하지 않는다.
 
 ## 진행 기록
+
+### 2026-09-15 — 모델·데이터 순서를 Phase 8~14에 정합화
+
+- 지시문 묶음 통제·공통 P0의 3B 비교·행동 7축·400건 결정·조건부 단일 학습·실제 앱 확인을 새 Phase에 연결했다. 기존 결과와 680요청 총상한은 보존하며 검증은 [정본화 기록](implementation/history/2026-09-15-phase7-canonicalization.md)을 따른다.
 
 ### 2026-09-14 — 모델 단독 진단에서 전체 경로 비교로 구체화
 

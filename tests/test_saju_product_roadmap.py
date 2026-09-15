@@ -24,6 +24,7 @@ HANDOFF_FILES = (
     "implementation/history/2026-09-14-default-branch-integration.md",
     "implementation/history/2026-09-15-system-context-rescore.md",
     "implementation/history/2026-09-15-dashboard-v116-intent.md",
+    "implementation/history/2026-09-15-phase7-canonicalization.md",
 )
 ORDERED_FILES = (
     "00-current-baseline.md",
@@ -48,7 +49,7 @@ FORBIDDEN_REQUIRED_GATES = (
 class SajuProductRoadmapTests(unittest.TestCase):
     def test_index_uses_current_runtime_and_execution_order(self) -> None:
         index = (ROADMAP_ROOT / "README.md").read_text(encoding="utf-8")
-        self.assertIn("saju-product-roadmap-v1.2.1", index)
+        self.assertIn("saju-product-roadmap-v1.3.0", index)
         self.assertIn("26462137f9a4ef34adb2d3db0dd6eaff6282b309", index)
         self.assertIn("saju-runtime-release-v1.5.0-8b1d6ea2d46e", index)
         self.assertIn("dashboard v1.14 운영 / v1.15 부모·v1.16 의도 후보 CPU 검증·운영 미배포", index)

@@ -4,7 +4,8 @@
 
 | 항목 | 값 |
 |---|---|
-| 계획 버전 | `saju-system-context-diagnosis-v1.1.0` |
+| 계획 버전 | `saju-system-context-diagnosis-v1.2.0` |
+| 이전 계획 버전 | `saju-system-context-diagnosis-v1.1.0`, CPU 재집계 완료 이력 보존 |
 | 보존된 부모 실행 계약 | `saju-system-context-diagnosis-v1.0.0` |
 | 작성일 | 2026-09-14 |
 | 문서 부모 | `f34f8562f24116558cd39fbc2a69cea430bb1158` |
@@ -12,7 +13,7 @@
 | 현재 단계 | S0/S1 계약·CPU 검증 완료; S2 342요청 실행·재구성 검증 완료 |
 | 최신 S2 build | `build-c39b4bce5089`, 312생성·30사전 차단; 검사기 오탐 별도 확인 |
 | 현재 승인 후속 | S1 새 검사기·CPU 파생 `build-8547c487c858`, 앱 v1.16 CPU canary `build-641ac655f656` 검증 완료 |
-| 다음 별도 작업 | S3 지시문 단일 변수 비교 → S4 크기×정보 비교; 이번에는 실행하지 않음 |
+| 다음 별도 작업 | Phase 8A 앱 오차단 / 8B S3 → Phase 9 S4; 이번 Phase 7은 정본화만 수행 |
 
 2026-09-14 PR #28로 이 계획과 부모 v1.15 후보를 `master`에 통합했다. 2026-09-15 사용자 승인 범위인 S0/S1 구현·검증과 S2 실행을 완료했다. 코드 통합과 격리 진단은 운영 v1.15 배포가 아니다. [완료 기록](../history/2026-09-15-system-context-diagnosis.md)은 실제 모델 오류와 검사기 오탐을 구분한다. 입력·집계 재구성 검증 통과가 검사기의 의미 타당성이나 모델 품질 승인은 아니다.
 
@@ -32,6 +33,8 @@
 6. 새 합성 질문에서 수정 후보를 확인한다. 추가 학습이나 운영 반영은 별도 결정이다.
 
 ## 2. 정본 관계와 이번 변경 범위
+
+- 2026-09-15 [검토 3문서 전량 반영](saju_product_roadmap/source-20260915.md)으로 사용자 선택의 Phase 7~14를 후속 실행 단위로 사용한다. 기존 Phase 0~6·S0~S6·50-A~D의 의미와 승인 Gate는 유지한다. **이 진단 자체가 별도 Phase나 release Gate를 만들지 않는다.** Phase 8B=S3, 9=S4, 11=S5, 12=S6이며 앱 8A·제품 모드 10은 동결 실험과 분리한다.
 
 - [후속 로드맵](saju_product_roadmap/README.md)은 실행 순서, [00 기준선](saju_product_roadmap/00-current-baseline.md)은 현재 상태, [50 진단](saju_product_roadmap/50-automatic-model-evaluation.md)은 A~D 단계와 종료 경계를 소유한다.
 - **이 문서는 50이 위임한 전체 흐름의 실험 설계·변수·실행 파일 순서 정본**이다. 별도 Phase나 release Gate를 만들지 않는다. 50-B는 컨텍스트 비교와 지시문 비교로 세분하고, 50-C는 크기×컨텍스트 교차 비교로 구체화한다.
@@ -103,11 +106,13 @@
 
 P0는 현재 지시문, P1은 **개선 후보 하나**다. P1은 승인 fact 우선·잘못된 전제 교정·range/unknown 유지·일반 대화 전환·요청한 문장 수 우선만 명확히 한다. P0/P1 비교는 동일 R16·C_FULL·동결 부모 이력에서 **시스템 지시문만 바꾼다**. C_MIN과 P1을 동시에 적용한 결과를 어느 한쪽의 단독 효과로 부르지 않는다.
 
+P1은 파일만이 아니라 `_runtime_model_context_from_binding()`이 덧붙이는 원국·일진 안내까지 포함한 최종 지시문 묶음 하나로 정의한다. 두 위치의 충돌을 점검하고 변경 구간·원문·hash·token 차이를 고정한다. JSON 사실·직렬화·역할·부모 이력·생성 조건·기존 case 요구 fact는 유지한다. 질문별 정답을 추가하지 않는다. 단순 일진에 원국 사실까지 요구하는 기존 계약과의 충돌은 한계로 남기고 사후 완화하지 않는다. 제품 계약 변경은 [Phase 10](saju_product_roadmap/phases/phase-10.md#response-contract)에서 동일 기준으로 양쪽 후보를 확인한다. S3는 최대 96요청으로 종료하고 P2/P3를 반복하느라 S4를 미루지 않는다.
+
 ### 5.2 모델·추론·이력 통제
 
 - 작은 모델 비교는 K0·R16·KI20의 동일 K0 tokenizer/backend/template·동일 사실·동일 동결 부모 이력·동일 decoding을 사용한다. 지시문 비교는 R16 한 모델로 제한한다.
 - 크기 비교는 **K0 1.3B 기본 모델 ↔ 큰 동일 계열 Instruct 기본 모델**이다. 두 모델에 P0를 공통 적용하고 각각 C_FULL/C_MIN을 실행한다. 지시문 승자를 모델별로 골라 넣지 않는다. R16과 큰 기본 모델만 비교해서 크기 효과를 주장하지 않는다.
-- 큰 후보는 저장소·정확한 revision·공식 라이선스·공식 tokenizer/template·가중치 hash·지원 길이·정밀도·VRAM/KV cache·offload 계획을 먼저 등록한다. 후보가 아직 없으며 다운로드하지 않았다. 같은 정밀도가 불가능하면 미실행 사유를 적고 별도 결정을 받는다. 다른 계열·양자화로 자동 대체하지 않는다.
+- 큰 후보는 저장소·정확한 revision·공식 라이선스·공식 tokenizer/template·가중치 hash·지원 길이·정밀도·VRAM/KV cache·offload 계획을 먼저 등록한다. 첫 제안은 `kakaocorp/kanana-2-3b-instruct`지만 정확한 실행 revision·가중치는 등록·다운로드하지 않았다. 같은 정밀도가 불가능하면 미실행 사유를 적고 별도 결정을 받는다. 다른 계열·양자화로 자동 대체하지 않는다. 한쪽만 offload하거나 검증 환경 전체를 최신화하지 않는다. 공식 카드의 가지치기·증류 계보, 실제 구성·loader·라이선스는 [Phase 9](saju_product_roadmap/phases/phase-09.md)에서 확인하며 모델명·공개 benchmark로 자원·사주 품질을 단정하지 않는다.
 - **서로 다른 모델의 token ID 동일성은 요구하지 않는다.** 의미상 동일한 메시지를 각 공식 template로 렌더링하고 token 길이 차이를 기록한다. 현재 dashboard loader는 K0 tokenizer와 고정 token 설정을 사용하므로 큰 모델을 기존 엔진 이름만 바꿔 실행하지 않는다. 별도 versioned adapter에서 tokenizer·BOS/EOS/PAD·지원 구조를 검증한다.
 - 입력 4,096·출력 4,096은 현재 후보의 안전 상한이지 모든 후보의 지원 보장이 아니다. 두 모델의 공식 전체 길이 범위 안에서 공통 상한을 실행 전에 고정한다. train `max_length=2048`, serving 입력 상한, 출력 상한, 입력+출력 총량을 따로 기록한다.
 - 주 비교는 `do_sample=false`, 동일 generation 규칙과 무삭제 동결 부모 이력으로 수행한다. 이력이 제외되거나 필수 facts가 빠진 행은 비교 부적격으로 분리하고 새 버전에서 해결한다. 이미 완료한 report에 일부 행을 갈아 끼우지 않는다.
@@ -149,6 +154,8 @@ S1에서 후보 선택 규칙도 고정한다. 계산 권한·상태·privacy에
 680은 **요청 상한이지 GPU 생성 완료 수가 아니다**. 동일 immutable 실행 identity의 결과만 재사용할 수 있고 재사용 수를 별도로 표시한다. 요청 = 신규 생성 완료 + 검증된 재사용 + 예상 사전 차단 + 예상 밖 차단/오류 + 미실행으로 전량 대조한다. 결과가 나쁘다고 조건·seed·재시도를 추가하지 않는다. 예상 벽시계 시간은 소규모 확인의 실제 속도로 산출한다. **680 전체 예산은 승인하지 않았다.** 이번 승인 상한은 S2와 적격성 확인을 합친 344이며, 구현은 342요청(288+48+6)을 등록했다. GPU 유휴·여유 12GiB 이상에서 끝까지 순차 진행하고, 경쟁 작업은 종료하지 않는다.
 
 ## 7. 자동 판정과 원인 해석
+
+[Phase 12의 공통 평가](saju_product_roadmap/phases/phase-12.md#evaluation-common)는 계산·상태, 모델 원응답, 앱 요청 수행을 분리하며 S3/S4부터 적용한다. 앱 직접 조회·확인 응답을 모델 성공으로 세지 않고 일반 오차단·불필요 확인·미지원 보호·원응답/저장/API/화면·cold/warm 비용을 별도 집계한다. 현재 원국 연결과 현재 응답 모드는 Phase 10에서 분리하고 S3/S4의 동결 경로에 반영하지 않는다.
 
 - 각 검사 항목은 `PASS / FAIL / UNSCORABLE`로 구분한다. 정답 값의 단순 포함만 검사하지 않고 역할·부정·인용·모순 최소 fixture를 포함한다. 규칙이 해석하지 못한 문장은 `UNSCORABLE`이며 통과로 계산하지 않는다. 자동 계약 밖 자연스러움·의미 품질은 `not_measured`이고 새 완료/승격 blocker가 아니다.
 - 사실 모순·틀린 전제 교정·필수 fact 사용·range/unknown 보존·정정 상태·불필요한 사주 삽입·문장 수/재작성·날짜 사전 차단·max-token hit·개인정보 비노출·지연/VRAM을 따로 집계한다. 각 항목의 적용 가능 수·자동 판정 가능 수·실제 생성 수를 함께 공개한다.
@@ -218,6 +225,8 @@ SYSTEM_CONTEXT_DIAGNOSIS=S0_S1_S2_V1 .venv/bin/python -B -m scripts.evaluation.s
 
 ## 10. 종료·보존·후속 결정
 
+후속 실행의 전체 순서는 [Phase 7~14 로드맵](saju_product_roadmap/README.md)을 따른다. S3/S4/S6 본 비교 336과 기존 적격성 잔여 2를 부모 342와 대조하며 총 680을 자동 확대하지 않는다. 추가 preflight·통합 GPU 요청은 별도 범위로 먼저 정한다. 400건 유지/재설계/보류는 Phase 11, 실제 생성·학습은 조건부 Phase 13, 서비스 전환은 Phase 14다. 미시험 3B/P1·새 projection은 새 통합 후보이며 S6 첫 확인의 한계를 밝힌다. 새 학습 검증에 이미 사용한 S6를 재사용하지 않는다.
+
 - S0~S6마다 `planned / implemented / validated / executed / not_executed`를 구분한다. 문서 존재를 구현 완료나 실행 완료로 세지 않는다. 현재 S0/S1은 `validated`, S2는 `executed`·공개 build `verified`, S3~S6은 `not_executed`다. S1의 기존 계약·CPU 검증 완료와 S2에서 추가 발견한 검사 문법 결함은 구분한다.
 - 공개 파일에는 합성 사례의 집계·계약·manifest·코드/버전 hash와 한계만 기록한다. 원시 trace·질문에 결합된 계산 내용·모델 출력·token 배열은 Git 제외 private 경로에 두고 최소 권한·보존/삭제 정책을 검증한다.
 - 기존 Phase 6·grounded-dialogue 원시 결과와 소비된 sealed blind는 열거나 재사용하지 않는다. 자연스러움 등 계약 밖 품질은 `not_measured`로 남기고 계약 밖 평가를 완료 조건으로 추가하지 않는다.
@@ -231,7 +240,7 @@ SYSTEM_CONTEXT_DIAGNOSIS=S0_S1_S2_V1 .venv/bin/python -B -m scripts.evaluation.s
 3. 검사가 허용하는 범위를 정리한 뒤 S3 지시문 단일 변수 비교, S4 큰 기본 모델×정보 비교를 진행한다. 이번 세 모델은 모두 1.3B이므로 크기 원인은 미확정이다. 입력 축소나 모델 교체를 자동 채택하지 않는다.
 4. 모델 전 사전 차단으로 확인된 일반 공감 문장의 날짜 의도 오탐은 별도 앱 v1.16 후보로 수정한다. P0·모델·생성 계약·앱 사실 검사 문법은 유지하고 새 `dashboard_grounding_v3`의 의도 정책만 바꾼다. 단일 날짜 추출·KST·snapshot 일치 규칙은 그대로이며 애매한 날짜 후속은 계속 보수적으로 처리한다. 부모 사전 차단 30건을 새 응답이나 새 허용 사례로 바꾸지 않는다.
 
-### 후속 실행 순서와 격리 계약
+### 완료된 CPU 후속의 실행 순서와 격리 계약 — 이력
 
 1. 새 진단 검사기의 부정·인용·과거 범위·인접 역할·정정·판단 불가 합성 회귀를 먼저 고정한다. 실제 312응답의 새 점수를 보고 규칙을 조정하지 않는다.
 2. 아래 CPU 명령으로 부모 검증 → dry-run → immutable 파생 발행 → 별도 재검증을 수행한다. 342요청 중 312응답을 재채점하고 사전 차단 30건을 유지한다. 적격성 6건은 비교 분모에서 제외하며 모든 적용 지표의 PASS/FAIL/UNSCORABLE 전이를 공개한다.
@@ -264,6 +273,11 @@ SYSTEM_CONTEXT_DIAGNOSIS=S0_S1_S2_V1 .venv/bin/python -B -m scripts.evaluation.s
 - 무관한 자료가 포함된 산술 문제의 성능 저하 연구를 정보 관련성 대조의 근거로 삼는다. 해당 과제 결과를 한국어 사주 대화나 모델 크기의 인과 결론으로 직접 일반화하지 않는다. [Shi 외, Large Language Models Can Be Easily Distracted by Irrelevant Context, v3](https://arxiv.org/abs/2302.00093v3).
 
 ## 진행 기록
+
+### 2026-09-15 — Phase 7 정본화·최종 지시문 통제 보강
+
+- 원문 3개·841줄을 후속 Phase 문서와 행별 연결했다. 계획 v1.2.0은 최종 지시문 묶음·첫 3B 후보·제품/모델 평가 분리·예산을 구체화한 문서 버전이며 부모 실행 config v1.0.0과 응답·검사·승인은 바꾸지 않았다.
+- [정본화 기록](../history/2026-09-15-phase7-canonicalization.md)에 검증 결과를 남긴다. S3~S6·새 GPU 생성·teacher·학습·운영 전환은 미실행이다.
 
 ### 2026-09-15 — 앱 v1.16 의도 오탐·CPU canary 검증 완료
 

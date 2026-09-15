@@ -7,7 +7,8 @@
 - `mix20k_v3_repair_plan.md`: 외부 MIX20K-v3 후보의 감사·자동 보정·학습 차단 정본
 - `saju_runtime_calculator_adoption.md`: 한국 만세력 계산 core·공식 conformance·v3.1 이관을 결정하는 runtime 정본
 - `grounded_dialogue_eval_plan.md`: 계산기 연결 대화의 자동 사실·상태·장문 진단 정본
-- `saju_product_roadmap/README.md`: 완료된 Runtime·LoRA·20문장 진단 이후 원인 분리와 조건부 데이터/학습의 실행순서 정본
+- `saju_product_roadmap/README.md`: 완료 Phase 0~6 이후 Phase 7~14의 실행순서 정본
+- `saju_product_roadmap/source-20260915.md`: 새 ZIP 문서 3개의 원문·841행·80절·588개 비공백 행 반영표
 - `saju_product_roadmap/00-current-baseline.md`: 원격 master·v1.14 운영·v1.15 부모/v1.16 CPU 검증 후보를 구분하는 현재 상태 정본
 - `saju_product_roadmap/50-automatic-model-evaluation.md`: 전체 경로·컨텍스트/지시문·큰 기본 모델·데이터/학습 점검의 진단 상세 정본
 - `saju_system_context_diagnosis.md`: 50-A~D 안의 S0~S6 실험 설계·통제 변수·파일 구현 순서 정본
@@ -29,12 +30,13 @@
 | K0 기반 LoRA | R8·R16·R32 학습 완료, 별도 400건 보정은 현재 R16에 미반영 | 새 학습·보정 재개는 원인 분리 후 별도 판단 |
 | 최신 대화 진단 | S0/S1·S2와 312응답 CPU 재집계 `build-8547c487c858` 검증 완료 | 기존 342요청·30차단 보존, S3~S6 미실행·모델 우열 미확정 |
 | 앱 | dashboard v1.14 운영 / v1.15 부모·v1.16 의도 후보 CPU canary 검증 완료 | `build-641ac655f656`, 현재 service·기본 모델·feature off 유지 |
+| 후속 계획 | Phase 7 문서 정본화 완료, Phase 8~12 미실행·13~14 조건부 보류 | 기존 Phase·불변 산출물·release·실행 권한 불변 |
 
 루트 [`PROJECT_STATUS.html`](../../PROJECT_STATUS.html)은 Phase 6·대화 진단까지의 공개 집계를 `project-status/v1.3.0/build-38b9ca77ce45`로 보여준다. 이후 완료한 runtime release와 앱 통합은 모델·승격 상태를 바꾸지 않으므로 runtime 정본과 각 versioned 보고서에 별도로 고정한다. 현재 계산기 권위는 부모 v9 `data/reports/saju_runtime_conformance/v1.7.0/build-9f1784e74a4e/`와 단일 일진 v10 `data/reports/saju_runtime_conformance/v1.8.0/build-46185262164f/`를 함께 따른다.
 
 v1.11의 원국·단일 날짜 명시 연결은 완료된 부모 구현이다. AES-GCM state·공개 allowlist·snapshot hash·자동 Grounding Gate를 적용하며 날짜 변경은 기존 대화에 덮어쓰지 않는다. 최신 운영·후보 commit과 검증 범위는 [현재 기준선](saju_product_roadmap/00-current-baseline.md)을 따른다. 이 통합은 strict/full runtime, Phase 6, v3.1, 추가 학습과 모델 승격을 승인하지 않는다.
 
-실행 순서는 [50 진단](saju_product_roadmap/50-automatic-model-evaluation.md)의 A→B→C→D다. [전체 흐름·컨텍스트 진단 계획](saju_system_context_diagnosis.md)의 S0/S1·S2에 이어 새 검사기 CPU 재집계와 앱 v1.16 의도 후보를 검증했다. 다음 별도 작업은 S3 지시문 단일 변수 비교이며 S4 큰 기본 모델 비교와 60/70은 아직 실행하지 않는다. 최상단 01·02·03은 요약·연결 문서이고 별도 실행 정본이 아니다.
+실행 순서는 [Phase 7~14 로드맵](saju_product_roadmap/README.md)이다. [50 진단](saju_product_roadmap/50-automatic-model-evaluation.md)과 [전체 흐름·컨텍스트 진단 계획](saju_system_context_diagnosis.md)의 S0/S1·S2 및 CPU 후속은 완료 이력이다. 다음은 [Phase 8A 앱 오차단·8B S3](saju_product_roadmap/phases/phase-08.md)이며, 8B 결과로 Phase 9/S4에 진입할 때 8A·Phase 10의 전체 앱 구현 완료를 기다릴 필요는 없다. Phase 10 응답 모드→11 데이터 원인→12 확인 평가 후 보정·학습·운영은 조건부로 결정한다. 문서 정본화는 GPU 요청을 승인하지 않는다. 최상단 01·02·03은 요약·연결 문서이고 별도 실행 정본이 아니다.
 
 ## 현재 평가 기본값
 
@@ -49,6 +51,10 @@ Phase 6은 이미 단회 소비됐으므로 재실행하지 않고 다음 명령
 AI Hub 원문·내부 ID·private 결과·checkpoint는 계속 Git과 공개 보고서에서 제외한다. Phase 6의 공개 근거는 `data/reports/saju_1b_baseline/phase6-technical/v1.0.0/eval-e8630962cab2/`의 집계 3파일만 사용한다. 이후 대화 진단은 각 정본에 연결된 별도 공개 aggregate·manifest를 따른다.
 
 ## 진행 기록
+
+### 2026-09-15 — ZIP 3개를 Phase 7~14 실행 순서에 연결
+
+- 원문 SHA·전체 행별 대응표와 Phase별 계획을 연결하고 기존 초기 실험·계산기·모델 진단 정본의 권한을 유지했다. 검증과 변경 범위는 [정본화 기록](../history/2026-09-15-phase7-canonicalization.md)을 따른다.
 
 ### 2026-09-15 — CPU 재집계·앱 의도 후보 완료 포인터 갱신
 

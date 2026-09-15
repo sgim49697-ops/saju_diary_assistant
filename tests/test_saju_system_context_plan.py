@@ -17,6 +17,7 @@ class SajuSystemContextPlanTests(unittest.TestCase):
     def test_plan_is_delegated_by_existing_canonical_owners(self) -> None:
         self.assertIn("saju-system-context-diagnosis-v1.0.0", self.plan)
         self.assertIn("saju-system-context-diagnosis-v1.1.0", self.plan)
+        self.assertIn("saju-system-context-diagnosis-v1.2.0", self.plan)
         self.assertIn("보존된 부모 실행 계약", self.plan)
         self.assertIn("50이 위임한", self.plan)
         self.assertIn("별도 Phase나 release Gate를 만들지 않는다", self.plan)
