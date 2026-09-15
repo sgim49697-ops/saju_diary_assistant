@@ -22,6 +22,8 @@ HANDOFF_FILES = (
     "implementation/plans/saju_system_context_diagnosis.md",
     "implementation/history/2026-09-05-model-cause-roadmap.md",
     "implementation/history/2026-09-14-default-branch-integration.md",
+    "implementation/history/2026-09-15-system-context-rescore.md",
+    "implementation/history/2026-09-15-dashboard-v116-intent.md",
 )
 ORDERED_FILES = (
     "00-current-baseline.md",
@@ -49,7 +51,7 @@ class SajuProductRoadmapTests(unittest.TestCase):
         self.assertIn("saju-product-roadmap-v1.2.1", index)
         self.assertIn("26462137f9a4ef34adb2d3db0dd6eaff6282b309", index)
         self.assertIn("saju-runtime-release-v1.5.0-8b1d6ea2d46e", index)
-        self.assertIn("dashboard v1.14 운영 / v1.15 검증 후보·병합 완료·운영 미배포", index)
+        self.assertIn("dashboard v1.14 운영 / v1.15 부모·v1.16 의도 후보 CPU 검증·운영 미배포", index)
         offsets = [index.index(name) for name in ORDERED_FILES]
         self.assertEqual(offsets, sorted(offsets))
 
@@ -155,9 +157,28 @@ class SajuProductRoadmapTests(unittest.TestCase):
             "입력 전달 오류는 앱/상태 수정으로",
             "진단 완료는 품질 승인과 다르다",
             "실행하지 못한 필수 비교는 미실행",
-            "A/S0·S1을 구현·CPU 검증",
+            "A/S0·S1·B1/S2 342요청에 이어 새 검사 버전 CPU 재집계",
+            "다음 별도 과제는 B2/S3 지시문 비교",
         ):
             self.assertIn(marker, text)
+
+    def test_cpu_followup_reports_preserve_denominators_and_permissions(self) -> None:
+        root = REPO_ROOT / "data/reports/saju_1b_baseline"
+        rescore = json.loads((root / "system-context-rescore/v1.0.0/build-8547c487c858/aggregate.json").read_bytes())
+        canary = json.loads((root / "dashboard-intent-canary/v1.0.0/build-641ac655f656/aggregate.json").read_bytes())
+        self.assertEqual(rescore["requests"], 342)
+        self.assertEqual(rescore["statuses"], {"generated": 312, "preblocked": 30})
+        self.assertEqual(rescore["preflight_requests"], 6)
+        self.assertEqual(rescore["governance"]["new_generations"], 0)
+        self.assertEqual(canary["tests_passed"], 25)
+        self.assertEqual(canary["matrix_allowed"] + canary["matrix_preblocked"], 18)
+        self.assertTrue(canary["feature_default_off"])
+        for value in (rescore, canary):
+            self.assertFalse(value["governance"]["service_changed"])
+            self.assertFalse(value["governance"]["production_promotion_allowed"])
+            self.assertFalse(value["governance"]["training_performed"])
+            self.assertFalse(value["governance"]["sealed_blind_accessed"])
+            self.assertIn(value["build_id"], (ROADMAP_ROOT / "00-current-baseline.md").read_text())
 
     def test_larger_base_comparison_is_required_and_controls_confounders(self) -> None:
         text = (ROADMAP_ROOT / "50-automatic-model-evaluation.md").read_text(
