@@ -3,11 +3,11 @@
 이 디렉터리는 사주 일기 도우미의 종합 조사 자료와 실행 정본을 함께 보관한다.
 
 - `kanana_saju_dataset_guide.html`: 모델·데이터셋 조사 내용을 한 화면에서 확인하는 종합 참고 자료
-- `saju_1b_10k_20k_baseline/README.md`: 실제 구현 순서, 버전, Gate를 결정하는 정본
+- `saju_1b_10k_20k_baseline/README.md`: Phase 0~6 완료 실험의 이력·고정 계약·기존 모델 판정 정본
 - `mix20k_v3_repair_plan.md`: 외부 MIX20K-v3 후보의 감사·자동 보정·학습 차단 정본
 - `saju_runtime_calculator_adoption.md`: 한국 만세력 계산 core·공식 conformance·v3.1 이관을 결정하는 runtime 정본
 - `grounded_dialogue_eval_plan.md`: 계산기 연결 대화의 자동 사실·상태·장문 진단 정본
-- `saju_product_roadmap/README.md`: 완료 Phase 0~6 이후 Phase 7~14의 실행순서 정본
+- `saju_product_roadmap/README.md`: 전체 실행 순서 정본, 완료 Phase 0~6 계약을 참조하고 Phase 7~14로 연결
 - `saju_product_roadmap/source-20260915.md`: 새 ZIP 문서 3개의 원문·841행·80절·588개 비공백 행 반영표
 - `saju_product_roadmap/00-current-baseline.md`: 원격 master·v1.14 운영·v1.15 부모/v1.16 CPU 검증 후보를 구분하는 현재 상태 정본
 - `saju_product_roadmap/50-automatic-model-evaluation.md`: 전체 경로·컨텍스트/지시문·큰 기본 모델·데이터/학습 점검의 진단 상세 정본
@@ -17,7 +17,7 @@
 
 종합 가이드와 정본이 충돌하면 해당 workstream 정본을 따른다. 학습 Phase·현재 모델 상태는 `saju_1b_10k_20k_baseline/README.md`, v3 후보는 `mix20k_v3_repair_plan.md`, 계산기·공식 근거·release 경계는 `saju_runtime_calculator_adoption.md`, 계산기 연결 대화 진단은 `grounded_dialogue_eval_plan.md`가 우선한다.
 
-완료된 이력 다음의 신규 구현 순서는 `saju_product_roadmap/README.md`가 소유한다. 이 로드맵은 앞선 정본의 사실·release·Gate를 덮어쓰지 않는다.
+전체 실행 순서는 `saju_product_roadmap/README.md`가 소유하며 초기 인덱스는 Phase 0~6 완료 이력·계약을 소유한다. 이 로드맵은 앞선 정본의 사실·release·Gate를 덮어쓰지 않는다. Phase 7의 문서 반영 완료와 Phase 8 이후 구현·실행 완료는 다르다.
 
 ## 현재 정본 상태
 
@@ -51,6 +51,10 @@ Phase 6은 이미 단회 소비됐으므로 재실행하지 않고 다음 명령
 AI Hub 원문·내부 ID·private 결과·checkpoint는 계속 Git과 공개 보고서에서 제외한다. Phase 6의 공개 근거는 `data/reports/saju_1b_baseline/phase6-technical/v1.0.0/eval-e8630962cab2/`의 집계 3파일만 사용한다. 이후 대화 진단은 각 정본에 연결된 별도 공개 aggregate·manifest를 따른다.
 
 ## 진행 기록
+
+### 2026-09-15 — Phase 7 보완 정본화 연결
+
+- 저장소 AGENTS와 전체 순서/완료 계약의 소유권을 맞췄다. 기존 Phase와 실제 실행 상태는 보존하며 [보완 기록](../history/2026-09-15-phase7-canonicalization.md#supplement-20260915)에 검증을 남긴다.
 
 ### 2026-09-15 — ZIP 3개를 Phase 7~14 실행 순서에 연결
 

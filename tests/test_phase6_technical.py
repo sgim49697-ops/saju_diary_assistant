@@ -40,6 +40,7 @@ class Phase6TechnicalTests(unittest.TestCase):
         )
         # 사용자 대화 예시까지 검사하지 않고 실행 계획 요약 세 파일만 포함한다.
         paths.extend(REPO_ROOT / name for name in ROOT_SUMMARY_DOCS)
+        paths.append(REPO_ROOT / "AGENTS.md")
         forbidden = re.compile(
             r"검수|사람|전문가|팀원|reviewer|human_domain|domain_item_review|"
             r"주관|수동|독립\s*(?:평가|검수)|KEEP/EDIT/DROP|선호\s*평가|expert",

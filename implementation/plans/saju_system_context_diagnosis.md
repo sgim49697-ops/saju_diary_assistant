@@ -4,8 +4,8 @@
 
 | 항목 | 값 |
 |---|---|
-| 계획 버전 | `saju-system-context-diagnosis-v1.2.0` |
-| 이전 계획 버전 | `saju-system-context-diagnosis-v1.1.0`, CPU 재집계 완료 이력 보존 |
+| 계획 버전 | `saju-system-context-diagnosis-v1.2.1` |
+| 이전 계획 버전 | `saju-system-context-diagnosis-v1.2.0`, `saju-system-context-diagnosis-v1.1.0`; 문서·CPU 재집계 완료 이력 보존 |
 | 보존된 부모 실행 계약 | `saju-system-context-diagnosis-v1.0.0` |
 | 작성일 | 2026-09-14 |
 | 문서 부모 | `f34f8562f24116558cd39fbc2a69cea430bb1158` |
@@ -225,7 +225,9 @@ SYSTEM_CONTEXT_DIAGNOSIS=S0_S1_S2_V1 .venv/bin/python -B -m scripts.evaluation.s
 
 ## 10. 종료·보존·후속 결정
 
-후속 실행의 전체 순서는 [Phase 7~14 로드맵](saju_product_roadmap/README.md)을 따른다. S3/S4/S6 본 비교 336과 기존 적격성 잔여 2를 부모 342와 대조하며 총 680을 자동 확대하지 않는다. 추가 preflight·통합 GPU 요청은 별도 범위로 먼저 정한다. 400건 유지/재설계/보류는 Phase 11, 실제 생성·학습은 조건부 Phase 13, 서비스 전환은 Phase 14다. 미시험 3B/P1·새 projection은 새 통합 후보이며 S6 첫 확인의 한계를 밝힌다. 새 학습 검증에 이미 사용한 S6를 재사용하지 않는다.
+후속 실행의 전체 순서는 [Phase 7~14 로드맵](saju_product_roadmap/README.md)을 따른다. [예산 정본](saju_product_roadmap/phases/phase-07.md#budget)의 계획상 잔여 338 = 본 비교 336 + 적격성 2는 실행 승인이 아니다. 추가 실제 모델 호출·학습 후 평가는 목적·범위·예산을 별도로 정하며 CPU 모의 검증과 구분한다. Phase 11은 학습 가설·보정 대상·조건부 명세, Phase 12는 실제 제품 결과 대조 후 Phase 13 실행 여부 결정, Phase 14는 운영 검토다. 앱·지시문으로 해소됐으면 기존 400건이나 명세가 있어도 학습을 건너뛴다. 미시험 3B/P1·새 projection은 새 통합 후보이며 S6 첫 확인의 한계를 밝힌다. 새 학습 검증에 이미 사용한 S6를 재사용하지 않는다.
+
+S6 후보 하나는 [Phase 12](saju_product_roadmap/phases/phase-12.md#confirmation)의 모델·지시문 묶음·정보 선택·라우팅·이력 정책·검사·채택 규칙을 포함한 전체 실행 구성이다. 새 24문항 사용 전에 동결하며 결과를 보고 같은 질문으로 재선발하지 않는다. 실험 R16/P0/C_FULL 기준선과 운영 KI20의 비교·미측정·되돌림은 [Phase 14](saju_product_roadmap/phases/phase-14.md#comparison-baselines)를 따른다. 이 차이를 이유로 S6 비교군을 늘리지 않는다.
 
 - S0~S6마다 `planned / implemented / validated / executed / not_executed`를 구분한다. 문서 존재를 구현 완료나 실행 완료로 세지 않는다. 현재 S0/S1은 `validated`, S2는 `executed`·공개 build `verified`, S3~S6은 `not_executed`다. S1의 기존 계약·CPU 검증 완료와 S2에서 추가 발견한 검사 문법 결함은 구분한다.
 - 공개 파일에는 합성 사례의 집계·계약·manifest·코드/버전 hash와 한계만 기록한다. 원시 trace·질문에 결합된 계산 내용·모델 출력·token 배열은 Git 제외 private 경로에 두고 최소 권한·보존/삭제 정책을 검증한다.
@@ -273,6 +275,10 @@ SYSTEM_CONTEXT_DIAGNOSIS=S0_S1_S2_V1 .venv/bin/python -B -m scripts.evaluation.s
 - 무관한 자료가 포함된 산술 문제의 성능 저하 연구를 정보 관련성 대조의 근거로 삼는다. 해당 과제 결과를 한국어 사주 대화나 모델 크기의 인과 결론으로 직접 일반화하지 않는다. [Shi 외, Large Language Models Can Be Easily Distracted by Irrelevant Context, v3](https://arxiv.org/abs/2302.00093v3).
 
 ## 진행 기록
+
+### 2026-09-15 — Phase 7 보완에 따른 경계 정합화
+
+- 예산 잔여 338과 실행 권한, 전체 후보 구성 동결, Phase 11 가설→12 실제 결과→13 실행 결정을 구분했다. 검증 결과는 [보완 기록](../history/2026-09-15-phase7-canonicalization.md#supplement-20260915)에 남기며 기존 실행 계약·S0~S2·GPU·학습·운영은 변경하지 않는다.
 
 ### 2026-09-15 — Phase 7 정본화·최종 지시문 통제 보강
 

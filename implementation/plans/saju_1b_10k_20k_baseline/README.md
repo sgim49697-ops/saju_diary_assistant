@@ -15,7 +15,7 @@
 
 Phase 0~6의 상태·아래 고정 Full FT 계약·날짜별 기록은 완료 이력으로 유지한다. 이후 완료된 기간·관계 Runtime, R8·R16·R32 LoRA, 20문장 진단을 이 초기 실험의 미완료 단계로 되돌리지 않는다. 현재 앱은 v1.14 운영 / 최신 v1.16 CPU 검증 후보·병합 완료·운영 미배포이며, 아래 v1.11 운영 설명은 당시 이력이다. 코드 통합과 기본 브랜치 동기화는 기존 Phase 상태를 변경하지 않는다.
 
-후속 실행 순서는 [제품 로드맵](../saju_product_roadmap/README.md), 현재 상태는 [00 기준선](../saju_product_roadmap/00-current-baseline.md), 진단 상세는 [50 원인 분리](../saju_product_roadmap/50-automatic-model-evaluation.md)를 따른다. 원인 분리 뒤 데이터·학습을 조건부로 결정하며 기존 Phase 6 판정·sealed blind·release·checkpoint를 변경하지 않는다.
+전체 실행 순서는 [제품 로드맵](../saju_product_roadmap/README.md), 현재 상태는 [00 기준선](../saju_product_roadmap/00-current-baseline.md), 진단 상세는 [50 원인 분리](../saju_product_roadmap/50-automatic-model-evaluation.md)를 따른다. 이 초기 인덱스는 Phase 0~6의 완료 이력·계약·기존 모델 판정을 소유한다. 원인 분리 뒤 데이터·학습을 조건부로 결정하며 기존 Phase 6 판정·sealed blind·release·checkpoint를 변경하지 않는다.
 
 새 ZIP 3개는 [원문 반영표](../saju_product_roadmap/source-20260915.md)로 보존하고 번호를 Phase 7~14로 이어간다. Phase 7은 문서 정본화이고 다음은 Phase 8A 앱 오차단·8B S3다. Phase 13 학습·14 운영 전환은 조건부이며 이 초기 실험의 고정 계약을 자동으로 재실행하지 않는다. 아래 `4.0.5`·기준일·Phase 0~6 표는 완료 계약의 식별자다.
 
@@ -259,6 +259,10 @@ YEJI Rules에서는 `rules/shensha_51.json`만 사용한다. 파일 SHA-256은 `
 - 원본 SHA-256: `11dde66505aa3ca90834488a877a0f4db42512d9cb377880d935f71bc71d3724`
 
 ## 진행 기록
+
+### 2026-09-15 — 초기 계약과 전체 순서 소유권 보완
+
+- Phase 0~6의 상태·계약은 변경하지 않고 전체 순서 소유권만 로드맵·AGENTS와 정합화했다. 검증은 [보완 기록](../../history/2026-09-15-phase7-canonicalization.md#supplement-20260915)을 따른다.
 
 ### 2026-09-15 — 완료 Phase 0~6에서 Phase 7~14로 연결
 

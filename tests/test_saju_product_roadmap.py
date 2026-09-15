@@ -14,6 +14,7 @@ ROOT_SUMMARY_FILES = (
     "03_SAJU_MODEL_EVALUATION_AND_DATA_PLAN.md",
 )
 HANDOFF_FILES = (
+    "AGENTS.md",
     "README.md",
     "implementation/plans/README.md",
     "implementation/plans/saju_1b_10k_20k_baseline/README.md",
@@ -46,10 +47,18 @@ FORBIDDEN_REQUIRED_GATES = (
 )
 
 
+def active_roadmap_documents(root: Path = ROADMAP_ROOT) -> tuple[Path, ...]:
+    """활성 하위 문서는 재귀 수집하고 원본 archive·과거 history는 제외한다."""
+    return tuple(sorted(
+        path for path in root.rglob("*.md")
+        if not {"archive", "history"}.intersection(path.relative_to(root).parts)
+    ))
+
+
 class SajuProductRoadmapTests(unittest.TestCase):
     def test_index_uses_current_runtime_and_execution_order(self) -> None:
         index = (ROADMAP_ROOT / "README.md").read_text(encoding="utf-8")
-        self.assertIn("saju-product-roadmap-v1.3.0", index)
+        self.assertIn("saju-product-roadmap-v1.3.1", index)
         self.assertIn("26462137f9a4ef34adb2d3db0dd6eaff6282b309", index)
         self.assertIn("saju-runtime-release-v1.5.0-8b1d6ea2d46e", index)
         self.assertIn("dashboard v1.14 운영 / v1.15 부모·v1.16 의도 후보 CPU 검증·운영 미배포", index)
@@ -58,7 +67,7 @@ class SajuProductRoadmapTests(unittest.TestCase):
 
     def test_local_markdown_links_resolve(self) -> None:
         paths = (
-            *ROADMAP_ROOT.glob("*.md"),
+            *active_roadmap_documents(),
             *(REPO_ROOT / name for name in (*ROOT_SUMMARY_FILES, *HANDOFF_FILES)),
         )
         for path in paths:
@@ -71,7 +80,7 @@ class SajuProductRoadmapTests(unittest.TestCase):
     def test_current_roadmap_has_no_nonautomatic_required_gate(self) -> None:
         current = "\n".join(
             path.read_text(encoding="utf-8")
-            for path in sorted(ROADMAP_ROOT.glob("*.md"))
+            for path in (*active_roadmap_documents(), REPO_ROOT / "AGENTS.md")
         )
         for phrase in FORBIDDEN_REQUIRED_GATES:
             self.assertNotIn(phrase, current)
@@ -97,7 +106,7 @@ class SajuProductRoadmapTests(unittest.TestCase):
                 ):
                     self.assertIn(f"implementation/plans/saju_product_roadmap/{target}", text)
         index = (ROADMAP_ROOT / "README.md").read_text(encoding="utf-8")
-        for owner in ("후속 실행 순서", "현재 상태", "원인 분리 진단 상세"):
+        for owner in ("전체 실행 순서", "현재 상태", "원인 분리 진단 상세"):
             self.assertIn(f"**{owner}**", index)
 
     def test_baseline_separates_remote_candidate_and_running_service(self) -> None:

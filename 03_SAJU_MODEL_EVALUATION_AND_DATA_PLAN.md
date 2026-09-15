@@ -39,7 +39,7 @@
 - 데이터·학습·serving 계약과 무결성을 처음부터 확인하고 비교 후 남은 오류와 연결한다. 별도 400건 보정의 범위가 이번 오류를 해결하는지도 이때 판단한다.
 - S3의 P1은 prompt 파일과 formatter가 붙이는 지시를 합친 최종 시스템 지시문 묶음이다. 입력 JSON·역할·동결 부모 이력·필수 사실·출력 한도는 유지한다. 제품 응답 계약 변경을 S3에 섞지 않는다.
 - [Phase 9](implementation/plans/saju_product_roadmap/phases/phase-09.md)의 첫 비교 후보는 `kakaocorp/kanana-2-3b-instruct`다. 아직 등록·다운로드하지 않았으며 K0와 공통 P0, 각각 FULL/MIN을 비교한다. pruning·distillation 계보 때문에 순수 파라미터 수만의 인과 효과로 단정하지 않는다.
-- [Phase 11](implementation/plans/saju_product_roadmap/phases/phase-11.md)에서 실제 teacher fallback 이력과 행동 7축을 확인한다. 기존 400행은 accepted 238·초안 미판정 3·미작성 159 상태로, 단순 2,000+400 덧붙이기를 전제하지 않는다. [Phase 12](implementation/plans/saju_product_roadmap/phases/phase-12.md) 확인 묶음은 이후 학습에 재사용하지 않는다.
+- [Phase 11](implementation/plans/saju_product_roadmap/phases/phase-11.md)에서 실제 teacher fallback 이력과 행동 7축을 확인하고 학습 가설·보정 대상·조건부 명세만 작성한다. 기존 400행은 accepted 238·초안 미판정 3·미작성 159 상태로, 단순 2,000+400 덧붙이기를 전제하지 않는다. [Phase 12](implementation/plans/saju_product_roadmap/phases/phase-12.md)의 실제 후보 결과를 대조한 뒤에만 학습 여부를 별도 결정하고 앱·지시문으로 해소됐으면 건너뛴다. 확인 묶음은 이후 학습이나 학습 후 새 평가에 재사용하지 않는다.
 - [60 데이터 build](implementation/plans/saju_product_roadmap/60-mix20k-v3-1-build.md)와 [70 학습·승격](implementation/plans/saju_product_roadmap/70-training-and-promotion.md)은 조건부 후속이다. 진단 완료만으로 자동 진행하지 않으며 모델 크기·학습 방식·규모는 별도 결정이다.
 
 ## 평가·데이터 보존 원칙
@@ -51,6 +51,10 @@
 [기존 Phase 정본](implementation/plans/saju_1b_10k_20k_baseline/README.md), [v3 후보 보정 정본](implementation/plans/mix20k_v3_repair_plan.md), LoRA의 versioned 계약은 당시 실행 범위를 보존한다. 과거 768 길이·최소 3문장/3줄·Full FT 지시를 새 실험의 자동 기본값으로 복사하지 않는다.
 
 ## 진행 기록
+
+### 2026-09-15 — 학습 실행 시점 보완
+
+- Phase 11 조건부 명세와 Phase 12 실제 확인 뒤 실행 결정을 구분했다. 문서 외 실행 상태는 그대로이며 [보완 기록](implementation/history/2026-09-15-phase7-canonicalization.md#supplement-20260915)을 따른다.
 
 ### 2026-09-15 — 모델·데이터 순서를 Phase 8~14에 정합화
 

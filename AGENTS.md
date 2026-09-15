@@ -6,7 +6,8 @@
 
 ## 프로젝트 정본과 기본 원칙
 
-- 실행 정본은 `implementation/plans/saju_1b_10k_20k_baseline/README.md`와 그 문서가 연결한 Phase 문서다. 조사용 HTML이나 과거 archive와 충돌하면 현재 정본을 따른다.
+- 전체 실행 순서는 [제품 로드맵](implementation/plans/saju_product_roadmap/README.md)과 그 문서가 연결한 Phase 문서가 소유한다. [초기 Phase 인덱스](implementation/plans/saju_1b_10k_20k_baseline/README.md)는 Phase 0~6의 완료 이력·계약·기존 모델 판정을 소유한다. 계산 권위·release는 해당 Runtime 정본을 따르며 조사용 HTML이나 과거 archive를 현재 실행 지시로 사용하지 않는다.
+- Phase 7의 문서 반영 완료와 후속 구현·실제 실행 완료를 구분한다. 요구사항 반영표의 유형·문서 반영 상태·실행 상태를 각각 검증하며 문서 존재만으로 다음 Phase를 완료 처리하지 않는다.
 - Phase 상태와 Gate를 임의로 앞당기지 않는다. 특히 `training_promotion_allowed=true`는 대응 검증 산출물과 정본의 조건이 실제로 충족된 경우에만 기록한다.
 - 승인된 source, audit, preprocessing build와 report는 불변 산출물이다. 입력·정책·코드 fingerprint가 바뀌면 기존 경로를 덮어쓰지 말고 새 version 또는 build ID를 만든다.
 - `data/raw`, `data/audit`, `data/staging`, 모델, run, checkpoint 같은 Git 제외 원본·파생물은 명시적 요청과 검증된 공개 범위 없이는 추적하지 않는다.
@@ -78,6 +79,7 @@ git diff --check
 - 명령 실패를 코드 결함, 환경 문제, 사용법 오류로 구분한다. 실패를 숨기거나 성공으로 기록하지 않는다.
 - 대용량·장시간·외부 자격 증명이 필요한 검증은 dry-run·targeted test·manifest 재해시부터 실행하고, 실행하지 못한 범위와 이유를 남긴다.
 - 문서만 바꿔도 `git diff --check`와 링크·명령·경로의 존재 여부를 확인한다.
+- 활성 정본과 `phases/`를 재귀적으로 포함해 링크·절·의존 관계·현재 정책을 검사한다. `archive/`는 원본 바이트·고정 해시·반영표 대응을 검증하며 과거 표현을 현재 정책에 맞추려고 수정하지 않는다. 문서 검사와 ML 의존성이 필요한 전체 unittest의 실행 환경·결과를 구분해 기록한다.
 
 ## 중요 구현 지점 자동 커밋
 

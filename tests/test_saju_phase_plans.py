@@ -7,7 +7,13 @@ import re
 import unittest
 from collections import Counter
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from urllib.parse import unquote, urlsplit
+
+from tests.test_saju_product_roadmap import (
+    FORBIDDEN_REQUIRED_GATES,
+    active_roadmap_documents,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 ROADMAP = REPO_ROOT / "implementation/plans/saju_product_roadmap"
@@ -26,6 +32,19 @@ SOURCE_PINS = (
      25845, 299, 28, 10),
 )
 LINK_PATTERN = re.compile(r"\[[^\]]*\]\(([^)]+)\)")
+DOCUMENTATION_TASK_IDS = {
+    "C-0170", "C-0171", "C-0172", "C-0173",
+    "C-0181", "C-0182", "C-0183", "C-0184",
+    "M-0306", "M-0307", "M-0308", "M-0312", "O-0170",
+    "O-0250", "O-0251", "O-0252", "O-0253",
+    "O-0254", "O-0255", "O-0256", "O-0257",
+}
+NON_TASK_TYPES = {
+    "current_fact", "policy", "development_example", "evidence_link", "structure",
+}
+SEMANTIC_TYPES = NON_TASK_TYPES | {
+    "execution_task", "conditional_proposal", "completed_history",
+}
 
 
 def unique_json_object(pairs: list[tuple[str, object]]) -> dict:
@@ -71,6 +90,10 @@ def validate_mapping(manifest: dict) -> None:
             expected[(source["id"], line)] = kind
     seen = set()
     for entry in manifest["entries"]:
+        if not {"requirement_type", "documentation_status", "execution_status"} <= entry.keys():
+            raise ValueError("missing semantic status fields")
+        if type(entry["line"]) is not int:
+            raise ValueError("invalid source line")
         identity = (entry["source"], entry["line"])
         if identity in seen or identity not in expected:
             raise ValueError(f"duplicate or unknown source line: {identity}")
@@ -94,6 +117,25 @@ def validate_mapping(manifest: dict) -> None:
             raise ValueError("unknown disposition")
         if entry["disposition"] == "adapted" and not entry.get("reason", "").strip():
             raise ValueError("adaptation without reason")
+        requirement_type = entry["requirement_type"]
+        if requirement_type not in SEMANTIC_TYPES:
+            raise ValueError("unknown requirement type")
+        if entry["documentation_status"] not in {"pending", "verified"}:
+            raise ValueError("unknown documentation status")
+        if requirement_type in NON_TASK_TYPES:
+            expected_status = "not_applicable"
+        elif requirement_type == "completed_history":
+            expected_status = "historical_completed"
+        elif requirement_type == "conditional_proposal":
+            expected_status = "conditional_not_executed"
+        else:
+            expected_status = "completed" if entry["id"] in DOCUMENTATION_TASK_IDS else "not_executed"
+        if entry["execution_status"] != expected_status:
+            raise ValueError("requirement type/execution status contradiction")
+        if entry["id"] in DOCUMENTATION_TASK_IDS and requirement_type != "execution_task":
+            raise ValueError("documentation task misclassified")
+        if entry["execution_status"] == "completed" and phase != 7:
+            raise ValueError("future phase incorrectly completed")
     if seen != set(expected):
         raise ValueError("unmapped source lines")
 
@@ -109,7 +151,11 @@ class SajuPhasePlansTests(unittest.TestCase):
         self.assertEqual(self.manifest["archive_name"], "saju_plans_20260915.zip")
         self.assertEqual(self.manifest["archive_sha256"], ARCHIVE_HASH)
         self.assertEqual(self.manifest["baseline_commit"], BASELINE_COMMIT)
-        self.assertEqual(self.manifest["schema_version"], "1.0.0")
+        self.assertEqual(self.manifest["schema_version"], "1.1.0")
+        self.assertEqual(
+            self.manifest["canonicalization_baseline_commit"],
+            "d151548e2eed37e8d36dd2e5fd9328aec1fb7315",
+        )
         self.assertEqual(len(self.manifest["sources"]), 3)
         for source, pin in zip(self.manifest["sources"], SOURCE_PINS, strict=True):
             source_id, name, digest, size, lines, sections, links = pin
@@ -138,7 +184,7 @@ class SajuPhasePlansTests(unittest.TestCase):
         entries = self.manifest["entries"]
         self.assertEqual(len(entries), 588)
         self.assertEqual(Counter(entry["phase"] for entry in entries), {
-            7: 295, 8: 67, 9: 35, 10: 84, 11: 25, 12: 42, 13: 23, 14: 17,
+            7: 274, 8: 73, 9: 39, 10: 86, 11: 28, 12: 46, 13: 24, 14: 18,
         })
 
     def test_coverage_rejects_omissions_duplicates_and_unknown_lines(self) -> None:
@@ -170,7 +216,9 @@ class SajuPhasePlansTests(unittest.TestCase):
             entry["id"]: entry for entry in self.manifest["entries"]
             if entry["disposition"] == "adapted"
         }
-        self.assertEqual(set(adaptations), {"C-0166", "O-0166", "O-0271"})
+        self.assertEqual(set(adaptations), {
+            "C-0166", "O-0166", "O-0271", "M-0294", "M-0296", "O-0175", "O-0181",
+        })
         self.assertIn("Phase 7", self.manifest["numbering_decision"])
         for entry in adaptations.values():
             self.assertTrue(entry["reason"].strip())
@@ -217,16 +265,16 @@ class SajuPhasePlansTests(unittest.TestCase):
                 self.assertEqual(len(anchors), len(set(anchors)))
                 self.assertIn("../source-20260915.md", text)
                 if phase == 7:
-                    self.assertIn("상태: 완료", text)
+                    self.assertRegex(text, r"(?m)^상태: 완료\.")
                 elif 8 <= phase <= 12:
                     self.assertIn("상태: 미실행", text)
                 elif phase >= 13:
                     self.assertIn("상태: 조건부 보류", text)
 
     def test_local_links_and_explicit_phase_anchors_resolve(self) -> None:
-        paths = [*ROADMAP.rglob("*.md")]
+        paths = [*active_roadmap_documents()]
         paths.extend(REPO_ROOT / name for name in (
-            "README.md", "01_SAJU_PROJECT_MASTER_ARCHITECTURE_PLAN.md",
+            "AGENTS.md", "README.md", "01_SAJU_PROJECT_MASTER_ARCHITECTURE_PLAN.md",
             "02_SAJU_RUNTIME_PERIOD_DASHBOARD_PLAN.md",
             "03_SAJU_MODEL_EVALUATION_AND_DATA_PLAN.md",
             "implementation/plans/README.md",
@@ -245,11 +293,15 @@ class SajuPhasePlansTests(unittest.TestCase):
                 with self.subTest(path=path.relative_to(REPO_ROOT), target=target):
                     self.assertTrue(destination.is_relative_to(REPO_ROOT))
                     self.assertTrue(destination.exists())
-                    if parsed.fragment and destination.parent == ROADMAP / "phases":
-                        self.assertIn(
-                            f'<a id="{parsed.fragment}"></a>',
-                            destination.read_text(encoding="utf-8"),
-                        )
+                    if parsed.fragment and destination.suffix == ".md":
+                        destination_text = destination.read_text(encoding="utf-8")
+                        fragment = unquote(parsed.fragment)
+                        explicit = f'<a id="{fragment}"></a>' in destination_text
+                        heading_slugs = {
+                            re.sub(r"[^\w\-\s]", "", heading.lower()).replace(" ", "-")
+                            for heading in re.findall(r"^#{1,6} (.+)$", destination_text, re.MULTILINE)
+                        }
+                        self.assertTrue(explicit or fragment in heading_slugs, target)
 
     def test_source_code_references_point_to_existing_baseline_paths(self) -> None:
         prefix = f"https://github.com/sgim49697-ops/saju_diary_assistant/blob/{BASELINE_COMMIT}/"
@@ -280,6 +332,193 @@ class SajuPhasePlansTests(unittest.TestCase):
             self.assertIn(f"phases/phase-{phase:02d}.md", index)
         self.assertIn("8B → 9", index)
         self.assertIn("S3 반복·R8/R32 추가 비교·20K 학습", index)
+
+    def test_documentation_completion_is_not_implementation_completion(self) -> None:
+        entries = {entry["id"]: entry for entry in self.manifest["entries"]}
+        self.assertEqual({e["documentation_status"] for e in entries.values()}, {"verified"})
+        self.assertEqual({e["requirement_type"] for e in entries.values()}, SEMANTIC_TYPES)
+        for source_id, requirement_type, status in (
+            ("C-0170", "execution_task", "completed"),
+            ("C-0035", "current_fact", "not_applicable"),
+            ("M-0042", "completed_history", "historical_completed"),
+            ("O-0068", "development_example", "not_applicable"),
+            ("C-0197", "evidence_link", "not_applicable"),
+            ("M-0292", "execution_task", "not_executed"),
+            ("M-0296", "conditional_proposal", "conditional_not_executed"),
+            ("C-0001", "structure", "not_applicable"),
+        ):
+            with self.subTest(source_id=source_id):
+                self.assertEqual(entries[source_id]["requirement_type"], requirement_type)
+                self.assertEqual(entries[source_id]["execution_status"], status)
+        completed = {e["id"] for e in entries.values() if e["execution_status"] == "completed"}
+        self.assertEqual(completed, DOCUMENTATION_TASK_IDS)
+
+    def test_status_validation_rejects_fictional_execution_and_missing_fields(self) -> None:
+        for source_id, field, value in (
+            ("M-0292", "execution_status", "completed"),
+            ("M-0296", "execution_status", "completed"),
+            ("O-0068", "execution_status", "not_executed"),
+            ("M-0042", "execution_status", "completed"),
+            ("C-0035", "execution_status", "historical_completed"),
+            ("C-0170", "requirement_type", "current_fact"),
+            ("M-0292", "documentation_status", "executed"),
+            ("M-0292", "requirement_type", "new_type"),
+        ):
+            manifest = copy.deepcopy(self.manifest)
+            entry = next(e for e in manifest["entries"] if e["id"] == source_id)
+            entry[field] = value
+            with self.subTest(source_id=source_id, field=field), self.assertRaises(ValueError):
+                validate_mapping(manifest)
+        for field in ("requirement_type", "documentation_status", "execution_status"):
+            manifest = copy.deepcopy(self.manifest)
+            manifest["entries"][0].pop(field)
+            with self.subTest(missing=field), self.assertRaises(ValueError):
+                validate_mapping(manifest)
+
+    def test_active_collection_recurses_and_keeps_archive_policy_separate(self) -> None:
+        real_active = set(active_roadmap_documents())
+        self.assertTrue({ROADMAP / f"phases/phase-{i:02d}.md" for i in range(7, 15)} <= real_active)
+        archive_paths = {ROADMAP / source["path"] for source in self.manifest["sources"]}
+        self.assertFalse(real_active & archive_paths)
+        # 미래 하위 디렉터리도 검사하고 archive의 과거 표현은 현재 정책으로 바꾸지 않는다.
+        with TemporaryDirectory(prefix="saju-plan-scope-") as directory:
+            root = Path(directory)
+            nested = root / "phases/nested/phase-example.md"
+            archived = root / "archive/source.md"
+            history = root / "history/past.md"
+            for path in (nested, archived, history):
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(FORBIDDEN_REQUIRED_GATES[0], encoding="utf-8")
+            self.assertEqual(active_roadmap_documents(root), (nested,))
+            scanned = "\n".join(p.read_text() for p in active_roadmap_documents(root))
+            self.assertIn(FORBIDDEN_REQUIRED_GATES[0], scanned)
+
+    def test_agents_and_indexes_share_authority_without_changing_safety(self) -> None:
+        agents = (REPO_ROOT / "AGENTS.md").read_text(encoding="utf-8")
+        for marker in (
+            "전체 실행 순서", "Phase 0~6의 완료 이력·계약", "Phase 7의 문서 반영 완료",
+            "archive/", "phases/", "원본 바이트", "git add -- <명시적 파일 목록>",
+            "원본 프로젝트 폴더의 `master`", "새 브랜치·worktree를 만들지 않는다",
+            "AI Hub 제한 데이터", "토큰·키·로컬 설정값", "불변 산출물",
+        ):
+            self.assertTrue(marker in agents, marker)
+        baseline = (REPO_ROOT / "implementation/plans/saju_1b_10k_20k_baseline/README.md").read_text()
+        self.assertIn("Phase 0~6의 완료 이력·계약", baseline)
+        self.assertEqual(re.findall(r"^\| ([0-6]) \| .*? \| 완료 \|", baseline, re.MULTILINE), list("0123456"))
+
+    def test_training_rows_point_to_actual_decision_conditions(self) -> None:
+        entries = {entry["id"]: entry for entry in self.manifest["entries"]}
+        for source_id, target in {
+            "M-0294": "phases/phase-11.md#failure-attribution",
+            "M-0296": "phases/phase-13.md#training-entry",
+            "O-0175": "phases/phase-11.md#failure-attribution",
+            "O-0181": "phases/phase-12.md#training-decision",
+        }.items():
+            with self.subTest(source_id=source_id):
+                self.assertEqual(entries[source_id]["target"], target)
+                self.assertEqual(entries[source_id]["disposition"], "adapted")
+                self.assertIn("사용자 보완 4", entries[source_id]["reason"])
+
+    def test_content_mapping_uses_specific_existing_owners(self) -> None:
+        entries = {entry["id"]: entry for entry in self.manifest["entries"]}
+        checks = (
+            ("C-0066", "phases/phase-07.md#calc-freeze", "유지보수까지 영구 금지"),
+            ("C-0186", "phases/phase-07.md#reopen", "기존 기간/관계 재사용 가능성"),
+            ("M-0292", "phases/phase-08.md#s3-controls", "상한은 48×2=96요청"),
+            ("M-0293", "phases/phase-09.md#registration", "동일 정밀도·순차 실행"),
+            ("M-0309", "phases/phase-08.md#instruction-bundle", "P0 파일은 보존한다"),
+            ("M-0311", "phases/phase-10.md#context", "질문별 projection 변경"),
+            ("M-0339", "phases/phase-09.md#comparison", "공개 benchmark를 이 프로젝트 성능으로 대체하지 않는다"),
+            ("O-0171", "phases/phase-08.md#routing", "읽기 전용"),
+            ("O-0174", "phases/phase-10.md#cpu-regression", "최소 앱 후보 하나"),
+            ("O-0176", "phases/phase-12.md#confirmation", "24×2=48요청"),
+            ("O-0177", "phases/phase-14.md#rollout-decision", "별도 승인된 전환"),
+            ("O-0267", "phases/phase-11.md#failure-attribution", "먼저 앱/상태를 수정한다"),
+            ("O-0270", "phases/phase-07.md#phase-order", "양자화·새 모델 계열·대형 라우터·장기 메모리·대운"),
+        )
+        for source_id, target, marker in checks:
+            with self.subTest(source_id=source_id):
+                self.assertEqual(entries[source_id]["target"], target)
+                path, anchor = target.split("#")
+                text = (ROADMAP / path).read_text(encoding="utf-8")
+                section = text.split(f'<a id="{anchor}"></a>', 1)[1].split('\n<a id="', 1)[0]
+                self.assertTrue(marker in section, target)
+
+    def test_phase_boundaries_include_conditions_not_only_existing_links(self) -> None:
+        checks = {
+            (8, "routing"): (
+                "이전 사주 대화", "이전 일반 대화", "맥락 없음·불명확",
+                "읽기 전용", "이력 재작성·snapshot 전환·모델 컨텍스트 재구성은 하지 않는다",
+            ),
+            (10, "revision-history"): (
+                "기존 구현이 새 대화를 요구하면", "이전 snapshot을 덮어쓰지 않는다",
+                "대형 라우터·장기 메모리·자동 요약·세션 전면 개편",
+                "선행 조건으로도 삼지 않는다", "향후 요약 오염 검사",
+            ),
+            (11, "failure-attribution"): (
+                "학습 필요성 가설", "조건부 학습 명세", "실행 확정으로 표시하지 않는다",
+                "Phase 11 완료만으로 Phase 13에 진입하지 않는다",
+            ),
+            (12, "confirmation"): (
+                "전체 실행 구성 하나", "새 24문항을 사용하기 전에",
+                "모델/adapter·지시문 묶음·정보 선택·라우팅·이력 정책·검사 기준·채택 규칙",
+                "같은 확인 질문으로 재선발하지 않는다", "미시험 3B/P1", "첫 실제 확인",
+            ),
+            (12, "training-decision"): (
+                "실제 제품 후보 결과와 대조", "정상 입력에서도 대상 모델 오류가 남고",
+                "데이터 변경의 필요성이 확인", "학습을 건너뛴다", "실행 보류",
+            ),
+            (13, "training-entry"): (
+                "Phase 12에서 확인", "데이터 변경 필요성", "학습을 건너뛴다",
+                "Phase 11 완료만으로 실행하지 않는다",
+            ),
+            (14, "comparison-baselines"): (
+                "R16/P0/C_FULL", "운영 기본 모델은 KI20", "작업 시 실제 운영",
+                "현재 운영 대비 개선이라고 표현하지 않는다", "not_measured",
+                "S6 비교군을 임의로 늘리지 않는다",
+            ),
+            (14, "rollback"): (
+                "코드·모델/adapter·지시문 묶음·입력 정책·설정",
+                "세션/binding", "schema·revision·snapshot 호환성",
+                "호환성이 확인되지 않으면 전환하지 않으며",
+            ),
+        }
+        for (phase, anchor), markers in checks.items():
+            text = (ROADMAP / f"phases/phase-{phase:02d}.md").read_text(encoding="utf-8")
+            section = text.split(f'<a id="{anchor}"></a>', 1)[1].split('\n<a id="', 1)[0]
+            for marker in markers:
+                with self.subTest(phase=phase, anchor=anchor, marker=marker):
+                    self.assertTrue(marker in section, f"Phase {phase} #{anchor}: {marker}")
+
+    def test_remaining_budget_is_arithmetic_not_permission(self) -> None:
+        text = (ROADMAP / "phases/phase-07.md").read_text(encoding="utf-8")
+        budget = text.split('<a id="budget"></a>', 1)[1].split("\n## 입력", 1)[0]
+        counts = [int(n) for n in re.findall(r"^\| .*? \| (\d+) \|$", budget, re.MULTILINE)]
+        self.assertEqual(counts, [680 - 342, 96 + 192 + 48, 8 - 6])
+        self.assertEqual(counts[0], sum(counts[1:]))
+        for marker in (
+            "실행 승인이나 성공 생성 수가 아니다", "목적·범위·예산을 사전에 별도 등록",
+            "CPU 모의 테스트는 실제 모델 호출이 아니다", "Phase 13 학습 후 평가는",
+        ):
+            self.assertTrue(marker in budget, marker)
+        self.assertFalse(self.manifest["governance"]["gpu_execution_allowed"])
+        phase13 = (ROADMAP / "phases/phase-13.md").read_text(encoding="utf-8")
+        self.assertIn("질문은 학습 자료나 새 모델 확인에 재사용하지 않는다", phase13)
+        self.assertIn("S6 잔여 요청과 별도의", phase13)
+
+    def test_s4_does_not_wait_for_app_and_s6_keeps_two_paths(self) -> None:
+        phase8 = (ROADMAP / "phases/phase-08.md").read_text(encoding="utf-8")
+        phase9 = (ROADMAP / "phases/phase-09.md").read_text(encoding="utf-8")
+        phase12 = (ROADMAP / "phases/phase-12.md").read_text(encoding="utf-8")
+        self.assertIn("8A나 전체 모드 구현 때문에 S4를 미루지 않는다", phase8)
+        self.assertIn("Phase 8B", phase9)
+        self.assertIn("8A", phase9)
+        self.assertIn("R16/P0/C_FULL과 선택 후보 하나의 24×2=48요청", phase12)
+        for marker in (
+            "모델 생성, 프로그램 직접 응답, 확인 요청, 예상 차단",
+            "예상 밖 차단/실행 오류, 미실행", "검증된 재사용",
+        ):
+            self.assertIn(marker, phase12)
 
 
 if __name__ == "__main__":
