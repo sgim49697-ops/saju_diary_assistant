@@ -13,7 +13,7 @@
 | 현재 단계 | S0/S1·S2·CPU 재집계 및 S3 96요청 실행·재구성 검증 완료 |
 | 최신 S2 build | `build-c39b4bce5089`, 312생성·30사전 차단; 검사기 오탐 별도 확인 |
 | 현재 승인 후속 | Phase 8A v1.17 CPU/화면 `build-49b9aed70565`·8B S3 `build-ffd985905b51` 완료 |
-| 다음 별도 작업 | Phase 9 S4 첫 요청의 저장 계약 오류로 중단; 호환성 수정·새 실행 범위 결정 |
+| 다음 별도 작업 | Phase 9 S4 v1.1 192요청 검증 완료·후보 미채택; Phase 10 최소 제품 후보 |
 
 2026-09-14 PR #28로 이 계획과 부모 v1.15 후보를 `master`에 통합했다. 2026-09-15 사용자 승인 범위인 S0/S1 구현·검증과 S2 실행을 완료했다. 코드 통합과 격리 진단은 운영 v1.15 배포가 아니다. [완료 기록](../history/2026-09-15-system-context-diagnosis.md)은 실제 모델 오류와 검사기 오탐을 구분한다. 입력·집계 재구성 검증 통과가 검사기의 의미 타당성이나 모델 품질 승인은 아니다.
 
@@ -44,6 +44,7 @@
 - 2026-09-16 별도 구현 승인으로 Phase 8A 오차단 후보·CPU/합성 화면 검증과 Phase 8B/S3 96요청을 완료했다. 아래 2026-09-15 승인 범위는 당시 이력이며, 이번에도 Phase 9 이후·큰 모델 다운로드·데이터 보정·학습·운영 전환은 하지 않았다. [실제 실행 기록](../history/2026-09-16-phase8-intent-s3.md)을 따른다.
 - 2026-09-16 후속 구현 요청으로 [S4 실행기·공식 3B 등록·CPU 검증](../history/2026-09-16-phase9-s4.md)을 추가했다. 가중치 다운로드·최대 192요청의 실제 비교는 범위 확인 전까지 보류하며, 실제 모델 비교 과제는 미실행으로 유지한다. 학습·데이터·서비스·기존 scorer/보고서·새 24문항은 변경하지 않는다.
 - 이후 별도 실행 승인으로 3B 수집·파일 검증·실제 dry-run을 완료했다. `build-296dffd1ef51`은 첫 K0 요청의 저장 계약 충돌로 `blocked`이며 1오류·191미실행·정상 응답 0이다. [실제 실행 기록](../history/2026-09-16-phase9-s4-execution.md#blocked-run)에 CPU 원인 대조·실패 증거·잔여 241을 남긴다. 위 보류 상태는 최초 구현 당시 이력이며, 실패 요청이나 새 build를 자동 재실행하지 않는다.
+- 사용자 재진행 승인 후 [v1.1 복구·비교](../history/2026-09-16-phase9-s4-recovery.md#phase9)를 192요청·172생성·20차단·오류 0으로 완료하고 공개 build `build-1f851d69a91f`를 전량 검증했다. 첫 실패 1건을 보존해 누적 631/680·잔여 49다. 개선·회귀·판정 불가·반복 출력을 함께 기록했으며 후보를 채택하거나 Phase 10 이후·학습·운영을 실행하지 않았다.
 
 ## 3. 확인된 사실과 아직 모르는 것
 
@@ -116,7 +117,7 @@ P1은 파일만이 아니라 `_runtime_model_context_from_binding()`이 덧붙�
 
 - 작은 모델 비교는 K0·R16·KI20의 동일 K0 tokenizer/backend/template·동일 사실·동일 동결 부모 이력·동일 decoding을 사용한다. 지시문 비교는 R16 한 모델로 제한한다.
 - 크기 비교는 **K0 1.3B 기본 모델 ↔ 큰 동일 계열 Instruct 기본 모델**이다. 두 모델에 P0를 공통 적용하고 각각 C_FULL/C_MIN을 실행한다. 지시문 승자를 모델별로 골라 넣지 않는다. R16과 큰 기본 모델만 비교해서 크기 효과를 주장하지 않는다.
-- 큰 후보는 저장소·정확한 revision·공식 라이선스·공식 tokenizer/template·가중치 hash·지원 길이·정밀도·VRAM/KV cache·offload 계획을 먼저 등록한다. `kakaocorp/kanana-2-3b-instruct`의 정확한 revision·공식 hash를 [S4 전용 등록](../../configs/model_versions/saju_1b_baseline/kanana-2-3b-s4-v1.0.0.json)에 고정했고 수집·파일 검증·실제 tokenizer dry-run을 완료했다. 첫 K0 요청의 저장 오류 때문에 3B GPU 요청은 아직 0이다. 같은 정밀도가 불가능하면 미실행 사유를 적고 별도 결정을 받는다. 다른 계열·양자화로 자동 대체하지 않는다. 한쪽만 offload하거나 검증 환경 전체를 최신화하지 않는다. 공식 카드의 가지치기·증류 계보, 실제 구성·loader·라이선스는 [Phase 9](saju_product_roadmap/phases/phase-09.md)에서 확인하며 모델명·공개 benchmark로 자원·사주 품질을 단정하지 않는다.
+- 큰 후보는 저장소·정확한 revision·공식 라이선스·공식 tokenizer/template·가중치 hash·지원 길이·정밀도·VRAM/KV cache·offload 계획을 먼저 등록한다. `kakaocorp/kanana-2-3b-instruct`의 정확한 revision·공식 hash를 [S4 전용 등록](../../configs/model_versions/saju_1b_baseline/kanana-2-3b-s4-v1.0.0.json)에 고정했고 수집·파일 검증·실제 tokenizer dry-run과 v1.1의 모델별 86생성을 완료했다. 같은 정밀도가 불가능하면 미실행 사유를 적고 별도 결정을 받는다. 다른 계열·양자화로 자동 대체하지 않는다. 한쪽만 offload하거나 검증 환경 전체를 최신화하지 않는다. 공식 카드의 가지치기·증류 계보, 실제 구성·loader·라이선스는 [Phase 9](saju_product_roadmap/phases/phase-09.md)에서 확인하며 모델명·공개 benchmark로 자원·사주 품질을 단정하지 않는다.
 - **서로 다른 모델의 token ID 동일성은 요구하지 않는다.** 의미상 동일한 메시지를 각 공식 template로 렌더링하고 token 길이 차이를 기록한다. 현재 dashboard loader는 K0 tokenizer와 고정 token 설정을 사용하므로 큰 모델을 기존 엔진 이름만 바꿔 실행하지 않는다. 별도 versioned adapter에서 tokenizer·BOS/EOS/PAD·지원 구조를 검증한다.
 - 입력 4,096·출력 4,096은 현재 후보의 안전 상한이지 모든 후보의 지원 보장이 아니다. 두 모델의 공식 전체 길이 범위 안에서 공통 상한을 실행 전에 고정한다. train `max_length=2048`, serving 입력 상한, 출력 상한, 입력+출력 총량을 따로 기록한다.
 - 주 비교는 `do_sample=false`, 동일 generation 규칙과 무삭제 동결 부모 이력으로 수행한다. 이력이 제외되거나 필수 facts가 빠진 행은 비교 부적격으로 분리하고 새 버전에서 해결한다. 이미 완료한 report에 일부 행을 갈아 끼우지 않는다.
@@ -229,11 +230,11 @@ SYSTEM_CONTEXT_DIAGNOSIS=S0_S1_S2_V1 .venv/bin/python -B -m scripts.evaluation.s
 
 ## 10. 종료·보존·후속 결정
 
-후속 실행의 전체 순서는 [Phase 7~14 로드맵](saju_product_roadmap/README.md)을 따른다. [예산 정본](saju_product_roadmap/phases/phase-07.md#budget)은 Phase 7 당시 잔여 338과 S3 완료 직후 **242 = 본 비교 240 + 적격성 2**, S4 실패 1요청 뒤 현재 **241 = S4 미처리 191 + S6 48 + 적격성 2**를 구분한다. 이는 자동 재실행 승인이 아니다. 추가 실제 모델 호출·학습 후 평가는 목적·범위·예산을 별도로 정하며 CPU 모의 검증과 구분한다. Phase 11은 학습 가설·보정 대상·조건부 명세, Phase 12는 실제 제품 결과 대조 후 Phase 13 실행 여부 결정, Phase 14는 운영 검토다. 앱·지시문으로 해소됐으면 기존 400건이나 명세가 있어도 학습을 건너뛴다. 미시험 3B/P1·새 projection은 새 통합 후보이며 S6 첫 확인의 한계를 밝힌다. 새 학습 검증에 이미 사용한 S6를 재사용하지 않는다.
+후속 실행의 전체 순서는 [Phase 7~14 로드맵](saju_product_roadmap/README.md)을 따른다. [예산 정본](saju_product_roadmap/phases/phase-07.md#budget)은 Phase 7 당시 338·S3 직후 242·S4 첫 실패 직후 241과 별도 승인된 v1.1 192요청 완료 뒤 현재 **49 = S6 48 + 공유 여유 1**을 구분한다. 실패 1건도 포함해 누적 631/680이며 잔여는 후속 실행 승인이 아니다. 추가 실제 모델 호출·학습 후 평가는 목적·범위·예산을 별도로 정하며 CPU 모의 검증과 구분한다. 다음 Phase 10은 최소 제품 후보, 11은 학습 가설·보정 대상·조건부 명세, 12는 실제 제품 결과 대조 후 13 실행 여부 결정, 14는 운영 검토다. 앱·지시문으로 해소됐으면 기존 400건이나 명세가 있어도 학습을 건너뛴다. 미시험 3B/P1·새 projection은 새 통합 후보이며 S6 첫 확인의 한계를 밝힌다. 새 학습 검증에 이미 사용한 S6를 재사용하지 않는다.
 
 S6 후보 하나는 [Phase 12](saju_product_roadmap/phases/phase-12.md#confirmation)의 모델·지시문 묶음·정보 선택·라우팅·이력 정책·검사·채택 규칙을 포함한 전체 실행 구성이다. 새 24문항 사용 전에 동결하며 결과를 보고 같은 질문으로 재선발하지 않는다. 실험 R16/P0/C_FULL 기준선과 운영 KI20의 비교·미측정·되돌림은 [Phase 14](saju_product_roadmap/phases/phase-14.md#comparison-baselines)를 따른다. 이 차이를 이유로 S6 비교군을 늘리지 않는다.
 
-- S0~S6마다 `planned / implemented / validated / executed / blocked / not_executed`를 구분한다. 문서 존재를 구현 완료나 실행 완료로 세지 않는다. 현재 S0/S1은 `validated`, S2는 `executed`·공개 build `verified`, S3는 `executed`·공개 build `verified`, S4는 모델 수집·dry-run 완료/첫 요청 오류로 `blocked`, S5~S6은 `not_executed`다. S4의 1오류·191미실행을 완료나 품질 실패 점수로 바꾸지 않는다. S1의 기존 계약·CPU 검증 완료와 S2/S3에서 추가 발견한 검사 문법 결함은 구분한다.
+- S0~S6마다 `planned / implemented / validated / executed / blocked / not_executed`를 구분한다. 문서 존재를 구현 완료나 실행 완료로 세지 않는다. 현재 S0/S1은 `validated`, S2는 `executed`·공개 build `verified`, S3는 `executed`·공개 build `verified`, S4는 v1.1에서 `executed`·공개 build `verified`, S5~S6은 `not_executed`다. S4의 첫 실패 1건과 새 비교 192건을 분리하며 기존 1오류·191미실행을 성공이나 품질 실패 점수로 바꾸지 않는다. S1의 기존 계약·CPU 검증 완료와 이후 확인된 검사 문법·의미 범위 한계는 구분한다.
 - 공개 파일에는 합성 사례의 집계·계약·manifest·코드/버전 hash와 한계만 기록한다. 원시 trace·질문에 결합된 계산 내용·모델 출력·token 배열은 Git 제외 private 경로에 두고 최소 권한·보존/삭제 정책을 검증한다.
 - 기존 Phase 6·grounded-dialogue 원시 결과와 소비된 sealed blind는 열거나 재사용하지 않는다. 자연스러움 등 계약 밖 품질은 `not_measured`로 남기고 계약 밖 평가를 완료 조건으로 추가하지 않는다.
 - Phase 6·Runtime release·production 허용·기본 모델·feature 기본 off는 자동 변경하지 않는다. [60 데이터](saju_product_roadmap/60-mix20k-v3-1-build.md)·[70 학습](saju_product_roadmap/70-training-and-promotion.md)은 원인별 결과에 따른 별도 결정이다.
@@ -292,9 +293,13 @@ HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 .venv/bin/python -B -m scripts.evaluatio
 
 ## 진행 기록
 
+### 2026-09-16 — S4 v1.1 복구·실제 비교 완료
+
+- [완료 기록](../history/2026-09-16-phase9-s4-recovery.md#phase9)에 192요청·172생성·20차단·오류 0과 공개 hash, 개선/회귀·판정 불가·반복 출력·의미 한계를 연결했다. 후보 미채택, 다음은 Phase 10이며 실제 후속 구현·학습·운영은 변경하지 않았다. 실패 1건 보존을 포함한 잔여는 49다.
+
 ### 2026-09-16 — S4 구현·공식 모델 등록·CPU 검증
 
-이후 별도 승인된 첫 실행은 [수집·실제 dry-run 완료 후 저장 계약 오류로 중단](../history/2026-09-16-phase9-s4-execution.md#blocked-run)됐다. 현재 상태는 `blocked`·1오류/191미실행·잔여 241이며, 아래 항목은 실제 실행 전 구현 당시 이력이다.
+이후 별도 승인된 첫 실행은 [수집·실제 dry-run 완료 후 저장 계약 오류로 중단](../history/2026-09-16-phase9-s4-execution.md#blocked-run)됐다. 당시 상태는 `blocked`·1오류/191미실행·잔여 241이며, 아래 항목은 실제 실행 전 구현 당시 이력이다. 현재 v1.1 완료 상태와 섞지 않는다.
 
 - `system_context_s4` 전용 실행기·models/backend/projection·새 scorer v1.2를 구현했다. 기존 S2/S3와 8A를 재검증했으며 192요청·172생성 상한·20사전 차단·추가 preflight 0을 고정했다. 파일별 역할·실제 명령 순서·검증 실패와 복구·남은 제한은 [기록](../history/2026-09-16-phase9-s4.md)에 모은다.
 - GPU 생성 0, 가중치 수집·실제 tokenizer 렌더링/dry-run·비교는 미완료다. 누적 438·잔여 242와 운영·학습·release 권한을 유지한다.

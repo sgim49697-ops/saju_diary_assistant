@@ -8,11 +8,11 @@ Kanana 2 1.3B 기반 한국어 사주·공감 대화 baseline 프로젝트다. `
 
 2026-09-15 S0/S1·S2 342요청에 이어 [312응답 CPU 재채점](implementation/history/2026-09-15-system-context-rescore.md)과 [앱 v1.16 의도 정책 후보·CPU canary](implementation/history/2026-09-15-dashboard-v116-intent.md)를 검증했다. 원래 응답과 차단 30건은 보존했고 새 모델 응답은 생성하지 않았다. 유한 검사기의 판단 불가가 남아 자동 점수로 모델 우열을 단정하지 않는다. 운영 v1.14와 미배포 v1.16 후보를 구분한다.
 
-새 ZIP 계획 3개는 [Phase 7 정본화](implementation/plans/saju_product_roadmap/phases/phase-07.md)에서 원문 보존·요구사항 연결 후 Phase 7~14로 통합·검증했다. **Phase 8A v1.17 오차단 후보는 CPU·합성 화면 검증 완료, 8B 같은 R16의 지시문 묶음 비교(S3)는 96요청·재구성 검증 완료**다. [실행 기록](implementation/history/2026-09-16-phase8-intent-s3.md)에 부분 개선·실제 오류·검사 한계를 구분했으며 P1은 채택하지 않았다. 이어 Phase 9의 공식 3B 수집·파일 검증·실제 dry-run을 완료했으나, [첫 실행](implementation/history/2026-09-16-phase9-s4-execution.md#blocked-run)은 K0의 저장 계약 오류로 중단됐다. 1오류·191미실행이며 모델 비교 결과는 아직 없다. 소비 계약 호환성 수정·새 실행 범위 결정 후 비교를 마쳐야 한다. 응답 모드·정정 이력→데이터 원인 분석→확인 평가는 후속이며 보정·학습·운영 전환은 조건부다. 현재 운영 v1.14는 그대로다.
+새 ZIP 계획 3개는 [Phase 7 정본화](implementation/plans/saju_product_roadmap/phases/phase-07.md)에서 원문 보존·요구사항 연결 후 Phase 7~14로 통합·검증했다. **Phase 8A v1.17 오차단 후보·8B S3 96요청과 Phase 9 S4 v1.1 192요청의 검증을 완료**했다. [S3 기록](implementation/history/2026-09-16-phase8-intent-s3.md)의 P1은 미채택이고, [S4 복구·비교 기록](implementation/history/2026-09-16-phase9-s4-recovery.md#phase9)은 첫 저장 오류 1건을 보존한 뒤 172생성·20차단·새 실행 오류 0을 확인했다. 3B의 일부 사실/형식 개선과 일반 대화 회귀·반복 출력이 함께 있어 후보를 채택하지 않았다. 다음은 Phase 10의 사실 직접 조회·설명 분리·정보/정정 이력 처리 최소 후보다. 데이터 원인 분석·새 확인 평가 뒤 보정·학습·운영 전환은 조건부로 판단하며 현재 운영 v1.14는 그대로다.
 
 - [후속 실행 순서 정본](implementation/plans/saju_product_roadmap/README.md)
 - [현재 기준선·운영과 후보 구분](implementation/plans/saju_product_roadmap/00-current-baseline.md)
-- [다음 작업: Phase 9 모델 규모×정보 비교](implementation/plans/saju_product_roadmap/phases/phase-09.md)
+- [다음 작업: Phase 10 응답 모드·정정 흐름](implementation/plans/saju_product_roadmap/phases/phase-10.md)
 - [ZIP 원문·요구사항 반영표](implementation/plans/saju_product_roadmap/source-20260915.md)
 - [모델 진단의 기존 작업 계약](implementation/plans/saju_product_roadmap/50-automatic-model-evaluation.md)
 - [전체 흐름·컨텍스트 진단 실행 계획](implementation/plans/saju_system_context_diagnosis.md)

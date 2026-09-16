@@ -30,6 +30,7 @@ HANDOFF_FILES = (
     "implementation/history/2026-09-16-phase9-s4.md",
     "implementation/history/2026-09-16-phase9-s4-audit.md",
     "implementation/history/2026-09-16-phase9-s4-execution.md",
+    "implementation/history/2026-09-16-phase9-s4-recovery.md",
 )
 ORDERED_FILES = (
     "00-current-baseline.md",
@@ -171,8 +172,9 @@ class SajuProductRoadmapTests(unittest.TestCase):
             "입력 전달 오류는 앱/상태 수정으로",
             "진단 완료는 품질 승인과 다르다",
             "실행하지 못한 필수 비교는 미실행",
-            "A/S0·S1·B1/S2 342요청에 이어 새 검사 버전 CPU 재집계",
-            "다음 별도 과제는 C/S4 모델 규모×정보 비교",
+            "A/S0·S1·B1/S2 342요청·CPU 재집계",
+            "C/S4 v1.1 192요청을 완료",
+            "다음은 Phase 10 최소 제품 후보",
         ):
             self.assertIn(marker, text)
 
@@ -207,7 +209,7 @@ class SajuProductRoadmapTests(unittest.TestCase):
             "크기만의 순수 인과 효과를 증명한 것은 아니다",
             "10파일 수집·검증·실제 tokenizer dry-run을 완료",
             "전용 실행기·CPU 검증",
-            "3B GPU 요청은 0",
+            "172생성·20사전 차단",
         ):
             with self.subTest(marker=marker):
                 self.assertIn(marker, text)
@@ -233,7 +235,8 @@ class SajuProductRoadmapTests(unittest.TestCase):
         tasks = {r["id"]: r for r in mapping["entries"]}
         for task_id in ("M-0293", "O-0173"):
             self.assertEqual(tasks[task_id]["documentation_status"], "verified")
-            self.assertEqual(tasks[task_id]["execution_status"], "blocked")
+            self.assertEqual(tasks[task_id]["execution_status"], "completed")
+            self.assertEqual(tasks[task_id]["execution_evidence"], "../../history/2026-09-16-phase9-s4-recovery.md#phase9")
 
     def test_s4_audit_preserves_execution_and_scoring_boundaries(self) -> None:
         phase = (ROADMAP_ROOT / "phases/phase-09.md").read_text(encoding="utf-8")

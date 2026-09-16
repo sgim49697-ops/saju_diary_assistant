@@ -18,15 +18,15 @@
 | 현재 R16 입력 | `v1.0.1/build-54836f556b4f` | [LoRA 계획](implementation/plans/mix2k_v4_chart_day_lora.md)의 고정 학습 이력 |
 | 별도 v1.1 보정 | 마지막 checkpoint accepted 238/400 | 현재 R16에 미반영, 자동 재개·재학습하지 않음 |
 | 20문장 기준선 | 3모델·60요청·54생성·6차단 완료 | 과거 개발 진단 이력 보존 |
-| 최신 전체 경로 진단 | S0/S1·S2·CPU 재집계 보존, Phase 8A v1.17 CPU/화면·8B S3 96요청 검증 완료 | P1 미채택; 다음 Phase 9/S4, 큰 모델 다운로드·추가 학습·운영 전환 미실행 |
-| Phase 9 비교 준비 | 공식 3B pin·S4 실행기·scorer v1.2·CPU 검증 완료 | GPU 생성 0, 실제 모델 비교 미실행·Phase 9 미완료 |
+| 최신 전체 경로 진단 | S0/S1·S2·CPU 재집계 보존, Phase 8A·8B S3·9 S4 검증 완료 | 후보 미채택; 다음 Phase 10, 추가 학습·운영 전환 미실행 |
+| Phase 9 모델 비교 | S4 v1.1 192요청·172생성·20차단·오류 0 검증 완료 | 첫 실패 1건 별도 보존; 일부 개선·일반 대화 회귀·반복 출력 분리 |
 | MIX20K-v3.0.1 | 보정·비학습 후보 이력 | 현재 2K 학습 데이터와 별도, v3.1 생성 승인 아님 |
 
 ## 최근 진단이 말해 주는 것
 
 [S2 완료 기록](implementation/history/2026-09-15-system-context-diagnosis.md)의 최대 입력 1,692 token·삭제 이력 0·원응답은 보존했다. 후속 [CPU 재집계](implementation/history/2026-09-15-system-context-rescore.md)에서 R16 검사 오탐 6건은 2건 PASS·4건 판단 불가로 바뀌고 실제 MIN 오류 2건은 FAIL을 유지했다. [v1.16 앱 후보](implementation/history/2026-09-15-dashboard-v116-intent.md)는 당시 CPU canary를 통과했고 남은 오차단은 v1.17에서 추가 수정·검증했다. 앱 오차단 수정과 모델 품질은 별개다.
 
-[Phase 8 완료 기록](implementation/history/2026-09-16-phase8-intent-s3.md#phase8b)의 S3는 96요청·86생성·10차단이다. P1에서 일부 형식·필수 사실 지표가 좋아졌지만 실제 날짜 누락·사실 혼동과 부정 표현 오탐·일반 사주 언급 누락이 함께 남았다. 원점수·scorer는 보존하며 P1의 일괄 개선이나 교체 근거로 사용하지 않는다. 다음은 [Phase 9](implementation/plans/saju_product_roadmap/phases/phase-09.md)의 공통 P0에서 모델 규모×정보 비교다. 아직 실행하지 않았다.
+[Phase 8 완료 기록](implementation/history/2026-09-16-phase8-intent-s3.md#phase8b)의 S3는 96요청·86생성·10차단이다. P1에서 일부 형식·필수 사실 지표가 좋아졌지만 실제 날짜 누락·사실 혼동과 검사 한계가 남아 미채택했다. 이후 [Phase 9 결과](implementation/history/2026-09-16-phase9-s4-recovery.md#phase9)는 공통 P0에서 K0/3B×FULL/MIN 192요청을 완료했다. 3B가 일부 정정 사실·두 문장 형식에서 개선됐지만 불필요한 사주 삽입과 장문 반복도 확인됐고, 틀린 전제 교정 PASS는 네 조건 모두 0이었다. 크기만으로 해결됐다고 결론 내리지 않고 다음 Phase 10의 직접 사실 응답·필요 정보/이력 분리로 연결한다. 원점수·scorer·운영 모델은 보존한다.
 
 [20문장 완료 기록](implementation/history/2026-09-05-dashboard-prompt20.md)에서 연결 구조 검사 통과는 K0 8/13·R16 10/13·KI20 8/13이었다. R16의 일간·일주/일진 구분 개선이 있지만 세 모델 모두 틀린 일간 전제를 수용했다. 시간 범위, 개념 설명, 일반 대화 전환, 요청한 형식에서도 오류가 관찰됐다.
 

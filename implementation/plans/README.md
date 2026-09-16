@@ -28,7 +28,7 @@
 | 만세력 runtime | v1.4 원국·v1.5 단일 일진·일별 기간 release·단일 날짜 관계 release 완료 | 미래 물리 절입·미승인 범위 차단, 기능 기본 off·운영 승격 별도 |
 | 계산기 연결 대화 | 기존 500건을 `eval-562c07d0e2e6`으로 재채점하고 2,048↔3,584 장문 200건 `eval-56d1357560d5` 완료 | 두 장문 arm 자동 목표 통과·3,584 상한 유지 후보, 전체 baseline·release·학습 권한 불변 |
 | K0 기반 LoRA | R8·R16·R32 학습 완료, 별도 400건 보정은 현재 R16에 미반영 | 새 학습·보정 재개는 원인 분리 후 별도 판단 |
-| 최신 대화 진단 | S0/S1·S2·CPU 재집계 보존, S3 96요청 검증 완료 | S4 `build-296dffd1ef51` 첫 요청 저장 오류로 중단; S5~S6 미실행 |
+| 최신 대화 진단 | S0/S1·S2·CPU 재집계 보존, S3 96·S4 192요청 검증 완료 | S4 `build-1f851d69a91f` 후보 미채택; 첫 실패 보존·S5~S6 미실행 |
 | 앱 | dashboard v1.14 운영 / v1.15·v1.16 부모·v1.17 오차단 후보 CPU/합성 화면 검증 완료 | `build-49b9aed70565`, 현재 service·기본 모델·feature off 유지 |
 | 후속 계획 | Phase 7 정본화·8A 후보 검증·8B S3 완료, 9 실행기·CPU 검증 완료/실제 비교 미실행, 10~12 미실행·13~14 조건부 보류 | 기존 Phase·불변 산출물·release·후속 실행 권한 불변 |
 
@@ -36,7 +36,7 @@
 
 v1.11의 원국·단일 날짜 명시 연결은 완료된 부모 구현이다. AES-GCM state·공개 allowlist·snapshot hash·자동 Grounding Gate를 적용하며 날짜 변경은 기존 대화에 덮어쓰지 않는다. 최신 운영·후보 commit과 검증 범위는 [현재 기준선](saju_product_roadmap/00-current-baseline.md)을 따른다. 이 통합은 strict/full runtime, Phase 6, v3.1, 추가 학습과 모델 승격을 승인하지 않는다.
 
-실행 순서는 [Phase 7~14 로드맵](saju_product_roadmap/README.md)이다. [50 진단](saju_product_roadmap/50-automatic-model-evaluation.md)과 [전체 흐름·컨텍스트 진단 계획](saju_system_context_diagnosis.md)의 S0/S1·S2·CPU 후속과 Phase 8A·8B S3를 완료했다. [Phase 9 모델 규모×정보](saju_product_roadmap/phases/phase-09.md)는 모델 수집·실제 dry-run 뒤 첫 요청의 저장 계약 충돌로 중단됐다. 다음은 호환성 수정·새 실행 범위 결정이며 Phase 10의 전체 앱 구현 완료를 기다릴 필요는 없다. Phase 10 응답 모드→11 데이터 원인→12 확인 평가 후 보정·학습·운영은 조건부로 결정한다. 오류 1을 소비한 잔여 241요청은 자동 재실행 승인이 아니다. 최상단 01·02·03은 요약·연결 문서이고 별도 실행 정본이 아니다.
+실행 순서는 [Phase 7~14 로드맵](saju_product_roadmap/README.md)이다. [50 진단](saju_product_roadmap/50-automatic-model-evaluation.md)과 [전체 흐름·컨텍스트 진단 계획](saju_system_context_diagnosis.md)의 S0/S1·S2·CPU 후속과 Phase 8A·8B S3, [Phase 9 S4](saju_product_roadmap/phases/phase-09.md) v1.1 192요청을 완료했다. 첫 저장 오류는 별도 보존하고 개선·회귀·미측정을 함께 기록해 후보를 채택하지 않았다. 다음은 Phase 10 응답 모드·정정 흐름의 최소 후보이며 11 데이터 원인→12 확인 평가 후 보정·학습·운영은 조건부로 결정한다. 실패 1건까지 소비한 잔여 49요청은 후속 실행 승인이 아니다. 최상단 01·02·03은 요약·연결 문서이고 별도 실행 정본이 아니다.
 
 ## 현재 평가 기본값
 

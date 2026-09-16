@@ -42,8 +42,8 @@ DOCUMENTATION_TASK_IDS = {
 NON_TASK_TYPES = {
     "current_fact", "policy", "development_example", "evidence_link", "structure",
 }
-IMPLEMENTATION_TASK_IDS = {"O-0171", "M-0292", "O-0172"}
-BLOCKED_TASK_IDS = {"M-0293", "O-0173"}
+S4_TASK_IDS = {"M-0293", "O-0173"}
+IMPLEMENTATION_TASK_IDS = {"O-0171", "M-0292", "O-0172"} | S4_TASK_IDS
 SEMANTIC_TYPES = NON_TASK_TYPES | {
     "execution_task", "conditional_proposal", "completed_history",
 }
@@ -130,28 +130,24 @@ def validate_mapping(manifest: dict) -> None:
             expected_status = "historical_completed"
         elif requirement_type == "conditional_proposal":
             expected_status = "conditional_not_executed"
-        elif entry["id"] in BLOCKED_TASK_IDS:
-            expected_status = "blocked"
         else:
             expected_status = "completed" if entry["id"] in DOCUMENTATION_TASK_IDS | IMPLEMENTATION_TASK_IDS else "not_executed"
         if entry["execution_status"] != expected_status:
             raise ValueError("requirement type/execution status contradiction")
         if entry["id"] in DOCUMENTATION_TASK_IDS and requirement_type != "execution_task":
             raise ValueError("documentation task misclassified")
-        if entry["execution_status"] == "blocked":
-            evidence = "../../history/2026-09-16-phase9-s4-execution.md#blocked-run"
-            if phase != 9 or entry.get("execution_evidence") != evidence:
-                raise ValueError("blocked comparison without matching failure evidence")
-            path, anchor = evidence.split("#", 1)
-            if f'<a id="{anchor}"></a>' not in (ROADMAP / path).read_text(encoding="utf-8"):
-                raise ValueError("blocked evidence section missing")
         if entry["execution_status"] == "completed" and phase != 7:
-            if phase != 8 or entry["id"] not in IMPLEMENTATION_TASK_IDS:
+            expected_phase = 9 if entry["id"] in S4_TASK_IDS else 8
+            if phase != expected_phase or entry["id"] not in IMPLEMENTATION_TASK_IDS:
                 raise ValueError("future phase incorrectly completed")
             evidence, separator, anchor = entry.get("execution_evidence", "").partition("#")
-            if evidence != "../../history/2026-09-16-phase8-intent-s3.md" or not separator:
+            expected_evidence = (
+                "../../history/2026-09-16-phase9-s4-recovery.md" if phase == 9
+                else "../../history/2026-09-16-phase8-intent-s3.md"
+            )
+            if evidence != expected_evidence or not separator:
                 raise ValueError("implementation completion without evidence")
-            expected_anchor = "phase8a" if entry["id"] == "O-0171" else "phase8b"
+            expected_anchor = "phase9" if phase == 9 else "phase8a" if entry["id"] == "O-0171" else "phase8b"
             if anchor != expected_anchor:
                 raise ValueError("implementation evidence refers to another task")
             if f'<a id="{anchor}"></a>' not in (ROADMAP / evidence).read_text(encoding="utf-8"):
@@ -291,7 +287,9 @@ class SajuPhasePlansTests(unittest.TestCase):
                     self.assertIn("2026-09-16-phase8-intent-s3.md#phase8a", text)
                     self.assertIn("2026-09-16-phase8-intent-s3.md#phase8b", text)
                 elif phase == 9:
-                    self.assertRegex(text, r"(?m)^상태: \*\*blocked")
+                    self.assertRegex(text, r"(?m)^상태: \*\*완료 — S4 v1.1")
+                    self.assertIn("build-1f851d69a91f", text)
+                    self.assertIn("2026-09-16-phase9-s4-recovery.md#phase9", text)
                     self.assertIn("build-296dffd1ef51", text)
                     self.assertIn("1오류·191미실행·정상 응답 0", text)
                     self.assertIn("2026-09-16-phase9-s4-execution.md#blocked-run", text)
@@ -374,7 +372,7 @@ class SajuPhasePlansTests(unittest.TestCase):
             ("O-0068", "development_example", "not_applicable"),
             ("C-0197", "evidence_link", "not_applicable"),
             ("M-0292", "execution_task", "completed"),
-            ("M-0293", "execution_task", "blocked"),
+            ("M-0293", "execution_task", "completed"),
             ("M-0296", "conditional_proposal", "conditional_not_executed"),
             ("C-0001", "structure", "not_applicable"),
         ):
@@ -386,7 +384,7 @@ class SajuPhasePlansTests(unittest.TestCase):
 
     def test_status_validation_rejects_fictional_execution_and_missing_fields(self) -> None:
         for source_id, field, value in (
-            ("M-0293", "execution_status", "completed"),
+            ("O-0174", "execution_status", "completed"),
             ("M-0292", "execution_evidence", "../../history/2026-09-16-phase8-intent-s3.md#phase8a"),
             ("M-0296", "execution_status", "completed"),
             ("O-0068", "execution_status", "not_executed"),
@@ -598,6 +596,8 @@ class SajuPhasePlansTests(unittest.TestCase):
         self.assertIn("242 = 680 - 438 = 본 비교 240(S4 192 + S6 48) + 적격성 2", budget)
         self.assertIn("241 = 680 - 439 = S4 미처리 191 + S6 48 + 적격성 2", budget)
         self.assertEqual(680 - 438 - 1, 191 + 48 + 2)
+        self.assertIn("49 = 680 - 631 = S6 48 + 공유 여유 1", budget)
+        self.assertEqual(680 - 438 - 1 - 192, 48 + 1)
         self.assertIn("여유분을 자동 전용하지 않는다", budget)
         self.assertEqual(680 - 342 - 96, 192 + 48 + 2)
         for marker in (
@@ -610,15 +610,58 @@ class SajuPhasePlansTests(unittest.TestCase):
         self.assertIn("질문은 학습 자료나 새 모델 확인에 재사용하지 않는다", phase13)
         self.assertIn("S6 잔여 요청과 별도의", phase13)
 
-    def test_blocked_s4_requires_evidence_and_cannot_be_declared_unstarted_or_complete(self) -> None:
-        for source_id in BLOCKED_TASK_IDS:
-            for field, value in (("execution_status", "completed"), ("execution_status", "not_executed"), ("execution_evidence", "")):
+    def test_completed_s4_requires_new_evidence_and_cannot_use_failed_or_missing_execution(self) -> None:
+        for source_id in S4_TASK_IDS:
+            for field, value in (("execution_status", "blocked"), ("execution_status", "not_executed"), ("execution_evidence", ""), ("execution_evidence", "../../history/2026-09-16-phase9-s4-execution.md#blocked-run")):
                 with self.subTest(source_id=source_id, field=field, value=value):
                     changed = copy.deepcopy(self.manifest)
                     row = next(entry for entry in changed["entries"] if entry["id"] == source_id)
                     row[field] = value
                     with self.assertRaises(ValueError):
                         validate_mapping(changed)
+
+    def test_phase9_has_verified_full_comparison_and_preserves_failure_budget_and_limits(self) -> None:
+        root = REPO_ROOT / "data/reports/saju_1b_baseline/system-context-s4/v1.1.0/build-1f851d69a91f"
+        summary = json.loads((root / "aggregate.json").read_bytes())
+        manifest = json.loads((root / "build_manifest.json").read_bytes())
+        verification = json.loads((root / "verification.json").read_bytes())
+        for name, key, pin in (
+            ("aggregate.json", "aggregate_file_sha256", "dcdf9e33e14d3b1f70b80f986afbc384cab09e722e675268a1d14ab593dfb45f"),
+            ("build_manifest.json", "manifest_file_sha256", "61122bd326762fb9acb98389ac3fab0876bef5dcbf300612c0f3e218a9a2e29a"),
+        ):
+            self.assertEqual(hashlib.sha256((root / name).read_bytes()).hexdigest(), pin)
+            self.assertEqual(verification[key], pin)
+        self.assertEqual(verification["status"], "verified")
+        self.assertFalse(verification["raw_files_git_tracked"])
+        self.assertEqual(summary["requests"], 192)
+        self.assertEqual(summary["statuses"], {"generated": 172, "preblocked": 20})
+        self.assertEqual(summary["new_generations"], 172)
+        self.assertFalse(summary["candidate_selected"])
+        self.assertTrue(summary["fresh_all_conditions"])
+        self.assertEqual(summary["scorer_version"], "role-aware-contract-v1.2.0")
+        self.assertEqual(summary["quality_dimensions"], {"naturalness": "not_measured", "semantics": "not_measured"})
+        self.assertTrue(summary["governance"]["synthetic_only"])
+        self.assertTrue(all(not value for key, value in summary["governance"].items() if key != "synthetic_only"))
+        self.assertEqual(manifest["publication_counts"], {"new_generations": 172, "new_preblocks": 20, "reused_generations": 0, "reused_preblocks": 0})
+        self.assertEqual(manifest["consumer_preflight"]["actual_storage_api_replays"], 172)
+        self.assertEqual(manifest["consumer_preflight"]["model_calls"], 0)
+        self.assertEqual(manifest["service_before"], manifest["service_after"])
+        self.assertEqual(manifest["identity"]["previous_attempt"]["consumed_requests"], 1)
+        accounting = manifest["request_accounting"]
+        self.assertEqual(accounting["before_s4"] + accounting["preserved_failed_requests"] + accounting["new_comparison_requests"], 631)
+        self.assertEqual(accounting["remaining_after_completion"], 49)
+        arms = {(r["engine"], r["arm"]): r for r in summary["summaries"] if r["stratum"] == "all"}
+        for key, counts in {
+            ("k0_instruct", "C_FULL"): (3, 20, 1), ("k0_instruct", "C_MIN"): (2, 20, 2),
+            ("kanana3b_instruct", "C_FULL"): (3, 15, 6), ("kanana3b_instruct", "C_MIN"): (8, 11, 5),
+        }.items():
+            row = arms[key]
+            self.assertEqual(row["statuses"], {"generated": 43, "preblocked": 5})
+            self.assertEqual(tuple(row["metrics"]["required_fact_use"][k] for k in ("PASS", "FAIL", "UNSCORABLE")), counts)
+            self.assertEqual(row["metrics"]["false_premise_corrected"]["PASS"], 0)
+        self.assertEqual(arms[("kanana3b_instruct", "C_MIN")]["stop_reasons"], {"eos": 42, "max_tokens": 1})
+        quad = next(r for r in summary["interaction_common_scorable_quads"] if r["stratum"] == "all" and r["metric"] == "required_fact_use")
+        self.assertEqual((quad["common_scorable_cases"], quad["with_unscorable_cases"], quad["full_model_pass_delta"], quad["minimum_model_pass_delta"]), (15, 9, 2, 5))
 
     def test_s4_does_not_wait_for_app_and_s6_keeps_two_paths(self) -> None:
         phase8 = (ROADMAP / "phases/phase-08.md").read_text(encoding="utf-8")
