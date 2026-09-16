@@ -4,11 +4,13 @@
 
 ## 목적과 현재 상태
 
-상태: 미실행. 기존 v1.16은 일부 의도 수정 후보이며 일반 대화에 맞게 최종 입력을 바꾸는 단계까지 완료한 것이 아니다. 기존 세션·binding 계약 안에서 확인된 문제를 해결하는 최소 제품 후보 하나로 제한한다. [로드맵](../README.md)의 제품 후보로 진행하며 S3/S4의 동결 입력·점수는 변경하지 않는다.
+상태: **완료 — R16 단독 v1.18 최소 제품 후보 구현·CPU/합성 화면 검증**. 공개 `build-f13715ee1d91`은 관련 46개 CPU 회귀·16개 합성 화면 검사를 통과했다. 실제 모델 생성 0이며 모델 품질·운영 채택 완료가 아니다. [구현·검증 기록](../../../history/2026-09-16-phase10-product-candidate.md#phase10)을 따른다. v1.16·v1.17 부모와 S3/S4의 동결 입력·점수·기존 세션은 보존한다.
 
 ## 진입 조건
 
 Phase 8A 앱 회귀와 Phase 9 결과·제한을 확보한다. S4 미실행이면 그 상태를 유지하고 크기 결론 없이 가능한 앱 범위만 명시한다. 기존 snapshot·HMAC·binding·schema·권한과 새 후보의 변경 목록을 먼저 고정한다.
+
+이번 진입은 8A 45개 CPU·6개 합성 화면, S3 96요청, S4 v1.1 192요청의 재검증을 근거로 했다. 사용자 선택은 R16이며 S4의 3B나 S3 P1을 자동 채택하지 않는다. 후보 하나는 **R16 + product_v1 지시문 묶음 + 요청별 사실/이력 선택 + v4 기반 의도 판별 + v1.18 API/UI/저장 정책**이다. 개별 실험에서 개선된 조합을 검증된 제품으로 간주하지 않는다.
 
 ## 작업 순서
 
@@ -49,6 +51,8 @@ Phase 8A 앱 회귀와 Phase 9 결과·제한을 확보한다. S4 미실행이�
 
 단순 조회의 첫 범위는 명확한 유일 필드다. 설명이 필요하면 승인된 값과 함께 LLM에 제한적으로 위임한다. 모델의 자기 선언만으로 필드 선택을 승인하지 않는다. 별도 대형 라우터·새 다단계 에이전트는 기본 의존성이 아니다.
 
+구현의 `response_kind`는 `direct_fact`·`model_generated`·`clarification`·`blocked` 네 종류다. 일간·연주·월주·일주·시주·연결 일진·선택 날짜의 유일한 단순 조회만 직접 답한다. 두 필드 비교·성향 설명은 생성 경로이며 미상 시주는 확인으로 처리한다. 미지원 계산과 명확히 분리된 일반 요청은 제한 안내와 일반 생성으로 분리하고, 모호한 경우 추측하지 않는다. 원시 출생정보·정정은 구조화 입력 화면으로 안내한다. 규칙 기반 판별의 전체 자연어 이해를 인증한 것은 아니다.
+
 <a id="context"></a>
 ### 연결 보존과 필요한 사실 선택
 
@@ -56,10 +60,14 @@ Phase 8A 앱 회귀와 Phase 9 결과·제한을 확보한다. S4 미실행이�
 
 현재 projection 형식을 먼저 확인하며 질문별 projection 변경은 최소 제품 후보 안에 포함해 [Phase 12의 실제 통합 경로](phase-12.md#actual-app)에서 검증한다. 기존 S3/S4의 입력이나 결과에 소급 적용하지 않는다.
 
+`dashboard_product_policy_v1.py`는 일반 응답에서 사주 지시문·facts를 빼고, 설명에는 승인 필드와 불확실성만 선택한다. 관련 이력은 같은 세션의 원문 turn을 선택하며 다시 쓰거나 요약하지 않는다. 선택 경로·facts hash·revision·이력 index와 실제 최종 messages/token identity를 로컬 진단에 남긴다. 일반 대화에서도 binding은 유지하며 옛 모델 답은 승인 근거로 승격하지 않는다.
+
 <a id="response-contract"></a>
 ### 새 제품 계약과 동결 진단 구분
 
 단순 일진 조회에도 원국 하나를 강제하는 의무는 요청 유형에 맞게 완화할 수 있다. 새 제품 계약을 먼저 고정하고 기준선·후보에 동일 적용한다. 과거 S3/S4 기대값·응답·점수는 보존한다. 직접 사실 표시 정확도, LLM 자체 사실 활용, end-to-end 요청 성공을 따로 보고한다. 모델은 일주/일간·원국/일진을 구분하고 잘못된 전제를 현재 사실로 교정하며 짧은 답·문장 수·재작성·미상·미지원 제한을 따른다.
+
+후보 저장 schema는 `1.9.0`, 응답 정책은 `saju-product-response-v1.0.0`이다. 직접 응답·확인·차단에는 모델 이름/가짜 token·latency를 붙이지 않는다. 생성은 R16 원출력을 수정 없이 API·저장·화면에 전달하고 자동 검사 경고를 분리한다. 원출력 재작성·자동 재생성으로 성공을 만들지 않는다. 이 경로는 CPU 모의 생성으로 확인했으며 **실제 R16 생성·자연스러움·의미 품질은 미측정**이다. Phase 12의 공통 평가 계약·새 질문 사용 전 동결은 별도 남아 있다.
 
 <a id="revision-history"></a>
 ### 정정·날짜 변경·이력
@@ -67,6 +75,8 @@ Phase 8A 앱 회귀와 Phase 9 결과·제한을 확보한다. S4 미실행이�
 기존 연결 대화의 snapshot 변경 제한은 보호 기능이다. 정정·날짜 변경 때 새 검증 binding을 만들고 연결 대상 변경을 알린다. 기존 구현이 새 대화를 요구하면 우선 그 계약 안에서 UI 흐름을 개선하고 이전 snapshot을 덮어쓰지 않는다.
 
 사용자의 일반 이야기·요청은 필요한 범위에서 유지할 수 있다. 이전 원국의 모델 설명은 현재 사실로 넣지 않고, 정정 정보는 새 revision의 근거로만 처리해 원문을 공개하지 않는다. 이전 모델 오답은 과거 발언으로 구분하고 이전 날짜 일진 설명을 새 날짜 근거로 사용하지 않는다. 첫 후보에는 대형 라우터·장기 메모리·자동 요약·세션 전면 개편·자동 일기 저장을 추가하지 않으며 선행 조건으로도 삼지 않는다. 원문이 언급한 향후 요약 오염 검사는 도입을 별도 결정할 때의 조건으로 보존한다. 과거 일상 이야기는 허용하지만 과거 일진은 [현재 날짜 정책](phase-07.md#date-policy)을 유지한다.
+
+v1.18은 정정·날짜 변경 후 **새 연결 대화**만 허용한다. 이전 대화 파일·공개 binding snapshot은 그대로 보존하고 다른 세션 이력을 자동 복사하지 않는다. 재계산 실패 시 이전 runtime session을 삭제하지 않는다. `원국만` 연결은 partial/unknown을 허용하되 exact 원국+단일 날짜 연결과 분리한다. HTTP worker는 초안을 반환하고 서버가 저장 직전 authoritative revision·snapshot과 대화 CAS를 다시 확인한다. stale 결과는 저장하지 않으며 0600 잠금 파일과 기존 인증·CSRF·rate limit·암호화 runtime store·process lease를 유지한다.
 
 <a id="cpu-regression"></a>
 ## 검증
@@ -77,15 +87,21 @@ Phase 8A 앱 회귀와 Phase 9 결과·제한을 확보한다. S4 미실행이�
 
 입력은 승인 binding·현재 요청·필요 이력·8A/S3/S4 결과다. 산출물은 모드별 응답 계약, 선택 facts·revision·최종 입력 추적, 최소 앱 후보 하나와 변경 목록, CPU 회귀다. 실제 제품 API·버전은 구현 시 계약으로 고정하며 이 계획의 개념을 기존 API라고 부르지 않는다.
 
+구현 입구는 [v1.18](../../../../scripts/training/phase5_dashboard_v1_18.py), [응답 정책](../../../../scripts/training/dashboard_product_policy_v1.py), [세션 계약](../../../../scripts/training/dashboard_product_session_v1.py), [binding](../../../../scripts/runtime/product_dashboard_binding_v1.py)과 [고정 config](../../../../configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.18.0-product-candidate.json)다. 기본 포트 8770, 별도 `dashboard/v1.18.0/product-v1.0.0/manual_sessions` 경로, feature 기본 off다. 부모 v1.17 파일은 수정하지 않았다. CPU 공개 산출물은 [aggregate](../../../../data/reports/saju_1b_baseline/dashboard-product-canary/v1.0.0/build-f13715ee1d91/aggregate.json)·[manifest](../../../../data/reports/saju_1b_baseline/dashboard-product-canary/v1.0.0/build-f13715ee1d91/build_manifest.json)·[verification](../../../../data/reports/saju_1b_baseline/dashboard-product-canary/v1.0.0/build-f13715ee1d91/verification.json)만 포함한다.
+
 ## 종료·중단과 다음 단계
 
 후보·변경 범위와 상태/입력 회귀를 고정하고 [Phase 11](phase-11.md)에 남은 오류를 넘긴다. 실제 모델·worker·화면 확인은 [Phase 12](phase-12.md)에서 별도 수행한다. 권한·현재 사실이 불명확하면 확인/제한으로 처리하며 자동 범위 확대·배포하지 않는다.
+
+Phase 10 구현은 종료한다. 다음 착수 대상은 **Phase 11의 학습 필요성 가설·조건부 명세**이며 학습 실행 결정이 아니다. Phase 12 새 24문항·실제 모델+앱 통합·cold/warm 비용은 미실행이다. 누적 실제 요청은 **631/680, 잔여 49**, 이번 추가 0이다. 새 모델 다운로드·생성·보정·학습·서비스 교체·Runtime release·sealed blind 접근은 하지 않았다.
 
 ## 원문 대응
 
 전체 문서 §1·3·5·6·9.1, 모델 문서 §1과 제품 응답 분리 원칙이다. [원문·섹션 색인](../source-20260915.md)과 [행별 반영표](../requirements-20260915.json)에 전량 연결한다.
 
 ## 진행 기록
+
+- 2026-09-16: R16/v1.18 후보와 schema 1.9.0을 구현했다. 관련 CPU 46개·합성 화면 16개 및 부모 8A/S3/S4 재검증을 통과하고 `build-f13715ee1d91`로 고정했다. 원문 588행의 문서 상태는 보존하고 해당 실제 과제 10개에만 완료 근거를 연결한다. 전체 검증·디버깅·운영 보존은 [기록](../../../history/2026-09-16-phase10-product-candidate.md#phase10)을 따른다.
 
 - 2026-09-15 보완: 8A의 읽기 전용 의도 판별과 이 단계의 입력/이력 변경을 분리하고 기존 계약 안의 최소 후보 하나로 한정했다. 실제 앱 구현은 미실행이다.
 

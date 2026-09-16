@@ -13,7 +13,7 @@
 | 현재 단계 | S0/S1·S2·CPU 재집계 및 S3 96요청 실행·재구성 검증 완료 |
 | 최신 S2 build | `build-c39b4bce5089`, 312생성·30사전 차단; 검사기 오탐 별도 확인 |
 | 현재 승인 후속 | Phase 8A v1.17 CPU/화면 `build-49b9aed70565`·8B S3 `build-ffd985905b51` 완료 |
-| 다음 별도 작업 | Phase 9 S4 v1.1 192요청 검증 완료·후보 미채택; Phase 10 최소 제품 후보 |
+| 다음 별도 작업 | Phase 9 S4 결과 보존·Phase 10 R16/v1.18 CPU 후보 완료; Phase 11 데이터 대조·학습 가설 |
 
 2026-09-14 PR #28로 이 계획과 부모 v1.15 후보를 `master`에 통합했다. 2026-09-15 사용자 승인 범위인 S0/S1 구현·검증과 S2 실행을 완료했다. 코드 통합과 격리 진단은 운영 v1.15 배포가 아니다. [완료 기록](../history/2026-09-15-system-context-diagnosis.md)은 실제 모델 오류와 검사기 오탐을 구분한다. 입력·집계 재구성 검증 통과가 검사기의 의미 타당성이나 모델 품질 승인은 아니다.
 
@@ -230,7 +230,7 @@ SYSTEM_CONTEXT_DIAGNOSIS=S0_S1_S2_V1 .venv/bin/python -B -m scripts.evaluation.s
 
 ## 10. 종료·보존·후속 결정
 
-후속 실행의 전체 순서는 [Phase 7~14 로드맵](saju_product_roadmap/README.md)을 따른다. [예산 정본](saju_product_roadmap/phases/phase-07.md#budget)은 Phase 7 당시 338·S3 직후 242·S4 첫 실패 직후 241과 별도 승인된 v1.1 192요청 완료 뒤 현재 **49 = S6 48 + 공유 여유 1**을 구분한다. 실패 1건도 포함해 누적 631/680이며 잔여는 후속 실행 승인이 아니다. 추가 실제 모델 호출·학습 후 평가는 목적·범위·예산을 별도로 정하며 CPU 모의 검증과 구분한다. 다음 Phase 10은 최소 제품 후보, 11은 학습 가설·보정 대상·조건부 명세, 12는 실제 제품 결과 대조 후 13 실행 여부 결정, 14는 운영 검토다. 앱·지시문으로 해소됐으면 기존 400건이나 명세가 있어도 학습을 건너뛴다. 미시험 3B/P1·새 projection은 새 통합 후보이며 S6 첫 확인의 한계를 밝힌다. 새 학습 검증에 이미 사용한 S6를 재사용하지 않는다.
+후속 실행의 전체 순서는 [Phase 7~14 로드맵](saju_product_roadmap/README.md)을 따른다. [예산 정본](saju_product_roadmap/phases/phase-07.md#budget)은 Phase 7 당시 338·S3 직후 242·S4 첫 실패 직후 241과 별도 승인된 v1.1 192요청 완료 뒤 현재 **49 = S6 48 + 공유 여유 1**을 구분한다. 실패 1건도 포함해 누적 631/680이며 잔여는 후속 실행 승인이 아니다. 추가 실제 모델 호출·학습 후 평가는 목적·범위·예산을 별도로 정하며 CPU 모의 검증과 구분한다. Phase 10 최소 제품 후보는 CPU·합성 화면 검증 완료이며 실제 모델 품질 확인은 아니다. 다음 11은 학습 가설·보정 대상·조건부 명세, 12는 실제 제품 결과 대조 후 13 실행 여부 결정, 14는 운영 검토다. 앱·지시문으로 해소됐으면 기존 400건이나 명세가 있어도 학습을 건너뛴다. 미시험 3B/P1·새 projection은 새 통합 후보이며 S6 첫 확인의 한계를 밝힌다. 새 학습 검증에 이미 사용한 S6를 재사용하지 않는다.
 
 S6 후보 하나는 [Phase 12](saju_product_roadmap/phases/phase-12.md#confirmation)의 모델·지시문 묶음·정보 선택·라우팅·이력 정책·검사·채택 규칙을 포함한 전체 실행 구성이다. 새 24문항 사용 전에 동결하며 결과를 보고 같은 질문으로 재선발하지 않는다. 실험 R16/P0/C_FULL 기준선과 운영 KI20의 비교·미측정·되돌림은 [Phase 14](saju_product_roadmap/phases/phase-14.md#comparison-baselines)를 따른다. 이 차이를 이유로 S6 비교군을 늘리지 않는다.
 
@@ -292,6 +292,8 @@ HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 .venv/bin/python -B -m scripts.evaluatio
 - 무관한 자료가 포함된 산술 문제의 성능 저하 연구를 정보 관련성 대조의 근거로 삼는다. 해당 과제 결과를 한국어 사주 대화나 모델 크기의 인과 결론으로 직접 일반화하지 않는다. [Shi 외, Large Language Models Can Be Easily Distracted by Irrelevant Context, v3](https://arxiv.org/abs/2302.00093v3).
 
 ## 진행 기록
+
+- 2026-09-16 Phase 10: [R16/v1.18 구현 기록](../history/2026-09-16-phase10-product-candidate.md#phase10)의 CPU 46개·합성 화면 16개를 확인했다. S3/S4 source·점수·원문은 바꾸지 않았고 새 모델 생성 0·잔여 49·운영 상태를 유지한다. 다음은 Phase 11이며 새 S6 질문·학습은 미실행이다.
 
 ### 2026-09-16 — S4 v1.1 복구·실제 비교 완료
 

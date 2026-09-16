@@ -9,7 +9,7 @@
 - `grounded_dialogue_eval_plan.md`: 계산기 연결 대화의 자동 사실·상태·장문 진단 정본
 - `saju_product_roadmap/README.md`: 전체 실행 순서 정본, 완료 Phase 0~6 계약을 참조하고 Phase 7~14로 연결
 - `saju_product_roadmap/source-20260915.md`: 새 ZIP 문서 3개의 원문·841행·80절·588개 비공백 행 반영표
-- `saju_product_roadmap/00-current-baseline.md`: 원격 master·v1.14 운영·v1.15/v1.16 부모·v1.17 CPU 검증 후보를 구분하는 현재 상태 정본
+- `saju_product_roadmap/00-current-baseline.md`: 원격 master·v1.14 운영·v1.15~v1.17 부모·v1.18 CPU 검증 후보를 구분하는 현재 상태 정본
 - `saju_product_roadmap/50-automatic-model-evaluation.md`: 전체 경로·컨텍스트/지시문·큰 기본 모델·데이터/학습 점검의 진단 상세 정본
 - `saju_system_context_diagnosis.md`: 50-A~D 안의 S0~S6 실험 설계·통제 변수·파일 구현 순서 정본
 - `mix2k_v4_chart_day_lora.md`: 완료된 K0 기반 R8·R16·R32 학습과 별도 미완료 400건 보정 이력
@@ -29,14 +29,14 @@
 | 계산기 연결 대화 | 기존 500건을 `eval-562c07d0e2e6`으로 재채점하고 2,048↔3,584 장문 200건 `eval-56d1357560d5` 완료 | 두 장문 arm 자동 목표 통과·3,584 상한 유지 후보, 전체 baseline·release·학습 권한 불변 |
 | K0 기반 LoRA | R8·R16·R32 학습 완료, 별도 400건 보정은 현재 R16에 미반영 | 새 학습·보정 재개는 원인 분리 후 별도 판단 |
 | 최신 대화 진단 | S0/S1·S2·CPU 재집계 보존, S3 96·S4 192요청 검증 완료 | S4 `build-1f851d69a91f` 후보 미채택; 첫 실패 보존·S5~S6 미실행 |
-| 앱 | dashboard v1.14 운영 / v1.15·v1.16 부모·v1.17 오차단 후보 CPU/합성 화면 검증 완료 | `build-49b9aed70565`, 현재 service·기본 모델·feature off 유지 |
-| 후속 계획 | Phase 7 정본화·8A 후보 검증·8B S3 완료, 9 실행기·CPU 검증 완료/실제 비교 미실행, 10~12 미실행·13~14 조건부 보류 | 기존 Phase·불변 산출물·release·후속 실행 권한 불변 |
+| 앱 | dashboard v1.14 운영 / v1.17 부모 보존·v1.18 R16 최소 후보 CPU/합성 화면 검증 완료 | `build-f13715ee1d91`, 실제 모델 생성 0·현재 service·기본 모델·feature off 유지 |
+| 후속 계획 | Phase 7 정본화·8A 후보·8B S3·9 S4 완료, 10 최소 후보 CPU 검증 완료·11~12 미실행·13~14 조건부 보류 | 기존 Phase·불변 산출물·release·후속 실행 권한 불변 |
 
 루트 [`PROJECT_STATUS.html`](../../PROJECT_STATUS.html)은 Phase 6·대화 진단까지의 공개 집계를 `project-status/v1.3.0/build-38b9ca77ce45`로 보여준다. 이후 완료한 runtime release와 앱 통합은 모델·승격 상태를 바꾸지 않으므로 runtime 정본과 각 versioned 보고서에 별도로 고정한다. 현재 계산기 권위는 부모 v9 `data/reports/saju_runtime_conformance/v1.7.0/build-9f1784e74a4e/`와 단일 일진 v10 `data/reports/saju_runtime_conformance/v1.8.0/build-46185262164f/`를 함께 따른다.
 
 v1.11의 원국·단일 날짜 명시 연결은 완료된 부모 구현이다. AES-GCM state·공개 allowlist·snapshot hash·자동 Grounding Gate를 적용하며 날짜 변경은 기존 대화에 덮어쓰지 않는다. 최신 운영·후보 commit과 검증 범위는 [현재 기준선](saju_product_roadmap/00-current-baseline.md)을 따른다. 이 통합은 strict/full runtime, Phase 6, v3.1, 추가 학습과 모델 승격을 승인하지 않는다.
 
-실행 순서는 [Phase 7~14 로드맵](saju_product_roadmap/README.md)이다. [50 진단](saju_product_roadmap/50-automatic-model-evaluation.md)과 [전체 흐름·컨텍스트 진단 계획](saju_system_context_diagnosis.md)의 S0/S1·S2·CPU 후속과 Phase 8A·8B S3, [Phase 9 S4](saju_product_roadmap/phases/phase-09.md) v1.1 192요청을 완료했다. 첫 저장 오류는 별도 보존하고 개선·회귀·미측정을 함께 기록해 후보를 채택하지 않았다. 다음은 Phase 10 응답 모드·정정 흐름의 최소 후보이며 11 데이터 원인→12 확인 평가 후 보정·학습·운영은 조건부로 결정한다. 실패 1건까지 소비한 잔여 49요청은 후속 실행 승인이 아니다. 최상단 01·02·03은 요약·연결 문서이고 별도 실행 정본이 아니다.
+실행 순서는 [Phase 7~14 로드맵](saju_product_roadmap/README.md)이다. [50 진단](saju_product_roadmap/50-automatic-model-evaluation.md)과 [전체 흐름·컨텍스트 진단 계획](saju_system_context_diagnosis.md)의 S0/S1·S2·CPU 후속과 Phase 8A·8B S3, [Phase 9 S4](saju_product_roadmap/phases/phase-09.md) v1.1 192요청을 완료했다. 첫 저장 오류는 별도 보존하고 개선·회귀·미측정을 함께 기록해 후보를 채택하지 않았다. [Phase 10 최소 후보](saju_product_roadmap/phases/phase-10.md)는 CPU·합성 화면 검증을 완료했다. 다음은 11 데이터 원인·학습 가설→12 실제 후보 확인이며 그 후 보정·학습·운영은 조건부로 결정한다. 실패 1건까지 소비한 잔여 49요청은 후속 실행 승인이 아니다. 최상단 01·02·03은 요약·연결 문서이고 별도 실행 정본이 아니다.
 
 ## 현재 평가 기본값
 

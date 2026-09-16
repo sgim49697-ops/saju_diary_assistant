@@ -43,7 +43,8 @@ NON_TASK_TYPES = {
     "current_fact", "policy", "development_example", "evidence_link", "structure",
 }
 S4_TASK_IDS = {"M-0293", "O-0173"}
-IMPLEMENTATION_TASK_IDS = {"O-0171", "M-0292", "O-0172"} | S4_TASK_IDS
+PRODUCT_TASK_IDS = {"O-0144", "O-0174", *(f"O-{n:04}" for n in range(213, 221))}
+IMPLEMENTATION_TASK_IDS = {"O-0171", "M-0292", "O-0172"} | S4_TASK_IDS | PRODUCT_TASK_IDS
 SEMANTIC_TYPES = NON_TASK_TYPES | {
     "execution_task", "conditional_proposal", "completed_history",
 }
@@ -137,17 +138,18 @@ def validate_mapping(manifest: dict) -> None:
         if entry["id"] in DOCUMENTATION_TASK_IDS and requirement_type != "execution_task":
             raise ValueError("documentation task misclassified")
         if entry["execution_status"] == "completed" and phase != 7:
-            expected_phase = 9 if entry["id"] in S4_TASK_IDS else 8
+            expected_phase = 10 if entry["id"] in PRODUCT_TASK_IDS else 9 if entry["id"] in S4_TASK_IDS else 8
             if phase != expected_phase or entry["id"] not in IMPLEMENTATION_TASK_IDS:
                 raise ValueError("future phase incorrectly completed")
             evidence, separator, anchor = entry.get("execution_evidence", "").partition("#")
             expected_evidence = (
-                "../../history/2026-09-16-phase9-s4-recovery.md" if phase == 9
+                "../../history/2026-09-16-phase10-product-candidate.md" if phase == 10
+                else "../../history/2026-09-16-phase9-s4-recovery.md" if phase == 9
                 else "../../history/2026-09-16-phase8-intent-s3.md"
             )
             if evidence != expected_evidence or not separator:
                 raise ValueError("implementation completion without evidence")
-            expected_anchor = "phase9" if phase == 9 else "phase8a" if entry["id"] == "O-0171" else "phase8b"
+            expected_anchor = "phase10" if phase == 10 else "phase9" if phase == 9 else "phase8a" if entry["id"] == "O-0171" else "phase8b"
             if anchor != expected_anchor:
                 raise ValueError("implementation evidence refers to another task")
             if f'<a id="{anchor}"></a>' not in (ROADMAP / evidence).read_text(encoding="utf-8"):
@@ -293,7 +295,11 @@ class SajuPhasePlansTests(unittest.TestCase):
                     self.assertIn("build-296dffd1ef51", text)
                     self.assertIn("1오류·191미실행·정상 응답 0", text)
                     self.assertIn("2026-09-16-phase9-s4-execution.md#blocked-run", text)
-                elif 10 <= phase <= 12:
+                elif phase == 10:
+                    self.assertIn("상태: **완료 — R16 단독 v1.18 최소 제품 후보 구현·CPU/합성 화면 검증**", text)
+                    self.assertIn("build-f13715ee1d91", text)
+                    self.assertIn("2026-09-16-phase10-product-candidate.md#phase10", text)
+                elif 11 <= phase <= 12:
                     self.assertIn("상태: 미실행", text)
                 elif phase >= 13:
                     self.assertIn("상태: 조건부 보류", text)
@@ -384,7 +390,7 @@ class SajuPhasePlansTests(unittest.TestCase):
 
     def test_status_validation_rejects_fictional_execution_and_missing_fields(self) -> None:
         for source_id, field, value in (
-            ("O-0174", "execution_status", "completed"),
+            ("O-0175", "execution_status", "completed"),
             ("M-0292", "execution_evidence", "../../history/2026-09-16-phase8-intent-s3.md#phase8a"),
             ("M-0296", "execution_status", "completed"),
             ("O-0068", "execution_status", "not_executed"),
@@ -423,6 +429,40 @@ class SajuPhasePlansTests(unittest.TestCase):
         next(e for e in broken["entries"] if e["id"] == "O-0171").pop("execution_evidence")
         with self.assertRaises(ValueError):
             validate_mapping(broken)
+
+    def test_phase10_completion_has_current_cpu_evidence_not_model_quality(self) -> None:
+        entries = {e["id"]: e for e in self.manifest["entries"]}
+        for source_id in PRODUCT_TASK_IDS:
+            self.assertEqual(entries[source_id]["execution_status"], "completed")
+            self.assertEqual(entries[source_id]["execution_evidence"], "../../history/2026-09-16-phase10-product-candidate.md#phase10")
+            for field, value in (("execution_status", "not_executed"), ("execution_evidence", ""), ("execution_evidence", "../../history/2026-09-16-phase8-intent-s3.md#phase8a")):
+                broken = copy.deepcopy(self.manifest)
+                next(e for e in broken["entries"] if e["id"] == source_id)[field] = value
+                with self.subTest(source_id=source_id, field=field), self.assertRaises(ValueError):
+                    validate_mapping(broken)
+        self.assertEqual(entries["M-0311"]["execution_status"], "conditional_not_executed")
+        self.assertEqual(entries["O-0156"]["execution_status"], "conditional_not_executed")
+        root = REPO_ROOT / "data/reports/saju_1b_baseline/dashboard-product-canary/v1.0.0/build-f13715ee1d91"
+        summary = json.loads((root / "aggregate.json").read_bytes())
+        manifest = json.loads((root / "build_manifest.json").read_bytes())
+        verification = json.loads((root / "verification.json").read_bytes())
+        self.assertEqual(summary["tests_passed"], 46)
+        self.assertEqual(summary["synthetic_browser_cases_passed"], 16)
+        self.assertEqual(summary["candidate_engine"], "lora_r16")
+        self.assertFalse(summary["candidate_adopted_for_production"])
+        self.assertEqual(summary["cpu_policy_response_kind_counts"], {"direct_fact": 3, "model_generated": 4, "clarification": 3, "blocked": 2})
+        self.assertEqual(summary["quality_dimensions"], {"naturalness": "not_measured", "semantics": "not_measured"})
+        self.assertEqual(summary["request_budget"], {"actual_model_requests_added": 0, "previous_total": 631, "current_total": 631, "remaining": 49})
+        self.assertEqual(summary["governance"]["new_model_generations"], 0)
+        for flag in ("service_changed", "production_service_accessed", "production_promotion_allowed", "runtime_release_changed", "training_performed", "sealed_blind_accessed", "raw_outputs_published", "phase12_executed"):
+            self.assertIs(summary["governance"][flag], False)
+        self.assertEqual(verification["status"], "verified")
+        self.assertEqual(verification["aggregate_file_sha256"], hashlib.sha256((root / "aggregate.json").read_bytes()).hexdigest())
+        self.assertEqual(verification["manifest_file_sha256"], hashlib.sha256((root / "build_manifest.json").read_bytes()).hexdigest())
+        for path, expected in manifest["identity"]["source_sha256"].items():
+            self.assertEqual(hashlib.sha256((REPO_ROOT / path).read_bytes()).hexdigest(), expected, path)
+        for path, expected in manifest["identity"]["parent_manifest_sha256"].items():
+            self.assertEqual(hashlib.sha256((REPO_ROOT / path).read_bytes()).hexdigest(), expected, path)
 
     def test_active_collection_recurses_and_keeps_archive_policy_separate(self) -> None:
         real_active = set(active_roadmap_documents())

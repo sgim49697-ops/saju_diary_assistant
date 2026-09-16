@@ -2,11 +2,11 @@
 
 # 00. 현재 기준선과 권한 경계
 
-이 문서는 후속 로드맵의 **현재 상태 정본**이다. 2026-09-16 Phase 8A v1.17 후보 CPU·합성 브라우저와 8B S3 실제 비교·재구성 검증을 반영한다. S0~S2·CPU 재집계·v1.16 및 PR #28·기존 학습·응답·데이터 이력은 보존한다. 실행 순서는 [로드맵 README](README.md), 진단 상세는 [50번 문서](50-automatic-model-evaluation.md)가 소유한다.
+이 문서는 후속 로드맵의 **현재 상태 정본**이다. 2026-09-16 Phase 8A·S3·S4 실제 비교와 Phase 10 v1.18 R16 최소 후보의 CPU·합성 화면 검증을 반영한다. S0~S2·CPU 재집계·v1.16 및 PR #28·기존 학습·응답·데이터 이력은 보존한다. 실행 순서는 [로드맵 README](README.md), 진단 상세는 [50번 문서](50-automatic-model-evaluation.md)가 소유한다.
 
 ## Phase 7 정본화와 다음 실행
 
-기준 commit `390ca88f4b65f6c3b87f0f36ca26cbc492251a06`에서 [원문 3개·841줄·80개 섹션](source-20260915.md)을 [Phase 7~14](README.md)에 통합했다. Phase 7은 문서·테스트 완료, 8A는 후보 CPU 확인 완료, 8B는 S3 실행·검증 완료, 9는 S4 v1.1 192요청·검증 완료·후보 미채택, 10~12는 미실행, 13~14는 조건부 보류다. 다음은 Phase 10의 최소 제품 후보다. [첫 S4 중단](../../history/2026-09-16-phase9-s4-execution.md#blocked-run)의 실패 1건은 [별도 승인 v1.1 결과](../../history/2026-09-16-phase9-s4-recovery.md#phase9)와 분리해 보존한다. [8A 실행 기록](../../history/2026-09-16-phase8-intent-s3.md#phase8a)은 이전 25개에 더해 새 정책·경로·보고서와 화면을 검증했다. 기존 Phase 0~6·S0~S2 완료와 승인 상태는 바뀌지 않는다.
+기준 commit `390ca88f4b65f6c3b87f0f36ca26cbc492251a06`에서 [원문 3개·841줄·80개 섹션](source-20260915.md)을 [Phase 7~14](README.md)에 통합했다. Phase 7은 문서·테스트 완료, 8A는 후보 CPU 확인 완료, 8B는 S3 실행·검증 완료, 9는 S4 v1.1 192요청·검증 완료·후보 미채택, 10은 R16 제품 후보 CPU 검증 완료, 11~12는 미실행, 13~14는 조건부 보류다. 다음은 Phase 11의 학습 필요성 가설·조건부 명세다. [첫 S4 중단](../../history/2026-09-16-phase9-s4-execution.md#blocked-run)의 실패 1건은 [별도 승인 v1.1 결과](../../history/2026-09-16-phase9-s4-recovery.md#phase9)와 분리해 보존한다. [8A 실행 기록](../../history/2026-09-16-phase8-intent-s3.md#phase8a)은 이전 25개에 더해 새 정책·경로·보고서와 화면을 검증했다. 기존 Phase 0~6·S0~S2 완료와 승인 상태는 바뀌지 않는다.
 
 `d151548` 이후 보완은 요구사항 유형·문서 반영·실제 실행 상태와 Phase별 결정 경계를 구분하는 문서 작업이다. Phase 11은 가설·조건부 명세만 작성하고 Phase 12 실제 후보 결과 대조 후 Phase 13 실행을 별도 결정한다. S6의 R16/P0/C_FULL 기준선과 운영 기본 KI20은 다르며 미비교 부분은 미측정이다. 이번 보완의 진행·검증은 [기록](../../history/2026-09-15-phase7-canonicalization.md#supplement-20260915)을 따른다.
 
@@ -25,7 +25,8 @@ v1.16의 CPU 25개 통과는 보존한다. 2026-09-15 분리 함수 재현에서
 | 최신 S3 지시문 진단 | 구현 `2d951b4`, `build-ffd985905b51` | 96요청·86생성·10차단 검증 완료, P1 미채택·검사 한계 분리 |
 | S4 첫 실행 중단 | `7e7819e`, `build-296dffd1ef51` | 모델 수집·dry-run 완료; 첫 K0 요청의 저장 계약 오류·정상 응답 0 |
 | 최신 S4 비교 | 수정 `82a67af`, `build-1f851d69a91f` | v1.1 192요청·172생성·20차단 검증 완료, 후보 미채택·실패 1건 별도 보존 |
-| 최신 앱 후보 | v1.17, CPU canary `build-49b9aed70565` | 45개 CPU·6개 합성 브라우저 통과, v1.16 부모 보존·운영 미배포 |
+| 최신 앱 후보 | v1.18 R16, CPU canary `build-f13715ee1d91` | 46개 CPU·16개 합성 화면 통과, 실제 모델 생성 0·운영 미배포 |
+| 보존 의도 후보 | v1.17, CPU canary `build-49b9aed70565` | 45개 CPU·6개 합성 브라우저 재검증, 동결 부모 보존 |
 | 보존 앱 후보 | v1.16, CPU canary `build-641ac655f656` | 당시 25개 CPU 통과 이력, 새 오차단 회귀는 v1.17에서 별도 검증 |
 | 현재 작업 위치 | 원본 프로젝트 폴더의 `master` | `f34f856`·`56b0ecb`·작업 규칙 `f9173e5`까지 통합, 새 작업 브랜치 없음 |
 | 운영 service | `saju-mix2k-r16-dashboard-v1-14.service`, dashboard v1.14 | active/running, `127.0.0.1:8767` |
@@ -43,12 +44,12 @@ v1.16의 CPU 25개 통과는 보존한다. 2026-09-15 분리 함수 재현에서
 | Phase 6 | `eval-e8630962cab2`, `AUTOMATED_REPAIR_REQUIRED` | 단회 완료, 재실행·재판정 금지 |
 | 과거 대화 진단 | 500건 및 2,048↔3,584 장문 진단 완료 | 공개 집계만 이력 근거로 사용 |
 | 20문장 기준선 | 확정 20문장×3모델, 60요청·54생성·6차단 | 과거 개발 진단 이력 유지 |
-| 최신 전체 경로 진단 | S2·CPU 재집계·S3·S4 실행·검증 완료 | 다음 Phase 10 최소 제품 후보, S5~S6 미실행 |
+| 최신 전체 경로 진단 | S2·CPU 재집계·S3·S4 실행·검증 완료 | Phase 10 후보 CPU 검증 완료, 다음 Phase 11/S5·12/S6 미실행 |
 | 원국 | v1.4, 정규화 양력 1920-01-07~2026-08-31 | 승인 chart-only 부모 release |
 | 단일 일진 | v1.5, 2026-09-02~2049-12-31 | KST 정오 기준 공식 날짜 label, conformance v10 8,522/8,522 |
 | 기간 범위 | 일별 label release, conformance v11 263,717 window | 1~31일 범위 구현·검증 완료, 미래 분 단위 절입 승인 아님 |
 | 단일 날짜 관계 | relation v1 release·전수 검사 완료 | 십신·직접 관계 존재만, 길흉·범위 관계 해석 승인 아님 |
-| 앱 후보 | v1.12·v1.13·v1.15·v1.16 부모 보존, v1.17 오차단 CPU canary 완료 | 기본 포트 8769·별도 세션·기능 기본 off, 현재 서비스는 v1.14 |
+| 앱 후보 | v1.12~v1.17 부모 보존, v1.18 제품 CPU canary 완료 | 기본 포트 8770·별도 세션·기능 기본 off, 현재 서비스는 v1.14 |
 | strict/full | 미래 물리 절입·미승인 범위·대운 등 차단 | 기존 제한 release와 별개로 false 유지 |
 
 기간 release는 `saju-period-daily-label-release-v1.0.0-59e326f8f086`, 관계 release는 `saju-natal-day-relation-release-v1.0.0-554bb9bfaea9`다. 계산 권위는 [Runtime 정본](../saju_runtime_calculator_adoption.md)과 각 불변 registry를 따른다.
@@ -79,7 +80,7 @@ v1.16의 CPU 25개 통과는 보존한다. 2026-09-15 분리 함수 재현에서
   verify
 ```
 
-최신 후보 검증은 [v1.17 CPU 완료 기록](../../history/2026-09-16-phase8-intent-s3.md#phase8a)을 따른다. [v1.16](../../history/2026-09-15-dashboard-v116-intent.md)·[v1.15](../../history/2026-09-05-dashboard-v115-grounding.md)·[20문장](../../history/2026-09-05-dashboard-prompt20.md)은 부모 이력으로 보존한다. private artifact가 없는 격리 환경에서 생기는 전체 회귀 오류를 성공으로 기록하지 않는다.
+최신 후보 검증은 [v1.18 CPU 완료 기록](../../history/2026-09-16-phase10-product-candidate.md#phase10)을 따른다. [v1.17](../../history/2026-09-16-phase8-intent-s3.md#phase8a)도 같은 source hash로 재검증했다. [v1.16](../../history/2026-09-15-dashboard-v116-intent.md)·[v1.15](../../history/2026-09-05-dashboard-v115-grounding.md)·[20문장](../../history/2026-09-05-dashboard-prompt20.md)은 부모 이력으로 보존한다. private artifact가 없는 격리 환경에서 생기는 전체 회귀 오류를 성공으로 기록하지 않는다.
 
 2026-09-14 병합 후 841건의 실패 5·오류 17은 2026-09-15 `455fd9e`에서 복구했다. 과거 승인 source pin은 유지하고 기능 fixture·시계 주입을 분리했으며 당시 전체 846건을 통과했다. 이어 [전체 경로 진단](../saju_system_context_diagnosis.md)의 S0/S1과 S2 runner를 구현·실행했다. S2 342요청·재구성 검증을 완료했고 실행 후 `.venv/bin/python -B -m unittest discover -s tests -q -b` 879건 전부 통과·건너뜀 0이다. 테스트 통과가 새로 확인한 검사 문법 결함의 부재를 뜻하지 않으며 세부 검증·한계는 연결된 계획의 진행 기록을 따른다.
 
@@ -91,6 +92,8 @@ v1.16의 CPU 25개 통과는 보존한다. 2026-09-15 분리 함수 재현에서
 - 원본·private 응답·출생정보·키·checkpoint·불변 report/config는 이번 변경 대상이 아니다.
 
 ## 진행 기록
+
+- 2026-09-16 Phase 10: R16/v1.18 최소 후보 구현·CPU/합성 화면 확인을 [기록](../../history/2026-09-16-phase10-product-candidate.md#phase10)에 연결했다. 운영 PID 3144071·재시작 0·KI20 기본과 631/680·잔여 49를 유지한다. 실제 모델 품질·서비스 전환은 미실행이다.
 
 ### 2026-09-15 — Phase 7 보완과 실제 실행 상태 분리
 
