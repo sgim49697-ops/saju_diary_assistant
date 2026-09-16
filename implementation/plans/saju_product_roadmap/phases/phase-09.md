@@ -4,11 +4,11 @@
 
 ## 목적과 현재 상태
 
-상태: 미실행(실제 모델 비교). 2026-09-16 **실행기 구현·CPU 검증 완료**, 3B 공식 pin 등록 완료이며 가중치 다운로드·실제 GPU 비교는 범위 확인 전까지 보류한다. [구현·검증 기록](../../../history/2026-09-16-phase9-s4.md)을 따르며 Phase 9 전체 완료는 아니다. S4/50-C는 필수 진단이다. 작은 모델·데이터 중 하나로 미리 결론 내리지 않고 실제 큰 기본 모델을 비교한다. 여기서 기본 모델은 추가 사주 학습 전 Instruct다. [실험 상세](../../saju_system_context_diagnosis.md)와 [50](../50-automatic-model-evaluation.md)이 통제를 소유한다.
+상태: **blocked — 첫 K0 요청의 저장 계약 충돌, 비교 미완료**. 2026-09-16 실행기 구현·CPU 검증 완료 뒤 별도 실행 승인으로 3B 수집·파일 검증·실제 dry-run까지 통과했으나 `build-296dffd1ef51`의 첫 요청에서 중단됐다. 1오류·191미실행·정상 응답 0이며 3B GPU 비교는 시작하지 않았다. 원인·CPU 대조·보존 증거는 [실제 실행 기록](../../../history/2026-09-16-phase9-s4-execution.md#blocked-run)을 따른다. [최초 구현 기록](../../../history/2026-09-16-phase9-s4.md)은 당시 이력으로 보존한다. S4/50-C는 필수 진단이며 Phase 9 전체 완료는 아니다. 작은 모델·데이터 중 하나로 미리 결론 내리지 않고 실제 큰 기본 모델을 비교한다. 여기서 기본 모델은 추가 사주 학습 전 Instruct다. [실험 상세](../../saju_system_context_diagnosis.md)와 [50](../50-automatic-model-evaluation.md)이 통제를 소유한다.
 
 ## 진입 조건
 
-Phase 8B/S3 결과와 별도 실행 범위를 확인한다. S3 개선 여부, 8A 완료, Phase 10 전체 구현, R8/R32 추가 비교, 20K 재학습은 S4의 선행 조건이 아니다. S3 완료 근거는 재검증했고 아래 공식 revision·파일 hash를 등록했다. 실제 수집·GPU 실행 승인과는 구분한다.
+Phase 8B/S3 결과와 별도 실행 범위를 확인한다. S3 개선 여부, 8A 완료, Phase 10 전체 구현, R8/R32 추가 비교, 20K 재학습은 S4의 선행 조건이 아니다. S3 완료 근거를 재검증하고 아래 공식 revision·파일 hash를 등록한 뒤 첫 실행 범위를 확인했다. 첫 실행 중단이 실패 요청 재시도나 새 build의 자동 실행까지 승인한 것은 아니다.
 
 ## 작업 순서
 
@@ -29,7 +29,7 @@ Phase 8B/S3 결과와 별도 실행 범위를 확인한다. S3 개선 여부, 8A
 
 정확한 ID·revision·config·weight·tokenizer/template hash, 공식 라이선스 이름/파일, loader/custom code 여부를 고정한다. KananaOpenLicense 표기는 후보 정보이지 모든 사용 방식에 대한 법적 결론이 아니다. 실제 구성·dtype·KV cache·입출력/총량·종료 token·adapter 없음·offload 여부를 기록하며 모델명 3B만으로 메모리를 계산하지 않는다.
 
-2026-09-16 [진단 전용 등록](../../../../configs/model_versions/saju_1b_baseline/kanana-2-3b-s4-v1.0.0.json)은 `kakaocorp/kanana-2-3b-instruct`의 revision `6a5d7889964c4c590299d16e309eabab1f73f8a9`, 10파일·7,028,155,860바이트를 고정한다. 가중치는 아직 다운로드하지 않았다. 실제 3B는 `Qwen3ForCausalLM`·32 full attention·remote code 없음이며 K0의 custom/sliding 구성과 다르다. 공식 근거·라이선스 판단 범위·개별 pin은 위 등록과 구현 기록이 소유한다. 앱 registry는 그대로다.
+2026-09-16 [진단 전용 등록](../../../../configs/model_versions/saju_1b_baseline/kanana-2-3b-s4-v1.0.0.json)은 `kakaocorp/kanana-2-3b-instruct`의 revision `6a5d7889964c4c590299d16e309eabab1f73f8a9`, 10파일·7,028,155,860바이트를 고정한다. 10파일 수집·크기·SHA-256 검증과 실제 tokenizer dry-run을 완료했다. 실제 3B는 `Qwen3ForCausalLM`·32 full attention·remote code 없음이며 K0의 custom/sliding 구성과 다르다. 공식 근거·라이선스 판단 범위·개별 pin은 위 등록과 구현 기록이 소유한다. 앱 registry는 그대로다.
 
 현재 검증 환경을 일괄 최신화하지 않는다. 필요한 변경은 별도 환경에서 검증하고 기존 K0 tokenizer/loader에 이름만 바꿔 끼우지 않는다. 동일 정밀도·순차 실행·GPU 유휴·실제 여유 VRAM·다른 작업 보호·native JIT/헤더를 확인한다. 가장 긴 입력에서 삭제 없이 정상 생성·종료 가능한지 검사한다. 한쪽만 양자화·CPU offload하거나 다른 모델로 자동 대체하지 않는다. 실행 불가는 필요 조건과 함께 기록하고 대안을 별도 결정한다.
 
@@ -63,7 +63,7 @@ Phase 8B/S3 결과와 별도 실행 범위를 확인한다. S3 개선 여부, 8A
 
 S3의 [원응답·검사 대조](../../../history/2026-09-16-phase8-intent-s3.md#phase8b)에서 부정/개념 설명 오탐 2건과 일반 사주 언급 누락 2건을 확인했다. 유한 자동 점수를 전체 정확도로 사용하지 않는다. 검사 보완이 필요하면 S4 실행 전에 새 버전·회귀·해석 범위를 동결하고 양쪽에 동일 적용한다. 동결 S3 scorer·집계의 사후 수정이나 S3 재튜닝은 하지 않는다.
 
-이번 구현은 별도 `role-aware-contract-v1.2.0`과 합성 회귀를 추가했고 실제 GPU 생성 0이다. 대응쌍의 판정 불가를 실패로 바꾸지 않으며 2×2 차이는 네 조건 공통 판정 가능 분모에서만 계산한다. 저장/API는 K0 슬롯의 CPU 소비 재생이지 3B 앱 통합이 아니다. 요청별 cold 비용과 warm 서비스 미측정을 구분하고 추가 호출을 자동 배정하지 않는다.
+최초 구현은 별도 `role-aware-contract-v1.2.0`과 합성 회귀를 추가했다. 이후 첫 GPU 실행은 tokenizer revision과 v1.15 저장 계약의 충돌로 중단돼 유효한 비교 점수·비용을 발행하지 않았다. 대응쌍의 판정 불가를 실패로 바꾸지 않으며 2×2 차이는 네 조건 공통 판정 가능 분모에서만 계산한다. 저장/API는 K0 슬롯의 CPU 소비 재생이지 3B 앱 통합이 아니다. 요청별 cold 비용과 warm 서비스 미측정을 구분하고 추가 호출을 자동 배정하지 않는다.
 
 ## 종료·중단과 다음 단계
 
@@ -74,6 +74,8 @@ S3의 [원응답·검사 대조](../../../history/2026-09-16-phase8-intent-s3.md
 모델 문서 §5 전체, 전체 문서 §7의 S4 우선순위와 순서다. [원문·섹션 색인](../source-20260915.md)과 [행별 반영표](../requirements-20260915.json)를 따른다.
 
 ## 진행 기록
+
+- 2026-09-16 실제 실행: 3B 수집·파일 검증·dry-run은 통과했으나 `build-296dffd1ef51` 첫 K0 요청의 저장 계약 충돌로 중단했다. [실행 기록](../../../history/2026-09-16-phase9-s4-execution.md)에 오류 1·미실행 191·추가 GPU 호출 없는 CPU 원인 대조를 남긴다. 실패 build·코드·scorer는 보존하며 수정·새 버전 재실행은 별도 범위 확인 대상이다.
 
 - 2026-09-16 재점검: [감사·보완 기록](../../../history/2026-09-16-phase9-s4-audit.md)에 음성 회귀로 재현한 결함과 수정·검증을 연결했다. CPU 보강은 실제 비교 완료가 아니며 3B 다운로드·GPU 생성·운영 전환은 미실행이다.
 

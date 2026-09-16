@@ -8,7 +8,7 @@ Kanana 2 1.3B 기반 한국어 사주·공감 대화 baseline 프로젝트다. `
 
 2026-09-15 S0/S1·S2 342요청에 이어 [312응답 CPU 재채점](implementation/history/2026-09-15-system-context-rescore.md)과 [앱 v1.16 의도 정책 후보·CPU canary](implementation/history/2026-09-15-dashboard-v116-intent.md)를 검증했다. 원래 응답과 차단 30건은 보존했고 새 모델 응답은 생성하지 않았다. 유한 검사기의 판단 불가가 남아 자동 점수로 모델 우열을 단정하지 않는다. 운영 v1.14와 미배포 v1.16 후보를 구분한다.
 
-새 ZIP 계획 3개는 [Phase 7 정본화](implementation/plans/saju_product_roadmap/phases/phase-07.md)에서 원문 보존·요구사항 연결 후 Phase 7~14로 통합·검증했다. **Phase 8A v1.17 오차단 후보는 CPU·합성 화면 검증 완료, 8B 같은 R16의 지시문 묶음 비교(S3)는 96요청·재구성 검증 완료**다. [실행 기록](implementation/history/2026-09-16-phase8-intent-s3.md)에 부분 개선·실제 오류·검사 한계를 구분했으며 P1은 채택하지 않았다. 이어 [Phase 9 실행기·공식 3B 등록·CPU 검증](implementation/history/2026-09-16-phase9-s4.md)을 구현했다. 가중치 다운로드·실제 192요청 비교는 범위 확인 전까지 보류 중이다. 실제 비교 후 응답 모드·정정 이력→데이터 원인 분석→확인 평가로 이어가며 보정·학습·운영 전환은 조건부 후속이다. 현재 운영 v1.14는 그대로다.
+새 ZIP 계획 3개는 [Phase 7 정본화](implementation/plans/saju_product_roadmap/phases/phase-07.md)에서 원문 보존·요구사항 연결 후 Phase 7~14로 통합·검증했다. **Phase 8A v1.17 오차단 후보는 CPU·합성 화면 검증 완료, 8B 같은 R16의 지시문 묶음 비교(S3)는 96요청·재구성 검증 완료**다. [실행 기록](implementation/history/2026-09-16-phase8-intent-s3.md)에 부분 개선·실제 오류·검사 한계를 구분했으며 P1은 채택하지 않았다. 이어 Phase 9의 공식 3B 수집·파일 검증·실제 dry-run을 완료했으나, [첫 실행](implementation/history/2026-09-16-phase9-s4-execution.md#blocked-run)은 K0의 저장 계약 오류로 중단됐다. 1오류·191미실행이며 모델 비교 결과는 아직 없다. 소비 계약 호환성 수정·새 실행 범위 결정 후 비교를 마쳐야 한다. 응답 모드·정정 이력→데이터 원인 분석→확인 평가는 후속이며 보정·학습·운영 전환은 조건부다. 현재 운영 v1.14는 그대로다.
 
 - [후속 실행 순서 정본](implementation/plans/saju_product_roadmap/README.md)
 - [현재 기준선·운영과 후보 구분](implementation/plans/saju_product_roadmap/00-current-baseline.md)

@@ -29,6 +29,7 @@ HANDOFF_FILES = (
     "implementation/history/2026-09-16-phase8-intent-s3.md",
     "implementation/history/2026-09-16-phase9-s4.md",
     "implementation/history/2026-09-16-phase9-s4-audit.md",
+    "implementation/history/2026-09-16-phase9-s4-execution.md",
 )
 ORDERED_FILES = (
     "00-current-baseline.md",
@@ -204,9 +205,9 @@ class SajuProductRoadmapTests(unittest.TestCase):
             "다른 계열이나 양자화 모델로 자동 대체하지 않는다",
             "서로 다른 모델의 token ID 동일성은 요구하지 않는다",
             "크기만의 순수 인과 효과를 증명한 것은 아니다",
-            "가중치는 아직 다운로드하지 않았다",
+            "10파일 수집·검증·실제 tokenizer dry-run을 완료",
             "전용 실행기·CPU 검증",
-            "실제 GPU 생성은 0",
+            "3B GPU 요청은 0",
         ):
             with self.subTest(marker=marker):
                 self.assertIn(marker, text)
@@ -232,7 +233,7 @@ class SajuProductRoadmapTests(unittest.TestCase):
         tasks = {r["id"]: r for r in mapping["entries"]}
         for task_id in ("M-0293", "O-0173"):
             self.assertEqual(tasks[task_id]["documentation_status"], "verified")
-            self.assertEqual(tasks[task_id]["execution_status"], "not_executed")
+            self.assertEqual(tasks[task_id]["execution_status"], "blocked")
 
     def test_s4_audit_preserves_execution_and_scoring_boundaries(self) -> None:
         phase = (ROADMAP_ROOT / "phases/phase-09.md").read_text(encoding="utf-8")
@@ -244,6 +245,21 @@ class SajuProductRoadmapTests(unittest.TestCase):
             "3B 앱 연결이 아니다", "사람 평가 Gate로 전환하지 않는다",
         ):
             self.assertIn(marker, audit)
+
+    def test_s4_failed_execution_is_not_a_quality_result_or_budget_reset(self) -> None:
+        history = (REPO_ROOT / "implementation/history/2026-09-16-phase9-s4-execution.md").read_text(encoding="utf-8")
+        phase = (ROADMAP_ROOT / "phases/phase-09.md").read_text(encoding="utf-8")
+        for marker in (
+            "build-296dffd1ef51", "blocked", "191", "정상 응답 0",
+        ):
+            self.assertIn(marker, phase)
+        for marker in (
+            "7,028,155,860바이트", "1,692 token", "S4 K0 차단 / S4 3B 차단 / 기존 canonical 대조 통과",
+            "공개 aggregate/build manifest/verification은 **미발행**",
+            "241 = 680 - (438 + 1)", "실패 요청을 재생성하거나 새 build로 우회하지 않았다",
+            "비교 미완료", "모델의 응답 품질·정확도·생성 속도 수치로 사용할 결과가 없다",
+        ):
+            self.assertIn(marker, history)
 
     def test_data_and_training_stay_conditional(self) -> None:
         for name in ("60-mix20k-v3-1-build.md", "70-training-and-promotion.md"):

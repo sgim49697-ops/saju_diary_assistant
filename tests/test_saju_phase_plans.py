@@ -43,6 +43,7 @@ NON_TASK_TYPES = {
     "current_fact", "policy", "development_example", "evidence_link", "structure",
 }
 IMPLEMENTATION_TASK_IDS = {"O-0171", "M-0292", "O-0172"}
+BLOCKED_TASK_IDS = {"M-0293", "O-0173"}
 SEMANTIC_TYPES = NON_TASK_TYPES | {
     "execution_task", "conditional_proposal", "completed_history",
 }
@@ -129,12 +130,21 @@ def validate_mapping(manifest: dict) -> None:
             expected_status = "historical_completed"
         elif requirement_type == "conditional_proposal":
             expected_status = "conditional_not_executed"
+        elif entry["id"] in BLOCKED_TASK_IDS:
+            expected_status = "blocked"
         else:
             expected_status = "completed" if entry["id"] in DOCUMENTATION_TASK_IDS | IMPLEMENTATION_TASK_IDS else "not_executed"
         if entry["execution_status"] != expected_status:
             raise ValueError("requirement type/execution status contradiction")
         if entry["id"] in DOCUMENTATION_TASK_IDS and requirement_type != "execution_task":
             raise ValueError("documentation task misclassified")
+        if entry["execution_status"] == "blocked":
+            evidence = "../../history/2026-09-16-phase9-s4-execution.md#blocked-run"
+            if phase != 9 or entry.get("execution_evidence") != evidence:
+                raise ValueError("blocked comparison without matching failure evidence")
+            path, anchor = evidence.split("#", 1)
+            if f'<a id="{anchor}"></a>' not in (ROADMAP / path).read_text(encoding="utf-8"):
+                raise ValueError("blocked evidence section missing")
         if entry["execution_status"] == "completed" and phase != 7:
             if phase != 8 or entry["id"] not in IMPLEMENTATION_TASK_IDS:
                 raise ValueError("future phase incorrectly completed")
@@ -161,7 +171,7 @@ class SajuPhasePlansTests(unittest.TestCase):
         self.assertEqual(self.manifest["archive_name"], "saju_plans_20260915.zip")
         self.assertEqual(self.manifest["archive_sha256"], ARCHIVE_HASH)
         self.assertEqual(self.manifest["baseline_commit"], BASELINE_COMMIT)
-        self.assertEqual(self.manifest["schema_version"], "1.2.0")
+        self.assertEqual(self.manifest["schema_version"], "1.3.0")
         self.assertEqual(
             self.manifest["canonicalization_baseline_commit"],
             "d151548e2eed37e8d36dd2e5fd9328aec1fb7315",
@@ -280,7 +290,12 @@ class SajuPhasePlansTests(unittest.TestCase):
                     self.assertIn("8A 후보 구현·CPU 확인 완료 / 8B S3 실행·검증 완료", text)
                     self.assertIn("2026-09-16-phase8-intent-s3.md#phase8a", text)
                     self.assertIn("2026-09-16-phase8-intent-s3.md#phase8b", text)
-                elif 9 <= phase <= 12:
+                elif phase == 9:
+                    self.assertRegex(text, r"(?m)^상태: \*\*blocked")
+                    self.assertIn("build-296dffd1ef51", text)
+                    self.assertIn("1오류·191미실행·정상 응답 0", text)
+                    self.assertIn("2026-09-16-phase9-s4-execution.md#blocked-run", text)
+                elif 10 <= phase <= 12:
                     self.assertIn("상태: 미실행", text)
                 elif phase >= 13:
                     self.assertIn("상태: 조건부 보류", text)
@@ -359,7 +374,7 @@ class SajuPhasePlansTests(unittest.TestCase):
             ("O-0068", "development_example", "not_applicable"),
             ("C-0197", "evidence_link", "not_applicable"),
             ("M-0292", "execution_task", "completed"),
-            ("M-0293", "execution_task", "not_executed"),
+            ("M-0293", "execution_task", "blocked"),
             ("M-0296", "conditional_proposal", "conditional_not_executed"),
             ("C-0001", "structure", "not_applicable"),
         ):
@@ -581,6 +596,9 @@ class SajuPhasePlansTests(unittest.TestCase):
         self.assertEqual(counts[0], sum(counts[1:]))
         self.assertIn("Phase 7 등록 당시", budget)
         self.assertIn("242 = 680 - 438 = 본 비교 240(S4 192 + S6 48) + 적격성 2", budget)
+        self.assertIn("241 = 680 - 439 = S4 미처리 191 + S6 48 + 적격성 2", budget)
+        self.assertEqual(680 - 438 - 1, 191 + 48 + 2)
+        self.assertIn("여유분을 자동 전용하지 않는다", budget)
         self.assertEqual(680 - 342 - 96, 192 + 48 + 2)
         for marker in (
             "실행 승인이나 성공 생성 수가 아니다", "목적·범위·예산을 사전에 별도 등록",
@@ -591,6 +609,16 @@ class SajuPhasePlansTests(unittest.TestCase):
         phase13 = (ROADMAP / "phases/phase-13.md").read_text(encoding="utf-8")
         self.assertIn("질문은 학습 자료나 새 모델 확인에 재사용하지 않는다", phase13)
         self.assertIn("S6 잔여 요청과 별도의", phase13)
+
+    def test_blocked_s4_requires_evidence_and_cannot_be_declared_unstarted_or_complete(self) -> None:
+        for source_id in BLOCKED_TASK_IDS:
+            for field, value in (("execution_status", "completed"), ("execution_status", "not_executed"), ("execution_evidence", "")):
+                with self.subTest(source_id=source_id, field=field, value=value):
+                    changed = copy.deepcopy(self.manifest)
+                    row = next(entry for entry in changed["entries"] if entry["id"] == source_id)
+                    row[field] = value
+                    with self.assertRaises(ValueError):
+                        validate_mapping(changed)
 
     def test_s4_does_not_wait_for_app_and_s6_keeps_two_paths(self) -> None:
         phase8 = (ROADMAP / "phases/phase-08.md").read_text(encoding="utf-8")
