@@ -14,3 +14,11 @@
 - 보존: 계산 코드·파일 경로·개발 이력·승인 산출물·hash chain은 변경하지 않았다. 다른 세션의 Phase 10·dashboard v1.18 후보 작업과 로컬 계획 ZIP도 수정·stage하지 않는다.
 - 검증: `.venv-data/bin/python -m unittest discover -s tests -p 'test_repository_workflow_policy.py' -v`의 4개 테스트, `git diff --check`, 수정 문서 2개와 로컬 링크 2개 검사를 통과했다. 인증된 API의 `private=false`·`visibility=public`과 비로그인 계산 엔진 raw 파일 HTTP `200`을 재확인했다. 구현 변경이 없어 전체 ML·runtime 테스트는 실행하지 않았다.
 - 후속 범위: 일부 핵심 구현을 공개 범위에서 분리하는 작업은 아직 적용하지 않았다. 공개 저장소를 유지하고 대상 코드·상세 자료 및 외부 검토에 미치는 영향을 구분해 진행해야 한다.
+
+## 최소 변경 적용
+
+- 날짜: 2026-09-16. 후속 요청에 따라 저장소 공개와 기존 코드 구조를 유지하면서 새 내부 자료의 실수 업로드를 줄이는 범위로 축소했다.
+- 변경 범위: `.gitignore`에 `/private/`를 추가하고 `AGENTS.md`에 새 내부 계산 연구·상세 설계·실험 원문을 이 경로에 로컬 보관하는 규칙을 추가했다.
+- 한계: 기존 공개 코드·문서는 숨겨지지 않는다. `private/`는 Git 백업 대상이 아니며 다른 경로로 복사하거나 강제 추가한 파일까지 막는 접근 제어 수단은 아니다.
+- 보존: 기존 코드·계산 결과·저장소 공개 설정·다른 세션의 Phase 10 변경은 건드리지 않았다.
+- 검증: `git check-ignore -v -- private/calculation-notes.md private/experiments/engine.py`로 하위 경로까지 제외됨을 확인했다. 기존 저장소 정책 unittest 4개, 변경 파일의 `git diff --check`, 문서 링크 2개 검사와 기존 계산 엔진 추적 유지 확인을 통과했다.
