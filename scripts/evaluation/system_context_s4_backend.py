@@ -11,7 +11,6 @@ from collections import Counter
 from scripts.evaluation.dashboard_v115_replay import header_check
 from scripts.evaluation.system_context_backend import (
     ObservedModel,
-    replay_output_consumers,
 )
 from scripts.evaluation.system_context_cases import digest
 from scripts.evaluation.system_context_contracts import (
@@ -21,6 +20,7 @@ from scripts.evaluation.system_context_contracts import (
     safe_path,
     write_new,
 )
+from scripts.evaluation.system_context_s4_consumers import replay_consumers
 from scripts.evaluation.system_context_s4_contracts import (
     RAW_ROOT,
     build_path,
@@ -139,7 +139,8 @@ def worker(request_path, output_path):
     engine = request["engine"]
     if engine not in ENGINES:
         raise ValueError("등록하지 않은 모델")
-    if verify_models(context) != frozen["identity"]["verified_model_files"]:
+    verified_files = verify_models(context)
+    if verified_files != frozen["identity"]["verified_model_files"]:
         raise ValueError("S4 모델 artifact identity 변경")
     started = time.monotonic()
     torch, tokenizer, model = load_model(context, engine)
@@ -211,10 +212,9 @@ def worker(request_path, output_path):
                 for k in ("peak_allocated_bytes", "gpu_total_memory_used_mib")
             }
         )
-        consumers = replay_output_consumers(context, request["case"], "k0_instruct", result)
-        consumers["consumer_path"] = "v1.15_k0_slot_cpu_replay_not_3b_app_integration"
-        consumers["model_engine"] = engine
-        consumers["storage_engine_slot"] = "k0_instruct"
+        consumers = replay_consumers(
+            context, request, result, tokenizer, load_tokenizer("k0_instruct"), verified_files,
+        )
         response = {
             "request_sha256": digest(request),
             "status": "generated",

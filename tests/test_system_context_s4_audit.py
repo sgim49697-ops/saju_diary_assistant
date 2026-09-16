@@ -292,8 +292,12 @@ class S4AuditTests(unittest.TestCase):
         def rebuild(case, arm, context, tokenizer):
             return deepcopy(next(r["render"] for r in parent_rows if r["case_id"] == case["case_id"] and r["arm"] == arm))
 
-        with patch.object(runner.rescore, "validate_contract", return_value={}), patch.object(runner.rescore, "verify_parent", return_value={"frozen": parent}), patch.object(runner, "prepare_context", return_value=context), patch.object(runner, "verify_models", return_value={}), patch.object(runner, "registry_summary", return_value=registry), patch.object(runner, "load_tokenizer", side_effect=tokenizers.__getitem__), patch.object(runner, "render", side_effect=rebuild), patch.object(runner, "code_fingerprint", return_value={"synthetic": "hash"}), patch.object(runner, "environment_identity", return_value={}):
+        # 여기서는 서로 다른 합성 tokenizer의 projection만 검사한다.
+        # 실제 저장 호환성은 test_system_context_s4_consumers가 모의 없이 검사한다.
+        with patch.object(runner.rescore, "validate_contract", return_value={}), patch.object(runner.rescore, "verify_parent", return_value={"frozen": parent}), patch.object(runner, "prepare_context", return_value=context), patch.object(runner, "verify_models", return_value={}), patch.object(runner, "registry_summary", return_value=registry), patch.object(runner, "load_tokenizer", side_effect=tokenizers.__getitem__), patch.object(runner, "render", side_effect=rebuild), patch.object(runner, "code_fingerprint", return_value={"synthetic": "hash"}), patch.object(runner, "environment_identity", return_value={}), patch.object(runner, "preflight", return_value=fixture()["consumer_preflight"]) as preflight:
             prepared = runner.prepare()
+        self.assertEqual(preflight.call_count, 1)
+        self.assertEqual(len(preflight.call_args.args[1]), 192)
         runner.validate_prepared(prepared)
         self.assertEqual(prepared["config"], config)
         self.assertEqual(len(prepared["requests"]), 192)

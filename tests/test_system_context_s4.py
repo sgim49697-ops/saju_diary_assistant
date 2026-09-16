@@ -22,8 +22,10 @@ from scripts.evaluation.system_context_contracts import (
     validate_public,
     write_new,
 )
+from scripts.evaluation.system_context_s4_consumers import alias_receipt
 from scripts.evaluation.system_context_s4_projection import compare_inputs, retokenize
 from scripts.evaluation.system_context_s4_scoring import aggregate
+from scripts.training.dashboard_tokenizer_v1 import BACKEND_SHA256
 
 
 def fixture():
@@ -35,30 +37,35 @@ def fixture():
                     "request_id": f"request-{len(requests) + 1:03d}", "case_id": spec["case_id"],
                     "stage": "primary", "engine": engine, "arm": arm,
                     "case": {"history": [], "expected_block": spec["expected_block"], "stratum": spec["stratum"], "task": "general", "expected": {}, "apology_once": False},
-                    "render": {"messages": [{"role": "user", "content": "합성 테스트입니다."}], "input_tokens": 10, "input_token_ids_sha256": "a" * 64, "tokenizer_backend_sha256": "b" * 64},
+                    "render": {"messages": [{"role": "user", "content": "합성 테스트입니다."}], "input_tokens": 10, "input_token_ids_sha256": "a" * 64, "tokenizer_backend_sha256": BACKEND_SHA256, "tokenizer_revision": f"s4-{engine}-official-v1.0.0", "rendered_prompt_sha256": "c" * 64},
                     "parent_sha256": digest([]),
                 })
-    identity = {"input_sha256": digest(requests)}
+    preflight = {"status": "passed", "actual_storage_api_replays": 172, "model_calls": 0,
+                 "gpu_used": False, "browser_executed": False, "synthetic_output_only": True,
+                 "receipts_sha256": "f" * 64}
+    identity = {"input_sha256": digest(requests), "consumer_preflight_sha256": digest(preflight),
+                "previous_attempt": contracts.verify_previous_attempt()}
     return {"build_id": "build-" + digest(identity)[:12], "identity": identity,
             "config": contracts.validate_contract(), "requests": requests, "expected_blocks": 20,
-            "maximum_input_tokens": 10, "training_inventory": {}}
+            "maximum_input_tokens": 10, "training_inventory": {}, "consumer_preflight": preflight}
 
 
 def response_fixture(request):
     output = "차근차근 이야기해 주세요. 함께 정리하겠습니다."
     return {
         "request_sha256": digest(request), "status": "generated", "output": output,
-        "generated": {"input_token_ids_sha256": "a" * 64, "tokenizer_backend_sha256": "b" * 64, "omitted_messages": 0, "output": output},
+        "generated": {**{k: request["render"][k] for k in ("input_token_ids_sha256", "tokenizer_backend_sha256", "tokenizer_revision", "rendered_prompt_sha256")}, "omitted_messages": 0, "output": output},
         "consumers": {
             **{k: digest(output) for k in ("raw_sha256", "api_display_sha256", "stored_sha256")},
             "consumer_path": "v1.15_k0_slot_cpu_replay_not_3b_app_integration", "model_engine": request["engine"],
             "storage_engine_slot": "k0_instruct", "browser_executed": False,
+            "tokenizer_alias": alias_receipt(request),
         },
         "telemetry": {"elapsed_seconds": 1, "stop_reason": "eos", "output_token_ids": [128010], "output_tokens": 1,
                       "retry_count": 0, "seed": 20260915, "precision": "bfloat16", "native_context_tokens": 32768,
                       "peak_allocated_bytes": 1024, "peak_reserved_bytes": 2048, "gpu_total_memory_used_mib": 1024,
                       "cache_scope": "fresh_generate_no_past_key_values", "engine": request["engine"],
-                      "adapter_used": False, "cpu_offload": False, "effective_backend_sha256": "b" * 64,
+                      "adapter_used": False, "cpu_offload": False, "effective_backend_sha256": BACKEND_SHA256,
                       "generation_defaults_policy": "fresh_common_GenerationConfig_explicit_kwargs",
                       "actual_generation_kwargs": backend.generation_kwargs()},
     }

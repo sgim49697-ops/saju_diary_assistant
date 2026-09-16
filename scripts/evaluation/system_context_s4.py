@@ -32,6 +32,7 @@ from scripts.evaluation.system_context_contracts import (
     write_new,
 )
 from scripts.evaluation.system_context_projection import render
+from scripts.evaluation.system_context_s4_consumers import alias_receipt, preflight
 from scripts.evaluation.system_context_s4_contracts import (
     CONFIG,
     PUBLIC_ROOT,
@@ -39,6 +40,7 @@ from scripts.evaluation.system_context_s4_contracts import (
     build_path,
     code_fingerprint,
     validate_contract,
+    verify_previous_attempt,
 )
 from scripts.evaluation.system_context_s4_models import (
     ENGINES,
@@ -91,6 +93,7 @@ def _stable_case(case):
 
 def prepare():
     config = validate_contract()
+    previous_attempt = verify_previous_attempt()
     parent = rescore.verify_parent(rescore.validate_contract())["frozen"]
     selected = {
         (r["case_id"], r["arm"]): r for r in parent["requests"]
@@ -140,6 +143,7 @@ def prepare():
     expected_blocks = sum(bool(r["case"]["expected_block"]) for r in requests)
     if expected_blocks != 20 or len(requests) - expected_blocks != 172:
         raise ValueError("S4 생성·사전 차단 분모 위반")
+    consumer_preflight = preflight(context, requests, tokenizers, model_files)
     identity = {
         "config_sha256": file_sha(CONFIG), "code_sha256": code_fingerprint(),
         "parent_public_sha256": rescore.PARENT_PINS,
@@ -149,6 +153,8 @@ def prepare():
         "generation": context["config"]["model_check"]["generation"], "environment": environment_identity(),
         "generation_defaults_policy": "fresh_common_GenerationConfig_explicit_kwargs",
         "frozen_server_kst_date": config["frozen_server_kst_date"],
+        "previous_attempt": previous_attempt,
+        "consumer_preflight_sha256": digest(consumer_preflight),
     }
     if identity["generation"] != parent["identity"]["generation"]:
         raise ValueError("S4 공통 생성 설정 변경")
@@ -158,6 +164,7 @@ def prepare():
         "training_inventory": parent["training_inventory"], "model_registry": registry,
         "input_comparisons": comparisons, "expected_blocks": expected_blocks,
         "maximum_input_tokens": max(r["render"]["input_tokens"] for r in requests),
+        "consumer_preflight": consumer_preflight,
     }
 
 
@@ -171,6 +178,13 @@ def validate_prepared(value):
         or len({r["case_id"] for r in requests}) != 48
         or [r["request_id"] for r in requests] != [f"request-{i:03d}" for i in range(1, 193)]
         or sum(bool(r["case"]["expected_block"]) for r in requests) != 20
+        or value["identity"]["consumer_preflight_sha256"] != digest(value["consumer_preflight"])
+        or value["consumer_preflight"]["status"] != "passed"
+        or value["consumer_preflight"]["actual_storage_api_replays"] != 172
+        or value["consumer_preflight"]["model_calls"] != 0
+        or value["consumer_preflight"]["gpu_used"] is not False
+        or value["consumer_preflight"]["browser_executed"] is not False
+        or value["consumer_preflight"]["synthetic_output_only"] is not True
     ):
         raise ValueError("S4 동결 요청·예산·build identity 불일치")
     groups = {}
@@ -297,6 +311,8 @@ def validate_response(request, response):
             response["generated"]["input_token_ids_sha256"]
             != request["render"]["input_token_ids_sha256"]
             or response["generated"].get("tokenizer_backend_sha256") != request["render"]["tokenizer_backend_sha256"]
+            or response["generated"].get("tokenizer_revision") != request["render"]["tokenizer_revision"]
+            or response["generated"].get("rendered_prompt_sha256") != request["render"]["rendered_prompt_sha256"]
             or response["generated"]["omitted_messages"]
         ):
             raise ValueError("완료 응답의 입력 identity 불일치")
@@ -311,6 +327,7 @@ def validate_response(request, response):
             or consumers.get("storage_engine_slot") != "k0_instruct"
             or consumers.get("browser_executed") is not False
             or consumers.get("consumer_path") != "v1.15_k0_slot_cpu_replay_not_3b_app_integration"
+            or consumers.get("tokenizer_alias") != alias_receipt(request)
         ):
             raise ValueError("S4 CPU 소비 재생을 실제 3B 앱 통합으로 표시할 수 없습니다.")
         if any(
@@ -489,6 +506,8 @@ def execute(prepared, *, resume=False):
     if os.environ.get("SYSTEM_CONTEXT_S4") != "K0_KANANA3B_P0_V1":
         raise ValueError("SYSTEM_CONTEXT_S4=K0_KANANA3B_P0_V1 확인이 필요합니다.")
     validate_prepared(prepared)
+    if prepared["identity"]["previous_attempt"] != verify_previous_attempt():
+        raise ValueError("이전 실패 요청의 예산/증거가 다릅니다.")
     root = build_path(prepared["build_id"])
     if root.exists() and not resume:
         raise ValueError("기존 build는 --resume으로만 검증 후 재개합니다.")
@@ -655,6 +674,8 @@ def public_manifest(prepared, entries, summary, publication):
         "history_omissions": 0,
         "completed_reused_at_publication": publication["reused"],
         "publication_counts": publication["counts"],
+        "consumer_preflight": prepared["consumer_preflight"],
+        "request_accounting": prepared["config"]["request_accounting"],
         "request_hashes": {
             r["request_id"]: {
                 "input_sha256": file_sha(root / f"{r['request_id']}.input.json"),
@@ -759,6 +780,7 @@ def verify(build):
         "training_inventory",
         "maximum_input_tokens",
         "expected_blocks",
+        "consumer_preflight",
     ):
         if frozen[key] != reconstructed[key]:
             raise ValueError("동결 기준선 metadata 재검증 불일치")
@@ -885,6 +907,7 @@ def main(argv=None):
                 "gpu_used": False,
                 "artifact_writes": False,
                 "stages": ["S4"],
+                "request_accounting": config["request_accounting"],
                 "governance": config["governance"],
             }
         elif args.command == "verify":
@@ -905,6 +928,8 @@ def main(argv=None):
                     "training_inventory": prepared["training_inventory"],
                     "gpu_used": False,
                     "artifact_writes": False,
+                    "consumer_preflight": prepared["consumer_preflight"],
+                    "request_accounting": config["request_accounting"],
                 }
         print(json.dumps(result, ensure_ascii=False, indent=2), flush=True)
         return 0
