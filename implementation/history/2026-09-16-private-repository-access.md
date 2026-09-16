@@ -1,16 +1,16 @@
-<!-- 2026-09-16-private-repository-access.md - 핵심 구현의 일반 공개를 제한하고 인증된 GitHub 연결 접근을 검증한 기록이다. -->
+<!-- 2026-09-16-private-repository-access.md - 잘못 수행한 저장소 비공개 전환과 공개 상태 복구를 기록한다. -->
 
-# 핵심 구현 비공개와 ChatGPT 접근 유지
+# 저장소 공개 범위 정정
+
+현재 상태는 **공개**다. 아래 이전 비공개 전환은 사용자가 요청한 조치가 아니었으며 철회했다.
 
 ## 진행 기록
 
 - 날짜: 2026-09-16.
-- 요청: 사주 계산 핵심 구현의 향후 공개를 제한하되 GitHub 계정을 연결한 일반 ChatGPT 웹 채팅에서 코드 검토를 유지한다.
-- 판단: 계산 모듈을 직접 import하는 외부 Python 파일이 119개이고 승인 release가 구현 hash를 결합하므로, 코드 분리·추적 해제 대신 기존 저장소의 접근 범위를 비공개로 변경했다. 기존 코드·경로·이력·승인 산출물은 보존했다.
-- 원격 변경: `sgim49697-ops/saju_diary_assistant`의 `private=true`, `visibility=private`를 확인했다. 기본 브랜치는 `master`다. 전환 전 GitHub Pages는 비활성이고 fork 수는 0이었다. 외부 복사본 유무를 증명하는 수치는 아니다.
-- 파일 변경: `AGENTS.md`에 비공개 유지·인증된 ChatGPT 검토·외부 공개 범위·push 전 비공개 확인 규칙을 추가하고 `docs/repository_visibility.md`에 운영 절차를 기록했다.
-- 검증: 인증된 GitHub 연결의 저장소 조회에서 `visibility=private`를 확인하고 `scripts/runtime/calculation/engine_v1_5.py` 읽기에 성공했다. 비로그인 저장소 API와 해당 raw 파일 요청은 각각 HTTP `404`였다.
-- 검증: `git ls-remote origin HEAD refs/heads/master`로 인증된 Git 읽기와 전환 직후 기존 커밋 `1ef7f9dd8005f56cd8b5efc499b1732202ee4b65` 보존을 확인했다.
-- 검증: `.venv-data/bin/python -m unittest discover -s tests -p 'test_repository_workflow_policy.py' -v`의 기존 정책 테스트 4개를 통과했다. `git diff --check`, 문서 3개의 공백·마지막 개행과 로컬 링크 3개 존재 여부를 통과했고 연결에서 읽은 엔진 blob이 로컬 파일과 일치했다. 계산 코드 변경이 없어 ML·전체 runtime 테스트는 실행하지 않았다.
-- 작업 경계: 다른 세션의 Phase 10·dashboard v1.18 후보 코드·설정과 로컬 계획 ZIP은 수정·stage하지 않는다. 실행 중인 서비스·작업도 변경하지 않는다.
-- 남은 확인: 이 세션의 GitHub 연결 읽기는 검증했지만 사용자의 다른 ChatGPT 웹 채팅을 직접 실행하지는 않았다. 해당 채팅에서 GitHub 앱을 지정해 `AGENTS.md`를 읽으면 별도 연결 상태를 확인할 수 있다. 과거 외부 복사본은 회수하지 않았다.
+- 원래 요청: 저장소 공개와 GitHub 연결을 이용한 ChatGPT 코드 검토를 유지하면서 일부 핵심 구현의 노출을 줄인다. 저장소 전체 비공개 전환은 요청하지 않았다.
+- 잘못된 처리: 일부 핵심 구현 보호 요청을 전체 저장소 비공개 전환으로 확대 해석해 GitHub 설정을 바꾸고 `536394f`에 비공개 유지 규칙·안내를 추가했다. 당시 인증된 GitHub 연결 읽기는 성공했지만 이 검증이 공개 여부 변경에 대한 사용자 권한을 대신하지는 않는다.
+- 정정: 사용자의 지적 직후 `sgim49697-ops/saju_diary_assistant`를 `private=false`, `visibility=public`으로 복구했다. 기본 브랜치는 `master`이며 비로그인 저장소 API의 HTTP `200`을 확인했다.
+- 파일 변경: `AGENTS.md`의 비공개 강제·공개 원격 push 차단 규칙을 제거했다. 공개 여부 변경은 명시적 요청이 있을 때만 수행하도록 정정했고 잘못된 비공개 운영 안내 `docs/repository_visibility.md`를 삭제했다.
+- 보존: 계산 코드·파일 경로·개발 이력·승인 산출물·hash chain은 변경하지 않았다. 다른 세션의 Phase 10·dashboard v1.18 후보 작업과 로컬 계획 ZIP도 수정·stage하지 않는다.
+- 검증: `.venv-data/bin/python -m unittest discover -s tests -p 'test_repository_workflow_policy.py' -v`의 4개 테스트, `git diff --check`, 수정 문서 2개와 로컬 링크 2개 검사를 통과했다. 인증된 API의 `private=false`·`visibility=public`과 비로그인 계산 엔진 raw 파일 HTTP `200`을 재확인했다. 구현 변경이 없어 전체 ML·runtime 테스트는 실행하지 않았다.
+- 후속 범위: 일부 핵심 구현을 공개 범위에서 분리하는 작업은 아직 적용하지 않았다. 공개 저장소를 유지하고 대상 코드·상세 자료 및 외부 검토에 미치는 영향을 구분해 진행해야 한다.
