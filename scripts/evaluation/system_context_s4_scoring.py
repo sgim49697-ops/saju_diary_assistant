@@ -61,6 +61,7 @@ def aggregate(entries):
     result.update({
         "scorer_version": SCORER_VERSION, "instruction_arm": "P0", "candidate_selected": False,
         "fresh_all_conditions": True, "new_generations": sum(r["status"] == "generated" for r in entries),
+        "generation_count_scope": "unique_responses_in_entire_build_not_current_resume",
         "paired_verdict_transitions": [
             {"comparison": comparison, "condition": condition, "stratum": stratum, "metric": metric,
              "counts": {f"{a}_to_{b}": counts[f"{a}_to_{b}"] for a in VERDICTS for b in VERDICTS}}

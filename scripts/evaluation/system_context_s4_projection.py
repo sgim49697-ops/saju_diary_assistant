@@ -5,6 +5,11 @@ import json
 from copy import deepcopy
 
 from scripts.evaluation.system_context_cases import digest
+from scripts.evaluation.system_context_projection import (
+    _runtime_parts,
+    canonical,
+    project,
+)
 from scripts.training.dashboard_tokenizer_v1 import backend_sha256
 
 
@@ -21,7 +26,17 @@ def input_identity(tokenizer, messages, ids, *, engine, expected_backend):
     }
 
 
-def retokenize(original, tokenizer, *, engine, expected_backend, full_input_tokens=None):
+def runtime_sections(case, arm):
+    if arm not in {"C_FULL", "C_MIN"}:
+        raise ValueError("S4에 등록되지 않은 정보 조건입니다.")
+    if case["binding"] is None:
+        return None
+    prefix, full_data = _runtime_parts(case["binding"])
+    data = full_data if arm == "C_FULL" else canonical(project(case["binding"]["value"], case["required_paths"]))
+    return {"runtime": prefix + data, "selected_data": data}
+
+
+def retokenize(original, tokenizer, *, engine, expected_backend, full_input_tokens=None, sections=None):
     result = deepcopy(original)
     messages = result["messages"]
     ids = tokenizer.apply_chat_template(messages, tokenize=True, add_generation_prompt=True)
@@ -31,21 +46,45 @@ def retokenize(original, tokenizer, *, engine, expected_backend, full_input_toke
     encoded = tokenizer(rendered, add_special_tokens=False, return_offsets_mapping=True)
     if encoded["input_ids"] != ids:
         raise ValueError("S4 token/문자 위치 추적 불일치")
+    def span(start, end):
+        covered = [i for i, (left, right) in enumerate(encoded["offset_mapping"]) if left < end and right > start]
+        return {
+            "chars_start": start, "chars_end": end,
+            "token_start": min(covered) if covered else None,
+            "token_end_exclusive": max(covered) + 1 if covered else None,
+            "prefix_tokens": len(tokenizer(rendered[:start], add_special_tokens=False)["input_ids"]),
+            "content_tokens": len(tokenizer(rendered[start:end], add_special_tokens=False)["input_ids"]),
+        }
+
     segments, cursor = [], 0
     for index, message in enumerate(messages):
         start = rendered.find(message["content"], cursor)
         if start < 0:
             raise ValueError("S4 모델별 template의 메시지 위치 누락")
         end = start + len(message["content"])
-        covered = [i for i, (left, right) in enumerate(encoded["offset_mapping"]) if left < end and right > start]
         segments.append({
             "index": index, "role": message["role"],
             "segment": "system" if index == 0 else "current_user" if index == len(messages) - 1 else "frozen_history",
-            "chars_start": start, "chars_end": end,
-            "token_start": min(covered) if covered else None,
-            "token_end_exclusive": max(covered) + 1 if covered else None,
+            **span(start, end),
         })
         cursor = end
+    detail_names = {s["segment"] for s in original.get("segments", [])} & {"p0", "runtime", "selected_data"}
+    if detail_names and sections is None:
+        raise ValueError("S4 재토큰화에서 지시문·계산 facts 위치 추적을 생략할 수 없습니다.")
+    if sections is not None:
+        runtime, data = sections["runtime"], sections["selected_data"]
+        if (
+            messages[0]["role"] != "system" or not runtime or not data
+            or not messages[0]["content"].endswith(runtime) or not runtime.endswith(data)
+        ):
+            raise ValueError("S4 동결 메시지와 원국/일진 직렬화 구간이 다릅니다.")
+        start, end = segments[0]["chars_start"], segments[0]["chars_end"]
+        runtime_start, data_start = end - len(runtime), end - len(data)
+        segments.extend([
+            {"segment": "p0", **span(start, runtime_start)},
+            {"segment": "runtime", **span(runtime_start, end)},
+            {"segment": "selected_data", **span(data_start, end)},
+        ])
     result.update(
         input_token_ids=ids, input_tokens=len(ids), full_input_tokens=full_input_tokens or len(ids),
         segments=segments, omitted_messages=0,

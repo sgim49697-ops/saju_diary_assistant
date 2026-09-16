@@ -37,6 +37,8 @@ Phase 8B/S3 결과와 별도 실행 범위를 확인한다. S3 개선 여부, 8A
 
 구현된 `scripts.evaluation.system_context_s4`는 192요청 중 최대 172생성·기존 사전 차단 20을 구분한다. 각 모델 최장 적격 요청을 본 비교의 첫 두 건으로 검사하며 추가 preflight 0·공유 잔여 2는 유지한다. 양쪽에 fresh 공통 `GenerationConfig`·명시적 greedy 인자를 사용하므로 S2 K0 출력을 재사용하지 않는다. CLI의 `validate-contract`→`plan`→수집 계획 `download`는 CPU 검증했고, 이후 명시 수집→`verify-model`→실제 `execute` dry-run→GPU→`verify`는 [실행 순서](../../../history/2026-09-16-phase9-s4.md#next-execution)를 따른다.
 
+후속 [구현 재점검](../../../history/2026-09-16-phase9-s4-audit.md)은 두 모델의 미등록 loader 파일 차단, 부모가 확인한 정상 종료 증거, 입력 구간 추적, 재개 시 생성/재사용/사전 차단 분리를 보강했다. 실제 실행은 dry-run에서 확인한 `--build`를 요구하며, 실패·불확실한 요청이나 예산 원장 손실을 자동 재실행으로 해결하지 않는다. 비교 조건·scorer 규칙·요청 상한은 그대로다.
+
 <a id="decision"></a>
 ### 관찰에 따른 결정
 
@@ -72,6 +74,8 @@ S3의 [원응답·검사 대조](../../../history/2026-09-16-phase8-intent-s3.md
 모델 문서 §5 전체, 전체 문서 §7의 S4 우선순위와 순서다. [원문·섹션 색인](../source-20260915.md)과 [행별 반영표](../requirements-20260915.json)를 따른다.
 
 ## 진행 기록
+
+- 2026-09-16 재점검: [감사·보완 기록](../../../history/2026-09-16-phase9-s4-audit.md)에 음성 회귀로 재현한 결함과 수정·검증을 연결했다. CPU 보강은 실제 비교 완료가 아니며 3B 다운로드·GPU 생성·운영 전환은 미실행이다.
 
 - 2026-09-16 구현: S4 전용 실행기·공식 모델 pin·독립 tokenizer·scorer v1.2·안전 재개·CPU 검증을 추가했다. 실제 비교 과제는 `not_executed`, 가중치·GPU·Phase 10 이후·학습·운영 전환은 미실행이다. 최종 검증과 남은 제한은 [구현 기록](../../../history/2026-09-16-phase9-s4.md)에 모은다.
 

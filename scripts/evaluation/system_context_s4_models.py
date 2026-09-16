@@ -5,6 +5,7 @@ from __future__ import annotations
 import fcntl
 import os
 import shutil
+import stat
 from pathlib import Path
 
 from scripts.evaluation.system_context_contracts import (
@@ -43,8 +44,30 @@ def model_root():
     return safe_path(REPO_ROOT / registration()["local_path"])
 
 
+def verify_snapshot_layout(root, files, *, auxiliary_dirs=()):
+    """등록 shard보다 우선 로딩될 가중치·adapter·tokenizer 덮어씌우기를 거부한다."""
+    root = safe_path(root)
+    if not root.is_dir():
+        raise ValueError("S4 등록 snapshot 디렉터리가 없습니다.")
+    for path in root.iterdir():
+        safe_path(path)
+        if path.name in {*files, ".download.lock"}:
+            if not path.is_file():
+                raise ValueError("등록 snapshot 파일이 일반 파일이 아닙니다.")
+        elif path.name in {".cache", *auxiliary_dirs} and path.is_dir():
+            # Hub cache와 지정한 보조 자료는 loader 입력이 아니다. 링크·특수 파일은 금지한다.
+            for cached in path.rglob("*"):
+                safe_path(cached)
+                mode = cached.stat().st_mode
+                if not (stat.S_ISDIR(mode) or stat.S_ISREG(mode)):
+                    raise ValueError("모델 보조 디렉터리의 특수 파일은 허용하지 않습니다.")
+        else:
+            raise ValueError(f"S4 모델 snapshot 미등록 파일/폴더: {path.name}")
+
+
 def verify_3b(*, metadata_only=False):
     value, root = registration(), model_root()
+    verify_snapshot_layout(root, value["files"])
     pins = {}
     for name, pin in value["files"].items():
         if metadata_only and name.endswith(".safetensors"):
@@ -80,13 +103,11 @@ def download(*, execute=False):
     if os.environ.get("SYSTEM_CONTEXT_S4_DOWNLOAD") != "KANANA3B_PINNED_V1":
         raise ValueError("SYSTEM_CONTEXT_S4_DOWNLOAD=KANANA3B_PINNED_V1 확인이 필요합니다.")
     root = private_directory(model_root())
-    # Hugging Face의 중간 cache 경로에도 기존 symlink를 허용하지 않는다.
-    for path in root.rglob("*"):
-        safe_path(path)
     descriptor = os.open(root / ".download.lock", os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
     previous_umask = os.umask(0o077)
     try:
         fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        verify_snapshot_layout(root, value["files"])
         missing = []
         for name, pin in value["files"].items():
             path = safe_path(root / name)
@@ -123,7 +144,7 @@ def download(*, execute=False):
         os.close(descriptor)
 
 
-def verify_models(context):
+def verify_k0(context):
     base = context["inference_engines"]["engines"]["k0_instruct"]
     root = safe_path(base["resolved_path"])
     if root != REPO_ROOT / K0_RELATIVE:
@@ -134,10 +155,18 @@ def verify_models(context):
     generation = root / "generation_config.json"
     if generation.is_file():
         pins["generation_config.json"] = file_sha(generation)
+    verify_snapshot_layout(
+        root, {*pins, ".gitattributes", "LICENSE", "README.md"},
+        auxiliary_dirs=("assets", "sglang"),
+    )
     actual = {name: file_sha(root / name) for name in pins}
     if actual != pins:
         raise ValueError("S4 K0 코드/가중치/hash 불일치")
-    return {"k0_instruct": actual, "kanana3b_instruct": verify_3b()}
+    return actual
+
+
+def verify_models(context):
+    return {"k0_instruct": verify_k0(context), "kanana3b_instruct": verify_3b()}
 
 
 def load_tokenizer(engine):

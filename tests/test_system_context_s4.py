@@ -54,7 +54,7 @@ def response_fixture(request):
             "consumer_path": "v1.15_k0_slot_cpu_replay_not_3b_app_integration", "model_engine": request["engine"],
             "storage_engine_slot": "k0_instruct", "browser_executed": False,
         },
-        "telemetry": {"elapsed_seconds": 1, "stop_reason": "eos", "output_token_ids": [1], "output_tokens": 1,
+        "telemetry": {"elapsed_seconds": 1, "stop_reason": "eos", "output_token_ids": [128010], "output_tokens": 1,
                       "retry_count": 0, "seed": 20260915, "precision": "bfloat16", "native_context_tokens": 32768,
                       "peak_allocated_bytes": 1024, "peak_reserved_bytes": 2048, "gpu_total_memory_used_mib": 1024,
                       "cache_scope": "fresh_generate_no_past_key_values", "engine": request["engine"],
@@ -62,6 +62,16 @@ def response_fixture(request):
                       "generation_defaults_policy": "fresh_common_GenerationConfig_explicit_kwargs",
                       "actual_generation_kwargs": backend.generation_kwargs()},
     }
+
+
+def completed_response_fixture(folder, request):
+    response = response_fixture(request)
+    rid = request["request_id"]
+    write_new(folder / f"{rid}.started.json", {"request_sha256": digest(request), "retry": 0, "parent_pid": os.getpid()})
+    write_new(folder / f"{rid}.worker.log", {"synthetic": True})
+    write_new(folder / f"{rid}.response.json", response)
+    runner.write_completion(folder, request, 0)
+    return response
 
 
 class FakeTokenizer:
@@ -78,6 +88,12 @@ class FakeTokenizer:
 
 
 class S4ContractTests(unittest.TestCase):
+    def setUp(self):
+        # 임시 실행 파일은 Git 저장소 밖에 둔다. Git 경계 자체는 audit에서 별도 검증한다.
+        guard = patch.object(runner, "assert_raw_untracked")
+        guard.start()
+        self.addCleanup(guard.stop)
+
     def test_2x2_schedule_budget_and_unchanged_permissions(self):
         config = contracts.validate_contract()
         scheduled = runner.schedule(config)
@@ -151,9 +167,7 @@ class S4ContractTests(unittest.TestCase):
             root = Path(directory)
 
             def generate(folder, request):
-                response = response_fixture(request)
-                write_new(folder / f"{request['request_id']}.response.json", response)
-                return response
+                return completed_response_fixture(folder, request)
 
             with patch.dict(os.environ, {"SYSTEM_CONTEXT_S4": "K0_KANANA3B_P0_V1"}), patch.object(runner, "RAW_ROOT", root), patch.object(runner, "build_path", return_value=root / prepared["build_id"]), patch.object(runner, "service_observation", return_value={"MainPID": 0}), patch.object(runner, "_start_worker", side_effect=generate) as worker, patch.object(runner, "publish") as publish, patch.object(runner, "verify", return_value={"status": "synthetic_verified"}), redirect_stdout(io.StringIO()):
                 runner.execute(prepared)
@@ -210,9 +224,7 @@ class S4ContractTests(unittest.TestCase):
                 return (root / ("public" if public else "raw")) / build
 
             def generate(folder, request):
-                response = response_fixture(request)
-                write_new(folder / f"{request['request_id']}.response.json", response)
-                return response
+                return completed_response_fixture(folder, request)
 
             with patch.dict(os.environ, {"SYSTEM_CONTEXT_S4": "K0_KANANA3B_P0_V1"}), patch.object(runner, "REPO_ROOT", root), patch.object(runner, "RAW_ROOT", raw), patch.object(runner, "PUBLIC_ROOT", public), patch.object(runner, "build_path", side_effect=paths), patch.object(runner, "service_observation", return_value={"MainPID": 0}), patch.object(runner, "_start_worker", side_effect=generate), patch.object(runner, "prepare", return_value=rebuilt), patch.object(runner.subprocess, "run", return_value=Mock(stdout="")), redirect_stdout(io.StringIO()):
                 result = runner.execute(prepared)
@@ -365,7 +377,7 @@ class S4RegistrationTests(unittest.TestCase):
         self.assertIs(actual_model, model)
         self.assertIs(model.generation_config, common_defaults)
         load_tokenizer.assert_called_once_with("kanana3b_instruct")
-        loader.assert_called_once_with(Path("/synthetic/pinned-3b"), local_files_only=True, trust_remote_code=False, dtype="mock-bfloat16", attn_implementation="sdpa", low_cpu_mem_usage=True)
+        loader.assert_called_once_with(Path("/synthetic/pinned-3b"), local_files_only=True, trust_remote_code=False, dtype="mock-bfloat16", attn_implementation="sdpa", low_cpu_mem_usage=True, use_safetensors=True)
         model.to.assert_called_once_with("cuda:0")
         model.eval.assert_called_once_with()
         legacy.assert_not_called()

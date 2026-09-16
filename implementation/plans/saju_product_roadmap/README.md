@@ -54,6 +54,7 @@ S3 96요청 완료 후 계획상 잔여는 **242요청 = 본 비교 240 + 적격
 - 후속 [새 검사 버전 CPU 재집계](../../history/2026-09-15-system-context-rescore.md)와 [v1.16 의도 후보](../../history/2026-09-15-dashboard-v116-intent.md)를 검증했다. 새 모델 생성 0, 과거 차단 30건 유지, 운영 서비스는 그대로다.
 - 최신 [8A/S3 실행](../../history/2026-09-16-phase8-intent-s3.md)은 앱 오차단 후보와 R16/P0·P1 96요청을 각각 검증했다. P1은 일괄 개선이 아니며 자동 검사 오탐·누락도 남아 미채택했다. 동결 scorer·집계·P0는 보존하고 다음은 Phase 9/S4다.
 - [Phase 9 구현 기록](../../history/2026-09-16-phase9-s4.md)은 공식 3B revision/hash·독립 loader/tokenizer·192요청 실행기·새 scorer의 CPU 검증을 구분한다. 다운로드·실제 비교는 미실행이고 242요청 잔여·학습·운영 권한은 그대로다.
+- [S4 후속 재점검](../../history/2026-09-16-phase9-s4-audit.md)은 파일 혼입·실패 재개·입력 추적·집계 경계를 보강했다. 같은 비교 조건의 구현 보완이며 Phase 9 실제 비교 완료나 운영 변경이 아니다.
 - 분 단위 미래 절입은 승인되지 않았다.
 - Phase 6은 `AUTOMATED_REPAIR_REQUIRED`로 완료됐고 의미 품질은 `not_measured`다. 계약 밖 평가를 완료 조건으로 추가하지 않는다.
 - 소비된 sealed blind는 `spent_completed`이며 다시 열거나 재사용하지 않는다.

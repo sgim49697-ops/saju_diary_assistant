@@ -27,6 +27,8 @@ HANDOFF_FILES = (
     "implementation/history/2026-09-15-dashboard-v116-intent.md",
     "implementation/history/2026-09-15-phase7-canonicalization.md",
     "implementation/history/2026-09-16-phase8-intent-s3.md",
+    "implementation/history/2026-09-16-phase9-s4.md",
+    "implementation/history/2026-09-16-phase9-s4-audit.md",
 )
 ORDERED_FILES = (
     "00-current-baseline.md",
@@ -231,6 +233,17 @@ class SajuProductRoadmapTests(unittest.TestCase):
         for task_id in ("M-0293", "O-0173"):
             self.assertEqual(tasks[task_id]["documentation_status"], "verified")
             self.assertEqual(tasks[task_id]["execution_status"], "not_executed")
+
+    def test_s4_audit_preserves_execution_and_scoring_boundaries(self) -> None:
+        phase = (ROADMAP_ROOT / "phases/phase-09.md").read_text(encoding="utf-8")
+        audit = (REPO_ROOT / "implementation/history/2026-09-16-phase9-s4-audit.md").read_text(encoding="utf-8")
+        self.assertIn("2026-09-16-phase9-s4-audit.md", phase)
+        for marker in (
+            "실제 비교 미실행, GPU 생성 0", "242 = S4 192 + S6 48 + 공유 적격성 2",
+            "정상 종료 증거", "96개", "264개", "기존 S3 결과를 재채점하지 않았다",
+            "3B 앱 연결이 아니다", "사람 평가 Gate로 전환하지 않는다",
+        ):
+            self.assertIn(marker, audit)
 
     def test_data_and_training_stay_conditional(self) -> None:
         for name in ("60-mix20k-v3-1-build.md", "70-training-and-promotion.md"):

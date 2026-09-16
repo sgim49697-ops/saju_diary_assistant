@@ -19,6 +19,7 @@ CODE = (
     "scripts/evaluation/system_context_s4_scoring.py",
     "scripts/evaluation/system_context_scoring_v1_2.py",
     "tests/test_system_context_s4.py",
+    "tests/test_system_context_s4_audit.py",
     "tests/test_system_context_scoring_v1_2.py",
     str(CONFIG.relative_to(REPO_ROOT)), str(REGISTRY.relative_to(REPO_ROOT)),
 )

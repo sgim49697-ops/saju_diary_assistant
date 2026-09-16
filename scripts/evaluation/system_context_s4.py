@@ -5,8 +5,10 @@ from __future__ import annotations
 import argparse
 import fcntl
 import json
+import math
 import os
 import signal
+import stat
 import subprocess
 import sys
 import time
@@ -24,6 +26,7 @@ from scripts.evaluation.system_context_contracts import (
     prepare_context,
     private_directory,
     read_json,
+    safe_path,
     service_observation,
     validate_public,
     write_new,
@@ -44,7 +47,11 @@ from scripts.evaluation.system_context_s4_models import (
     registry_summary,
     verify_models,
 )
-from scripts.evaluation.system_context_s4_projection import compare_inputs, retokenize
+from scripts.evaluation.system_context_s4_projection import (
+    compare_inputs,
+    retokenize,
+    runtime_sections,
+)
 from scripts.evaluation.system_context_s4_scoring import aggregate
 from scripts.evaluation.system_context_scoring_v1_2 import score
 from scripts.training.phase5_dashboard_v1_15 import Phase5DashboardError
@@ -113,6 +120,7 @@ def prepare():
                     rebuilt, tokenizers[engine], engine=engine,
                     expected_backend=registry[engine]["tokenizer_backend_sha256"],
                     full_input_tokens=full_tokens,
+                    sections=runtime_sections(original["case"], arm),
                 )
                 if engine == "k0_instruct" and current["input_token_ids"] != original["render"]["input_token_ids"]:
                     raise ValueError("S4 K0 부모 토큰이 달라졌습니다.")
@@ -252,7 +260,7 @@ def validate_response(request, response):
             or telemetry.get("cpu_offload") is not False
             or telemetry.get("generation_defaults_policy") != "fresh_common_GenerationConfig_explicit_kwargs"
             or telemetry.get("effective_backend_sha256") != request["render"]["tokenizer_backend_sha256"]
-            or telemetry.get("actual_generation_kwargs") != generation_kwargs()
+            or digest(telemetry.get("actual_generation_kwargs")) != digest(generation_kwargs())
         ):
             raise ValueError("S4 모델별 loader/tokenizer·공통 생성 인자 불일치")
         if (
@@ -267,12 +275,24 @@ def validate_response(request, response):
             or telemetry["output_tokens"] != len(telemetry["output_token_ids"])
             or not 1 <= telemetry["output_tokens"] <= 4096
             or telemetry["stop_reason"] not in {"eos", "max_tokens", "other"}
+            or type(telemetry["output_token_ids"]) is not list
+            or any(type(token) is not int or token < 0 for token in telemetry["output_token_ids"])
             or not 0 < telemetry["gpu_total_memory_used_mib"] <= 16384
             or not 0 < telemetry["peak_allocated_bytes"] <= 16384 * 1048576
             or not 0 < telemetry["peak_reserved_bytes"] <= 16384 * 1048576
+            or telemetry["peak_allocated_bytes"] > telemetry["peak_reserved_bytes"]
+            or type(telemetry["elapsed_seconds"]) not in {int, float}
+            or not math.isfinite(telemetry["elapsed_seconds"])
             or telemetry["elapsed_seconds"] < 0
         ):
             raise ValueError("S4 실행 비용·정밀도·종료·재시도 계약 위반")
+        actual_stop = (
+            "eos" if telemetry["output_token_ids"][-1] in generation_kwargs()["eos_token_id"]
+            else "max_tokens" if telemetry["output_tokens"] == generation_kwargs()["max_new_tokens"]
+            else "other"
+        )
+        if telemetry["stop_reason"] != actual_stop:
+            raise ValueError("S4 종료 사유와 실제 출력 token이 다릅니다.")
         if (
             response["generated"]["input_token_ids_sha256"]
             != request["render"]["input_token_ids_sha256"]
@@ -300,6 +320,67 @@ def validate_response(request, response):
             raise ValueError("완료 응답 저장/표시 hash 불일치")
 
 
+def write_completion(root, request, return_code, *, timed_out=False):
+    """응답 작성뿐 아니라 부모가 확인한 process 종료를 불변 증거로 남긴다."""
+    rid = request["request_id"]
+    write_new(root / f"{rid}.exit.json", {
+        "request_sha256": digest(request), "return_code": return_code, "timed_out": timed_out,
+        "started_sha256": file_sha(root / f"{rid}.started.json"),
+        "response_sha256": file_sha(root / f"{rid}.response.json"),
+        "worker_log_sha256": file_sha(root / f"{rid}.worker.log"),
+    })
+
+
+def completion_hashes(root, request, response):
+    rid = request["request_id"]
+    paths = {name: safe_path(root / f"{rid}.{name}") for name in ("started.json", "exit.json", "worker.log")}
+    if response["status"] == "preblocked" and any(p.exists() for p in paths.values()):
+        raise ValueError("사전 차단 요청에 모델 실행 흔적이 있습니다.")
+    if response["status"] != "generated":
+        return {}
+    if not all(p.is_file() for p in paths.values()):
+        raise ValueError("worker 정상 종료 증거가 없습니다. 응답만으로 재사용하지 않습니다.")
+    for path in paths.values():
+        info = path.stat()
+        if stat.S_IMODE(info.st_mode) != 0o600 or info.st_uid != os.getuid():
+            raise ValueError("worker 정상 종료 증거의 권한/소유권 위반")
+    marker = read_json(paths["started.json"], private=True)
+    receipt = read_json(paths["exit.json"], private=True)
+    expected = {
+        "request_sha256": digest(request), "return_code": 0, "timed_out": False,
+        "started_sha256": file_sha(paths["started.json"]),
+        "response_sha256": file_sha(root / f"{rid}.response.json"),
+        "worker_log_sha256": file_sha(paths["worker.log"]),
+    }
+    if (
+        digest(receipt) != digest(expected)
+        or marker.get("request_sha256") != digest(request)
+        or type(marker.get("retry")) is not int or marker["retry"] != 0
+        or type(marker.get("parent_pid")) is not int or marker["parent_pid"] <= 0
+    ):
+        raise ValueError("worker 정상 종료·시작·응답·로그 증거가 일치하지 않습니다.")
+    return {"started_sha256": expected["started_sha256"], "exit_sha256": file_sha(paths["exit.json"]), "worker_log_sha256": expected["worker_log_sha256"]}
+
+
+def stop_worker(process):
+    """자신이 띄운 process group만 종료하고 reap한 뒤 GPU lock을 돌려준다."""
+    if process.poll() is not None:
+        return
+    try:
+        os.killpg(process.pid, signal.SIGTERM)
+    except ProcessLookupError:
+        process.wait(timeout=5)
+        return
+    try:
+        process.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        try:
+            os.killpg(process.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+        process.wait(timeout=5)
+
+
 def _start_worker(root, request):
     request_id = request["request_id"]
     input_path, response_path = (
@@ -307,7 +388,7 @@ def _start_worker(root, request):
         root / f"{request_id}.response.json",
     )
     start_path = root / f"{request_id}.started.json"
-    if start_path.exists():
+    if any(safe_path(root / f"{request_id}.{suffix}").exists() for suffix in ("started.json", "exit.json", "worker.log")):
         raise ValueError("시작됐으나 미완료인 요청은 자동 재생성하지 않습니다.")
     from scripts.evaluation.dashboard_v115_replay import header_check
     from scripts.training.mix2k_v4_lora import (
@@ -371,20 +452,16 @@ def _start_worker(root, request):
                     pass_fds=(descriptor,),
                     env={**os.environ, "SYSTEM_CONTEXT_GPU_LOCK_FD": str(descriptor), "HF_HUB_OFFLINE": "1", "TRANSFORMERS_OFFLINE": "1"},
                 )
+                timed_out = False
                 try:
                     return_code = process.wait(timeout=300)
                 except subprocess.TimeoutExpired:
-                    os.killpg(process.pid, signal.SIGTERM)
-                    try:
-                        process.wait(timeout=5)
-                    except subprocess.TimeoutExpired:
-                        os.killpg(process.pid, signal.SIGKILL)
-                        process.wait(timeout=5)
-                    return_code = -9
+                    stop_worker(process)
+                    return_code = process.returncode
+                    timed_out = True
         except BaseException:
             if process is not None and process.poll() is None:
-                os.killpg(process.pid, signal.SIGTERM)
-                process.wait(timeout=10)
+                stop_worker(process)
             raise
         if not response_path.exists():
             write_new(
@@ -392,13 +469,14 @@ def _start_worker(root, request):
                 {
                     "request_sha256": digest(request),
                     "status": "error",
-                    "reason": "timeout" if return_code == -9 else "worker_failed",
+                    "reason": "timeout" if timed_out else "worker_failed",
                     "return_code": return_code,
                     "worker_log_sha256": file_sha(log_path),
                 },
             )
         response = read_json(response_path, private=True)
-        if return_code != 0 and response["status"] == "generated":
+        write_completion(root, request, return_code, timed_out=timed_out)
+        if (return_code != 0 or timed_out) and response["status"] == "generated":
             raise ValueError(
                 "worker 실패 뒤 완료 파일이 남았습니다. 점검이 필요합니다."
             )
@@ -414,18 +492,25 @@ def execute(prepared, *, resume=False):
     root = build_path(prepared["build_id"])
     if root.exists() and not resume:
         raise ValueError("기존 build는 --resume으로만 검증 후 재개합니다.")
+    if resume and not (root / "prepared.json").is_file():
+        raise ValueError("동결 manifest 없는 build는 재개할 수 없습니다.")
+    assert_raw_untracked()
     private_directory(RAW_ROOT)
-    private_directory(root)
     lock_fd = os.open(RAW_ROOT / ".experiment.lock", os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
     try:
         fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        if root.exists() and not resume:
+            raise ValueError("기존 build는 --resume으로만 검증 후 재개합니다.")
         ledger_path = RAW_ROOT / "active-build.json"
         registration = {"build_id": prepared["build_id"], "maximum_requests": 192}
         if ledger_path.exists():
             if read_json(ledger_path, private=True) != registration:
                 raise ValueError("다른 S4 build의 예산이 이미 등록됐습니다. 자동 새 실행 금지")
         else:
+            if resume or any(p.name.startswith("build-") for p in RAW_ROOT.iterdir()):
+                raise ValueError("기존 build의 예산 원장이 없습니다. 자동 초기화 금지")
             write_new(ledger_path, registration)
+        private_directory(root)
         frozen_path = root / "prepared.json"
         if frozen_path.exists():
             frozen = read_json(frozen_path, private=True, max_bytes=128 * 1024 * 1024)
@@ -448,8 +533,11 @@ def execute(prepared, *, resume=False):
             ).stdout.strip()
             write_new(frozen_path, prepared)
         reused = 0
+        reused_request_ids = []
         entries = []
         for request in prepared["requests"]:
+            if service_observation() != prepared["service_before"]:
+                raise ValueError("운영 서비스 상태가 변경돼 추가 요청을 중단합니다.")
             request_id = request["request_id"]
             input_path, response_path = (
                 root / f"{request_id}.input.json",
@@ -463,6 +551,7 @@ def execute(prepared, *, resume=False):
             if response_path.exists():
                 response = read_json(response_path, private=True)
                 reused += 1
+                reused_request_ids.append(request_id)
             elif request["case"]["expected_block"]:
                 response = {
                     "request_sha256": digest(request),
@@ -470,7 +559,7 @@ def execute(prepared, *, resume=False):
                     "reason": request["case"]["expected_block"],
                 }
                 write_new(response_path, response)
-            elif (root / f"{request_id}.started.json").exists():
+            elif any(safe_path(root / f"{request_id}.{suffix}").exists() for suffix in ("started.json", "exit.json", "worker.log")):
                 response = {
                     "request_sha256": digest(request),
                     "status": "indeterminate",
@@ -480,6 +569,7 @@ def execute(prepared, *, resume=False):
             else:
                 response = _start_worker(root, request)
             validate_response(request, response)
+            completion_hashes(root, request, response)
             entries.append(_entry(request, response))
             print(
                 json.dumps(
@@ -527,10 +617,19 @@ def execute(prepared, *, resume=False):
                 )
         if service_observation() != prepared["service_before"]:
             raise ValueError("실험 도중 운영 서비스 상태가 변경됐습니다.")
-        publish(prepared, entries, reused=reused)
+        publish(prepared, entries, reused=reused, reused_request_ids=reused_request_ids)
         return verify(prepared["build_id"])
     finally:
         os.close(lock_fd)
+
+
+def assert_raw_untracked():
+    tracked = subprocess.run(
+        ["git", "ls-files", "--", str(RAW_ROOT.relative_to(REPO_ROOT))],
+        cwd=REPO_ROOT, capture_output=True, text=True, check=True,
+    ).stdout
+    if tracked.strip():
+        raise ValueError("원시 진단 파일이 Git 추적 중입니다. 실행·발행 금지")
 
 
 def public_manifest(prepared, entries, summary, publication):
@@ -555,19 +654,37 @@ def public_manifest(prepared, entries, summary, publication):
         "maximum_input_tokens": prepared["maximum_input_tokens"],
         "history_omissions": 0,
         "completed_reused_at_publication": publication["reused"],
+        "publication_counts": publication["counts"],
         "request_hashes": {
             r["request_id"]: {
                 "input_sha256": file_sha(root / f"{r['request_id']}.input.json"),
                 "response_sha256": file_sha(root / f"{r['request_id']}.response.json"),
+                **completion_hashes(root, r, read_json(root / f"{r['request_id']}.response.json", private=True)),
             }
-            for r in entries
+            for r in prepared["requests"]
         },
         "aggregate_sha256": digest(summary),
         "governance": prepared["config"]["governance"],
     }
 
 
-def publish(prepared, entries, *, reused):
+def publication_counts(entries, reused_request_ids):
+    known = {r["request_id"] for r in entries}
+    reused = set(reused_request_ids)
+    if len(known) != len(entries) or len(reused) != len(reused_request_ids) or not reused <= known:
+        raise ValueError("재사용 요청 분모·중복·식별자 불일치")
+    counts = {"new_generations": 0, "reused_generations": 0, "new_preblocks": 0, "reused_preblocks": 0}
+    for row in entries:
+        if row["status"] not in {"generated", "preblocked"}:
+            raise ValueError("미완료 요청은 발행 분모에 포함할 수 없습니다.")
+        label = "reused" if row["request_id"] in reused else "new"
+        label += "_generations" if row["status"] == "generated" else "_preblocks"
+        counts[label] += 1
+    return counts
+
+
+def publish(prepared, entries, *, reused, reused_request_ids):
+    assert_raw_untracked()
     build = prepared["build_id"]
     root, public = build_path(build), build_path(build, public=True)
     summary = {
@@ -580,7 +697,13 @@ def publish(prepared, entries, *, reused):
     if publication_path.exists():
         publication = read_json(publication_path, private=True)
     else:
-        publication = {"reused": reused, "service_after": service_observation()}
+        if type(reused) is not int or reused != len(reused_request_ids):
+            raise ValueError("재사용 요청 수 불일치")
+        publication = {
+            "reused": reused, "reused_request_ids": reused_request_ids,
+            "counts": publication_counts(entries, reused_request_ids),
+            "service_after": service_observation(),
+        }
         write_new(publication_path, publication)
     manifest = public_manifest(prepared, entries, summary, publication)
     for value in (summary, manifest):
@@ -599,6 +722,13 @@ def publish(prepared, entries, *, reused):
 
 def verify(build):
     root, public = build_path(build), build_path(build, public=True)
+    assert_raw_untracked()
+    if not RAW_ROOT.is_dir() or not root.is_dir():
+        raise ValueError("검증할 private build 디렉터리가 없습니다.")
+    private_directory(RAW_ROOT)
+    private_directory(root)
+    if read_json(RAW_ROOT / "active-build.json", private=True) != {"build_id": build, "maximum_requests": 192}:
+        raise ValueError("검증 대상과 S4 예산 원장이 다릅니다.")
     frozen = read_json(
         root / "prepared.json", private=True, max_bytes=128 * 1024 * 1024
     )
@@ -652,6 +782,7 @@ def verify(build):
             raise ValueError("동결 요청과 입력 파일 불일치")
         response = read_json(path, private=True)
         validate_response(request, response)
+        completion_hashes(root, request, response)
         entries.append(_entry(request, response))
     recomputed = {
         "schema_version": "1.0.0",
@@ -664,8 +795,10 @@ def verify(build):
     publication = read_json(root / "publication.json", private=True)
     if (
         publication["service_after"] != frozen["service_before"]
-        or not isinstance(publication["reused"], int)
+        or type(publication["reused"]) is not int
         or not 0 <= publication["reused"] <= len(entries)
+        or publication["reused"] != len(publication["reused_request_ids"])
+        or publication["counts"] != publication_counts(entries, publication["reused_request_ids"])
     ):
         raise ValueError("발행 시 서비스/재사용 기록 불일치")
     if public_manifest(frozen, entries, recomputed, publication) != manifest:
@@ -682,15 +815,6 @@ def verify(build):
         "raw_files_git_tracked": False,
         "governance": frozen["config"]["governance"],
     }
-    tracked = subprocess.run(
-        ["git", "ls-files", str(root.relative_to(REPO_ROOT))],
-        cwd=REPO_ROOT,
-        capture_output=True,
-        text=True,
-        check=True,
-    ).stdout
-    if tracked.strip():
-        raise ValueError("원시 진단 파일이 Git 추적 중입니다.")
     path = public / "verification.json"
     if path.exists():
         if read_json(path) != result:
@@ -698,6 +822,21 @@ def verify(build):
     else:
         write_new(path, result, private=False)
     return result
+
+
+def validate_cli(args):
+    if args.execute and args.command not in {"execute", "download"}:
+        raise ValueError("이 명령에는 --execute를 사용할 수 없습니다.")
+    if args.resume and (args.command != "execute" or not args.execute or not args.build):
+        raise ValueError("재개는 execute --execute --resume --build로만 요청합니다.")
+    if (args.command == "verify" or (args.command == "execute" and args.execute)) and not args.build:
+        raise ValueError("dry-run에서 확인한 --build가 필요합니다.")
+    if args.build:
+        if args.command not in {"execute", "verify"}:
+            raise ValueError("이 명령에는 --build를 사용할 수 없습니다.")
+        build_path(args.build)
+    if args.command != "worker" and (args.input is not None or args.output is not None):
+        raise ValueError("--input/--output은 격리 worker 전용입니다.")
 
 
 def main(argv=None):
@@ -714,6 +853,7 @@ def main(argv=None):
     parser.add_argument("--output", type=Path)
     args = parser.parse_args(argv)
     try:
+        validate_cli(args)
         if args.command == "worker":
             from scripts.evaluation.system_context_s4_backend import worker
 

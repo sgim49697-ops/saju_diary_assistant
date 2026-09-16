@@ -60,6 +60,7 @@ def load_model(context, engine):
         model = AutoModelForCausalLM.from_pretrained(
             model_root(), local_files_only=True, trust_remote_code=False,
             dtype=torch.bfloat16, attn_implementation="sdpa", low_cpu_mem_usage=True,
+            use_safetensors=True,
         )
         if model.__class__.__name__ != registration()["architecture"]:
             raise ValueError("등록한 3B native loader와 다릅니다.")
