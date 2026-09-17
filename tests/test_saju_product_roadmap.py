@@ -63,10 +63,10 @@ def active_roadmap_documents(root: Path = ROADMAP_ROOT) -> tuple[Path, ...]:
 class SajuProductRoadmapTests(unittest.TestCase):
     def test_index_uses_current_runtime_and_execution_order(self) -> None:
         index = (ROADMAP_ROOT / "README.md").read_text(encoding="utf-8")
-        self.assertIn("saju-product-roadmap-v1.6.0", index)
+        self.assertIn("saju-product-roadmap-v1.7.0", index)
         self.assertIn("26462137f9a4ef34adb2d3db0dd6eaff6282b309", index)
         self.assertIn("saju-runtime-release-v1.5.0-8b1d6ea2d46e", index)
-        self.assertIn("dashboard v1.14 운영 / v1.15~v1.18 보존 / v1.19 R16 제품 후보 CPU 검증·운영 미배포", index)
+        self.assertIn("dashboard v1.14 운영 / v1.15~v1.19 보존 / v1.20 R16 제품 후보 CPU 검증·운영 미배포", index)
         offsets = [index.index(name) for name in ORDERED_FILES]
         self.assertEqual(offsets, sorted(offsets))
 

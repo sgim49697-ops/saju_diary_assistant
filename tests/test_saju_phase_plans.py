@@ -298,7 +298,7 @@ class SajuPhasePlansTests(unittest.TestCase):
                     self.assertIn("1오류·191미실행·정상 응답 0", text)
                     self.assertIn("2026-09-16-phase9-s4-execution.md#blocked-run", text)
                 elif phase == 10:
-                    self.assertIn("상태: **완료 — R16 단독 v1.19 버그 보완·CPU/합성 화면 검증**", text)
+                    self.assertIn("상태: **완료 — R16 단독 v1.20 코드 검토 보완·CPU/합성 화면 검증**", text)
                     self.assertIn("build-f13715ee1d91", text)
                     self.assertIn("2026-09-16-phase10-product-candidate.md#phase10", text)
                 elif phase == 11:
@@ -491,6 +491,37 @@ class SajuPhasePlansTests(unittest.TestCase):
         phase = (ROADMAP / "phases/phase-10.md").read_text()
         self.assertIn("2026-09-17-phase10-product-fixes.md#phase10-fixes", phase)
         self.assertIn("build-35dc83ce161d", phase)
+
+    def test_claude_review_successor_preserves_evidence_and_execution_boundaries(self) -> None:
+        root = REPO_ROOT / "data/reports/saju_1b_baseline/dashboard-product-canary/v3.0.0/build-bc8f19f91297"
+        summary = json.loads((root / "aggregate.json").read_bytes())
+        manifest = json.loads((root / "build_manifest.json").read_bytes())
+        verification = json.loads((root / "verification.json").read_bytes())
+        self.assertEqual((summary["tests_passed"], summary["synthetic_browser_cases_passed"], summary["policy_case_count"]), (71, 32, 36))
+        self.assertEqual(manifest["identity"]["response_policy_version"], "saju-product-response-v1.2.0")
+        for path in (
+            "dashboard-product-canary/v2.0.0/build-35dc83ce161d/build_manifest.json",
+            "system-context-s5/v1.0.0/build-27a91a8e21a8/aggregate.json",
+            "system-context-s5/v1.0.0/build-27a91a8e21a8/build_manifest.json",
+        ):
+            self.assertIn("data/reports/saju_1b_baseline/" + path, manifest["identity"]["parent_manifest_sha256"])
+        for group in ("source_sha256", "parent_manifest_sha256"):
+            for path, expected in manifest["identity"][group].items():
+                self.assertEqual(hashlib.sha256((REPO_ROOT / path).read_bytes()).hexdigest(), expected, path)
+        self.assertEqual(verification["status"], "verified")
+        for name, field in (("aggregate.json", "aggregate_file_sha256"), ("build_manifest.json", "manifest_file_sha256")):
+            self.assertEqual(verification[field], hashlib.sha256((root / name).read_bytes()).hexdigest())
+        self.assertEqual(summary["request_budget"], {"actual_model_requests_added": 0, "previous_total": 631, "current_total": 631, "remaining": 49})
+        self.assertEqual(summary["quality_dimensions"], {"naturalness": "not_measured", "semantics": "not_measured"})
+        self.assertFalse(summary["candidate_adopted_for_production"])
+        for flag in ("training_performed", "sealed_blind_accessed", "service_changed", "runtime_release_changed", "production_promotion_allowed", "phase12_executed", "production_service_accessed"):
+            self.assertIs(summary["governance"][flag], False)
+        phase = (ROADMAP / "phases/phase-10.md").read_text()
+        self.assertIn("2026-09-17-claude-product-review.md#claude-review", phase)
+        self.assertIn(root.name, phase)
+        self.assertIn("기본 포트 8772", phase)
+        self.assertIn("dashboard/v1.20.0/product-v1.2.0/manual_sessions", phase)
+        self.assertIn("상태: 미실행", (ROADMAP / "phases/phase-12.md").read_text())
 
     def test_active_collection_recurses_and_keeps_archive_policy_separate(self) -> None:
         real_active = set(active_roadmap_documents())

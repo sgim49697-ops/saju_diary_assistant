@@ -12,7 +12,7 @@
 | 응답 기준선 | `26462137f9a4ef34adb2d3db0dd6eaff6282b309`의 20문장 진단 |
 | 현재 단계 | S0/S1·S2·CPU 재집계·S3 96·S4 192요청·S5 CPU 분석 실행·검증 완료 |
 | 최신 S2 build | `build-c39b4bce5089`, 312생성·30사전 차단; 검사기 오탐 별도 확인 |
-| 현재 승인 후속 | Phase 10 v1.19 `build-35dc83ce161d`·Phase 11 S5 `build-27a91a8e21a8` 완료; 생성/학습 0 |
+| 현재 승인 후속 | Phase 10 v1.20 `build-bc8f19f91297` 코드 검토 보완·Phase 11 S5 `build-27a91a8e21a8` 보존; 생성/학습 0 |
 | 다음 별도 작업 | Phase 12 전체 후보 구성 동결·새 질문 실제 확인; 보정/학습·운영 전환은 조건부 |
 
 2026-09-14 PR #28로 이 계획과 부모 v1.15 후보를 `master`에 통합했다. 2026-09-15 사용자 승인 범위인 S0/S1 구현·검증과 S2 실행을 완료했다. 코드 통합과 격리 진단은 운영 v1.15 배포가 아니다. [완료 기록](../history/2026-09-15-system-context-diagnosis.md)은 실제 모델 오류와 검사기 오탐을 구분한다. 입력·집계 재구성 검증 통과가 검사기의 의미 타당성이나 모델 품질 승인은 아니다.
@@ -292,6 +292,8 @@ HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 .venv/bin/python -B -m scripts.evaluatio
 - 무관한 자료가 포함된 산술 문제의 성능 저하 연구를 정보 관련성 대조의 근거로 삼는다. 해당 과제 결과를 한국어 사주 대화나 모델 크기의 인과 결론으로 직접 일반화하지 않는다. [Shi 외, Large Language Models Can Be Easily Distracted by Irrelevant Context, v3](https://arxiv.org/abs/2302.00093v3).
 
 ## 진행 기록
+
+- 2026-09-17: [Claude Code 코드 검토·보완](../history/2026-09-17-claude-product-review.md#claude-review)의 v1.20을 최신 CPU 후보로 연결했다. 실제 코드 코드 검토 호출과 S0~S6 모델 실험 예산은 구분한다. 누적 631/680·잔여 49, 다음 S6 미실행·학습 보류는 그대로다.
 
 - 2026-09-17 Phase 11/S5: [전수 대조 기록](../history/2026-09-17-phase11-data-hypotheses.md#phase11)의 2K·기존 dev 200·teacher/400건·token/mask 재검증과 7축 학습 가설을 반영했다. v1.19 CPU 버그 보완과 구분하며 실제 후보 확인은 다음 Phase 12다. 기존 부모 결과·학습·운영·누적 631/680·잔여 49를 유지했다.
 

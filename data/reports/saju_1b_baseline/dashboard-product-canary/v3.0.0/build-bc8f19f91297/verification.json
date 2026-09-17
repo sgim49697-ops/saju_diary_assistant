@@ -1,0 +1,22 @@
+{
+  "aggregate_file_sha256": "190393f29ac76dab71b53e0d51ce8bfd3e481e9b5c0c962eee28a1e857aa1812",
+  "build_id": "build-bc8f19f91297",
+  "governance": {
+    "cpu_only": true,
+    "fake_generation_used": true,
+    "new_model_generations": 0,
+    "phase12_executed": false,
+    "production_promotion_allowed": false,
+    "production_service_accessed": false,
+    "raw_outputs_published": false,
+    "real_cli_nonmodel_executed": true,
+    "runtime_release_changed": false,
+    "sealed_blind_accessed": false,
+    "service_changed": false,
+    "synthetic_only": true,
+    "training_performed": false
+  },
+  "manifest_file_sha256": "a0cd71d637bf7c5bff647ebb49d59302771d03c2ca5d9a5633ff822c9923e7df",
+  "schema_version": "1.0.0",
+  "status": "verified"
+}

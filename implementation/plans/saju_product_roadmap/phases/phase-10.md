@@ -4,13 +4,13 @@
 
 ## 목적과 현재 상태
 
-상태: **완료 — R16 단독 v1.19 버그 보완·CPU/합성 화면 검증**. 재점검에서 발견한 응답 경쟁·일진 후속 정보 누락·일상 단어 오인·미지원 표현 누락을 `build-35dc83ce161d`의 CPU 56개·합성 화면 32개로 보완했다. [보완 기록](../../../history/2026-09-17-phase10-product-fixes.md#phase10-fixes)을 따른다. 기존 v1.18 `build-f13715ee1d91`의 CPU 46개·화면 16개와 [최초 완료 기록](../../../history/2026-09-16-phase10-product-candidate.md#phase10)은 당시 검증 범위로 보존한다. 실제 모델 생성 0이며 모델 품질·운영 채택 완료가 아니다. 부모와 S3/S4의 동결 입력·점수·기존 세션은 바꾸지 않는다.
+상태: **완료 — R16 단독 v1.20 코드 검토 보완·CPU/합성 화면 검증**. [Claude Code 코드 검토·보완](../../../history/2026-09-17-claude-product-review.md#claude-review)에서 일상 어휘 오인·정의 요청 오차단·복합 요청 누락을 `build-bc8f19f91297`의 CPU 71개·합성 화면 32개로 확인했다. 이전 v1.19 `build-35dc83ce161d`의 응답 경쟁·일진 후속 정보 누락 등 CPU 56개·화면 32개 증거는 보존한다. [보완 기록](../../../history/2026-09-17-phase10-product-fixes.md#phase10-fixes)을 따른다. 기존 v1.18 `build-f13715ee1d91`의 CPU 46개·화면 16개와 [최초 완료 기록](../../../history/2026-09-16-phase10-product-candidate.md#phase10)은 당시 검증 범위로 보존한다. 실제 모델 생성 0이며 모델 품질·운영 채택 완료가 아니다. 부모와 S3/S4의 동결 입력·점수·기존 세션은 바꾸지 않는다.
 
 ## 진입 조건
 
 Phase 8A 앱 회귀와 Phase 9 결과·제한을 확보한다. S4 미실행이면 그 상태를 유지하고 크기 결론 없이 가능한 앱 범위만 명시한다. 기존 snapshot·HMAC·binding·schema·권한과 새 후보의 변경 목록을 먼저 고정한다.
 
-이번 진입은 8A 45개 CPU·6개 합성 화면, S3 96요청, S4 v1.1 192요청의 재검증을 근거로 했다. 사용자 선택은 R16이며 S4의 3B나 S3 P1을 자동 채택하지 않는다. 후보 하나는 **R16 + product_v1 지시문 묶음 + 요청별 사실/이력 선택 + v4 기반 의도 판별 + v1.19 API/UI/저장 정책**이다. 개별 실험에서 개선된 조합을 검증된 제품으로 간주하지 않는다.
+이번 진입은 8A 45개 CPU·6개 합성 화면, S3 96요청, S4 v1.1 192요청의 재검증을 근거로 했다. 사용자 선택은 R16이며 S4의 3B나 S3 P1을 자동 채택하지 않는다. 후보 하나는 **R16 + product_v1 지시문 묶음 + 요청별 사실/이력 선택 + v4 기반 의도 판별 + v1.20 API/UI/저장 정책**이다. 개별 실험에서 개선된 조합을 검증된 제품으로 간주하지 않는다.
 
 ## 작업 순서
 
@@ -67,7 +67,7 @@ Phase 8A 앱 회귀와 Phase 9 결과·제한을 확보한다. S4 미실행이�
 
 단순 일진 조회에도 원국 하나를 강제하는 의무는 요청 유형에 맞게 완화할 수 있다. 새 제품 계약을 먼저 고정하고 기준선·후보에 동일 적용한다. 과거 S3/S4 기대값·응답·점수는 보존한다. 직접 사실 표시 정확도, LLM 자체 사실 활용, end-to-end 요청 성공을 따로 보고한다. 모델은 일주/일간·원국/일진을 구분하고 잘못된 전제를 현재 사실로 교정하며 짧은 답·문장 수·재작성·미상·미지원 제한을 따른다.
 
-후보 저장 schema는 `1.9.0`, 최신 응답 정책은 `saju-product-response-v1.1.0`이다. 직접 응답·확인·차단에는 모델 이름/가짜 token·latency를 붙이지 않는다. 생성은 R16 원출력을 수정 없이 API·저장·화면에 전달하고 자동 검사 경고를 분리한다. 원출력 재작성·자동 재생성으로 성공을 만들지 않는다. 이 경로는 CPU 모의 생성으로 확인했으며 **실제 R16 생성·자연스러움·의미 품질은 미측정**이다. Phase 12의 공통 평가 계약·새 질문 사용 전 동결은 별도 남아 있다.
+후보 저장 schema는 `1.9.0`, 최신 응답 정책은 `saju-product-response-v1.2.0`이다. 직접 응답·확인·차단에는 모델 이름/가짜 token·latency를 붙이지 않는다. 생성은 R16 원출력을 수정 없이 API·저장·화면에 전달하고 자동 검사 경고를 분리한다. 원출력 재작성·자동 재생성으로 성공을 만들지 않는다. 이 경로는 CPU 모의 생성으로 확인했으며 **실제 R16 생성·자연스러움·의미 품질은 미측정**이다. Phase 12의 공통 평가 계약·새 질문 사용 전 동결은 별도 남아 있다.
 
 <a id="revision-history"></a>
 ### 정정·날짜 변경·이력
@@ -76,7 +76,7 @@ Phase 8A 앱 회귀와 Phase 9 결과·제한을 확보한다. S4 미실행이�
 
 사용자의 일반 이야기·요청은 필요한 범위에서 유지할 수 있다. 이전 원국의 모델 설명은 현재 사실로 넣지 않고, 정정 정보는 새 revision의 근거로만 처리해 원문을 공개하지 않는다. 이전 모델 오답은 과거 발언으로 구분하고 이전 날짜 일진 설명을 새 날짜 근거로 사용하지 않는다. 첫 후보에는 대형 라우터·장기 메모리·자동 요약·세션 전면 개편·자동 일기 저장을 추가하지 않으며 선행 조건으로도 삼지 않는다. 원문이 언급한 향후 요약 오염 검사는 도입을 별도 결정할 때의 조건으로 보존한다. 과거 일상 이야기는 허용하지만 과거 일진은 [현재 날짜 정책](phase-07.md#date-policy)을 유지한다.
 
-v1.19는 정정·날짜 변경 후 **새 연결 대화**만 허용한다. 이전 대화 파일·공개 binding snapshot은 그대로 보존하고 다른 세션 이력을 자동 복사하지 않는다. 재계산 실패 시 이전 runtime session을 삭제하지 않는다. `원국만` 연결은 partial/unknown을 허용하되 exact 원국+단일 날짜 연결과 분리한다. HTTP worker는 초안을 반환하고 서버가 저장 직전 authoritative revision·snapshot과 대화 CAS를 다시 확인한다. stale 결과는 저장하지 않으며 0600 잠금 파일과 기존 인증·CSRF·rate limit·암호화 runtime store·process lease를 유지한다.
+v1.20은 정정·날짜 변경 후 **새 연결 대화**만 허용한다. 이전 대화 파일·공개 binding snapshot은 그대로 보존하고 다른 세션 이력을 자동 복사하지 않는다. 재계산 실패 시 이전 runtime session을 삭제하지 않는다. `원국만` 연결은 partial/unknown을 허용하되 exact 원국+단일 날짜 연결과 분리한다. HTTP worker는 초안을 반환하고 서버가 저장 직전 authoritative revision·snapshot과 대화 CAS를 다시 확인한다. stale 결과는 저장하지 않으며 0600 잠금 파일과 기존 인증·CSRF·rate limit·암호화 runtime store·process lease를 유지한다.
 
 <a id="cpu-regression"></a>
 ## 검증
@@ -87,7 +87,7 @@ v1.19는 정정·날짜 변경 후 **새 연결 대화**만 허용한다. 이전
 
 입력은 승인 binding·현재 요청·필요 이력·8A/S3/S4 결과다. 산출물은 모드별 응답 계약, 선택 facts·revision·최종 입력 추적, 최소 앱 후보 하나와 변경 목록, CPU 회귀다. 실제 제품 API·버전은 구현 시 계약으로 고정하며 이 계획의 개념을 기존 API라고 부르지 않는다.
 
-구현 입구는 [v1.19](../../../../scripts/training/phase5_dashboard_v1_19.py), [응답 정책](../../../../scripts/training/dashboard_product_policy_v2.py), [세션 계약](../../../../scripts/training/dashboard_product_session_v2.py), [binding](../../../../scripts/runtime/product_dashboard_binding_v1.py)과 [고정 config](../../../../configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.19.0-product-candidate.json)다. 기본 포트 8771, 별도 `dashboard/v1.19.0/product-v1.1.0/manual_sessions` 경로, feature 기본 off다. 부모 v1.18 파일은 수정하지 않았다. CPU 공개 산출물은 [aggregate](../../../../data/reports/saju_1b_baseline/dashboard-product-canary/v2.0.0/build-35dc83ce161d/aggregate.json)·[manifest](../../../../data/reports/saju_1b_baseline/dashboard-product-canary/v2.0.0/build-35dc83ce161d/build_manifest.json)·[verification](../../../../data/reports/saju_1b_baseline/dashboard-product-canary/v2.0.0/build-35dc83ce161d/verification.json)만 포함한다.
+구현 입구는 [v1.20](../../../../scripts/training/phase5_dashboard_v1_20.py), [응답 정책](../../../../scripts/training/dashboard_product_policy_v3.py), [세션 계약](../../../../scripts/training/dashboard_product_session_v3.py), [binding](../../../../scripts/runtime/product_dashboard_binding_v1.py)과 [고정 config](../../../../configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.20.0-product-candidate.json)다. 기본 포트 8772, 별도 `dashboard/v1.20.0/product-v1.2.0/manual_sessions` 경로, feature 기본 off다. 부모 v1.18/v1.19와 S5 파일은 수정하지 않았다. CPU 공개 산출물은 [aggregate](../../../../data/reports/saju_1b_baseline/dashboard-product-canary/v3.0.0/build-bc8f19f91297/aggregate.json)·[manifest](../../../../data/reports/saju_1b_baseline/dashboard-product-canary/v3.0.0/build-bc8f19f91297/build_manifest.json)·[verification](../../../../data/reports/saju_1b_baseline/dashboard-product-canary/v3.0.0/build-bc8f19f91297/verification.json)만 포함한다.
 
 ## 종료·중단과 다음 단계
 
@@ -100,6 +100,8 @@ Phase 10 구현은 종료했다. 후속 **Phase 11의 학습 필요성 가설·�
 전체 문서 §1·3·5·6·9.1, 모델 문서 §1과 제품 응답 분리 원칙이다. [원문·섹션 색인](../source-20260915.md)과 [행별 반영표](../requirements-20260915.json)에 전량 연결한다.
 
 ## 진행 기록
+
+- 2026-09-17 Claude Code 코드 검토: v1.20에서 위치별 일상 단어 구분, 설명 요청과 개인 계산 구분, 닫힌 단일 조회 문법과 복합 요청 보존을 추가했다. [기록](../../../history/2026-09-17-claude-product-review.md#claude-review)에 코드 검토·재현·회귀·한계를 남긴다. schema 1.9.0·R16·지시문 원문과 부모 증거는 보존하고 정책 v1.2.0만 새 후보로 고정한다.
 
 - 2026-09-17: v1.19에서 4개 재현 버그와 화면의 늦은 성공/오류·목록/상세 조회·날짜/입력/삭제 경쟁을 수정했다. [보완 기록](../../../history/2026-09-17-phase10-product-fixes.md#phase10-fixes)에 새 증거와 부모 보존을 연결한다. API 형태·schema 1.9.0·R16·지시문 원문은 유지하고 정책 v1.1.0·별도 저장 경로를 사용한다. 모델 호출·운영 교체는 하지 않았다.
 

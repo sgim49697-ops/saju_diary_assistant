@@ -28,7 +28,7 @@
 - [v1.15 계획](implementation/plans/dashboard_v1_15_grounding.md)의 tokenizer 동결·날짜 사전 차단·역할별 사실 검사는 구현·진단을 완료하고 PR #28로 **병합 완료·운영 미배포 상태인 후보**다. 자유문장에서 새 기간을 계산하거나 연결 snapshot을 자동 교체하지 않는다.
 - v1.15의 20문장 비교는 60요청·54생성·6사전 차단이다. 내일/주간 사주 요청의 사전 차단과 일반 메시지 작성은 구분한다. 이는 별도 period Runtime의 승인 범위가 사라졌다는 뜻이 아니라 해당 대화 후보의 연결 범위 제한이다.
 - 날짜·원국 변경은 새 계산·명시적 연결을 거친다. feature 기본 off, 암호화 상태·권한·rate limit·로그 비노출은 유지한다. 운영 키는 공개하지 않는다.
-- 보존 v1.17 의도 후보는 [Phase 8A](implementation/plans/saju_product_roadmap/phases/phase-08.md#routing)의 날짜 표현 오차단·직전 사용자 맥락·확인 안내를 구현했다. 45개 CPU·6개 합성 브라우저 검증을 통과했으며 v1.16 부모는 보존하고 운영에는 배포하지 않았다. [Phase 10](implementation/plans/saju_product_roadmap/phases/phase-10.md)의 새 v1.18은 R16 단독·직접 사실 응답·요청별 facts/이력 선택·정정 후 새 연결을 구현했다. 기존 CPU 46개·합성 화면 16개를 보존하고 v1.19의 버그 보완 CPU 56개·합성 화면 32개를 추가했다. 실제 모델 생성 0, 운영 미배포다. 합성 화면 검사를 실제 운영 통합·모델 품질 확인으로 바꾸지 않는다.
+- 보존 v1.17 의도 후보는 [Phase 8A](implementation/plans/saju_product_roadmap/phases/phase-08.md#routing)의 날짜 표현 오차단·직전 사용자 맥락·확인 안내를 구현했다. 45개 CPU·6개 합성 브라우저 검증을 통과했으며 v1.16 부모는 보존하고 운영에는 배포하지 않았다. [Phase 10](implementation/plans/saju_product_roadmap/phases/phase-10.md)의 새 v1.18은 R16 단독·직접 사실 응답·요청별 facts/이력 선택·정정 후 새 연결을 구현했다. 기존 CPU 46개·합성 화면 16개를 보존하고 v1.19의 버그 보완 CPU 56개·합성 화면 32개를 추가했다. 최신 [v1.20 코드 검토 보완](implementation/history/2026-09-17-claude-product-review.md#claude-review)은 일상 단어·용어 설명·복합 요청 회귀를 추가했다. 실제 모델 생성 0, 운영 미배포다. 합성 화면 검사를 실제 운영 통합·모델 품질 확인으로 바꾸지 않는다.
 
 ## 실제 구현 입구
 
@@ -37,7 +37,7 @@
 | 승인 원국·단일 일진 | [engine_v1_4.py](scripts/runtime/calculation/engine_v1_4.py), [engine_v1_5.py](scripts/runtime/calculation/engine_v1_5.py) |
 | 기간 해석·복원·실행 | [period_v1](scripts/runtime/period_v1/) |
 | 단일 날짜 관계 | [relation_v1](scripts/runtime/relation_v1/) |
-| 운영 계열·진단 후보 | [v1.14](scripts/training/phase5_dashboard_v1_14.py), [v1.15](scripts/training/phase5_dashboard_v1_15.py), [v1.16](scripts/training/phase5_dashboard_v1_16.py), [v1.17](scripts/training/phase5_dashboard_v1_17.py), [v1.18](scripts/training/phase5_dashboard_v1_18.py), [v1.19](scripts/training/phase5_dashboard_v1_19.py) |
+| 운영 계열·진단 후보 | [v1.14](scripts/training/phase5_dashboard_v1_14.py), [v1.15](scripts/training/phase5_dashboard_v1_15.py), [v1.16](scripts/training/phase5_dashboard_v1_16.py), [v1.17](scripts/training/phase5_dashboard_v1_17.py), [v1.18](scripts/training/phase5_dashboard_v1_18.py), [v1.19](scripts/training/phase5_dashboard_v1_19.py), [v1.20](scripts/training/phase5_dashboard_v1_20.py) |
 | tokenizer·사실 검사 | [dashboard_tokenizer_v1.py](scripts/training/dashboard_tokenizer_v1.py), [dashboard_grounding_v2.py](scripts/training/dashboard_grounding_v2.py) |
 | 원국 운영 보안 | [운영 계약](docs/runtime/chart_only_operations.md) |
 
