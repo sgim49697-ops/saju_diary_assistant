@@ -63,7 +63,7 @@ def active_roadmap_documents(root: Path = ROADMAP_ROOT) -> tuple[Path, ...]:
 class SajuProductRoadmapTests(unittest.TestCase):
     def test_index_uses_current_runtime_and_execution_order(self) -> None:
         index = (ROADMAP_ROOT / "README.md").read_text(encoding="utf-8")
-        self.assertIn("saju-product-roadmap-v1.5.0", index)
+        self.assertIn("saju-product-roadmap-v1.6.0", index)
         self.assertIn("26462137f9a4ef34adb2d3db0dd6eaff6282b309", index)
         self.assertIn("saju-runtime-release-v1.5.0-8b1d6ea2d46e", index)
         self.assertIn("dashboard v1.14 운영 / v1.15~v1.18 보존 / v1.19 R16 제품 후보 CPU 검증·운영 미배포", index)
@@ -175,7 +175,8 @@ class SajuProductRoadmapTests(unittest.TestCase):
             "A/S0·S1·B1/S2 342요청·CPU 재집계",
             "C/S4 v1.1 192요청을 완료",
             "Phase 10 최소 제품 후보의 CPU·합성 화면 구현 검증도 완료",
-            "다음은 Phase 11의 가설·조건부 명세",
+            "D/S5의 기존 2K 전수 대조·7축 가설·조건부 명세도 완료",
+            "다음은 Phase 12의 전체 후보 구성 동결·실제 확인",
         ):
             self.assertIn(marker, text)
 

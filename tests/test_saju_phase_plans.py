@@ -44,7 +44,8 @@ NON_TASK_TYPES = {
 }
 S4_TASK_IDS = {"M-0293", "O-0173"}
 PRODUCT_TASK_IDS = {"O-0144", "O-0174", *(f"O-{n:04}" for n in range(213, 221))}
-IMPLEMENTATION_TASK_IDS = {"O-0171", "M-0292", "O-0172"} | S4_TASK_IDS | PRODUCT_TASK_IDS
+S5_TASK_IDS = {"M-0294", "O-0175"}
+IMPLEMENTATION_TASK_IDS = {"O-0171", "M-0292", "O-0172"} | S4_TASK_IDS | PRODUCT_TASK_IDS | S5_TASK_IDS
 SEMANTIC_TYPES = NON_TASK_TYPES | {
     "execution_task", "conditional_proposal", "completed_history",
 }
@@ -138,18 +139,19 @@ def validate_mapping(manifest: dict) -> None:
         if entry["id"] in DOCUMENTATION_TASK_IDS and requirement_type != "execution_task":
             raise ValueError("documentation task misclassified")
         if entry["execution_status"] == "completed" and phase != 7:
-            expected_phase = 10 if entry["id"] in PRODUCT_TASK_IDS else 9 if entry["id"] in S4_TASK_IDS else 8
+            expected_phase = 11 if entry["id"] in S5_TASK_IDS else 10 if entry["id"] in PRODUCT_TASK_IDS else 9 if entry["id"] in S4_TASK_IDS else 8
             if phase != expected_phase or entry["id"] not in IMPLEMENTATION_TASK_IDS:
                 raise ValueError("future phase incorrectly completed")
             evidence, separator, anchor = entry.get("execution_evidence", "").partition("#")
             expected_evidence = (
-                "../../history/2026-09-16-phase10-product-candidate.md" if phase == 10
+                "../../history/2026-09-17-phase11-data-hypotheses.md" if phase == 11
+                else "../../history/2026-09-16-phase10-product-candidate.md" if phase == 10
                 else "../../history/2026-09-16-phase9-s4-recovery.md" if phase == 9
                 else "../../history/2026-09-16-phase8-intent-s3.md"
             )
             if evidence != expected_evidence or not separator:
                 raise ValueError("implementation completion without evidence")
-            expected_anchor = "phase10" if phase == 10 else "phase9" if phase == 9 else "phase8a" if entry["id"] == "O-0171" else "phase8b"
+            expected_anchor = "phase11" if phase == 11 else "phase10" if phase == 10 else "phase9" if phase == 9 else "phase8a" if entry["id"] == "O-0171" else "phase8b"
             if anchor != expected_anchor:
                 raise ValueError("implementation evidence refers to another task")
             if f'<a id="{anchor}"></a>' not in (ROADMAP / evidence).read_text(encoding="utf-8"):
@@ -299,7 +301,11 @@ class SajuPhasePlansTests(unittest.TestCase):
                     self.assertIn("상태: **완료 — R16 단독 v1.19 버그 보완·CPU/합성 화면 검증**", text)
                     self.assertIn("build-f13715ee1d91", text)
                     self.assertIn("2026-09-16-phase10-product-candidate.md#phase10", text)
-                elif 11 <= phase <= 12:
+                elif phase == 11:
+                    self.assertIn("상태: **완료 — S5 기존 데이터 전수 대조·학습 가설·조건부 명세만 작성**", text)
+                    self.assertIn("build-27a91a8e21a8", text)
+                    self.assertIn("2026-09-17-phase11-data-hypotheses.md#phase11", text)
+                elif phase == 12:
                     self.assertIn("상태: 미실행", text)
                 elif phase >= 13:
                     self.assertIn("상태: 조건부 보류", text)
@@ -390,7 +396,7 @@ class SajuPhasePlansTests(unittest.TestCase):
 
     def test_status_validation_rejects_fictional_execution_and_missing_fields(self) -> None:
         for source_id, field, value in (
-            ("O-0175", "execution_status", "completed"),
+            ("O-0175", "execution_status", "not_executed"),
             ("M-0292", "execution_evidence", "../../history/2026-09-16-phase8-intent-s3.md#phase8a"),
             ("M-0296", "execution_status", "completed"),
             ("O-0068", "execution_status", "not_executed"),
@@ -671,6 +677,99 @@ class SajuPhasePlansTests(unittest.TestCase):
         phase13 = (ROADMAP / "phases/phase-13.md").read_text(encoding="utf-8")
         self.assertIn("질문은 학습 자료나 새 모델 확인에 재사용하지 않는다", phase13)
         self.assertIn("S6 잔여 요청과 별도의", phase13)
+
+    def test_s5_completion_requires_immutable_analysis_evidence_not_training(self) -> None:
+        root = REPO_ROOT / "data/reports/saju_1b_baseline/system-context-s5/v1.0.0/build-27a91a8e21a8"
+        self.assertEqual({p.name for p in root.iterdir()}, {"aggregate.json", "build_manifest.json", "verification.json"})
+        summary = json.loads((root / "aggregate.json").read_bytes())
+        manifest = json.loads((root / "build_manifest.json").read_bytes())
+        verification = json.loads((root / "verification.json").read_bytes())
+        for name, key, pin in (
+            ("aggregate.json", "aggregate_file_sha256", "bb34e74c7f0dda2b58b1d1c6b4fa868d1ac0c58a2cdca35bbe48312f19ed4150"),
+            ("build_manifest.json", "manifest_file_sha256", "65ef8dd8b4647766d98b5adacf826e1647aae34ed32e9fa3b707510bb3929f7d"),
+        ):
+            self.assertEqual(hashlib.sha256((root / name).read_bytes()).hexdigest(), pin)
+            self.assertEqual(verification[key], pin)
+        self.assertEqual(verification["status"], "verified")
+        self.assertEqual(summary["status"], "completed_analysis_only")
+        self.assertEqual(summary["decision"], "hold_repair_and_training_until_phase12")
+        config_path = REPO_ROOT / "configs/model_versions/saju_1b_baseline/system-context-s5-v1.0.0.json"
+        self.assertEqual(hashlib.sha256(config_path.read_bytes()).hexdigest(), manifest["identity"]["config_sha256"])
+        for path, pin in manifest["identity"]["source_sha256"].items():
+            with self.subTest(source=path):
+                self.assertFalse(Path(path).is_absolute())
+                self.assertNotIn("..", Path(path).parts)
+                self.assertEqual(hashlib.sha256((REPO_ROOT / path).read_bytes()).hexdigest(), pin)
+        for item in (summary, manifest, verification):
+            self.assertIs(item["governance"]["cpu_only"], True)
+            self.assertEqual(item["governance"]["new_model_generations"], 0)
+            self.assertEqual(item["governance"]["teacher_calls"], 0)
+            for flag in ("training_performed", "data_changed", "service_changed", "production_promotion_allowed", "runtime_release_changed", "sealed_blind_accessed", "phase12_executed", "confirmation_24_created"):
+                self.assertIs(item["governance"][flag], False)
+        self.assertEqual(summary["request_budget"], {"actual_model_requests_added": 0, "remaining": 49, "total": 631})
+        self.assertEqual(summary["candidate_canary"]["build_id"], "build-35dc83ce161d")
+        entries = {entry["id"]: entry for entry in self.manifest["entries"]}
+        for source_id in S5_TASK_IDS:
+            self.assertEqual(entries[source_id]["execution_status"], "completed")
+            self.assertEqual(entries[source_id]["execution_evidence"], "../../history/2026-09-17-phase11-data-hypotheses.md#phase11")
+            for field, value in (("execution_status", "not_executed"), ("execution_evidence", ""), ("execution_evidence", "../../history/2026-09-16-phase10-product-candidate.md#phase10")):
+                changed = copy.deepcopy(self.manifest)
+                next(e for e in changed["entries"] if e["id"] == source_id)[field] = value
+                with self.subTest(source_id=source_id, field=field), self.assertRaises(ValueError):
+                    validate_mapping(changed)
+        self.assertEqual(entries["O-0176"]["execution_status"], "not_executed")
+        self.assertEqual(entries["M-0296"]["execution_status"], "conditional_not_executed")
+
+    def test_s5_data_limits_and_full_token_audit_are_not_quality_approval(self) -> None:
+        path = REPO_ROOT / "data/reports/saju_1b_baseline/system-context-s5/v1.0.0/build-27a91a8e21a8/aggregate.json"
+        summary = json.loads(path.read_bytes())
+        data, token = summary["data_distribution"], summary["token_audit"]
+        self.assertEqual(data["rows"], 2000)
+        self.assertEqual(data["final_three_or_more_nonempty_lines"], 1751)
+        self.assertEqual(data["axes"]["general_korean_empathy"]["rows"], 250)
+        self.assertEqual(data["axes"]["general_korean_empathy"]["bound"], 0)
+        self.assertEqual(data["axes"]["general_korean_empathy"]["multiturn"], 0)
+        self.assertEqual(data["teacher"]["actual_reviewers"], {"codex": 1809, "claude": 191})
+        self.assertFalse(data["lexical_zero_proves_semantic_absence"])
+        overlap = data["development_overlap"]
+        self.assertEqual(overlap["rows"], 200)
+        self.assertEqual(overlap["normalized_last_user_overlap_rows"], 200)
+        self.assertEqual(overlap["exact_parent_dialogue_overlap_rows"], 0)
+        self.assertEqual(overlap["chart_fingerprint_overlap_rows"], 0)
+        self.assertEqual(overlap["semantic_family_overlap"], "not_measured")
+        self.assertFalse(overlap["targets_used_for_training"])
+        for key in ("rows_recomputed", "stored_audit_exact_matches", "same_serialized_dialogue_token_ids_equal_rows", "same_serialized_dialogue_masks_equal_rows"):
+            self.assertEqual(token[key], 2000)
+        for key in ("maximum_token_count_delta", "truncated_rows", "loss_leakage_rows", "unsupervised_final_eos_rows"):
+            self.assertEqual(token[key], 0)
+        self.assertEqual(token["maximum_rendered_tokens"], 1960)
+        self.assertFalse(token["weights_loaded"])
+        self.assertFalse(token["candidate_information_selection_matches_old_full_snapshot"])
+        repair = data["repair"]
+        self.assertEqual(repair["status_counts"], {"accepted": 238, "needs_review": 3, "needs_draft": 159})
+        self.assertEqual((repair["inherited_rows_if_finalized"], repair["replaced_rows_if_finalized"], repair["total_rows_if_finalized"]), (1600, 400, 2000))
+        self.assertFalse(repair["automatic_resume_allowed"])
+        self.assertFalse(repair["applied_to_current_r16"])
+
+    def test_s5_hypotheses_require_phase12_falsification_and_separate_execution(self) -> None:
+        path = REPO_ROOT / "data/reports/saju_1b_baseline/system-context-s5/v1.0.0/build-27a91a8e21a8/aggregate.json"
+        summary = json.loads(path.read_bytes())
+        self.assertEqual(set(summary["behavior_hypotheses"]), {"bound_general", "topic_switch", "short_format", "false_premise", "correction_history", "fact_selection", "uncertainty"})
+        for hypothesis in summary["behavior_hypotheses"].values():
+            self.assertEqual(hypothesis["candidate_live_result"], "not_measured")
+            self.assertEqual(hypothesis["falsification"], "phase12_target_behavior_succeeds_without_data_change")
+        spec = summary["conditional_training_specification"]
+        self.assertFalse(spec["execution_authorized"])
+        self.assertFalse(spec["phase12_consumed_questions_reusable"])
+        self.assertEqual(spec["method"], "fresh_lora_from_pinned_k0_not_r16_continuation")
+        self.assertEqual((spec["rank"], spec["provisional_rows"], spec["preferred_max_length"]), (16, 2000, 2048))
+        self.assertEqual(spec["training"]["learning_rate"], 5e-5)
+        self.assertEqual(spec["training"]["num_train_epochs"], 1)
+        self.assertEqual(spec["post_training_evaluation_budget"], "separately_register_before_model_calls")
+        self.assertEqual(spec["skip_rule"], "skip_training_if_application_or_instructions_resolve_target_errors")
+        phase = (ROADMAP / "phases/phase-11.md").read_text(encoding="utf-8")
+        for marker in ("200/200행 겹쳤다", "전체 샘플 중복·정답 유출의 증명은 아니다", "현재 제안은 **보류**", "execution_authorized=false", "Phase 11 완료만으로 Phase 13에 진입하지 않는다", "새 24문항은 아직 만들거나 사용하지 않았다"):
+            self.assertIn(marker, phase)
 
     def test_completed_s4_requires_new_evidence_and_cannot_use_failed_or_missing_execution(self) -> None:
         for source_id in S4_TASK_IDS:

@@ -2,11 +2,11 @@
 
 # K0 기반 2K correction dataset·LoRA 실험
 
-## 현재 위치와 후속 실행 권한 — 2026-09-15
+## 현재 위치와 후속 실행 권한 — 2026-09-17
 
 R8·R16·R32 학습과 최신 20문장 비교는 완료됐다. 현재 R16은 `build-54836f556b4f` 입력이며 별도 v1.1 보정 400건은 미완료·미반영이다. 후속 실행 순서는 [로드맵 README](saju_product_roadmap/README.md), 현재 상태는 [00 기준선](saju_product_roadmap/00-current-baseline.md), 진단 상세는 [50 원인 분리](saju_product_roadmap/50-automatic-model-evaluation.md)가 소유한다.
 
-S0/S1·S2와 CPU 재집계까지 완료했고 다음은 [Phase 8B/S3](saju_product_roadmap/phases/phase-08.md#s3-controls)의 지시문 묶음 비교다. 이어 [Phase 9/S4](saju_product_roadmap/phases/phase-09.md)의 공통 P0 K0·3B 비교, [Phase 11/S5](saju_product_roadmap/phases/phase-11.md)의 데이터 7축·실제 teacher fallback 분석으로 진행한다. 400건 보정은 적합성을 판단하기 전 자동 재개·재학습하지 않는다. 다른 세션의 실행이나 accepted 행을 취소·변경하는 지시는 아니다. 기존 5-arm 생성 비교의 미완료 상태를 보존하되 그것을 원인 분리 착수의 선행 조건으로 추가하지 않는다.
+S0/S1·S2·CPU 재집계, [Phase 8B/S3](saju_product_roadmap/phases/phase-08.md#s3-controls)의 지시문 비교와 [Phase 9/S4](saju_product_roadmap/phases/phase-09.md)의 공통 P0 K0·3B 비교를 완료했다. [Phase 11/S5](saju_product_roadmap/phases/phase-11.md)는 데이터 7축·실제 teacher fallback·token/mask 전수 대조와 조건부 명세를 완료했다. 다음은 Phase 12 실제 제품 확인이며 400건은 보류다. 기존 계약은 1,600행 계승+400행 교체=2,000행이고 현재 R16에는 미반영이다. 다른 세션의 state나 accepted 행을 취소·변경하는 지시는 아니다. 기존 5-arm 생성 비교의 미완료 상태는 보존하되 후속 확인의 선행 조건으로 추가하지 않는다.
 
 새 보정·단일 학습은 [Phase 13](saju_product_roadmap/phases/phase-13.md)의 조건부 작업이다. Phase 11에서는 가설·보정 대상·조건부 명세만 작성하고 Phase 12 실제 제품 결과와 대조한 뒤 실행 여부를 별도 결정한다. 앱·지시문으로 해소됐으면 400건·명세가 있어도 학습을 건너뛴다. 기본 제안은 고정 K0에서 새 LoRA이며, R16 이어학습은 출발 checkpoint·기존 노출량을 명시한 별도 계약으로 결정해야 한다. KI20 이어학습은 금지한다. 별도 400행을 무조건 추가해 2,400행으로 만들거나 과거 최소 3문장 조건을 새 데이터의 기본값으로 삼지 않는다.
 

@@ -18,7 +18,7 @@
 | 현재 R16 입력 | `v1.0.1/build-54836f556b4f` | [LoRA 계획](implementation/plans/mix2k_v4_chart_day_lora.md)의 고정 학습 이력 |
 | 별도 v1.1 보정 | 마지막 checkpoint accepted 238/400 | 현재 R16에 미반영, 자동 재개·재학습하지 않음 |
 | 20문장 기준선 | 3모델·60요청·54생성·6차단 완료 | 과거 개발 진단 이력 보존 |
-| 최신 전체 경로 진단 | S0/S1·S2·CPU 재집계 보존, Phase 8A·8B S3·9 S4 검증 완료 | S3/S4 후보 미채택; Phase 10 R16 앱 후보 CPU 검증 완료, 다음 Phase 11, 추가 학습·운영 전환 미실행 |
+| 최신 전체 경로 진단 | S0/S1·S2·CPU 재집계 보존, Phase 8A·8B S3·9 S4·11 S5 검증 완료 | S3/S4 후보 미채택; Phase 10 v1.19 CPU 검증·11 분석 완료, 다음 Phase 12, 추가 학습·운영 전환 미실행 |
 | Phase 9 모델 비교 | S4 v1.1 192요청·172생성·20차단·오류 0 검증 완료 | 첫 실패 1건 별도 보존; 일부 개선·일반 대화 회귀·반복 출력 분리 |
 | MIX20K-v3.0.1 | 보정·비학습 후보 이력 | 현재 2K 학습 데이터와 별도, v3.1 생성 승인 아님 |
 
@@ -36,13 +36,15 @@
 
 ## 다음 판단의 원칙
 
+[Phase 11 전수 분석](implementation/history/2026-09-17-phase11-data-hypotheses.md#phase11)은 token/mask/EOS 2,000행의 재현 일치·잘림/누출 0과 기존 dev 200행의 마지막 질문 전량 중복을 확인했다. 부모 대화·원국 fingerprint 중복은 0이며 질문 틀의 재사용을 정답 유출로 단정하지 않는다. 공감/짧은 형식·teacher 이력·S3/S4를 7축으로 연결한 가설과 조건부 명세를 완료했고 보정 400건은 보류다. v1.19의 실제 모델 품질은 미측정이므로 Phase 12에서 전체 구성 하나를 고정해 확인한 뒤 학습 필요성을 결정한다.
+
 - 모델 오류·검사기 오류·미측정 품질을 분리하고 계산→상태→최종 입력→화면 경로부터 검증한다. 정보량 비교와 R16 현재 지시문 대 개선 후보 하나의 비교를 별도로 수행한다.
 - 큰 동일 계열 Instruct 기본 모델 비교는 필수다. K0 1.3B 기본 모델을 기준으로 크기 가설을 점검하며 R16과 큰 기본 모델만의 차이를 크기 효과로 부르지 않는다.
 - 모델별 공식 tokenizer/template·revision·정밀도·VRAM 조건을 실행 전에 등록한다. 다른 모델의 token ID 동일성을 요구하거나 메모리 부족 때 다른 계열·양자화로 자동 대체하지 않는다.
 - 데이터·학습·serving 계약과 무결성을 처음부터 확인하고 비교 후 남은 오류와 연결한다. 별도 400건 보정의 범위가 이번 오류를 해결하는지도 이때 판단한다.
 - S3의 P1은 prompt 파일과 formatter가 붙이는 지시를 합친 최종 시스템 지시문 묶음이다. 입력 JSON·역할·동결 부모 이력·필수 사실·출력 한도는 유지한다. 제품 응답 계약 변경을 S3에 섞지 않는다.
 - [Phase 9](implementation/plans/saju_product_roadmap/phases/phase-09.md)의 첫 비교 후보는 `kakaocorp/kanana-2-3b-instruct`다. 공식 revision/hash·실행기·CPU 검증은 [구현 기록](implementation/history/2026-09-16-phase9-s4.md)에 등록했고 가중치 수집·GPU 비교는 [v1.1 완료 기록](implementation/history/2026-09-16-phase9-s4-recovery.md#phase9)에 분리해 보존한다. K0와 공통 P0, 각각 FULL/MIN을 비교하며 pruning·distillation·attention 구조 차이 때문에 순수 파라미터 수만의 인과 효과로 단정하지 않는다.
-- [Phase 11](implementation/plans/saju_product_roadmap/phases/phase-11.md)에서 실제 teacher fallback 이력과 행동 7축을 확인하고 학습 가설·보정 대상·조건부 명세만 작성한다. 기존 400행은 accepted 238·초안 미판정 3·미작성 159 상태로, 단순 2,000+400 덧붙이기를 전제하지 않는다. [Phase 12](implementation/plans/saju_product_roadmap/phases/phase-12.md)의 실제 후보 결과를 대조한 뒤에만 학습 여부를 별도 결정하고 앱·지시문으로 해소됐으면 건너뛴다. 확인 묶음은 이후 학습이나 학습 후 새 평가에 재사용하지 않는다.
+- [Phase 11](implementation/plans/saju_product_roadmap/phases/phase-11.md)에서 실제 teacher fallback 이력과 행동 7축을 확인하고 학습 가설·보정 대상·조건부 명세만 작성했다. 기존 400행은 accepted 238·초안 미판정 3·미작성 159 상태이며 실제 계약은 1,600행 계승+400행 교체=2,000행이다. [Phase 12](implementation/plans/saju_product_roadmap/phases/phase-12.md)의 실제 후보 결과를 대조한 뒤에만 학습 여부를 별도 결정하고 앱·지시문으로 해소됐으면 건너뛴다. 확인 묶음은 이후 학습이나 학습 후 새 평가에 재사용하지 않는다.
 - [60 데이터 build](implementation/plans/saju_product_roadmap/60-mix20k-v3-1-build.md)와 [70 학습·승격](implementation/plans/saju_product_roadmap/70-training-and-promotion.md)은 조건부 후속이다. 진단 완료만으로 자동 진행하지 않으며 모델 크기·학습 방식·규모는 별도 결정이다.
 
 ## 평가·데이터 보존 원칙
@@ -54,6 +56,8 @@
 [기존 Phase 정본](implementation/plans/saju_1b_10k_20k_baseline/README.md), [v3 후보 보정 정본](implementation/plans/mix20k_v3_repair_plan.md), LoRA의 versioned 계약은 당시 실행 범위를 보존한다. 과거 768 길이·최소 3문장/3줄·Full FT 지시를 새 실험의 자동 기본값으로 복사하지 않는다.
 
 ## 진행 기록
+
+- 2026-09-17: [S5 분석 기록](implementation/history/2026-09-17-phase11-data-hypotheses.md#phase11)의 데이터·token/mask·개발 질문 중복·teacher/400건 보류를 반영했다. 모델 크기 단일 원인으로 단정하지 않고 다음을 Phase 12로 정리했다. 실제 생성·학습·운영 변경은 없다.
 
 ### 2026-09-16 — S4 구현과 실제 비교 상태 구분
 

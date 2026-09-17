@@ -1,0 +1,1110 @@
+{
+  "behavior_hypotheses": {
+    "bound_general": {
+      "candidate_live_result": "not_measured",
+      "falsification": "phase12_target_behavior_succeeds_without_data_change",
+      "related_rows_not_semantic_coverage": 250,
+      "related_training_axes": [
+        "general_korean_empathy"
+      ]
+    },
+    "correction_history": {
+      "candidate_live_result": "not_measured",
+      "falsification": "phase12_target_behavior_succeeds_without_data_change",
+      "related_rows_not_semantic_coverage": 250,
+      "related_training_axes": [
+        "intake_state_correction"
+      ]
+    },
+    "fact_selection": {
+      "candidate_live_result": "not_measured",
+      "falsification": "phase12_target_behavior_succeeds_without_data_change",
+      "related_rows_not_semantic_coverage": 1050,
+      "related_training_axes": [
+        "structured_fact_schema_literacy",
+        "chart_day_today_flow",
+        "followup_explain_grounding"
+      ]
+    },
+    "false_premise": {
+      "candidate_live_result": "not_measured",
+      "falsification": "phase12_target_behavior_succeeds_without_data_change",
+      "related_rows_not_semantic_coverage": 350,
+      "related_training_axes": [
+        "structured_fact_schema_literacy",
+        "hard_fact_short_qa"
+      ]
+    },
+    "short_format": {
+      "candidate_live_result": "not_measured",
+      "falsification": "phase12_target_behavior_succeeds_without_data_change",
+      "related_rows_not_semantic_coverage": 50,
+      "related_training_axes": [
+        "hard_fact_short_qa"
+      ]
+    },
+    "topic_switch": {
+      "candidate_live_result": "not_measured",
+      "falsification": "phase12_target_behavior_succeeds_without_data_change",
+      "related_rows_not_semantic_coverage": 550,
+      "related_training_axes": [
+        "general_korean_empathy",
+        "followup_explain_grounding"
+      ]
+    },
+    "uncertainty": {
+      "candidate_live_result": "not_measured",
+      "falsification": "phase12_target_behavior_succeeds_without_data_change",
+      "related_rows_not_semantic_coverage": 100,
+      "related_training_axes": [
+        "uncertainty_blocked_boundary"
+      ]
+    }
+  },
+  "build_id": "build-27a91a8e21a8",
+  "candidate_canary": {
+    "build_id": "build-35dc83ce161d",
+    "quality_dimensions": {
+      "naturalness": "not_measured",
+      "semantics": "not_measured"
+    },
+    "synthetic_browser_cases_passed": 32,
+    "tests_passed": 56
+  },
+  "conditional_training_specification": {
+    "decision_rule": "only_after_phase12_normal_input_residual_model_errors_and_justified_data_change",
+    "execution_authorized": false,
+    "length_rule": "new_full_token_mask_audit_no_truncation_before_new_training_contract",
+    "lora_alpha": 32,
+    "method": "fresh_lora_from_pinned_k0_not_r16_continuation",
+    "phase12_consumed_questions_reusable": false,
+    "post_training_evaluation_budget": "separately_register_before_model_calls",
+    "preferred_max_length": 2048,
+    "provisional_rows": 2000,
+    "rank": 16,
+    "resume_rule": "same_input_config_code_checkpoint_identity_only",
+    "row_count_rule": "replacement_not_addition_confirm_with_new_manifest",
+    "skip_rule": "skip_training_if_application_or_instructions_resolve_target_errors",
+    "source_model_repository": "kakaocorp/kanana-2-1.3b-instruct",
+    "source_model_revision": "bf4786aa2a1908adce942d53976270132732f720",
+    "split_rule": "family_separated_train_and_development_fresh_post_training_confirmation",
+    "status": "conditional_specification_only",
+    "stop_conditions": [
+      "nonfinite_loss_or_gradient",
+      "input_or_mask_or_split_mismatch",
+      "resource_gate_violation"
+    ],
+    "training": {
+      "assistant_only_loss": true,
+      "effective_batch_size": 8,
+      "learning_rate": 5e-05,
+      "num_train_epochs": 1,
+      "packing": false,
+      "save_steps": 50,
+      "seed": 42
+    },
+    "training_budget": "one_r16_one_epoch_separate_execution_decision_required"
+  },
+  "current_training": {
+    "adapter_only": true,
+    "base_weights_unchanged": true,
+    "completed": true,
+    "data_build_id": "build-54836f556b4f",
+    "full_fine_tuning_performed": false,
+    "max_length": 2048,
+    "num_train_epochs": 1,
+    "production_promotion_allowed": false,
+    "rank": 16,
+    "rows": 2000,
+    "run_id": "train-f340a82c76d3"
+  },
+  "data_distribution": {
+    "axes": {
+      "chart_day_today_flow": {
+        "bound": 450,
+        "final_three_or_more_lines": 450,
+        "inherited_assistant_turns": 0,
+        "multiturn": 0,
+        "rows": 450
+      },
+      "chart_facts_natural_explanation": {
+        "bound": 300,
+        "final_three_or_more_lines": 300,
+        "inherited_assistant_turns": 0,
+        "multiturn": 0,
+        "rows": 300
+      },
+      "followup_explain_grounding": {
+        "bound": 300,
+        "final_three_or_more_lines": 300,
+        "inherited_assistant_turns": 300,
+        "multiturn": 300,
+        "rows": 300
+      },
+      "general_korean_empathy": {
+        "bound": 0,
+        "final_three_or_more_lines": 250,
+        "inherited_assistant_turns": 0,
+        "multiturn": 0,
+        "rows": 250
+      },
+      "hard_fact_short_qa": {
+        "bound": 0,
+        "final_three_or_more_lines": 0,
+        "inherited_assistant_turns": 0,
+        "multiturn": 0,
+        "rows": 50
+      },
+      "intake_state_correction": {
+        "bound": 0,
+        "final_three_or_more_lines": 51,
+        "inherited_assistant_turns": 0,
+        "multiturn": 0,
+        "rows": 250
+      },
+      "structured_fact_schema_literacy": {
+        "bound": 300,
+        "final_three_or_more_lines": 300,
+        "inherited_assistant_turns": 0,
+        "multiturn": 0,
+        "rows": 300
+      },
+      "uncertainty_blocked_boundary": {
+        "bound": 50,
+        "final_three_or_more_lines": 100,
+        "inherited_assistant_turns": 0,
+        "multiturn": 0,
+        "rows": 100
+      }
+    },
+    "candidate_base_prompt_exact_matches": 0,
+    "candidate_base_prompt_sha256": "4aec979f7d5114eb494052a6ee2173be87d165fe0410b53d224df8f574fa03e4",
+    "development_overlap": {
+      "chart_fingerprint_overlap_rows": 0,
+      "development_template_family_metadata": "not_recorded",
+      "exact_parent_dialogue_overlap_rows": 0,
+      "normalized_last_user_overlap_rows": 200,
+      "rows": 200,
+      "semantic_family_overlap": "not_measured",
+      "targets_used_for_training": false
+    },
+    "distinct_full_system_texts": 603,
+    "duplicates": {
+      "conversation_ids": 2000,
+      "exact_duplicate_answer_excess": 0,
+      "normalized_answer_multiplicity_maximum": 2,
+      "semantic_similarity": "not_measured",
+      "template_families": 102
+    },
+    "final_three_or_more_nonempty_lines": 1751,
+    "full_system_text_multiplicity_histogram": {
+      "2": 400,
+      "250": 1,
+      "3": 200,
+      "300": 1,
+      "50": 1
+    },
+    "lexical_last_request_markers": {
+      "correction": 85,
+      "domain_opt_out": 0,
+      "false_premise_check": 0,
+      "one_word": 0,
+      "reference": 145,
+      "two_sentences": 0
+    },
+    "lexical_zero_proves_semantic_absence": false,
+    "minimum_nonempty_line_contract_counts": {
+      "1": 300,
+      "3": 1700
+    },
+    "prompt_match_scope": "entire_system_text_including_embedded_facts_not_template_equivalence",
+    "repair": {
+      "applied_to_current_r16": false,
+      "automatic_resume_allowed": false,
+      "axes": {
+        "hard_fact_short_qa": 50,
+        "intake_state_correction": 250,
+        "uncertainty_blocked_boundary": 100
+      },
+      "inherited_rows_if_finalized": 1600,
+      "proposal": "hold_pending_phase12",
+      "provider_calls_preserved": 55,
+      "replaced_rows_if_finalized": 400,
+      "rows": 400,
+      "status_counts": {
+        "accepted": 238,
+        "needs_draft": 159,
+        "needs_review": 3
+      },
+      "total_rows_if_finalized": 2000
+    },
+    "rows": 2000,
+    "teacher": {
+      "actual_drafters": {
+        "codex": 2000
+      },
+      "actual_reviewers": {
+        "claude": 191,
+        "codex": 1809
+      },
+      "automatic_review_decisions": {
+        "FAIL": 116,
+        "PASS": 2187
+      },
+      "automatic_review_failure_codes": {
+        "AMBIGUOUS_FIELD_ASSUMPTION": 2,
+        "AUDIT_METADATA_INCONSISTENCY": 3,
+        "AUDIT_METADATA_MISMATCH": 7,
+        "CONTRADICTS_PROVIDED_FACT": 2,
+        "CONVERSATION_STATE_MISREAD": 4,
+        "EVIDENCE_METADATA_MISMATCH": 4,
+        "IMPRECISE_PERIOD_FACT_LABELS": 3,
+        "INCOMPLETE_INTAKE": 4,
+        "INCOMPLETE_INTAKE_GUIDANCE": 5,
+        "INCOMPLETE_INTAKE_REQUEST": 1,
+        "INSTRUCTION_VIOLATION": 5,
+        "MISLEADING_CAPABILITY": 2,
+        "MISSING_CONDITIONAL_INTAKE_FIELD": 3,
+        "MISSING_EXPLICIT_FIELD_LABEL": 3,
+        "MISSING_EXPLICIT_FIELD_VALUE": 1,
+        "MISSING_PERIOD_EVIDENCE_REQUIREMENT": 3,
+        "MISSING_REQUIRED_EVIDENCE": 1,
+        "MISSING_REQUIRED_INPUT": 3,
+        "MISSING_REQUIRED_INTAKE": 34,
+        "MISSING_REQUIRED_INTAKE_FIELDS": 1,
+        "MISSING_REQUIRED_LIMITATION": 6,
+        "MISSING_TOOL_LIMITATION": 8,
+        "NON_SPECIFIC_INTAKE_REQUEST": 2,
+        "OMITS_RELEVANT_APPROVED_FACT": 2,
+        "PLAIN_LANGUAGE_INSTRUCTION_NOT_FOLLOWED": 4,
+        "PRODUCTION_INSTRUCTION_LENGTH_VIOLATION": 3,
+        "REDUNDANT_RESTATEMENT": 1,
+        "REPEATED_INTAKE_REQUEST": 4,
+        "SCOPE_VIOLATION": 2,
+        "SEMANTIC_INACCURACY": 1,
+        "UNASKED_PERIOD_FACT": 2,
+        "UNCLEAR_REFUSAL": 1,
+        "UNNATURAL_KOREAN": 3,
+        "UNNATURAL_KOREAN_PARTICLE": 2,
+        "UNSUPPORTED_INFERENCE": 6,
+        "UNSUPPORTED_STATE_ASSUMPTION": 7,
+        "UNSUPPORTED_VERIFICATION_STATUS": 3,
+        "UNVERIFIED_EVIDENCE_ASSUMPTION": 1
+      },
+      "deterministic_failed_attempts_by_code": {
+        "CLAIM_GRAMMAR": 73,
+        "UNCLASSIFIED": 2
+      },
+      "review_modes": {
+        "cross_provider": 191,
+        "same_provider_separate_pass": 1809
+      },
+      "rewrite_count_histogram": {
+        "0": 1857,
+        "1": 111,
+        "2": 32
+      },
+      "self_reported_fact_paths_are_semantic_proof": false,
+      "semantic_bias_causality": "hypothesis_not_proven"
+    }
+  },
+  "decision": "hold_repair_and_training_until_phase12",
+  "diagnostic_evidence": {
+    "s3": {
+      "all_strata_summaries": [
+        {
+          "arm": "P0",
+          "engine": "lora_r16",
+          "input_tokens": {
+            "count": 48,
+            "maximum": 1692,
+            "mean": 1344.979,
+            "minimum": 446,
+            "p95": 1691
+          },
+          "latency_seconds": {
+            "count": 43,
+            "maximum": 13.688,
+            "mean": 11.072,
+            "minimum": 8.306,
+            "p95": 12.968
+          },
+          "metrics": {
+            "apology_once": {
+              "FAIL": 0,
+              "PASS": 2,
+              "UNSCORABLE": 0,
+              "applicable": 2,
+              "scorable": 2
+            },
+            "corrected_state_used": {
+              "FAIL": 2,
+              "PASS": 3,
+              "UNSCORABLE": 1,
+              "applicable": 6,
+              "scorable": 5
+            },
+            "fact_contradiction_absent": {
+              "FAIL": 8,
+              "PASS": 14,
+              "UNSCORABLE": 21,
+              "applicable": 43,
+              "scorable": 22
+            },
+            "false_premise_corrected": {
+              "FAIL": 3,
+              "PASS": 2,
+              "UNSCORABLE": 1,
+              "applicable": 6,
+              "scorable": 5
+            },
+            "leap_month_requested": {
+              "FAIL": 0,
+              "PASS": 1,
+              "UNSCORABLE": 0,
+              "applicable": 1,
+              "scorable": 1
+            },
+            "max_token_hit_absent": {
+              "FAIL": 0,
+              "PASS": 43,
+              "UNSCORABLE": 0,
+              "applicable": 43,
+              "scorable": 43
+            },
+            "private_fields_absent": {
+              "FAIL": 0,
+              "PASS": 43,
+              "UNSCORABLE": 0,
+              "applicable": 43,
+              "scorable": 43
+            },
+            "required_fact_use": {
+              "FAIL": 6,
+              "PASS": 11,
+              "UNSCORABLE": 7,
+              "applicable": 24,
+              "scorable": 17
+            },
+            "target_date_used": {
+              "FAIL": 0,
+              "PASS": 2,
+              "UNSCORABLE": 0,
+              "applicable": 2,
+              "scorable": 2
+            },
+            "two_sentences": {
+              "FAIL": 3,
+              "PASS": 4,
+              "UNSCORABLE": 0,
+              "applicable": 7,
+              "scorable": 7
+            },
+            "uncertainty_preserved": {
+              "FAIL": 2,
+              "PASS": 2,
+              "UNSCORABLE": 1,
+              "applicable": 5,
+              "scorable": 4
+            },
+            "unsolicited_saju_absent": {
+              "FAIL": 2,
+              "PASS": 11,
+              "UNSCORABLE": 0,
+              "applicable": 13,
+              "scorable": 13
+            }
+          },
+          "output_tokens": {
+            "count": 43,
+            "maximum": 97,
+            "mean": 50.86,
+            "minimum": 13,
+            "p95": 84
+          },
+          "peak_reserved_vram_mib": 3276.0,
+          "peak_vram_mib": 2953.81396484375,
+          "requests": 48,
+          "statuses": {
+            "generated": 43,
+            "preblocked": 5
+          },
+          "stop_reasons": {
+            "eos": 43
+          },
+          "stratum": "all"
+        },
+        {
+          "arm": "P1",
+          "engine": "lora_r16",
+          "input_tokens": {
+            "count": 48,
+            "maximum": 1678,
+            "mean": 1358.958,
+            "minimum": 446,
+            "p95": 1677
+          },
+          "latency_seconds": {
+            "count": 43,
+            "maximum": 14.437,
+            "mean": 11.002,
+            "minimum": 8.615,
+            "p95": 13.358
+          },
+          "metrics": {
+            "apology_once": {
+              "FAIL": 0,
+              "PASS": 2,
+              "UNSCORABLE": 0,
+              "applicable": 2,
+              "scorable": 2
+            },
+            "corrected_state_used": {
+              "FAIL": 2,
+              "PASS": 4,
+              "UNSCORABLE": 0,
+              "applicable": 6,
+              "scorable": 6
+            },
+            "fact_contradiction_absent": {
+              "FAIL": 12,
+              "PASS": 14,
+              "UNSCORABLE": 17,
+              "applicable": 43,
+              "scorable": 26
+            },
+            "false_premise_corrected": {
+              "FAIL": 4,
+              "PASS": 2,
+              "UNSCORABLE": 0,
+              "applicable": 6,
+              "scorable": 6
+            },
+            "leap_month_requested": {
+              "FAIL": 0,
+              "PASS": 1,
+              "UNSCORABLE": 0,
+              "applicable": 1,
+              "scorable": 1
+            },
+            "max_token_hit_absent": {
+              "FAIL": 0,
+              "PASS": 43,
+              "UNSCORABLE": 0,
+              "applicable": 43,
+              "scorable": 43
+            },
+            "private_fields_absent": {
+              "FAIL": 0,
+              "PASS": 43,
+              "UNSCORABLE": 0,
+              "applicable": 43,
+              "scorable": 43
+            },
+            "required_fact_use": {
+              "FAIL": 8,
+              "PASS": 12,
+              "UNSCORABLE": 4,
+              "applicable": 24,
+              "scorable": 20
+            },
+            "target_date_used": {
+              "FAIL": 1,
+              "PASS": 1,
+              "UNSCORABLE": 0,
+              "applicable": 2,
+              "scorable": 2
+            },
+            "two_sentences": {
+              "FAIL": 2,
+              "PASS": 5,
+              "UNSCORABLE": 0,
+              "applicable": 7,
+              "scorable": 7
+            },
+            "uncertainty_preserved": {
+              "FAIL": 3,
+              "PASS": 2,
+              "UNSCORABLE": 0,
+              "applicable": 5,
+              "scorable": 5
+            },
+            "unsolicited_saju_absent": {
+              "FAIL": 3,
+              "PASS": 10,
+              "UNSCORABLE": 0,
+              "applicable": 13,
+              "scorable": 13
+            }
+          },
+          "output_tokens": {
+            "count": 43,
+            "maximum": 105,
+            "mean": 50.953,
+            "minimum": 13,
+            "p95": 87
+          },
+          "peak_reserved_vram_mib": 3238.0,
+          "peak_vram_mib": 2949.31884765625,
+          "requests": 48,
+          "statuses": {
+            "generated": 43,
+            "preblocked": 5
+          },
+          "stop_reasons": {
+            "eos": 43
+          },
+          "stratum": "all"
+        }
+      ],
+      "build_id": "build-ffd985905b51",
+      "candidate_selected": false,
+      "new_generations": 86,
+      "quality_dimensions": {
+        "naturalness": "not_measured",
+        "semantics": "not_measured"
+      },
+      "requests": 96
+    },
+    "s4": {
+      "all_strata_summaries": [
+        {
+          "arm": "C_FULL",
+          "engine": "k0_instruct",
+          "input_tokens": {
+            "count": 48,
+            "maximum": 1692,
+            "mean": 1344.979,
+            "minimum": 446,
+            "p95": 1691
+          },
+          "latency_seconds": {
+            "count": 43,
+            "maximum": 11.133,
+            "mean": 7.704,
+            "minimum": 6.4,
+            "p95": 9.757
+          },
+          "metrics": {
+            "apology_once": {
+              "FAIL": 0,
+              "PASS": 2,
+              "UNSCORABLE": 0,
+              "applicable": 2,
+              "scorable": 2
+            },
+            "corrected_state_used": {
+              "FAIL": 6,
+              "PASS": 0,
+              "UNSCORABLE": 0,
+              "applicable": 6,
+              "scorable": 6
+            },
+            "fact_contradiction_absent": {
+              "FAIL": 20,
+              "PASS": 3,
+              "UNSCORABLE": 20,
+              "applicable": 43,
+              "scorable": 23
+            },
+            "false_premise_corrected": {
+              "FAIL": 6,
+              "PASS": 0,
+              "UNSCORABLE": 0,
+              "applicable": 6,
+              "scorable": 6
+            },
+            "leap_month_requested": {
+              "FAIL": 0,
+              "PASS": 1,
+              "UNSCORABLE": 0,
+              "applicable": 1,
+              "scorable": 1
+            },
+            "max_token_hit_absent": {
+              "FAIL": 0,
+              "PASS": 43,
+              "UNSCORABLE": 0,
+              "applicable": 43,
+              "scorable": 43
+            },
+            "private_fields_absent": {
+              "FAIL": 0,
+              "PASS": 43,
+              "UNSCORABLE": 0,
+              "applicable": 43,
+              "scorable": 43
+            },
+            "required_fact_use": {
+              "FAIL": 20,
+              "PASS": 3,
+              "UNSCORABLE": 1,
+              "applicable": 24,
+              "scorable": 23
+            },
+            "target_date_used": {
+              "FAIL": 0,
+              "PASS": 2,
+              "UNSCORABLE": 0,
+              "applicable": 2,
+              "scorable": 2
+            },
+            "two_sentences": {
+              "FAIL": 5,
+              "PASS": 2,
+              "UNSCORABLE": 0,
+              "applicable": 7,
+              "scorable": 7
+            },
+            "uncertainty_preserved": {
+              "FAIL": 0,
+              "PASS": 4,
+              "UNSCORABLE": 1,
+              "applicable": 5,
+              "scorable": 4
+            },
+            "unsolicited_saju_absent": {
+              "FAIL": 0,
+              "PASS": 13,
+              "UNSCORABLE": 0,
+              "applicable": 13,
+              "scorable": 13
+            }
+          },
+          "output_tokens": {
+            "count": 43,
+            "maximum": 139,
+            "mean": 40.233,
+            "minimum": 10,
+            "p95": 99
+          },
+          "peak_reserved_vram_mib": 3072.0,
+          "peak_vram_mib": 2802.63330078125,
+          "requests": 48,
+          "statuses": {
+            "generated": 43,
+            "preblocked": 5
+          },
+          "stop_reasons": {
+            "eos": 43
+          },
+          "stratum": "all"
+        },
+        {
+          "arm": "C_MIN",
+          "engine": "k0_instruct",
+          "input_tokens": {
+            "count": 48,
+            "maximum": 1197,
+            "mean": 884.062,
+            "minimum": 446,
+            "p95": 1193
+          },
+          "latency_seconds": {
+            "count": 43,
+            "maximum": 13.997,
+            "mean": 7.345,
+            "minimum": 6.293,
+            "p95": 8.585
+          },
+          "metrics": {
+            "apology_once": {
+              "FAIL": 1,
+              "PASS": 1,
+              "UNSCORABLE": 0,
+              "applicable": 2,
+              "scorable": 2
+            },
+            "corrected_state_used": {
+              "FAIL": 5,
+              "PASS": 1,
+              "UNSCORABLE": 0,
+              "applicable": 6,
+              "scorable": 6
+            },
+            "fact_contradiction_absent": {
+              "FAIL": 16,
+              "PASS": 5,
+              "UNSCORABLE": 22,
+              "applicable": 43,
+              "scorable": 21
+            },
+            "false_premise_corrected": {
+              "FAIL": 6,
+              "PASS": 0,
+              "UNSCORABLE": 0,
+              "applicable": 6,
+              "scorable": 6
+            },
+            "leap_month_requested": {
+              "FAIL": 0,
+              "PASS": 1,
+              "UNSCORABLE": 0,
+              "applicable": 1,
+              "scorable": 1
+            },
+            "max_token_hit_absent": {
+              "FAIL": 0,
+              "PASS": 43,
+              "UNSCORABLE": 0,
+              "applicable": 43,
+              "scorable": 43
+            },
+            "private_fields_absent": {
+              "FAIL": 0,
+              "PASS": 43,
+              "UNSCORABLE": 0,
+              "applicable": 43,
+              "scorable": 43
+            },
+            "required_fact_use": {
+              "FAIL": 20,
+              "PASS": 2,
+              "UNSCORABLE": 2,
+              "applicable": 24,
+              "scorable": 22
+            },
+            "target_date_used": {
+              "FAIL": 1,
+              "PASS": 1,
+              "UNSCORABLE": 0,
+              "applicable": 2,
+              "scorable": 2
+            },
+            "two_sentences": {
+              "FAIL": 5,
+              "PASS": 2,
+              "UNSCORABLE": 0,
+              "applicable": 7,
+              "scorable": 7
+            },
+            "uncertainty_preserved": {
+              "FAIL": 1,
+              "PASS": 4,
+              "UNSCORABLE": 0,
+              "applicable": 5,
+              "scorable": 5
+            },
+            "unsolicited_saju_absent": {
+              "FAIL": 1,
+              "PASS": 12,
+              "UNSCORABLE": 0,
+              "applicable": 13,
+              "scorable": 13
+            }
+          },
+          "output_tokens": {
+            "count": 43,
+            "maximum": 234,
+            "mean": 36.791,
+            "minimum": 9,
+            "p95": 81
+          },
+          "peak_reserved_vram_mib": 2950.0,
+          "peak_vram_mib": 2719.5029296875,
+          "requests": 48,
+          "statuses": {
+            "generated": 43,
+            "preblocked": 5
+          },
+          "stop_reasons": {
+            "eos": 43
+          },
+          "stratum": "all"
+        },
+        {
+          "arm": "C_FULL",
+          "engine": "kanana3b_instruct",
+          "input_tokens": {
+            "count": 48,
+            "maximum": 1692,
+            "mean": 1344.979,
+            "minimum": 446,
+            "p95": 1691
+          },
+          "latency_seconds": {
+            "count": 43,
+            "maximum": 12.301,
+            "mean": 8.171,
+            "minimum": 5.764,
+            "p95": 10.927
+          },
+          "metrics": {
+            "apology_once": {
+              "FAIL": 0,
+              "PASS": 2,
+              "UNSCORABLE": 0,
+              "applicable": 2,
+              "scorable": 2
+            },
+            "corrected_state_used": {
+              "FAIL": 2,
+              "PASS": 3,
+              "UNSCORABLE": 1,
+              "applicable": 6,
+              "scorable": 5
+            },
+            "fact_contradiction_absent": {
+              "FAIL": 15,
+              "PASS": 7,
+              "UNSCORABLE": 21,
+              "applicable": 43,
+              "scorable": 22
+            },
+            "false_premise_corrected": {
+              "FAIL": 6,
+              "PASS": 0,
+              "UNSCORABLE": 0,
+              "applicable": 6,
+              "scorable": 6
+            },
+            "leap_month_requested": {
+              "FAIL": 0,
+              "PASS": 1,
+              "UNSCORABLE": 0,
+              "applicable": 1,
+              "scorable": 1
+            },
+            "max_token_hit_absent": {
+              "FAIL": 0,
+              "PASS": 43,
+              "UNSCORABLE": 0,
+              "applicable": 43,
+              "scorable": 43
+            },
+            "private_fields_absent": {
+              "FAIL": 0,
+              "PASS": 43,
+              "UNSCORABLE": 0,
+              "applicable": 43,
+              "scorable": 43
+            },
+            "required_fact_use": {
+              "FAIL": 15,
+              "PASS": 3,
+              "UNSCORABLE": 6,
+              "applicable": 24,
+              "scorable": 18
+            },
+            "target_date_used": {
+              "FAIL": 1,
+              "PASS": 1,
+              "UNSCORABLE": 0,
+              "applicable": 2,
+              "scorable": 2
+            },
+            "two_sentences": {
+              "FAIL": 3,
+              "PASS": 4,
+              "UNSCORABLE": 0,
+              "applicable": 7,
+              "scorable": 7
+            },
+            "uncertainty_preserved": {
+              "FAIL": 1,
+              "PASS": 3,
+              "UNSCORABLE": 1,
+              "applicable": 5,
+              "scorable": 4
+            },
+            "unsolicited_saju_absent": {
+              "FAIL": 4,
+              "PASS": 9,
+              "UNSCORABLE": 0,
+              "applicable": 13,
+              "scorable": 13
+            }
+          },
+          "output_tokens": {
+            "count": 43,
+            "maximum": 214,
+            "mean": 80.186,
+            "minimum": 12,
+            "p95": 171
+          },
+          "peak_reserved_vram_mib": 6526.0,
+          "peak_vram_mib": 6423.52490234375,
+          "requests": 48,
+          "statuses": {
+            "generated": 43,
+            "preblocked": 5
+          },
+          "stop_reasons": {
+            "eos": 43
+          },
+          "stratum": "all"
+        },
+        {
+          "arm": "C_MIN",
+          "engine": "kanana3b_instruct",
+          "input_tokens": {
+            "count": 48,
+            "maximum": 1197,
+            "mean": 884.062,
+            "minimum": 446,
+            "p95": 1193
+          },
+          "latency_seconds": {
+            "count": 43,
+            "maximum": 133.367,
+            "mean": 10.958,
+            "minimum": 5.804,
+            "p95": 10.852
+          },
+          "metrics": {
+            "apology_once": {
+              "FAIL": 0,
+              "PASS": 2,
+              "UNSCORABLE": 0,
+              "applicable": 2,
+              "scorable": 2
+            },
+            "corrected_state_used": {
+              "FAIL": 1,
+              "PASS": 5,
+              "UNSCORABLE": 0,
+              "applicable": 6,
+              "scorable": 6
+            },
+            "fact_contradiction_absent": {
+              "FAIL": 15,
+              "PASS": 8,
+              "UNSCORABLE": 20,
+              "applicable": 43,
+              "scorable": 23
+            },
+            "false_premise_corrected": {
+              "FAIL": 5,
+              "PASS": 0,
+              "UNSCORABLE": 1,
+              "applicable": 6,
+              "scorable": 5
+            },
+            "leap_month_requested": {
+              "FAIL": 0,
+              "PASS": 1,
+              "UNSCORABLE": 0,
+              "applicable": 1,
+              "scorable": 1
+            },
+            "max_token_hit_absent": {
+              "FAIL": 1,
+              "PASS": 42,
+              "UNSCORABLE": 0,
+              "applicable": 43,
+              "scorable": 43
+            },
+            "private_fields_absent": {
+              "FAIL": 0,
+              "PASS": 43,
+              "UNSCORABLE": 0,
+              "applicable": 43,
+              "scorable": 43
+            },
+            "required_fact_use": {
+              "FAIL": 11,
+              "PASS": 8,
+              "UNSCORABLE": 5,
+              "applicable": 24,
+              "scorable": 19
+            },
+            "target_date_used": {
+              "FAIL": 0,
+              "PASS": 2,
+              "UNSCORABLE": 0,
+              "applicable": 2,
+              "scorable": 2
+            },
+            "two_sentences": {
+              "FAIL": 3,
+              "PASS": 4,
+              "UNSCORABLE": 0,
+              "applicable": 7,
+              "scorable": 7
+            },
+            "uncertainty_preserved": {
+              "FAIL": 1,
+              "PASS": 4,
+              "UNSCORABLE": 0,
+              "applicable": 5,
+              "scorable": 5
+            },
+            "unsolicited_saju_absent": {
+              "FAIL": 2,
+              "PASS": 11,
+              "UNSCORABLE": 0,
+              "applicable": 13,
+              "scorable": 13
+            }
+          },
+          "output_tokens": {
+            "count": 43,
+            "maximum": 4096,
+            "mean": 171.698,
+            "minimum": 12,
+            "p95": 168
+          },
+          "peak_reserved_vram_mib": 6812.0,
+          "peak_vram_mib": 6745.53173828125,
+          "requests": 48,
+          "statuses": {
+            "generated": 43,
+            "preblocked": 5
+          },
+          "stop_reasons": {
+            "eos": 42,
+            "max_tokens": 1
+          },
+          "stratum": "all"
+        }
+      ],
+      "build_id": "build-1f851d69a91f",
+      "candidate_selected": false,
+      "new_generations": 172,
+      "quality_dimensions": {
+        "naturalness": "not_measured",
+        "semantics": "not_measured"
+      },
+      "requests": 192
+    }
+  },
+  "governance": {
+    "confirmation_24_created": false,
+    "cpu_only": true,
+    "data_changed": false,
+    "new_model_generations": 0,
+    "phase12_executed": false,
+    "production_promotion_allowed": false,
+    "runtime_release_changed": false,
+    "sealed_blind_accessed": false,
+    "service_changed": false,
+    "teacher_calls": 0,
+    "training_performed": false
+  },
+  "request_budget": {
+    "actual_model_requests_added": 0,
+    "remaining": 49,
+    "total": 631
+  },
+  "schema_version": "1.0.0",
+  "source_scope": "approved_synthetic_2k_and_existing_development_no_restricted_or_sealed_payload",
+  "status": "completed_analysis_only",
+  "token_audit": {
+    "candidate_information_selection_matches_old_full_snapshot": false,
+    "loss_leakage_rows": 0,
+    "maximum_prompt_tokens": 1802,
+    "maximum_rendered_tokens": 1960,
+    "maximum_supervised_tokens": 169,
+    "maximum_token_count_delta": 0,
+    "rows_recomputed": 2000,
+    "same_serialized_dialogue_masks_equal_rows": 2000,
+    "same_serialized_dialogue_token_ids_equal_rows": 2000,
+    "serving_backend_sha256": "4f1fb83a437cc9c2f262ef579cfd635d355776a5eaf0fffafd9bf2b03487507f",
+    "stored_audit_exact_matches": 2000,
+    "training_backend_sha256": "4f1fb83a437cc9c2f262ef579cfd635d355776a5eaf0fffafd9bf2b03487507f",
+    "training_length": 2048,
+    "truncated_rows": 0,
+    "unsupervised_final_eos_rows": 0,
+    "weights_loaded": false
+  }
+}

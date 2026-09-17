@@ -4,13 +4,13 @@
 
 | 항목 | 값 |
 |---|---|
-| 문서 버전 | `saju-product-roadmap-v1.5.0` |
+| 문서 버전 | `saju-product-roadmap-v1.6.0` |
 | 진단 기준 | `26462137f9a4ef34adb2d3db0dd6eaff6282b309`의 완료 산출물 |
-| 기준일 | 2026-09-17; 부모 검증 보존 및 Phase 10 v1.19 `build-35dc83ce161d` 버그 보완 |
+| 기준일 | 2026-09-17; Phase 10 v1.19 버그 보완·Phase 11 S5 `build-27a91a8e21a8` 전수 대조 |
 | 현재 Runtime | `saju-runtime-release-v1.5.0-8b1d6ea2d46e` |
 | 앱 상태 | dashboard v1.14 운영 / v1.15~v1.18 보존 / v1.19 R16 제품 후보 CPU 검증·운영 미배포 |
 | 현재 문서 작업 | Phase 7 정본화 완료·계산기 범위 동결; 기준 `390ca88`, 원문 3개·841줄 전량 반영 |
-| 다음 실행 축 | Phase 10 최소 제품 후보 CPU 확인 완료 → Phase 11 학습 가설·조건부 명세; Phase 11~14 미착수 |
+| 다음 실행 축 | Phase 11 분석·가설·조건부 명세 완료 → Phase 12 전체 후보 구성 동결·새 질문 실제 확인; 12 미실행·13/14 조건부 보류 |
 
 이 디렉터리는 새로 반입된 전체 구조·Runtime/기간/대시보드·모델/데이터 계획을 현재 저장소 사실에 맞춰 재분할한 실행 정본이다. 기존 문서와 역할은 다음처럼 나눈다.
 
@@ -31,7 +31,7 @@
 | 8 | [앱 오차단 / S3 지시문](phases/phase-08.md) | 8A 후보 CPU·8B S3 실행·검증 완료 | 45개 CPU·6개 합성 화면, 96요청·86생성·10차단; 운영 변경 없음 |
 | 9 | [S4 규모×정보](phases/phase-09.md) | v1.1 실행·검증 완료, 후보 미채택 | `build-1f851d69a91f`: 192요청·172생성·20차단; 이전 실패 1건 별도 보존 |
 | 10 | [응답 모드·정정 흐름](phases/phase-10.md) | 최소 후보 구현·CPU 검증 완료, 운영 미배포 | R16/v1.19, `build-35dc83ce161d`: CPU 56·합성 화면 32·실제 모델 생성 0 |
-| 11 | [S5 데이터·학습 가설](phases/phase-11.md) | 미실행 | 400건 처리 제안·학습 필요성 가설·조건부 명세; 실행 미확정 |
+| 11 | [S5 데이터·학습 가설](phases/phase-11.md) | CPU 분석·가설·조건부 명세 완료 | `build-27a91a8e21a8`: 2K 전수 감사·7축 가설·400건 보류; 보정/학습 미실행 |
 | 12 | [S6 새 질문·실제 앱](phases/phase-12.md) | 미실행 | 새 합성 24×2 최대 48요청·실제 경로·선정 또는 미채택 |
 | 13 | [조건부 데이터·단일 학습](phases/phase-13.md) | 조건부 보류 | 별도 승인된 새 build/run/새 평가, 불필요하면 건너뜀 |
 | 14 | [제한 운영·되돌림](phases/phase-14.md) | 조건부 보류 | 별도 승인된 전환·실행 확인 또는 기존 운영 유지 |
@@ -55,6 +55,7 @@ S3까지 438요청 + S4 실패 1요청 + 별도 승인된 v1.1 비교 192요청�
 - [8A/S3 실행](../../history/2026-09-16-phase8-intent-s3.md)은 앱 오차단 후보와 R16/P0·P1 96요청을 각각 검증했다. P1은 일괄 개선이 아니며 자동 검사 오탐·누락도 남아 미채택했다. 동결 scorer·집계·P0는 보존한다.
 - [Phase 9 최초 구현](../../history/2026-09-16-phase9-s4.md)과 [첫 실행 중단](../../history/2026-09-16-phase9-s4-execution.md#blocked-run)을 보존하고 [v1.1 비교](../../history/2026-09-16-phase9-s4-recovery.md#phase9)를 완료했다. 3B의 정정 상태·형식 개선과 일반 요청 사주 삽입 회귀·반복 출력이 함께 확인돼 후보를 채택하지 않았다. 이 결과는 Phase 10 입력·응답 분리의 근거이며 학습·운영 권한은 그대로다.
 - [S4 후속 재점검](../../history/2026-09-16-phase9-s4-audit.md)은 파일 혼입·실패 재개·입력 추적·집계 경계를 보강했다. 같은 비교 조건의 구현 보완이며 Phase 9 실제 비교 완료나 운영 변경이 아니다.
+- [S5 완료 기록](../../history/2026-09-17-phase11-data-hypotheses.md#phase11)은 2K token/mask 전량 일치·공감 250행의 미연결 단일 턴·기존 dev 200행의 질문 중복을 확인했다. 7축 학습 가설·반증 조건·조건부 단일 학습 명세만 작성하고 400건은 보류한다. 모델 크기나 데이터를 단일 원인으로 확정하지 않으며 다음은 Phase 12다.
 - 분 단위 미래 절입은 승인되지 않았다.
 - Phase 6은 `AUTOMATED_REPAIR_REQUIRED`로 완료됐고 의미 품질은 `not_measured`다. 계약 밖 평가를 완료 조건으로 추가하지 않는다.
 - 소비된 sealed blind는 `spent_completed`이며 다시 열거나 재사용하지 않는다.
@@ -69,7 +70,7 @@ S3까지 438요청 + S4 실패 1요청 + 별도 승인된 v1.1 비교 192요청�
 | 20 | [`20-daily-range-runtime.md`](20-daily-range-runtime.md) | 완료 | 8,522일·263,717 window mismatch 0 |
 | 30 | [`30-period-dashboard.md`](30-period-dashboard.md) | 완료 | dashboard v1.12 자동 canary 통과 |
 | 40 | [`40-day-relation-runtime.md`](40-day-relation-runtime.md) | 완료 | relation 전수 Gate와 dashboard v1.13 자동 canary 통과 |
-| 50 | [`50-automatic-model-evaluation.md`](50-automatic-model-evaluation.md) | A/S0·S1·B1/S2·CPU 파생·B2/S3·C/S4 완료 | D/S5~S6 미실행; 후보 미채택·한계·다음 최소 범위 기록 |
+| 50 | [`50-automatic-model-evaluation.md`](50-automatic-model-evaluation.md) | A/S0·S1·B1/S2·CPU 파생·B2/S3·C/S4·D/S5 완료 | S6 미실행; 후보 미채택·400건 보류·조건부 명세 기록 |
 | 60 | [`60-mix20k-v3-1-build.md`](60-mix20k-v3-1-build.md) | 조건부 보류 | 50 결과로 데이터 변경 필요성을 확인한 뒤 별도 계약·승인 |
 | 70 | [`70-training-and-promotion.md`](70-training-and-promotion.md) | 조건부 보류 | 모델 크기·학습 방식·규모의 별도 결정과 명시 승인 |
 
@@ -87,6 +88,8 @@ S3까지 438요청 + S4 실패 1요청 + 별도 승인된 v1.1 비교 192요청�
 - 자동 계약으로 측정하지 않는 품질은 `not_measured`로 남기며 Phase blocker로 사용하지 않는다.
 
 ## 진행 기록
+
+- 2026-09-17 Phase 11 완료: [S5 기록](../../history/2026-09-17-phase11-data-hypotheses.md#phase11)에 2K·기존 dev 200·teacher/repair·token/loss 대조와 7축 가설을 연결했다. 원문 588행 중 실제 과제 M-0294·O-0175만 완료 근거를 추가했다. 다음은 Phase 12이며 생성·학습·운영 변경 0·잔여 49를 유지한다.
 
 - 2026-09-16 Phase 10 완료: [R16 제품 후보 기록](../../history/2026-09-16-phase10-product-candidate.md#phase10)에 직접 사실/생성 분리·정보/이력 선택·정정 새 연결·CPU 46개·합성 화면 16개를 연결했다. 새 모델 생성 0·잔여 49·운영 v1.14를 유지하며 다음은 Phase 11의 가설·조건부 명세다.
 

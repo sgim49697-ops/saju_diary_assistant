@@ -1,0 +1,152 @@
+{
+  "schema_version": "1.0.0",
+  "analysis_id": "system-context-s5-v1.0.0",
+  "status": "analysis_only_training_not_authorized",
+  "input_pins": {
+    "data_config": {
+      "path": "configs/data_versions/saju_1b_baseline/mix2k-v4-chart-day-8k-v1.0.1.json",
+      "sha256": "c8267ec438e1bebe46670553a846fa81db371d23c5004a3a3c2aeecafe440f1c",
+      "bytes": 4336
+    },
+    "data_manifest": {
+      "path": "data/derived/saju_1b_baseline/mix2k-v4-chart-day-8k/final/v1.0.1/build-54836f556b4f/build_manifest.json",
+      "sha256": "c088c96c26ebf49cf9368c28192994eddd533fbe6b88075d8f2804eb9f87078e",
+      "bytes": 3475
+    },
+    "training_rows": {
+      "path": "data/derived/saju_1b_baseline/mix2k-v4-chart-day-8k/final/v1.0.1/build-54836f556b4f/training/train_2000.jsonl",
+      "sha256": "a58904fa4968501f36be2e03e79d783ca6d4126164bd62fb859a924583e2293c",
+      "bytes": 12503196
+    },
+    "token_rows": {
+      "path": "data/derived/saju_1b_baseline/mix2k-v4-chart-day-8k/final/v1.0.1/build-54836f556b4f/reports/token_audit_2000.jsonl",
+      "sha256": "fa484c9169a233e06e30944a7f6ab59f0421d88ae76460d9e6b084f541a0621c",
+      "bytes": 717101
+    },
+    "token_summary": {
+      "path": "data/derived/saju_1b_baseline/mix2k-v4-chart-day-8k/final/v1.0.1/build-54836f556b4f/reports/token_audit_summary.json",
+      "sha256": "42b32dcf05434f4e8960d7638f6aac247814e3ce85de1c887c43c6cce4702a12",
+      "bytes": 7684
+    },
+    "spec_manifest": {
+      "path": "data/derived/saju_1b_baseline/mix2k-v4-chart-day-8k/specs/v1.0.1/build-da9014c5f24a/build_manifest.json",
+      "sha256": "d5ca75b6998b565f51a4fcd79fc1f9dd41f0366d91fda38b08cdf249d238ebf9",
+      "bytes": 2865
+    },
+    "specs": {
+      "path": "data/derived/saju_1b_baseline/mix2k-v4-chart-day-8k/specs/v1.0.1/build-da9014c5f24a/training/specs_2000.jsonl",
+      "sha256": "d6286e8a00a5ee9f1bfbc660ac92727ed6f5410ec0cb8dce2a95c1ada7f2168e",
+      "bytes": 28160023
+    },
+    "development": {
+      "path": "data/derived/saju_1b_baseline/mix2k-v4-chart-day-8k/specs/v1.0.1/build-da9014c5f24a/evaluation/dev_cases_200.jsonl",
+      "sha256": "7ff700be25c3eaa27401be89afb7eeda6bba4a9c27ef3451d7853a9fd8d8a629",
+      "bytes": 1982275
+    },
+    "candidates": {
+      "path": "data/derived/saju_1b_baseline/mix2k-v4-chart-day-8k/teachers/v1.0.1/full-build-da9014c5f24a-6e5149a5-117d55cb/accepted/training_candidates_2000.jsonl",
+      "sha256": "864e2dfa6ee914db08501b0b824054352fa2d3755f74f67887a810283f4f4937",
+      "bytes": 14055511
+    },
+    "teacher_manifest": {
+      "path": "data/derived/saju_1b_baseline/mix2k-v4-chart-day-8k/teachers/v1.0.1/full-build-da9014c5f24a-6e5149a5-117d55cb/teacher_manifest.json",
+      "sha256": "2ff4a818ecd1d7b13545ce0a2ad723021c1fd70a75e0f2f7a2e766da9cb1541d",
+      "bytes": 3407
+    },
+    "teacher_state": {
+      "path": "data/derived/saju_1b_baseline/mix2k-v4-chart-day-8k/teachers/v1.0.1/full-build-da9014c5f24a-6e5149a5-117d55cb/pipeline_state.json",
+      "sha256": "422ae570f4ea42bd742e5964f4a062db2cfcdb81137d1701ae2fbcd6e31b2eed",
+      "bytes": 13860593
+    },
+    "repair_config": {
+      "path": "configs/data_versions/saju_1b_baseline/mix2k-v4-reviewed-repair-v1.1.0.json",
+      "sha256": "83cc6c36bc79e54614cdd015602bae1c2082c0bb4434343182fcf8a37ef167ae",
+      "bytes": 4432
+    },
+    "training_config": {
+      "path": "configs/model_versions/saju_1b_baseline/mix2k-v4-lora-v1.0.1.json",
+      "sha256": "d7c5db056be927319617ac4b932acb9e37d9f9a2e6478598d20f2b7ce12fa728",
+      "bytes": 6122
+    },
+    "run_manifest": {
+      "path": "runs/K0-MIX2K-V4-LORA/v1.0.1/r16/train-f340a82c76d3/training_manifest.json",
+      "sha256": "9fed204fd1c7c2bedb8f3019a66acdf8fffaac4dcf3222c3d3b583848685c8eb",
+      "bytes": 2332
+    },
+    "run_state": {
+      "path": "runs/K0-MIX2K-V4-LORA/v1.0.1/r16/train-f340a82c76d3/training_state.json",
+      "sha256": "7a28a726a22ab5b8ee9f13e8f97971691139bfa73d8ce8a97dd60aaae633a690",
+      "bytes": 158
+    },
+    "adapter_config": {
+      "path": "runs/K0-MIX2K-V4-LORA/v1.0.1/r16/train-f340a82c76d3/trainer/final_adapter/adapter_config.json",
+      "sha256": "bf5524412f441e3f3ff6aeef56d205c1b8d66a27096cd32797dfce0e63477085",
+      "bytes": 1260
+    },
+    "adapter_weights": {
+      "path": "runs/K0-MIX2K-V4-LORA/v1.0.1/r16/train-f340a82c76d3/trainer/final_adapter/adapter_model.safetensors",
+      "sha256": "0ca0a3ba526370ab78fba55f5bd64e4744c172ca412c9cad4ef68797dbb029c5",
+      "bytes": 74770584
+    },
+    "s3": {
+      "path": "data/reports/saju_1b_baseline/system-context-s3/v1.0.0/build-ffd985905b51/aggregate.json",
+      "sha256": "46e83c1e1b787ad1a244b723f3982efa275d042fe04e4cc1ed6d2590368bf3a2",
+      "bytes": 60926
+    },
+    "s4": {
+      "path": "data/reports/saju_1b_baseline/system-context-s4/v1.1.0/build-1f851d69a91f/aggregate.json",
+      "sha256": "dcdf9e33e14d3b1f70b80f986afbc384cab09e722e675268a1d14ab593dfb45f",
+      "bytes": 189190
+    },
+    "candidate_canary": {
+      "path": "data/reports/saju_1b_baseline/dashboard-product-canary/v2.0.0/build-35dc83ce161d/aggregate.json",
+      "sha256": "fa305426a4c7e21addf04068dc8436c297e7582b66079f6d0c53c688ebb75891",
+      "bytes": 3384
+    },
+    "candidate_manifest": {
+      "path": "data/reports/saju_1b_baseline/dashboard-product-canary/v2.0.0/build-35dc83ce161d/build_manifest.json",
+      "sha256": "e27e58796dc3e9c2bee866a4cf4d15cc132d9617ee0fa15b2923b456fd4707d1",
+      "bytes": 4662
+    },
+    "tokenizer_tokenizer.json": {
+      "path": "models/saju_1b_baseline/kanana-2-1.3b-instruct/bf4786aa2a1908adce942d53976270132732f720/tokenizer.json",
+      "sha256": "1c4be9ecf77c926456fb82d4cf07ff1218a91907f3408f44895d2b01e0f2b5ab",
+      "bytes": 10057457
+    },
+    "tokenizer_tokenizer_config.json": {
+      "path": "models/saju_1b_baseline/kanana-2-1.3b-instruct/bf4786aa2a1908adce942d53976270132732f720/tokenizer_config.json",
+      "sha256": "1cdee8fcd4f6209e07e6d9966c8a3ff2d738830d79475193e94e448e153ae2d5",
+      "bytes": 50155
+    },
+    "tokenizer_chat_template.jinja": {
+      "path": "models/saju_1b_baseline/kanana-2-1.3b-instruct/bf4786aa2a1908adce942d53976270132732f720/chat_template.jinja",
+      "sha256": "b8ee6b31575eada17ebbe73d3f1ac65d3efde64f0a25ff922031dec7e1cae3e3",
+      "bytes": 10725
+    },
+    "tokenizer_config.json": {
+      "path": "models/saju_1b_baseline/kanana-2-1.3b-instruct/bf4786aa2a1908adce942d53976270132732f720/config.json",
+      "sha256": "fe14b20b4b616d62ca0682312c2fcd2b90d9a836d14a1ff6448db3f533fd15a1",
+      "bytes": 2019
+    }
+  },
+  "external_repair_state": {
+    "target_id": "repair-23340fc31022",
+    "filename": "pipeline_state.json",
+    "sha256": "caca7a3bd47b9b23c6e985ccae37c4a8884ba08e7c77ff899e9d5d45f4309436"
+  },
+  "expected_rows": 2000,
+  "expected_development_rows": 200,
+  "governance": {
+    "cpu_only": true,
+    "new_model_generations": 0,
+    "teacher_calls": 0,
+    "training_performed": false,
+    "data_changed": false,
+    "service_changed": false,
+    "production_promotion_allowed": false,
+    "runtime_release_changed": false,
+    "sealed_blind_accessed": false,
+    "phase12_executed": false,
+    "confirmation_24_created": false
+  }
+}
