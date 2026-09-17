@@ -1,0 +1,135 @@
+{
+  "build_id": "build-35dc83ce161d",
+  "candidate_adopted_for_production": false,
+  "candidate_engine": "lora_r16",
+  "candidate_selected_for_cpu_implementation": true,
+  "cpu_policy_response_kind_counts": {
+    "blocked": 3,
+    "clarification": 3,
+    "direct_fact": 3,
+    "model_generated": 9
+  },
+  "dashboard_version": "1.19.0",
+  "governance": {
+    "cpu_only": true,
+    "fake_generation_used": true,
+    "new_model_generations": 0,
+    "phase12_executed": false,
+    "production_promotion_allowed": false,
+    "production_service_accessed": false,
+    "raw_outputs_published": false,
+    "real_cli_nonmodel_executed": true,
+    "runtime_release_changed": false,
+    "sealed_blind_accessed": false,
+    "service_changed": false,
+    "synthetic_only": true,
+    "training_performed": false
+  },
+  "policy_case_count": 18,
+  "policy_cases": [
+    {
+      "case_id": "fact-master",
+      "response_kind": "direct_fact",
+      "response_mode": "fact_lookup"
+    },
+    {
+      "case_id": "fact-pillar",
+      "response_kind": "direct_fact",
+      "response_mode": "fact_lookup"
+    },
+    {
+      "case_id": "fact-date",
+      "response_kind": "direct_fact",
+      "response_mode": "fact_lookup"
+    },
+    {
+      "case_id": "general",
+      "response_kind": "model_generated",
+      "response_mode": "general"
+    },
+    {
+      "case_id": "chart",
+      "response_kind": "model_generated",
+      "response_mode": "chart_explanation"
+    },
+    {
+      "case_id": "day",
+      "response_kind": "model_generated",
+      "response_mode": "day_explanation"
+    },
+    {
+      "case_id": "mixed",
+      "response_kind": "model_generated",
+      "response_mode": "general"
+    },
+    {
+      "case_id": "ambiguous",
+      "response_kind": "clarification",
+      "response_mode": "confirmation"
+    },
+    {
+      "case_id": "unknown",
+      "response_kind": "clarification",
+      "response_mode": "confirmation"
+    },
+    {
+      "case_id": "intake",
+      "response_kind": "clarification",
+      "response_mode": "confirmation"
+    },
+    {
+      "case_id": "range",
+      "response_kind": "blocked",
+      "response_mode": "unsupported"
+    },
+    {
+      "case_id": "unsupported",
+      "response_kind": "blocked",
+      "response_mode": "unsupported"
+    },
+    {
+      "case_id": "music-not-pillar",
+      "response_kind": "model_generated",
+      "response_mode": "general"
+    },
+    {
+      "case_id": "newspaper-not-master",
+      "response_kind": "model_generated",
+      "response_mode": "general"
+    },
+    {
+      "case_id": "unsupported-strong",
+      "response_kind": "blocked",
+      "response_mode": "unsupported"
+    },
+    {
+      "case_id": "concept-not-calculation",
+      "response_kind": "model_generated",
+      "response_mode": "general"
+    },
+    {
+      "case_id": "day-reference",
+      "response_kind": "model_generated",
+      "response_mode": "day_explanation"
+    },
+    {
+      "case_id": "new-general-task",
+      "response_kind": "model_generated",
+      "response_mode": "general"
+    }
+  ],
+  "quality_dimensions": {
+    "naturalness": "not_measured",
+    "semantics": "not_measured"
+  },
+  "request_budget": {
+    "actual_model_requests_added": 0,
+    "current_total": 631,
+    "previous_total": 631,
+    "remaining": 49
+  },
+  "schema_version": "1.0.0",
+  "status": "passed",
+  "synthetic_browser_cases_passed": 32,
+  "tests_passed": 56
+}

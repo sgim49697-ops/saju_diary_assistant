@@ -25,7 +25,7 @@ v1.16의 CPU 25개 통과는 보존한다. 2026-09-15 분리 함수 재현에서
 | 최신 S3 지시문 진단 | 구현 `2d951b4`, `build-ffd985905b51` | 96요청·86생성·10차단 검증 완료, P1 미채택·검사 한계 분리 |
 | S4 첫 실행 중단 | `7e7819e`, `build-296dffd1ef51` | 모델 수집·dry-run 완료; 첫 K0 요청의 저장 계약 오류·정상 응답 0 |
 | 최신 S4 비교 | 수정 `82a67af`, `build-1f851d69a91f` | v1.1 192요청·172생성·20차단 검증 완료, 후보 미채택·실패 1건 별도 보존 |
-| 최신 앱 후보 | v1.18 R16, CPU canary `build-f13715ee1d91` | 46개 CPU·16개 합성 화면 통과, 실제 모델 생성 0·운영 미배포 |
+| 최신 앱 후보 | v1.19 R16, CPU canary `build-35dc83ce161d` | 56개 CPU·32개 합성 화면 통과, 실제 모델 생성 0·운영 미배포 |
 | 보존 의도 후보 | v1.17, CPU canary `build-49b9aed70565` | 45개 CPU·6개 합성 브라우저 재검증, 동결 부모 보존 |
 | 보존 앱 후보 | v1.16, CPU canary `build-641ac655f656` | 당시 25개 CPU 통과 이력, 새 오차단 회귀는 v1.17에서 별도 검증 |
 | 현재 작업 위치 | 원본 프로젝트 폴더의 `master` | `f34f856`·`56b0ecb`·작업 규칙 `f9173e5`까지 통합, 새 작업 브랜치 없음 |
@@ -49,7 +49,7 @@ v1.16의 CPU 25개 통과는 보존한다. 2026-09-15 분리 함수 재현에서
 | 단일 일진 | v1.5, 2026-09-02~2049-12-31 | KST 정오 기준 공식 날짜 label, conformance v10 8,522/8,522 |
 | 기간 범위 | 일별 label release, conformance v11 263,717 window | 1~31일 범위 구현·검증 완료, 미래 분 단위 절입 승인 아님 |
 | 단일 날짜 관계 | relation v1 release·전수 검사 완료 | 십신·직접 관계 존재만, 길흉·범위 관계 해석 승인 아님 |
-| 앱 후보 | v1.12~v1.17 부모 보존, v1.18 제품 CPU canary 완료 | 기본 포트 8770·별도 세션·기능 기본 off, 현재 서비스는 v1.14 |
+| 앱 후보 | v1.12~v1.18 부모 보존, v1.19 제품 CPU canary 완료 | 기본 포트 8771·별도 세션·기능 기본 off, 현재 서비스는 v1.14 |
 | strict/full | 미래 물리 절입·미승인 범위·대운 등 차단 | 기존 제한 release와 별개로 false 유지 |
 
 기간 release는 `saju-period-daily-label-release-v1.0.0-59e326f8f086`, 관계 release는 `saju-natal-day-relation-release-v1.0.0-554bb9bfaea9`다. 계산 권위는 [Runtime 정본](../saju_runtime_calculator_adoption.md)과 각 불변 registry를 따른다.
@@ -80,7 +80,7 @@ v1.16의 CPU 25개 통과는 보존한다. 2026-09-15 분리 함수 재현에서
   verify
 ```
 
-최신 후보 검증은 [v1.18 CPU 완료 기록](../../history/2026-09-16-phase10-product-candidate.md#phase10)을 따른다. [v1.17](../../history/2026-09-16-phase8-intent-s3.md#phase8a)도 같은 source hash로 재검증했다. [v1.16](../../history/2026-09-15-dashboard-v116-intent.md)·[v1.15](../../history/2026-09-05-dashboard-v115-grounding.md)·[20문장](../../history/2026-09-05-dashboard-prompt20.md)은 부모 이력으로 보존한다. private artifact가 없는 격리 환경에서 생기는 전체 회귀 오류를 성공으로 기록하지 않는다.
+최신 후보 검증은 [v1.19 버그 보완 기록](../../history/2026-09-17-phase10-product-fixes.md#phase10-fixes)을 따른다. [v1.17](../../history/2026-09-16-phase8-intent-s3.md#phase8a)도 같은 source hash로 재검증했다. [v1.16](../../history/2026-09-15-dashboard-v116-intent.md)·[v1.15](../../history/2026-09-05-dashboard-v115-grounding.md)·[20문장](../../history/2026-09-05-dashboard-prompt20.md)은 부모 이력으로 보존한다. private artifact가 없는 격리 환경에서 생기는 전체 회귀 오류를 성공으로 기록하지 않는다.
 
 2026-09-14 병합 후 841건의 실패 5·오류 17은 2026-09-15 `455fd9e`에서 복구했다. 과거 승인 source pin은 유지하고 기능 fixture·시계 주입을 분리했으며 당시 전체 846건을 통과했다. 이어 [전체 경로 진단](../saju_system_context_diagnosis.md)의 S0/S1과 S2 runner를 구현·실행했다. S2 342요청·재구성 검증을 완료했고 실행 후 `.venv/bin/python -B -m unittest discover -s tests -q -b` 879건 전부 통과·건너뜀 0이다. 테스트 통과가 새로 확인한 검사 문법 결함의 부재를 뜻하지 않으며 세부 검증·한계는 연결된 계획의 진행 기록을 따른다.
 

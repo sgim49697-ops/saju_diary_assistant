@@ -36,9 +36,9 @@
 
 ## 현재 위치와 다음 방향
 
-Runtime 10~40 구현과 R8·R16·R32 학습은 완료됐다. dashboard v1.14가 운영 중이며 v1.17 오차단 후보를 보존하고 최신 v1.18 R16 제품 후보의 CPU·합성 화면 검증을 완료했다. 운영 미배포 상태다. S0/S1·S2와 파생 CPU 재집계를 보존하고 [Phase 8](implementation/plans/saju_product_roadmap/phases/phase-08.md)의 앱 후보·S3 96요청, [Phase 9](implementation/plans/saju_product_roadmap/phases/phase-09.md)의 K0·3B/P0/FULL·MIN 192요청을 완료했다. S3/S4 후보는 미채택이다. [Phase 10](implementation/plans/saju_product_roadmap/phases/phase-10.md)의 최소 제품 흐름 구현을 마쳤으며 다음은 Phase 11의 학습 가설·조건부 명세다. 실제 모델 품질 확인·운영 전환은 남아 있다. 원본 프로젝트 폴더의 `master`에서 후속 작업을 진행하며 구현 상세나 실행 명령을 이 문서에 중복 정의하지 않는다.
+Runtime 10~40 구현과 R8·R16·R32 학습은 완료됐다. dashboard v1.14가 운영 중이며 v1.17 오차단 후보를 보존하고 v1.18 부모와 최신 v1.19 R16 버그 보완 후보의 CPU·합성 화면 검증을 완료했다. 운영 미배포 상태다. S0/S1·S2와 파생 CPU 재집계를 보존하고 [Phase 8](implementation/plans/saju_product_roadmap/phases/phase-08.md)의 앱 후보·S3 96요청, [Phase 9](implementation/plans/saju_product_roadmap/phases/phase-09.md)의 K0·3B/P0/FULL·MIN 192요청을 완료했다. S3/S4 후보는 미채택이다. [Phase 10](implementation/plans/saju_product_roadmap/phases/phase-10.md)의 최소 제품 흐름 구현을 마쳤으며 다음은 Phase 11의 학습 가설·조건부 명세다. 실제 모델 품질 확인·운영 전환은 남아 있다. 원본 프로젝트 폴더의 `master`에서 후속 작업을 진행하며 구현 상세나 실행 명령을 이 문서에 중복 정의하지 않는다.
 
-[Phase 10](implementation/plans/saju_product_roadmap/phases/phase-10.md)의 v1.18 후보는 서버의 원국 연결 상태와 현재 응답 모드를 분리했다. 일반 대화로 전환해도 연결은 유지하고, 출생정보 정정은 새 계산·명시적 연결과 revision 안내를 거친다. 과거 답변·옛 snapshot이 현재 사실을 덮어쓰지 않게 하며 새 router·장기 기억을 필수 의존성으로 추가하지 않는다.
+[Phase 10](implementation/plans/saju_product_roadmap/phases/phase-10.md)의 v1.19 후보는 서버의 원국 연결 상태와 현재 응답 모드를 분리했다. 일반 대화로 전환해도 연결은 유지하고, 출생정보 정정은 새 계산·명시적 연결과 revision 안내를 거친다. 과거 답변·옛 snapshot이 현재 사실을 덮어쓰지 않게 하며 새 router·장기 기억을 필수 의존성으로 추가하지 않는다.
 
 [02 Runtime·앱 요약](02_SAJU_RUNTIME_PERIOD_DASHBOARD_PLAN.md)과 [03 모델·데이터 요약](03_SAJU_MODEL_EVALUATION_AND_DATA_PLAN.md)은 탐색 입구다. 데이터 생성·학습·서비스 전환은 진단 뒤 별도 결정이며 자동 진행하지 않는다.
 

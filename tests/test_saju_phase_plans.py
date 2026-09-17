@@ -296,7 +296,7 @@ class SajuPhasePlansTests(unittest.TestCase):
                     self.assertIn("1오류·191미실행·정상 응답 0", text)
                     self.assertIn("2026-09-16-phase9-s4-execution.md#blocked-run", text)
                 elif phase == 10:
-                    self.assertIn("상태: **완료 — R16 단독 v1.18 최소 제품 후보 구현·CPU/합성 화면 검증**", text)
+                    self.assertIn("상태: **완료 — R16 단독 v1.19 버그 보완·CPU/합성 화면 검증**", text)
                     self.assertIn("build-f13715ee1d91", text)
                     self.assertIn("2026-09-16-phase10-product-candidate.md#phase10", text)
                 elif 11 <= phase <= 12:
@@ -463,6 +463,28 @@ class SajuPhasePlansTests(unittest.TestCase):
             self.assertEqual(hashlib.sha256((REPO_ROOT / path).read_bytes()).hexdigest(), expected, path)
         for path, expected in manifest["identity"]["parent_manifest_sha256"].items():
             self.assertEqual(hashlib.sha256((REPO_ROOT / path).read_bytes()).hexdigest(), expected, path)
+
+    def test_phase10_bugfix_keeps_parent_and_new_cpu_evidence(self) -> None:
+        root = REPO_ROOT / "data/reports/saju_1b_baseline/dashboard-product-canary/v2.0.0/build-35dc83ce161d"
+        summary = json.loads((root / "aggregate.json").read_bytes())
+        manifest = json.loads((root / "build_manifest.json").read_bytes())
+        verification = json.loads((root / "verification.json").read_bytes())
+        self.assertEqual((summary["tests_passed"], summary["synthetic_browser_cases_passed"], summary["policy_case_count"]), (56, 32, 18))
+        self.assertEqual(summary["request_budget"]["actual_model_requests_added"], 0)
+        self.assertEqual(summary["quality_dimensions"], {"naturalness": "not_measured", "semantics": "not_measured"})
+        self.assertFalse(summary["candidate_adopted_for_production"])
+        self.assertIn("data/reports/saju_1b_baseline/dashboard-product-canary/v1.0.0/build-f13715ee1d91/build_manifest.json", manifest["identity"]["parent_manifest_sha256"])
+        for group in ("source_sha256", "parent_manifest_sha256"):
+            for path, expected in manifest["identity"][group].items():
+                self.assertEqual(hashlib.sha256((REPO_ROOT / path).read_bytes()).hexdigest(), expected, path)
+        self.assertEqual(verification["status"], "verified")
+        self.assertEqual(verification["aggregate_file_sha256"], hashlib.sha256((root / "aggregate.json").read_bytes()).hexdigest())
+        self.assertEqual(verification["manifest_file_sha256"], hashlib.sha256((root / "build_manifest.json").read_bytes()).hexdigest())
+        for flag in ("training_performed", "sealed_blind_accessed", "service_changed", "runtime_release_changed", "production_promotion_allowed", "phase12_executed"):
+            self.assertIs(summary["governance"][flag], False)
+        phase = (ROADMAP / "phases/phase-10.md").read_text()
+        self.assertIn("2026-09-17-phase10-product-fixes.md#phase10-fixes", phase)
+        self.assertIn("build-35dc83ce161d", phase)
 
     def test_active_collection_recurses_and_keeps_archive_policy_separate(self) -> None:
         real_active = set(active_roadmap_documents())

@@ -1,0 +1,69 @@
+{
+  "aggregate_sha256": "c889ff858d77d32e253adf31ac29da756d69f595d352ee94a353b54ccb57e1d3",
+  "build_id": "build-35dc83ce161d",
+  "governance": {
+    "cpu_only": true,
+    "fake_generation_used": true,
+    "new_model_generations": 0,
+    "phase12_executed": false,
+    "production_promotion_allowed": false,
+    "production_service_accessed": false,
+    "raw_outputs_published": false,
+    "real_cli_nonmodel_executed": true,
+    "runtime_release_changed": false,
+    "sealed_blind_accessed": false,
+    "service_changed": false,
+    "synthetic_only": true,
+    "training_performed": false
+  },
+  "identity": {
+    "browser": {
+      "chromium_sha256": "2d18db9d8608b052b6a552ee00ec1e830f93692e928b65ecc67d693bd33fe801",
+      "playwright_package_sha256": "7cc410b3783bad3241ad0fa44aef6f2ff254c87f80e7b4963b1c94c1b994d095"
+    },
+    "canary_id": "dashboard-product-cpu-v2.0.0",
+    "candidate_engine": "lora_r16",
+    "dashboard_version": "1.19.0",
+    "parent_manifest_sha256": {
+      "data/reports/saju_1b_baseline/dashboard-intent-canary/v2.0.0/build-49b9aed70565/build_manifest.json": "69ec9feeee97e597d5cd4ce1bfd5887b41ecf2b04b34ee4de5f19eda90346223",
+      "data/reports/saju_1b_baseline/dashboard-product-canary/v1.0.0/build-f13715ee1d91/build_manifest.json": "8d7a0fae54c9af5cd4d9dc55a20364abf11d14797b3b4a83ff899c374223dbe3",
+      "data/reports/saju_1b_baseline/system-context-s3/v1.0.0/build-ffd985905b51/build_manifest.json": "c1e83a8423da5e74a5f9c0eed5de0b7eeca6c851fde7893f4eca3d0122c8e5a0",
+      "data/reports/saju_1b_baseline/system-context-s4/v1.1.0/build-1f851d69a91f/build_manifest.json": "61122bd326762fb9acb98389ac3fab0876bef5dcbf300612c0f3e218a9a2e29a"
+    },
+    "policy_cases_sha256": "51a47c95a7ee588292410968783c6dabaea25c299e2caff2e1090d21fccf29d7",
+    "python": [
+      3,
+      10,
+      12
+    ],
+    "response_policy_version": "saju-product-response-v1.1.0",
+    "source_sha256": {
+      "configs/chat_prompts/saju_product_v1.txt": "4aec979f7d5114eb494052a6ee2173be87d165fe0410b53d224df8f574fa03e4",
+      "configs/model_versions/saju_1b_baseline/phase5-dashboard-v1.19.0-product-candidate.json": "b425edfd3f9bb37188a580859a29dc6e473ec9884d88bb7663f29f5145b0a13c",
+      "scripts/evaluation/dashboard_product_canary_v2.py": "35f1c82c7fb4c3e8010c34c0e67f7f57d496fe0b096d494c6519b7fa6052c78e",
+      "scripts/evaluation/dashboard_product_ui_canary_v2.cjs": "bcc94ee9f7379cb9317c2a5cfd18571810a4d3c4cab33a394396e486d58e8f76",
+      "scripts/runtime/chart_day_adapter.py": "71ac66ecdad93f377db58ed877c57defb1837a920a05be2db0e8d7dd9d6d3f3b",
+      "scripts/runtime/chart_day_dashboard_binding.py": "401d57c27b9dab112bee717ddfd58e5d033918cfbb2f56b859639ef702a8b5cb",
+      "scripts/runtime/chart_only_security.py": "3ef5a5047b3067d6395ae8da5f2375ea75e41bbd41e6062eda332d08c604d7ee",
+      "scripts/runtime/product_dashboard_binding_v1.py": "5e41f6e05690034e3199f21ef3cabcf7c69ebbf5a074f8219933e14c4fadf189",
+      "scripts/training/dashboard_grounding_v4.py": "3beec6344e69b6e3fec4650c2814427cd34e35891af6ba7f4e344566868876bb",
+      "scripts/training/dashboard_product_policy_v2.py": "25a2b5339781fa2ab80afc86a9e5b651bd60c3ca75aed67a1c5fecb3964f06b3",
+      "scripts/training/dashboard_product_session_v2.py": "7bacd33bcd56161eee5ab9af595bcdb1f095940a0be7891a00a4c7706ea7fa2d",
+      "scripts/training/dashboard_tokenizer_v1.py": "df57b44fa1cf4429258ba219c7cf2613edb1bce88ba31868636d34b9a18107be",
+      "scripts/training/phase5_dashboard_assets/v1.19.0/dashboard.css": "bd9ddb6274dc1b7c21363a29855424f5c080948388d5b071d8b75bb41ef103e3",
+      "scripts/training/phase5_dashboard_assets/v1.19.0/dashboard.js": "5943e9fb01e50d4da9a2c094f7ec7030947524c3d2511a025f6cd5d8b2622be6",
+      "scripts/training/phase5_dashboard_assets/v1.19.0/index.html": "0d58f191d01ff2e3ddf9fdb9892e35c52889c62e3d00f087adbce751614263c6",
+      "scripts/training/phase5_dashboard_assets/v1.19.0/prompt-examples.json": "568e0535d112edadbb31f6f2b66f0870ebaa47ab7a2ca20f0224bd48d3fde009",
+      "scripts/training/phase5_dashboard_v1_19.py": "3136e34cc1de9ef26dc64495a344a672082aec62425e4bddfbc898c76cd08361",
+      "tests/test_dashboard_product_canary_v2.py": "98623cf4ff5245121947d4465eeecba40a7d75e7a5c9b5907f072ab655fd1434",
+      "tests/test_dashboard_product_http_v2.py": "6bee8af0fa4566b3b1e4c559bbd7a898771d5d4caf3768a0229d7290ef502fcd",
+      "tests/test_dashboard_product_v2.py": "262cde4fba6d72dc2f9463b8e69542eac2ba804754ec3e40b4350f6416845d4b"
+    },
+    "test_modules": [
+      "tests.test_dashboard_product_v2",
+      "tests.test_dashboard_product_http_v2",
+      "tests.test_dashboard_product_canary_v2"
+    ]
+  },
+  "schema_version": "1.0.0"
+}
